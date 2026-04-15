@@ -204,6 +204,7 @@ class Спортсмен(db.Model):
     номер_в_базе            = db.Column(db.Integer, nullable=True)   # уникальный ID в базе спортсменов
     команда_id              = db.Column(db.Integer, db.ForeignKey('команды.id'),   nullable=False)
     субъект_id              = db.Column(db.Integer, db.ForeignKey('субъекты.id'),  nullable=True)
+    номер_в_экипаже         = db.Column(db.Integer, nullable=True)   # позиция в экипаже 1–7
 
     фамилия_имя_отчество    = db.Column(db.String(200), nullable=False)
     дата_рождения           = db.Column(db.Date,        nullable=True)
@@ -514,6 +515,13 @@ def применить_миграции():
         if 'класс_судна' not in cols:
             conn.execute(text(
                 "ALTER TABLE команды ADD COLUMN класс_судна VARCHAR(5) NOT NULL DEFAULT 'R4'"
+            ))
+            conn.commit()
+        # спортсмены: номер_в_экипаже
+        cols = {c['name'] for c in inspector.get_columns('спортсмены')}
+        if 'номер_в_экипаже' not in cols:
+            conn.execute(text(
+                'ALTER TABLE спортсмены ADD COLUMN номер_в_экипаже INTEGER'
             ))
             conn.commit()
 
