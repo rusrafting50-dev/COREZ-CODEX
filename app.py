@@ -1,7 +1,7 @@
 # app.py — главный Flask-сервер системы учёта соревнований по рафтингу
 import os
 from flask import Flask, redirect, url_for
-from models import db, заполнить_таблицу_очков
+from models import db, заполнить_таблицу_очков, применить_миграции
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -26,6 +26,7 @@ def create_app() -> Flask:
 
     with app.app_context():
         db.create_all()
+        применить_миграции()
         заполнить_таблицу_очков()
 
     # ------------------------------------------------------------------

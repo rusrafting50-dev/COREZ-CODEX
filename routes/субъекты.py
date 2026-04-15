@@ -1,6 +1,6 @@
 # routes/субъекты.py — CRUD субъектов РФ (делегаций)
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Субъект, Соревнование
+from models import db, Субъект, Соревнование, СУБЪЕКТЫ_РФ
 
 bp_субъекты = Blueprint('субъекты', __name__)
 
@@ -24,12 +24,21 @@ def добавить(sor_id):
             номер_делегации  = _int_or_none(request.form.get('номер_делегации')),
             название         = request.form['название'].strip(),
             код_субъекта_рф  = _int_or_none(request.form.get('код_субъекта_рф')),
+            представитель    = request.form.get('представитель', '').strip() or None,
         )
         db.session.add(субъект)
         db.session.commit()
         flash('Субъект добавлен.', 'success')
         return redirect(url_for('субъекты.список', sor_id=sor_id))
-    return render_template('субъекты/форма.html', сор=сор, субъект=None)
+    # Подсказка: следующий номер делегации
+    последний = (Субъект.query
+                 .filter_by(соревнование_id=sor_id)
+                 .order_by(Субъект.номер_делегации.desc())
+                 .first())
+    следующий_номер = (последний.номер_делегации or 0) + 1 if последний else 1
+    return render_template('субъекты/форма.html', сор=сор, субъект=None,
+                           следующий_номер=следующий_номер,
+                           субъекты_рф=СУБЪЕКТЫ_РФ)
 
 
 @bp_субъекты.route('/<int:sor_id>/<int:id>/редактировать', methods=['GET', 'POST'])
@@ -40,10 +49,13 @@ def редактировать(sor_id, id):
         субъект.номер_делегации = _int_or_none(request.form.get('номер_делегации'))
         субъект.название        = request.form['название'].strip()
         субъект.код_субъекта_рф = _int_or_none(request.form.get('код_субъекта_рф'))
+        субъект.представитель   = request.form.get('представитель', '').strip() or None
         db.session.commit()
         flash('Данные сохранены.', 'success')
         return redirect(url_for('субъекты.список', sor_id=sor_id))
-    return render_template('субъекты/форма.html', сор=сор, субъект=субъект)
+    return render_template('субъекты/форма.html', сор=сор, субъект=субъект,
+                           следующий_номер=None,
+                           субъекты_рф=СУБЪЕКТЫ_РФ)
 
 
 @bp_субъекты.route('/<int:sor_id>/<int:id>/удалить', methods=['POST'])

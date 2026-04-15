@@ -1,51 +1,90 @@
 {% extends 'base.html' %}
-{% block title %}Субъекты РФ — {{ сор.название }}{% endblock %}
+{% block title %}Субъекты РФ — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb" class="mb-3 no-print">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
     <li class="breadcrumb-item active">Субъекты РФ</li>
   </ol>
 </nav>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h5>Субъекты РФ (делегации)</h5>
+  <div>
+    <h5 class="mb-0">Субъекты РФ (делегации)</h5>
+    <div class="text-muted small">{{ сор.название | truncate(60) }}</div>
+  </div>
   <a href="{{ url_for('субъекты.добавить', sor_id=сор.id) }}"
-     class="btn btn-primary btn-sm no-print">+ Добавить</a>
+     class="btn btn-primary btn-sm no-print">+ Добавить субъект</a>
 </div>
 
 {% if субъекты %}
-<table class="table table-sm table-hover">
-  <thead class="table-light">
-    <tr>
-      <th>№ дел.</th>
-      <th>Субъект РФ</th>
-      <th>Код субъекта</th>
-      <th class="no-print">Действия</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for с in субъекты %}
-    <tr>
-      <td>{{ с.номер_делегации or '—' }}</td>
-      <td>{{ с.название }}</td>
-      <td>{{ с.код_субъекта_рф or '—' }}</td>
-      <td class="no-print">
-        <a href="{{ url_for('субъекты.редактировать', sor_id=сор.id, id=с.id) }}"
-           class="btn btn-sm btn-outline-secondary">Изм.</a>
-        <form action="{{ url_for('субъекты.удалить', sor_id=сор.id, id=с.id) }}"
-              method="post" class="d-inline"
-              onsubmit="return confirm('Удалить субъект и все связанные команды?')">
-          <button class="btn btn-sm btn-outline-danger">Удал.</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th style="width:60px">№ дел.</th>
+        <th>Субъект РФ</th>
+        <th style="width:90px" class="text-center">Код</th>
+        <th>Представитель делегации</th>
+        <th style="width:80px" class="text-center">Экипажей</th>
+        <th class="no-print" style="width:110px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for с in субъекты %}
+      <tr>
+        <td class="text-center fw-bold text-muted">{{ с.номер_делегации or '—' }}</td>
+        <td class="fw-semibold">{{ с.название }}</td>
+        <td class="text-center">
+          {% if с.код_субъекта_рф %}
+          <span class="badge bg-secondary">{{ с.код_субъекта_рф }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-muted small">{{ с.представитель or '—' }}</td>
+        <td class="text-center">
+          {% set n = с.команды | length %}
+          {% if n %}
+          <a href="{{ url_for('команды.список', sor_id=сор.id) }}"
+             class="badge bg-primary text-decoration-none">{{ n }}</a>
+          {% else %}
+          <span class="text-muted">0</span>
+          {% endif %}
+        </td>
+        <td class="no-print">
+          <a href="{{ url_for('субъекты.редактировать', sor_id=сор.id, id=с.id) }}"
+             class="btn btn-sm btn-outline-secondary py-0 px-2">Изм.</a>
+          <form action="{{ url_for('субъекты.удалить', sor_id=сор.id, id=с.id) }}"
+                method="post" class="d-inline"
+                onsubmit="return confirm('Удалить субъект и все связанные команды?')">
+            <button class="btn btn-sm btn-outline-danger py-0 px-2">Удал.</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="4" class="text-muted small ps-2">Итого субъектов: {{ субъекты | length }}</td>
+        <td class="text-center fw-bold">
+          {{ субъекты | sum(attribute='команды') | map(attribute='__len__') | list | sum }}
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 {% else %}
-<div class="alert alert-info">Нет субъектов. Нажмите «+ Добавить».</div>
+<div class="text-center py-5">
+  <div class="display-4 text-muted mb-3">🏛️</div>
+  <h6 class="text-muted">Нет ни одной делегации</h6>
+  <p class="text-muted small">Добавьте субъекты РФ, участвующие в соревновании.</p>
+  <a href="{{ url_for('субъекты.добавить', sor_id=сор.id) }}" class="btn btn-primary">
+    + Добавить первый субъект
+  </a>
+</div>
 {% endif %}
 {% endblock %}
