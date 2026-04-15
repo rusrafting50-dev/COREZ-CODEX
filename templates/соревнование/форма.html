@@ -16,135 +16,272 @@
   </ol>
 </nav>
 
-<h4>{{ 'Новое соревнование' if not сор else 'Редактировать соревнование' }}</h4>
+<div class="d-flex align-items-center mb-3">
+  <h4 class="mb-0">{{ 'Новое соревнование' if not сор else 'Редактирование соревнования' }}</h4>
+</div>
 
-<form method="post" class="mt-3">
+<form method="post" id="formSor">
 
-  <h6 class="text-muted mt-4 mb-2">Общие сведения</h6>
-  <div class="mb-3">
-    <label class="form-label">Организаторы</label>
-    <textarea name="организаторы" class="form-control" rows="2">{{ сор.организаторы if сор else '' }}</textarea>
-  </div>
-  <div class="mb-3">
-    <label class="form-label fw-semibold">Название соревнований <span class="text-danger">*</span></label>
-    <input type="text" name="название" class="form-control" required
-           value="{{ сор.название if сор else '' }}">
-  </div>
-  <div class="row g-3">
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Даты проведения</label>
-      <input type="text" name="даты_проведения" class="form-control"
-             placeholder="16 - 22 сентября 2025 года"
-             value="{{ сор.даты_проведения if сор else '' }}">
-    </div>
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Место проведения</label>
-      <input type="text" name="место_проведения" class="form-control"
-             value="{{ сор.место_проведения if сор else '' }}">
-    </div>
-  </div>
+  {# ── БЛОК 1: Основные сведения ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold bg-primary text-white py-2">Основные сведения</div>
+    <div class="card-body">
 
-  <h6 class="text-muted mt-4 mb-2">Статус и класс</h6>
-  <div class="row g-3">
-    <div class="col-md-3 mb-3">
-      <label class="form-label">Класс судна</label>
-      <select name="класс_судна" class="form-select">
-        {% for cls in ['R4', 'R6'] %}
-        <option value="{{ cls }}" {{ 'selected' if (сор and сор.класс_судна == cls) or (not сор and cls == 'R4') }}>
-          {{ cls }}
-        </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-3 mb-3">
-      <label class="form-label">Статус</label>
-      <select name="статус" class="form-select">
-        {% for st in ['', 'Чемпионат', 'Кубок', 'Первенство', 'Всероссийские соревнования', 'Соревнования'] %}
-        <option value="{{ st }}" {{ 'selected' if сор and сор.статус == st }}>{{ st or '—' }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-3 mb-3">
-      <label class="form-label">Уровень</label>
-      <select name="уровень" class="form-select">
-        {% for lv in ['', 'России', 'Федерального округа', 'Субъекта РФ', 'Муниципальный'] %}
-        <option value="{{ lv }}" {{ 'selected' if сор and сор.уровень == lv }}>{{ lv or '—' }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-3 mb-3">
-      <label class="form-label">Код соревнований</label>
-      <input type="text" name="код_соревнований" class="form-control"
-             placeholder="ЧР, КР, ВС…"
-             value="{{ сор.код_соревнований if сор else '' }}">
-    </div>
-  </div>
-  <div class="row g-3">
-    <div class="col-md-6 mb-3">
-      <label class="form-label">Возрастная группа</label>
-      <input type="text" name="возрастная_группа" class="form-control"
-             placeholder="15 лет и старше"
-             value="{{ сор.возрастная_группа if сор else '' }}">
-    </div>
-    <div class="col-md-3 mb-3">
-      <label class="form-label">Код субъекта РФ (организатора)</label>
-      <input type="number" name="код_субъекта_рф" class="form-control"
-             value="{{ сор.код_субъекта_рф if сор else '' }}">
-    </div>
-  </div>
+      <div class="row g-3 mb-3">
+        {# Статус — главный выбор #}
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">
+            Статус соревнований <span class="text-danger">*</span>
+          </label>
+          <select name="код_соревнований" id="кодСор" class="form-select form-select-sm" required
+                  onchange="обновитьНазвание()">
+            <option value="">— выберите статус —</option>
+            {% for код, info in статусы.items() %}
+            <option value="{{ код }}"
+              {% if сор and сор.код_соревнований == код %}selected{% endif %}>
+              {{ код }} — {{ info.полное }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text">ЧР, КР, ПР, ВС, ЧФО…</div>
+        </div>
 
-  <h6 class="text-muted mt-4 mb-2">Судейская коллегия</h6>
-  {% set судьи_поля = [
-    ('главный_судья',               'Главный судья'),
-    ('главный_секретарь',           'Главный секретарь'),
-    ('зам_главного_секретаря',      'Зам. главного секретаря'),
-    ('председатель_комиссии_допуска', 'Председатель комиссии по допуску'),
-    ('начальник_дистанции',         'Начальник дистанции'),
-    ('начальник_спасательной_службы', 'Начальник спасательной службы'),
-  ] %}
-  <div class="row g-3">
-    {% for name, label in судьи_поля %}
-    <div class="col-md-6 mb-3">
-      <label class="form-label">{{ label }}</label>
-      <input type="text" name="{{ name }}" class="form-control"
-             placeholder="Фамилия И.О., категория, регион"
-             value="{{ сор[name] if сор and сор[name] else '' }}">
-    </div>
-    {% endfor %}
-  </div>
+        {# Класс судна #}
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Класс судна <span class="text-danger">*</span></label>
+          <div class="d-flex gap-3 mt-1">
+            {% for cls in ['R4', 'R6'] %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="класс_судна"
+                     id="cls{{ cls }}" value="{{ cls }}"
+                     onchange="обновитьНазвание()"
+                     {{ 'checked' if (сор and сор.класс_судна == cls) or (not сор and cls == 'R4') }}>
+              <label class="form-check-label fw-semibold" for="cls{{ cls }}">{{ cls }}</label>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="form-text">R4: 4–5 чел., R6: 6–7 чел.</div>
+        </div>
 
-  <h6 class="text-muted mt-4 mb-2">Количественные параметры</h6>
-  <div class="row g-3">
-    <div class="col-md-2 mb-3">
-      <label class="form-label">Муж. экипажей</label>
-      <input type="number" name="кол_мужских_экипажей" class="form-control" min="0"
-             value="{{ сор.кол_мужских_экипажей if сор else '' }}">
-    </div>
-    <div class="col-md-2 mb-3">
-      <label class="form-label">Жен. экипажей</label>
-      <input type="number" name="кол_женских_экипажей" class="form-control" min="0"
-             value="{{ сор.кол_женских_экипажей if сор else '' }}">
-    </div>
-    <div class="col-md-2 mb-3">
-      <label class="form-label">Попыток слалом</label>
-      <input type="number" name="кол_попыток_слалом" class="form-control" min="1" max="2"
-             value="{{ сор.кол_попыток_слалом if сор else 2 }}">
-    </div>
-    <div class="col-md-2 mb-3">
-      <label class="form-label">Спортсменов в экипаже</label>
-      <input type="number" name="кол_спортсменов_в_экипаже" class="form-control" min="4" max="7"
-             value="{{ сор.кол_спортсменов_в_экипаже if сор else 4 }}">
-    </div>
-    <div class="col-md-2 mb-3">
-      <label class="form-label">Субъектов РФ</label>
-      <input type="number" name="кол_субъектов" class="form-control" min="1"
-             value="{{ сор.кол_субъектов if сор else '' }}">
+        {# Возрастная группа #}
+        <div class="col-md-3">
+          <label class="form-label">Возрастная группа</label>
+          <select name="возрастная_группа" class="form-select form-select-sm">
+            {% for гр in ['15 лет и старше', '19 лет и старше', '16–18 лет', '14–15 лет'] %}
+            <option value="{{ гр }}"
+              {{ 'selected' if сор and сор.возрастная_группа == гр }}>{{ гр }}</option>
+            {% endfor %}
+            <option value=""
+              {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
+          </select>
+        </div>
+      </div>
+
+      {# Название — длинная строка #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">
+          Название соревнований <span class="text-danger">*</span>
+        </label>
+        <input type="text" name="название" id="fieldНазвание" class="form-control" required
+               placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
+               value="{{ сор.название if сор else '' }}">
+        <div class="form-text">
+          Полное официальное название, как в документах.
+          <a href="#" class="link-secondary" onclick="автоНазвание(event)">Сгенерировать автоматически</a>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        {# Даты #}
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Даты проведения</label>
+          <input type="text" name="даты_проведения" class="form-control form-control-sm"
+                 placeholder="16 — 22 сентября 2025 года"
+                 value="{{ сор.даты_проведения if сор else '' }}">
+        </div>
+        {# Место #}
+        <div class="col-md-7">
+          <label class="form-label fw-semibold">Место проведения</label>
+          <input type="text" name="место_проведения" class="form-control form-control-sm"
+                 placeholder="Ленинградская обл., р. Вуокса"
+                 value="{{ сор.место_проведения if сор else '' }}">
+        </div>
+      </div>
+
+      {# Организаторы #}
+      <div>
+        <label class="form-label">Организаторы</label>
+        <textarea name="организаторы" class="form-control form-control-sm" rows="2"
+                  placeholder="Министерство спорта РФ, Федерация рафтинга России">{{ сор.организаторы if сор else '' }}</textarea>
+      </div>
     </div>
   </div>
 
-  <div class="mt-3">
-    <button type="submit" class="btn btn-primary">Сохранить</button>
-    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary ms-2">Отмена</a>
+  {# ── БЛОК 2: Судейская коллегия ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold bg-secondary text-white py-2">Судейская коллегия</div>
+    <div class="card-body">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Главный судья</label>
+          <input type="text" name="главный_судья" class="form-control form-control-sm"
+                 placeholder="Иванов И.И., ССВК, Московская область"
+                 value="{{ сор.главный_судья if сор else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Главный секретарь</label>
+          <input type="text" name="главный_секретарь" class="form-control form-control-sm"
+                 placeholder="Петров П.П., СС1К, г. Санкт-Петербург"
+                 value="{{ сор.главный_секретарь if сор else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Начальник дистанций</label>
+          <input type="text" name="начальник_дистанции" class="form-control form-control-sm"
+                 placeholder="Сидоров С.С., СС1К, регион"
+                 value="{{ сор.начальник_дистанции if сор else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Начальник спасательной службы</label>
+          <input type="text" name="начальник_спасательной_службы" class="form-control form-control-sm"
+                 placeholder="Фамилия И.О., категория, регион"
+                 value="{{ сор.начальник_спасательной_службы if сор else '' }}">
+        </div>
+
+      </div>
+
+      {# Дополнительные судьи — скрыты по умолчанию #}
+      <div class="mt-3">
+        <a class="link-secondary small text-decoration-none" data-bs-toggle="collapse"
+           href="#доп-судьи" role="button">
+          ▸ Дополнительные должности
+        </a>
+        <div class="collapse{% if сор and (сор.председатель_комиссии_допуска or сор.зам_главного_секретаря) %} show{% endif %}"
+             id="доп-судьи">
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label class="form-label">Председатель комиссии по допуску</label>
+              <input type="text" name="председатель_комиссии_допуска"
+                     class="form-control form-control-sm"
+                     placeholder="Фамилия И.О., категория, регион"
+                     value="{{ сор.председатель_комиссии_допуска if сор else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Зам. главного секретаря</label>
+              <input type="text" name="зам_главного_секретаря" class="form-control form-control-sm"
+                     placeholder="Фамилия И.О., категория, регион"
+                     value="{{ сор.зам_главного_секретаря if сор else '' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  {# ── БЛОК 3: Параметры ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
+         href="#параметры" role="button">
+        ▸ Параметры соревнований
+      </a>
+    </div>
+    <div class="collapse{% if not сор %} show{% endif %}" id="параметры">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-2">
+            <label class="form-label">Муж. экипажей</label>
+            <input type="number" name="кол_мужских_экипажей" class="form-control form-control-sm"
+                   min="0" value="{{ сор.кол_мужских_экипажей if сор else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Жен. экипажей</label>
+            <input type="number" name="кол_женских_экипажей" class="form-control form-control-sm"
+                   min="0" value="{{ сор.кол_женских_экипажей if сор else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Субъектов РФ</label>
+            <input type="number" name="кол_субъектов" class="form-control form-control-sm"
+                   min="1" value="{{ сор.кол_субъектов if сор else '' }}">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Спортсменов в экипаже</label>
+            <select name="кол_спортсменов_в_экипаже" class="form-select form-select-sm">
+              {% for n in [4, 5, 6, 7] %}
+              <option value="{{ n }}"
+                {{ 'selected' if (сор and сор.кол_спортсменов_в_экипаже == n) or (not сор and n == 4) }}>
+                {{ n }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Попыток слалом</label>
+            <select name="кол_попыток_слалом" class="form-select form-select-sm">
+              {% for n in [1, 2] %}
+              <option value="{{ n }}"
+                {{ 'selected' if (сор and сор.кол_попыток_слалом == n) or (not сор and n == 2) }}>
+                {{ n }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Код субъекта-хозяина</label>
+            <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
+                   placeholder="47" value="{{ сор.код_субъекта_рф if сор else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Кнопки #}
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary px-4">
+      {{ 'Создать' if not сор else 'Сохранить изменения' }}
+    </button>
+    <a href="{{ url_for('соревнование.карточка', id=сор.id) if сор else url_for('main.index') }}"
+       class="btn btn-outline-secondary">Отмена</a>
+    {% if сор %}
+    <form action="{{ url_for('соревнование.удалить', id=сор.id) }}" method="post" class="ms-auto"
+          onsubmit="return confirm('Удалить соревнование и все связанные данные?')">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Удалить соревнование</button>
+    </form>
+    {% endif %}
+  </div>
+
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Справочник кодов → полное название
+const СТАТУСЫ = {{ статусы | tojson }};
+
+function обновитьНазвание() {
+  // Если название уже изменял пользователь вручную — не перезаписываем
+  if (document.getElementById('fieldНазвание').dataset.ручное === '1') return;
+  автоНазвание(null);
+}
+
+function автоНазвание(e) {
+  if (e) e.preventDefault();
+  const код = document.getElementById('кодСор').value;
+  const cls  = document.querySelector('input[name="класс_судна"]:checked');
+  if (!код || !cls) return;
+  const полное = СТАТУСЫ[код] ? СТАТУСЫ[код].полное.toUpperCase() : '';
+  document.getElementById('fieldНазвание').value =
+    полное + ' ПО РАФТИНГУ — ' + cls.value;
+  document.getElementById('fieldНазвание').dataset.ручное = '0';
+}
+
+// Помечаем поле как «изменённое вручную», если пользователь сам печатает
+document.getElementById('fieldНазвание').addEventListener('input', function () {
+  this.dataset.ручное = '1';
+});
+</script>
 {% endblock %}
