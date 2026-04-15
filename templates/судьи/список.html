@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Судейская коллегия — {{ сор.название }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3 no-print">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item active">Судейская коллегия</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>Судейская коллегия</h5>
+  <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}"
+     class="btn btn-primary btn-sm no-print">+ Добавить</a>
+</div>
+
+{% if судьи %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>ФИО</th>
+        <th>Кат.</th>
+        <th>Субъект РФ</th>
+        <th>Должность</th>
+        <th>Конец аттест.</th>
+        <th class="no-print">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for с in судьи %}
+      <tr>
+        <td>{{ с.фамилия_имя_отчество }}</td>
+        <td>
+          <span class="badge bg-secondary">{{ с.квалификация or '—' }}</span>
+        </td>
+        <td>{{ с.субъект_рф or '—' }}</td>
+        <td>{{ с.должность or '—' }}</td>
+        <td>{{ с.конец_аттестации.strftime('%d.%m.%Y') if с.конец_аттестации else '—' }}</td>
+        <td class="no-print">
+          <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"
+             class="btn btn-sm btn-outline-secondary">Изм.</a>
+          <form action="{{ url_for('судьи.удалить', sor_id=сор.id, id=с.id) }}"
+                method="post" class="d-inline"
+                onsubmit="return confirm('Удалить судью?')">
+            <button class="btn btn-sm btn-outline-danger">Удал.</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info">Нет судей. Нажмите «+ Добавить».</div>
+{% endif %}
+{% endblock %}

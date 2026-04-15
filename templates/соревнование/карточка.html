@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}{{ сор.название }} — СЧИТАЛКА{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3 no-print">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+      <li class="breadcrumb-item active">{{ сор.название | truncate(60) }}</li>
+    </ol>
+  </nav>
+  <div>
+    <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Редактировать</a>
+    <form action="{{ url_for('соревнование.удалить', id=сор.id) }}"
+          method="post" class="d-inline"
+          onsubmit="return confirm('Удалить соревнование и все связанные данные?')">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+    </form>
+  </div>
+</div>
+
+<!-- Шапка протокола -->
+<div class="text-center mb-4">
+  <div class="small text-muted">{{ сор.организаторы }}</div>
+  <h4 class="mt-1">{{ сор.название }}</h4>
+  <div>{{ сор.даты_проведения }}{% if сор.место_проведения %} &mdash; {{ сор.место_проведения }}{% endif %}</div>
+  <div class="mt-1">
+    <span class="badge bg-primary">{{ сор.класс_судна }}</span>
+    {% if сор.статус %}<span class="badge bg-secondary">{{ сор.статус }} {{ сор.уровень }}</span>{% endif %}
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Судейская коллегия -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Судейская коллегия</div>
+      <ul class="list-group list-group-flush">
+        {% set поля = [
+          ('Главный судья',             сор.главный_судья),
+          ('Главный секретарь',         сор.главный_секретарь),
+          ('Зам. гл. секретаря',        сор.зам_главного_секретаря),
+          ('Пред. комиссии по допуску', сор.председатель_комиссии_допуска),
+          ('Начальник дистанции',       сор.начальник_дистанции),
+          ('Нач. спасат. службы',       сор.начальник_спасательной_службы),
+        ] %}
+        {% for название, значение in поля %}
+        <li class="list-group-item d-flex">
+          <span class="text-muted me-2" style="min-width:200px">{{ название }}:</span>
+          <span>{{ значение or '—' }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Настройки -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Параметры соревнований</div>
+      <ul class="list-group list-group-flush">
+        {% set поля2 = [
+          ('Класс судна',           сор.класс_судна),
+          ('Возрастная группа',     сор.возрастная_группа),
+          ('Спортсменов в экипаже', сор.кол_спортсменов_в_экипаже),
+          ('Мужских экипажей',      сор.кол_мужских_экипажей),
+          ('Женских экипажей',      сор.кол_женских_экипажей),
+          ('Попыток слалом',        сор.кол_попыток_слалом),
+          ('Субъектов РФ',          сор.кол_субъектов),
+          ('Код соревнований',      сор.код_соревнований),
+        ] %}
+        {% for название, значение in поля2 %}
+        <li class="list-group-item d-flex">
+          <span class="text-muted me-2" style="min-width:200px">{{ название }}:</span>
+          <span>{{ значение or '—' }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Разделы -->
+<h5 class="mt-4 mb-3 no-print">Разделы</h5>
+<div class="row g-3 no-print">
+  {% set разделы = [
+    ('субъекты.список',   'Субъекты РФ',       сор.субъекты | length,   'secondary'),
+    ('команды.список',    'Команды (экипажи)',  сор.команды  | length,   'info'),
+    ('спортсмены.список', 'Спортсмены',         сор.команды | sum(attribute='спортсмены') | length if false else '—', 'success'),
+    ('судьи.список',      'Судейская коллегия', сор.судьи    | length,   'warning'),
+  ] %}
+  {% for bp, заголовок, кол, цвет in разделы %}
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card text-center border-{{ цвет }}">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold text-{{ цвет }}">
+            {% if кол != '—' %}{{ кол }}{% else %}—{% endif %}
+          </div>
+          <div class="small">{{ заголовок }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

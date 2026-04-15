@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Новое соревнование' if not сор else 'Редактировать соревнование' }} — СЧИТАЛКА{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% if сор %}
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Редактировать</li>
+    {% else %}
+    <li class="breadcrumb-item active">Новое соревнование</li>
+    {% endif %}
+  </ol>
+</nav>
+
+<h4>{{ 'Новое соревнование' if not сор else 'Редактировать соревнование' }}</h4>
+
+<form method="post" class="mt-3">
+
+  <h6 class="text-muted mt-4 mb-2">Общие сведения</h6>
+  <div class="mb-3">
+    <label class="form-label">Организаторы</label>
+    <textarea name="организаторы" class="form-control" rows="2">{{ сор.организаторы if сор else '' }}</textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Название соревнований <span class="text-danger">*</span></label>
+    <input type="text" name="название" class="form-control" required
+           value="{{ сор.название if сор else '' }}">
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Даты проведения</label>
+      <input type="text" name="даты_проведения" class="form-control"
+             placeholder="16 - 22 сентября 2025 года"
+             value="{{ сор.даты_проведения if сор else '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Место проведения</label>
+      <input type="text" name="место_проведения" class="form-control"
+             value="{{ сор.место_проведения if сор else '' }}">
+    </div>
+  </div>
+
+  <h6 class="text-muted mt-4 mb-2">Статус и класс</h6>
+  <div class="row g-3">
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Класс судна</label>
+      <select name="класс_судна" class="form-select">
+        {% for cls in ['R4', 'R6'] %}
+        <option value="{{ cls }}" {{ 'selected' if (сор and сор.класс_судна == cls) or (not сор and cls == 'R4') }}>
+          {{ cls }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Статус</label>
+      <select name="статус" class="form-select">
+        {% for st in ['', 'Чемпионат', 'Кубок', 'Первенство', 'Всероссийские соревнования', 'Соревнования'] %}
+        <option value="{{ st }}" {{ 'selected' if сор and сор.статус == st }}>{{ st or '—' }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Уровень</label>
+      <select name="уровень" class="form-select">
+        {% for lv in ['', 'России', 'Федерального округа', 'Субъекта РФ', 'Муниципальный'] %}
+        <option value="{{ lv }}" {{ 'selected' if сор and сор.уровень == lv }}>{{ lv or '—' }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Код соревнований</label>
+      <input type="text" name="код_соревнований" class="form-control"
+             placeholder="ЧР, КР, ВС…"
+             value="{{ сор.код_соревнований if сор else '' }}">
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Возрастная группа</label>
+      <input type="text" name="возрастная_группа" class="form-control"
+             placeholder="15 лет и старше"
+             value="{{ сор.возрастная_группа if сор else '' }}">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Код субъекта РФ (организатора)</label>
+      <input type="number" name="код_субъекта_рф" class="form-control"
+             value="{{ сор.код_субъекта_рф if сор else '' }}">
+    </div>
+  </div>
+
+  <h6 class="text-muted mt-4 mb-2">Судейская коллегия</h6>
+  {% set судьи_поля = [
+    ('главный_судья',               'Главный судья'),
+    ('главный_секретарь',           'Главный секретарь'),
+    ('зам_главного_секретаря',      'Зам. главного секретаря'),
+    ('председатель_комиссии_допуска', 'Председатель комиссии по допуску'),
+    ('начальник_дистанции',         'Начальник дистанции'),
+    ('начальник_спасательной_службы', 'Начальник спасательной службы'),
+  ] %}
+  <div class="row g-3">
+    {% for name, label in судьи_поля %}
+    <div class="col-md-6 mb-3">
+      <label class="form-label">{{ label }}</label>
+      <input type="text" name="{{ name }}" class="form-control"
+             placeholder="Фамилия И.О., категория, регион"
+             value="{{ сор[name] if сор and сор[name] else '' }}">
+    </div>
+    {% endfor %}
+  </div>
+
+  <h6 class="text-muted mt-4 mb-2">Количественные параметры</h6>
+  <div class="row g-3">
+    <div class="col-md-2 mb-3">
+      <label class="form-label">Муж. экипажей</label>
+      <input type="number" name="кол_мужских_экипажей" class="form-control" min="0"
+             value="{{ сор.кол_мужских_экипажей if сор else '' }}">
+    </div>
+    <div class="col-md-2 mb-3">
+      <label class="form-label">Жен. экипажей</label>
+      <input type="number" name="кол_женских_экипажей" class="form-control" min="0"
+             value="{{ сор.кол_женских_экипажей if сор else '' }}">
+    </div>
+    <div class="col-md-2 mb-3">
+      <label class="form-label">Попыток слалом</label>
+      <input type="number" name="кол_попыток_слалом" class="form-control" min="1" max="2"
+             value="{{ сор.кол_попыток_слалом if сор else 2 }}">
+    </div>
+    <div class="col-md-2 mb-3">
+      <label class="form-label">Спортсменов в экипаже</label>
+      <input type="number" name="кол_спортсменов_в_экипаже" class="form-control" min="4" max="7"
+             value="{{ сор.кол_спортсменов_в_экипаже if сор else 4 }}">
+    </div>
+    <div class="col-md-2 mb-3">
+      <label class="form-label">Субъектов РФ</label>
+      <input type="number" name="кол_субъектов" class="form-control" min="1"
+             value="{{ сор.кол_субъектов if сор else '' }}">
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary ms-2">Отмена</a>
+  </div>
+</form>
+{% endblock %}

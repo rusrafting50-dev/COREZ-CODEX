@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Добавить команду' if not команда else 'Редактировать команду' }} — СЧИТАЛКА{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('команды.список', sor_id=сор.id) }}">Команды</a></li>
+    <li class="breadcrumb-item active">{{ 'Добавить' if not команда else 'Редактировать' }}</li>
+  </ol>
+</nav>
+
+<h5>{{ 'Добавить команду' if not команда else 'Редактировать команду' }}</h5>
+<form method="post" class="mt-3" style="max-width:600px">
+  <div class="row g-3">
+    <div class="col-md-4 mb-3">
+      <label class="form-label fw-semibold">Нагрудный № <span class="text-danger">*</span></label>
+      <input type="number" name="нагрудный_номер" class="form-control" required min="1"
+             value="{{ команда.нагрудный_номер if команда else '' }}">
+    </div>
+    <div class="col-md-8 mb-3">
+      <label class="form-label">Название команды/клуба</label>
+      <input type="text" name="название" class="form-control"
+             value="{{ команда.название if команда else '' }}">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Субъект РФ</label>
+    <select name="субъект_id" class="form-select">
+      <option value="">— не выбран —</option>
+      {% for с in субъекты %}
+      <option value="{{ с.id }}"
+        {{ 'selected' if команда and команда.субъект_id == с.id }}>
+        {{ с.название }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Пол экипажа</label>
+      <select name="пол" class="form-select">
+        {% for p in ['м', 'ж', 'М-Ж'] %}
+        <option value="{{ p }}" {{ 'selected' if команда and команда.пол == p }}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Возрастная группа</label>
+      <input type="text" name="возрастная_группа" class="form-control"
+             placeholder="М-Ж"
+             value="{{ команда.возрастная_группа if команда else '' }}">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Стартовый № (жребий)</label>
+      <input type="number" name="стартовый_номер_спринт" class="form-control" min="1"
+             value="{{ команда.стартовый_номер_спринт if команда else '' }}">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Участие в дистанциях</label>
+    <div class="d-flex gap-4 flex-wrap">
+      {% set дист = [
+        ('участие_спринт',     'Спринт',       команда.участие_спринт      if команда else True),
+        ('участие_пс',         'Пар. спринт',  команда.участие_пс          if команда else True),
+        ('участие_слалом',     'Слалом',        команда.участие_слалом      if команда else True),
+        ('участие_дг',         'Длинная гонка', команда.участие_дг          if команда else True),
+        ('участие_многоборье', 'Многоборье',    команда.участие_многоборье  if команда else True),
+      ] %}
+      {% for name, label, checked in дист %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="{{ name }}" id="{{ name }}"
+               {{ 'checked' if checked }}>
+        <label class="form-check-label" for="{{ name }}">{{ label }}</label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Сохранить</button>
+  <a href="{{ url_for('команды.список', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary ms-2">Отмена</a>
+</form>
+{% endblock %}
