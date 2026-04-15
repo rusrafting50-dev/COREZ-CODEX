@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}Допуск — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3 no-print">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('спортсмены.список', sor_id=сор.id) }}">Спортсмены</a>
+    </li>
+    <li class="breadcrumb-item active">Допуск</li>
+  </ol>
+</nav>
+
+{# ── Заголовок ── #}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h5 class="mb-1">Допуск к соревнованиям</h5>
+    <div class="text-muted small">{{ сор.название }}</div>
+  </div>
+  <button onclick="window.print()" class="btn btn-outline-dark btn-sm no-print">Печать</button>
+</div>
+
+{# ── Итоговая сводка ── #}
+<div class="row g-3 mb-4">
+  <div class="col-sm-3">
+    <div class="card text-center border-primary h-100">
+      <div class="card-body py-3">
+        <div class="fs-2 fw-bold text-primary">{{ команды | length }}</div>
+        <div class="text-muted small">всего экипажей</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-center border-success h-100">
+      <div class="card-body py-3">
+        <div class="fs-2 fw-bold text-success">{{ готовы | length }}</div>
+        <div class="text-muted small">допущено</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-center border-danger h-100">
+      <div class="card-body py-3">
+        <div class="fs-2 fw-bold text-danger">{{ не_готовы | length }}</div>
+        <div class="text-muted small">не готово</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card text-center h-100">
+      <div class="card-body py-3">
+        <div class="fs-2 fw-bold text-muted">{{ всего_сп }}</div>
+        <div class="text-muted small">спортсменов</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if не_готовы %}
+{# ── Проблемные экипажи ── #}
+<h6 class="text-danger mb-2">Требуют исправления ({{ не_готовы | length }})</h6>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-bordered align-middle">
+    <thead class="table-danger">
+      <tr>
+        <th style="width:60px" class="text-center">№</th>
+        <th>Экипаж</th>
+        <th style="width:80px" class="text-center">Класс</th>
+        <th style="width:80px" class="text-center">Состав</th>
+        <th>Замечания</th>
+        <th class="no-print" style="width:80px"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for к in не_готовы %}
+      {% set мин = 4 if к.класс_судна == 'R4' else 6 %}
+      <tr>
+        <td class="text-center fw-bold">{{ к.нагрудный_номер }}</td>
+        <td>
+          {{ к.название or '<em class="text-muted">без названия</em>' | safe }}
+          {% if к.субъект %}
+          <div class="text-muted small">{{ к.субъект.название | truncate(35) }}</div>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <span class="badge {{ 'bg-primary' if к.класс_судна == 'R4' else 'bg-success' }}">
+            {{ к.класс_судна }}
+          </span>
+          <div class="text-muted small">
+            {{ 'Муж.' if к.пол == 'м' else 'Жен.' }}
+          </div>
+        </td>
+        <td class="text-center">
+          <span class="{{ 'text-danger fw-bold' if к.спортсмены | length < мин }}">
+            {{ к.спортсмены | length }}/{{ мин }}
+          </span>
+        </td>
+        <td>
+          <ul class="mb-0 ps-3 small text-danger">
+            {% for e in валидация[к.id] %}
+            <li>{{ e }}</li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td class="no-print">
+          <a href="{{ url_for('спортсмены.добавить', sor_id=сор.id, команда_id=к.id) }}"
+             class="btn btn-sm btn-outline-primary py-0 px-2">+ Спортсмен</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if готовы %}
+{# ── Допущенные экипажи ── #}
+<h6 class="text-success mb-2">Допущены к соревнованиям ({{ готовы | length }})</h6>
+<div class="table-responsive">
+  <table class="table table-sm table-bordered align-middle">
+    <thead class="table-success">
+      <tr>
+        <th style="width:60px" class="text-center">№</th>
+        <th>Экипаж</th>
+        <th style="width:80px" class="text-center">Класс</th>
+        <th>Состав</th>
+        <th style="width:36px" class="text-center" title="Спринт">СП</th>
+        <th style="width:36px" class="text-center" title="Парал. спринт">ПС</th>
+        <th style="width:36px" class="text-center" title="Слалом">СЛ</th>
+        <th style="width:36px" class="text-center" title="Длинная гонка">ДГ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for к in готовы %}
+      {% set мин = 4 if к.класс_судна == 'R4' else 6 %}
+      <tr>
+        <td class="text-center fw-bold">{{ к.нагрудный_номер }}</td>
+        <td>
+          {{ к.название or '<em class="text-muted">без названия</em>' | safe }}
+          {% if к.субъект %}
+          <div class="text-muted small">{{ к.субъект.название | truncate(35) }}</div>
+          {% endif %}
+        </td>
+        <td class="text-center">
+          <span class="badge {{ 'bg-primary' if к.класс_судна == 'R4' else 'bg-success' }}">
+            {{ к.класс_судна }}
+          </span>
+          <div class="text-muted small">{{ 'Муж.' if к.пол == 'м' else 'Жен.' }}</div>
+        </td>
+        <td>
+          <div class="small">
+            {% for с in к.спортсмены | sort(attribute='номер_в_экипаже') %}
+            <span class="me-2">
+              {% if с.номер_в_экипаже %}<span class="text-muted">{{ с.номер_в_экипаже }}.</span>{% endif %}
+              {{ с.фамилия_имя_отчество }}
+              {% if с.разряд and с.разряд != 'б/р' %}
+              <span class="badge bg-light text-dark border" style="font-size:.65rem">{{ с.разряд }}</span>
+              {% endif %}
+            </span>
+            {% endfor %}
+          </div>
+        </td>
+        {% for участие in [к.участие_спринт, к.участие_пс, к.участие_слалом, к.участие_дг] %}
+        <td class="text-center">
+          {{ '<span class="text-success fw-bold">✓</span>' | safe if участие else '<span class="text-muted">—</span>' | safe }}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if not команды %}
+<div class="text-center py-5">
+  <div class="display-4 text-muted mb-3">📋</div>
+  <h6 class="text-muted">Нет ни одного экипажа</h6>
+  <a href="{{ url_for('команды.список', sor_id=сор.id) }}" class="btn btn-primary">
+    Перейти к экипажам
+  </a>
+</div>
+{% endif %}
+{% endblock %}
