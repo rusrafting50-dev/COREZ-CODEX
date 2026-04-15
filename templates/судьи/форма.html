@@ -5,98 +5,349 @@
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
-    <li class="breadcrumb-item"><a href="{{ url_for('судьи.список', sor_id=сор.id) }}">Судьи</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('судьи.список', sor_id=сор.id) }}">Судейская коллегия</a>
+    </li>
     <li class="breadcrumb-item active">{{ 'Добавить' if not судья else 'Редактировать' }}</li>
   </ol>
 </nav>
 
-<h5>{{ 'Добавить судью' if not судья else 'Редактировать судью' }}</h5>
-<form method="post" class="mt-3" style="max-width:650px">
-  <div class="mb-3">
-    <label class="form-label fw-semibold">ФИО <span class="text-danger">*</span></label>
-    <input type="text" name="фамилия_имя_отчество" class="form-control" required
-           placeholder="Иванов Иван Иванович"
-           value="{{ судья.фамилия_имя_отчество if судья else '' }}">
+<div class="d-flex align-items-center mb-3">
+  <h5 class="mb-0">{{ 'Добавить судью' if not судья else 'Редактировать судью' }}</h5>
+</div>
+
+<form method="post" id="formСудья" style="max-width:700px">
+
+  {# ── БЛОК 0: Поиск по базе ── #}
+  {% if not судья %}
+  <div class="card mb-3 border-primary">
+    <div class="card-header fw-semibold py-2 bg-primary text-white">
+      Поиск судьи в базе прошлых соревнований
+    </div>
+    <div class="card-body">
+      <div class="position-relative">
+        <input type="text" id="поискФИО" class="form-control"
+               placeholder="Начните вводить фамилию…" autocomplete="off">
+        <div id="поискРезультаты"
+             class="position-absolute w-100 bg-white border rounded shadow-sm z-3"
+             style="top:100%;max-height:300px;overflow-y:auto;display:none"></div>
+      </div>
+      <div class="form-text">
+        Если судья уже участвовал — выберите из списка, все данные заполнятся автоматически.
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── БЛОК 1: Основные данные ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">Основные данные</div>
+    <div class="card-body">
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">ФИО полностью <span class="text-danger">*</span></label>
+        <input type="text" name="фамилия_имя_отчество" id="fieldФИО"
+               class="form-control" required
+               placeholder="Иванов Иван Иванович"
+               value="{{ судья.фамилия_имя_отчество if судья else '' }}">
+      </div>
+
+      <div class="row g-3 mb-3">
+        {# Квалификация #}
+        <div class="col-sm-5">
+          <label class="form-label fw-semibold">Квалификация <span class="text-danger">*</span></label>
+          <div class="d-flex gap-2 flex-wrap mt-1">
+            {% set квал_сейчас = судья.квалификация if судья else '' %}
+            {% for к in квалификации %}
+            <div class="form-check form-check-inline me-0">
+              <input class="form-check-input" type="radio" name="квалификация"
+                     id="квал{{ к }}" value="{{ к }}"
+                     {{ 'checked' if квал_сейчас == к }}
+                     onchange="обновитьЦветКвал()">
+              <label class="form-check-label" for="квал{{ к }}">
+                <span class="badge bg-{{ квал_цвет[к] }}" id="badge{{ к }}">{{ к }}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="form-text">ССВК — высшая, ЮС — юношеская</div>
+        </div>
+
+        {# Пол #}
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">Пол</label>
+          <div class="d-flex gap-4 mt-2">
+            {% set пол_сейчас = судья.пол if судья else '' %}
+            {% for p, лейбл in [('м', 'Муж.'), ('ж', 'Жен.')] %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="пол"
+                     id="pol{{ p }}" value="{{ p }}" data-пол="{{ p }}"
+                     {{ 'checked' if пол_сейчас == p }}>
+              <label class="form-check-label" for="pol{{ p }}">{{ лейбл }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Действующая категория #}
+        <div class="col-sm-4">
+          <label class="form-label fw-semibold">Статус категории</label>
+          <div class="mt-2">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox"
+                     name="действующая_категория" id="действующая" value="1"
+                     {{ 'checked' if судья and судья.действующая_категория }}>
+              <label class="form-check-label" for="действующая">Действующая категория</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        {# Субъект РФ #}
+        <div class="col-sm-9">
+          <label class="form-label fw-semibold">Субъект РФ</label>
+          <input type="text" name="субъект_рф" id="fieldСубъект"
+                 class="form-control form-control-sm"
+                 list="список-субъектов-судьи"
+                 placeholder="Московская область"
+                 autocomplete="off"
+                 value="{{ судья.субъект_рф if судья else '' }}">
+          <datalist id="список-субъектов-судьи">
+            {% for н in субъекты_рф %}
+            <option value="{{ н }}">
+            {% endfor %}
+          </datalist>
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label">Код субъекта</label>
+          <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
+                 placeholder="77"
+                 value="{{ судья.код_субъекта_рф if судья else '' }}">
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Квалификация</label>
-      <select name="квалификация" class="form-select">
-        <option value="">—</option>
-        {% for к in квалификации %}
-        <option value="{{ к }}" {{ 'selected' if судья and судья.квалификация == к }}>{{ к }}</option>
+  {# ── БЛОК 2: Должность ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">Должность на соревновании</div>
+    <div class="card-body">
+      <div class="row g-2">
+        {% set должность_сейчас = судья.должность if судья else '' %}
+        {% for д in должности %}
+        <div class="col-6 col-sm-4">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="должность"
+                   id="долж{{ loop.index }}" value="{{ д }}"
+                   {{ 'checked' if должность_сейчас == д }}>
+            <label class="form-check-label small" for="долж{{ loop.index }}">{{ д }}</label>
+          </div>
+        </div>
         {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Пол</label>
-      <select name="пол" class="form-select">
-        <option value="">—</option>
-        {% for p in ['м', 'ж'] %}
-        <option value="{{ p }}" {{ 'selected' if судья and судья.пол == p }}>{{ p }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Номер в базе</label>
-      <input type="number" name="номер_в_базе" class="form-control"
-             value="{{ судья.номер_в_базе if судья else '' }}">
-    </div>
-  </div>
-
-  <div class="row g-3">
-    <div class="col-md-8 mb-3">
-      <label class="form-label">Субъект РФ</label>
-      <input type="text" name="субъект_рф" class="form-control"
-             placeholder="Московская область"
-             value="{{ судья.субъект_рф if судья else '' }}">
-    </div>
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Код субъекта РФ</label>
-      <input type="number" name="код_субъекта_рф" class="form-control"
-             value="{{ судья.код_субъекта_рф if судья else '' }}">
+        {# Произвольная должность #}
+        <div class="col-12 mt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="должность"
+                   id="должПрочее" value="_прочее"
+                   {{ 'checked' if должность_сейчас and должность_сейчас not in должности }}>
+            <label class="form-check-label small" for="должПрочее">Другая должность:</label>
+          </div>
+          <input type="text" id="fieldДолжностьПрочее" class="form-control form-control-sm mt-1"
+                 style="max-width:320px"
+                 placeholder="Укажите должность…"
+                 value="{{ должность_сейчас if должность_сейчас and должность_сейчас not in должности else '' }}">
+        </div>
+      </div>
     </div>
   </div>
 
+  {# ── БЛОК 3: Даты ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">Квалификационные даты</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-3">
+          <label class="form-label">Дата рождения</label>
+          <input type="date" name="дата_рождения" id="fieldДатаРожд"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_рождения.isoformat() if судья and судья.дата_рождения else '' }}">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label">Дата присвоения</label>
+          <input type="date" name="дата_присвоения" id="fieldДатаПрисв"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_присвоения.isoformat() if судья and судья.дата_присвоения else '' }}">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label">Дата подтверждения</label>
+          <input type="date" name="дата_подтверждения" id="fieldДатаПодтв"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_подтверждения.isoformat() if судья and судья.дата_подтверждения else '' }}">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">Конец аттестации</label>
+          <input type="date" name="конец_аттестации" id="fieldКонецАтт"
+                 class="form-control form-control-sm"
+                 value="{{ судья.конец_аттестации.isoformat() if судья and судья.конец_аттестации else '' }}">
+          <div class="form-text" id="статусАттестации"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Доп. поля (скрыты) ── #}
   <div class="mb-3">
-    <label class="form-label">Должность на соревновании</label>
-    <select name="должность" class="form-select">
-      <option value="">—</option>
-      {% for д in должности %}
-      <option value="{{ д }}" {{ 'selected' if судья and судья.должность == д }}>{{ д }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <div class="row g-3">
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Дата рождения</label>
-      <input type="date" name="дата_рождения" class="form-control"
-             value="{{ судья.дата_рождения.isoformat() if судья and судья.дата_рождения else '' }}">
-    </div>
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Дата присвоения</label>
-      <input type="date" name="дата_присвоения" class="form-control"
-             value="{{ судья.дата_присвоения.isoformat() if судья and судья.дата_присвоения else '' }}">
-    </div>
-    <div class="col-md-4 mb-3">
-      <label class="form-label">Конец аттестации</label>
-      <input type="date" name="конец_аттестации" class="form-control"
-             value="{{ судья.конец_аттестации.isoformat() if судья and судья.конец_аттестации else '' }}">
+    <a class="link-secondary small text-decoration-none" data-bs-toggle="collapse"
+       href="#доп-судья" role="button">▸ Дополнительно (ID в базе)</a>
+    <div class="collapse{% if судья and судья.номер_в_базе %} show{% endif %}" id="доп-судья">
+      <div class="mt-2" style="max-width:200px">
+        <label class="form-label small">Номер в базе судей</label>
+        <input type="number" name="номер_в_базе" id="fieldНомерВБазе"
+               class="form-control form-control-sm"
+               value="{{ судья.номер_в_базе if судья else '' }}">
+      </div>
     </div>
   </div>
 
-  <div class="mb-3 form-check">
-    <input type="checkbox" class="form-check-input" name="действующая_категория"
-           id="действующая" value="1"
-           {{ 'checked' if судья and судья.действующая_категория }}>
-    <label class="form-check-label" for="действующая">Действующая судейская категория</label>
+  {# Кнопки #}
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary px-4">
+      {{ 'Добавить' if not судья else 'Сохранить изменения' }}
+    </button>
+    <a href="{{ url_for('судьи.список', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary">Отмена</a>
+    {% if судья %}
+    <form action="{{ url_for('судьи.удалить', sor_id=сор.id, id=судья.id) }}"
+          method="post" class="ms-auto"
+          onsubmit="return confirm('Удалить судью?')">
+      <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+    </form>
+    {% endif %}
   </div>
 
-  <button type="submit" class="btn btn-primary">Сохранить</button>
-  <a href="{{ url_for('судьи.список', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary ms-2">Отмена</a>
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ─── Живой поиск по базе ─────────────────────────────────────────────────────
+const поискВвод  = document.getElementById('поискФИО');
+const поискИтоги = document.getElementById('поискРезультаты');
+
+if (поискВвод) {
+  let таймер;
+  поискВвод.addEventListener('input', () => {
+    clearTimeout(таймер);
+    const q = поискВвод.value.trim();
+    if (q.length < 2) { поискИтоги.style.display = 'none'; return; }
+    таймер = setTimeout(() => загрузитьПодсказки(q), 250);
+  });
+  поискВвод.addEventListener('blur', () => {
+    setTimeout(() => { поискИтоги.style.display = 'none'; }, 200);
+  });
+}
+
+function загрузитьПодсказки(q) {
+  fetch(`/судьи/поиск?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(данные => {
+      if (!данные.length) { поискИтоги.style.display = 'none'; return; }
+      поискИтоги.innerHTML = данные.map(с => `
+        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
+             onmousedown="выбратьСудью(${JSON.stringify(с).replace(/"/g,'&quot;')})">
+          <div class="fw-semibold">${с.фио}</div>
+          <div class="text-muted small">
+            ${с.квалификация ? '<span class="badge bg-secondary me-1">' + с.квалификация + '</span>' : ''}
+            ${с.субъект_рф || ''}
+            ${с.конец_аттестации ? ' · до ' + formatDate(с.конец_аттестации) : ''}
+          </div>
+        </div>`).join('');
+      поискИтоги.style.display = 'block';
+    });
+}
+
+function выбратьСудью(с) {
+  setField('fieldФИО',       с.фио);
+  setField('fieldСубъект',   с.субъект_рф);
+  setField('fieldДатаРожд',  с.дата_рождения);
+  setField('fieldДатаПрисв', с.дата_присвоения);
+  setField('fieldДатаПодтв', с.дата_подтверждения);
+  setField('fieldКонецАтт',  с.конец_аттестации);
+  setField('fieldНомерВБазе',с.номер_в_базе);
+  if (с.квалификация) {
+    const r = document.querySelector(`input[name="квалификация"][value="${с.квалификация}"]`);
+    if (r) r.checked = true;
+  }
+  if (с.пол) {
+    const r = document.querySelector(`input[data-пол="${с.пол}"]`);
+    if (r) r.checked = true;
+  }
+  поискВвод.value = '';
+  поискИтоги.style.display = 'none';
+  проверитьАттестацию();
+}
+
+function setField(id, val) {
+  const el = document.getElementById(id);
+  if (el && val) el.value = val;
+}
+
+// ─── Должность: "другая" → текстовое поле ──────────────────────────────────
+const fieldДолжПрочее = document.getElementById('fieldДолжностьПрочее');
+document.querySelectorAll('input[name="должность"]').forEach(r => {
+  r.addEventListener('change', () => {
+    fieldДолжПрочее.disabled = (r.value !== '_прочее');
+    if (r.value !== '_прочее') fieldДолжПрочее.value = '';
+  });
+});
+// Перехват submit: подменить '_прочее' → текст из поля
+document.getElementById('formСудья').addEventListener('submit', e => {
+  const выбрана = document.querySelector('input[name="должность"]:checked');
+  if (выбрана && выбрана.value === '_прочее') {
+    const текст = fieldДолжПрочее.value.trim();
+    if (!текст) { e.preventDefault(); fieldДолжПрочее.focus(); return; }
+    выбрана.value = текст;
+  }
+});
+// Инициализация состояния
+const прочееРадио = document.getElementById('должПрочее');
+if (прочееРадио && !прочееРадио.checked) fieldДолжПрочее.disabled = true;
+
+// ─── Проверка срока аттестации ────────────────────────────────────────────
+const fieldКонецАтт = document.getElementById('fieldКонецАтт');
+if (fieldКонецАтт) {
+  fieldКонецАтт.addEventListener('change', проверитьАттестацию);
+  проверитьАттестацию();
+}
+
+function проверитьАттестацию() {
+  const el = document.getElementById('fieldКонецАтт');
+  const info = document.getElementById('статусАттестации');
+  if (!el || !info || !el.value) { if (info) info.textContent = ''; return; }
+  const до   = new Date(el.value);
+  const сейчас = new Date();
+  const дней = Math.round((до - сейчас) / 86400000);
+  if (дней < 0) {
+    info.innerHTML = '<span class="text-danger">Просрочена (' + Math.abs(дней) + ' дн. назад)</span>';
+    el.classList.add('is-invalid');
+  } else if (дней < 90) {
+    info.innerHTML = '<span class="text-warning">Истекает через ' + дней + ' дн.</span>';
+    el.classList.remove('is-invalid');
+  } else {
+    info.innerHTML = '<span class="text-success">Действует ещё ' + дней + ' дн.</span>';
+    el.classList.remove('is-invalid');
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+</script>
 {% endblock %}
