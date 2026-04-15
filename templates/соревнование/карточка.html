@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}{{ сор.название }} — СЧИТАЛКА{% endblock %}
+
+{% block content %}
+{# Панель действий (не печатается) #}
+<div class="d-flex justify-content-between align-items-start mb-3 no-print">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+      <li class="breadcrumb-item active">{{ сор.название | truncate(50) }}</li>
+    </ol>
+  </nav>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Редактировать</a>
+    <button onclick="window.print()" class="btn btn-outline-dark btn-sm">Печать</button>
+  </div>
+</div>
+
+{# ── Шапка протокола (печатается) ── #}
+<div class="text-center mb-4">
+  {% if сор.организаторы %}
+  <div class="small text-muted mb-1">{{ сор.организаторы }}</div>
+  {% endif %}
+
+  {# Статус — цветной значок #}
+  {% if сор.код_соревнований %}
+  {% set цвета = {
+    'ЧР': 'danger', 'КР': 'primary', 'ПР': 'success', 'ПРЮ': 'success',
+    'ВС': 'info',   'ЧФО': 'warning','ПФО': 'warning', 'ЧС': 'secondary'
+  } %}
+  <div class="mb-1">
+    <span class="badge bg-{{ цвета.get(сор.код_соревнований, 'secondary') }} fs-6 px-3">
+      {{ сор.код_соревнований }}
+      {% if сор.код_соревнований in статусы %}
+        — {{ статусы[сор.код_соревнований].полное }}
+      {% endif %}
+    </span>
+    <span class="badge bg-info text-dark fs-6 ms-1">{{ сор.класс_судна }}</span>
+  </div>
+  {% endif %}
+
+  <h4 class="fw-bold my-2">{{ сор.название }}</h4>
+
+  <div class="text-muted">
+    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
+    {% if сор.место_проведения %}&nbsp;—&nbsp;{{ сор.место_проведения }}{% endif %}
+  </div>
+</div>
+
+{# ── Две колонки: судьи + параметры ── #}
+<div class="row g-3 mb-3">
+
+  <div class="col-md-7">
+    <div class="card h-100">
+      <div class="card-header fw-semibold py-2">Судейская коллегия</div>
+      <table class="table table-sm mb-0">
+        <tbody>
+        {% set судьи_строки = [
+          ('Главный судья',              сор.главный_судья),
+          ('Главный секретарь',          сор.главный_секретарь),
+          ('Зам. гл. секретаря',         сор.зам_главного_секретаря),
+          ('Пред. комиссии по допуску',  сор.председатель_комиссии_допуска),
+          ('Начальник дистанций',        сор.начальник_дистанции),
+          ('Нач. спасательной службы',   сор.начальник_спасательной_службы),
+        ] %}
+        {% for лейбл, значение in судьи_строки %}
+        {% if значение %}
+        <tr>
+          <td class="text-muted ps-3" style="width:220px;font-size:.85rem">{{ лейбл }}:</td>
+          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card h-100">
+      <div class="card-header fw-semibold py-2">Параметры</div>
+      <table class="table table-sm mb-0">
+        <tbody>
+        {% set парам = [
+          ('Класс судна',           сор.класс_судна),
+          ('Возрастная группа',     сор.возрастная_группа),
+          ('Спортсменов в экипаже', сор.кол_спортсменов_в_экипаже),
+          ('Муж. экипажей',         сор.кол_мужских_экипажей),
+          ('Жен. экипажей',         сор.кол_женских_экипажей),
+          ('Попыток слалом',        сор.кол_попыток_слалом),
+          ('Субъектов РФ',          сор.кол_субъектов),
+          ('Код соревнований',      сор.код_соревнований),
+        ] %}
+        {% for лейбл, значение in парам %}
+        {% if значение %}
+        <tr>
+          <td class="text-muted ps-3" style="font-size:.85rem">{{ лейбл }}:</td>
+          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{# ── Разделы навигации ── #}
+<h6 class="text-muted mt-4 mb-2 no-print">Разделы</h6>
+<div class="row g-2 no-print">
+  {% set разделы = [
+    ('субъекты.список',    'Субъекты РФ',        сор.субъекты | length, 'secondary', '🏛️'),
+    ('команды.список',     'Команды (экипажи)',   сор.команды  | length, 'primary',   '🚣'),
+    ('спортсмены.список',  'Спортсмены',          '—',                   'success',   '👤'),
+    ('судьи.список',       'Судейская коллегия',  сор.судьи    | length, 'warning',   '⚖️'),
+  ] %}
+  {% for bp, заголовок, кол, цвет, эмо in разделы %}
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card text-center border-{{ цвет }} h-100">
+        <div class="card-body py-3">
+          <div class="fs-2 mb-1">{{ эмо }}</div>
+          <div class="fs-5 fw-bold text-{{ цвет }}">
+            {{ кол if кол != '—' else '&mdash;' }}
+          </div>
+          <div class="small text-muted">{{ заголовок }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+{# Дистанции — ссылки (заготовка для будущих разделов) #}
+<h6 class="text-muted mt-4 mb-2 no-print">Дистанции</h6>
+<div class="row g-2 no-print">
+  {% set дистанции = [
+    ('Спринт',              'СП',  'primary'),
+    ('Параллельный спринт', 'ПС',  'info'),
+    ('Слалом',              'СЛ',  'success'),
+    ('Длинная гонка',       'ДГ',  'warning'),
+    ('Многоборье',          'МБ',  'danger'),
+    ('Зачёт субъектов',     'ЗС',  'secondary'),
+  ] %}
+  {% for название, сокр, цвет in дистанции %}
+  <div class="col-6 col-md-2">
+    <div class="card border-{{ цвет }} text-center">
+      <div class="card-body py-2 px-1">
+        <div class="badge bg-{{ цвет }} mb-1">{{ сокр }}</div>
+        <div class="small">{{ название }}</div>
+        <div class="mt-1">
+          <span class="badge bg-light text-muted border" style="font-size:.65rem">скоро</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

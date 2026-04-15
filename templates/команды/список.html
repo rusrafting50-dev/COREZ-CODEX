@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Команды — {{ сор.название }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3 no-print">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item active">Команды</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>Команды (экипажи)</h5>
+  <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}"
+     class="btn btn-primary btn-sm no-print">+ Добавить</a>
+</div>
+
+{% if команды %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>№</th>
+        <th>Команда</th>
+        <th>Субъект РФ</th>
+        <th>Пол</th>
+        <th>Возр. группа</th>
+        <th class="text-center">СП</th>
+        <th class="text-center">ПС</th>
+        <th class="text-center">СЛ</th>
+        <th class="text-center">ДГ</th>
+        <th class="text-center">МБ</th>
+        <th class="no-print">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for к in команды %}
+      <tr>
+        <td class="fw-bold">{{ к.нагрудный_номер }}</td>
+        <td>{{ к.название or '—' }}</td>
+        <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+        <td>{{ к.пол }}</td>
+        <td>{{ к.возрастная_группа or '—' }}</td>
+        {% for участие in [к.участие_спринт, к.участие_пс, к.участие_слалом, к.участие_дг, к.участие_многоборье] %}
+        <td class="text-center">
+          {{ '✓' if участие else '—' }}
+        </td>
+        {% endfor %}
+        <td class="no-print">
+          <a href="{{ url_for('команды.редактировать', sor_id=сор.id, id=к.id) }}"
+             class="btn btn-sm btn-outline-secondary">Изм.</a>
+          <form action="{{ url_for('команды.удалить', sor_id=сор.id, id=к.id) }}"
+                method="post" class="d-inline"
+                onsubmit="return confirm('Удалить команду и всех её спортсменов?')">
+            <button class="btn btn-sm btn-outline-danger">Удал.</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info">Нет команд. Нажмите «+ Добавить».</div>
+{% endif %}
+{% endblock %}

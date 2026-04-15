@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Добавить субъект' if not субъект else 'Редактировать субъект' }} — СЧИТАЛКА{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('субъекты.список', sor_id=сор.id) }}">Субъекты</a></li>
+    <li class="breadcrumb-item active">{{ 'Добавить' if not субъект else 'Редактировать' }}</li>
+  </ol>
+</nav>
+
+<h5>{{ 'Добавить субъект РФ' if not субъект else 'Редактировать субъект' }}</h5>
+<form method="post" class="mt-3" style="max-width:500px">
+  <div class="mb-3">
+    <label class="form-label">Номер делегации</label>
+    <input type="number" name="номер_делегации" class="form-control"
+           value="{{ субъект.номер_делегации if субъект else '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Название субъекта РФ <span class="text-danger">*</span></label>
+    <input type="text" name="название" class="form-control" required
+           placeholder="Московская область"
+           value="{{ субъект.название if субъект else '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Код субъекта РФ</label>
+    <input type="number" name="код_субъекта_рф" class="form-control"
+           value="{{ субъект.код_субъекта_рф if субъект else '' }}">
+  </div>
+  <button type="submit" class="btn btn-primary">Сохранить</button>
+  <a href="{{ url_for('субъекты.список', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary ms-2">Отмена</a>
+</form>
+{% endblock %}

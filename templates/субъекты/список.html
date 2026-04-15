@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Субъекты РФ — {{ сор.название }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3 no-print">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item active">Субъекты РФ</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>Субъекты РФ (делегации)</h5>
+  <a href="{{ url_for('субъекты.добавить', sor_id=сор.id) }}"
+     class="btn btn-primary btn-sm no-print">+ Добавить</a>
+</div>
+
+{% if субъекты %}
+<table class="table table-sm table-hover">
+  <thead class="table-light">
+    <tr>
+      <th>№ дел.</th>
+      <th>Субъект РФ</th>
+      <th>Код субъекта</th>
+      <th class="no-print">Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for с in субъекты %}
+    <tr>
+      <td>{{ с.номер_делегации or '—' }}</td>
+      <td>{{ с.название }}</td>
+      <td>{{ с.код_субъекта_рф or '—' }}</td>
+      <td class="no-print">
+        <a href="{{ url_for('субъекты.редактировать', sor_id=сор.id, id=с.id) }}"
+           class="btn btn-sm btn-outline-secondary">Изм.</a>
+        <form action="{{ url_for('субъекты.удалить', sor_id=сор.id, id=с.id) }}"
+              method="post" class="d-inline"
+              onsubmit="return confirm('Удалить субъект и все связанные команды?')">
+          <button class="btn btn-sm btn-outline-danger">Удал.</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">Нет субъектов. Нажмите «+ Добавить».</div>
+{% endif %}
+{% endblock %}
