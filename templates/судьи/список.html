@@ -1,59 +1,169 @@
 {% extends 'base.html' %}
-{% block title %}Судейская коллегия — {{ сор.название }}{% endblock %}
+{% block title %}Судейская коллегия — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block content %}
 <nav aria-label="breadcrumb" class="mb-3 no-print">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
     <li class="breadcrumb-item active">Судейская коллегия</li>
   </ol>
 </nav>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5>Судейская коллегия</h5>
-  <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}"
-     class="btn btn-primary btn-sm no-print">+ Добавить</a>
+{# ── Заголовок ── #}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h5 class="mb-0">Судейская коллегия</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap no-print">
+    <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Справка о составе</a>
+    <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Список Минспорта</a>
+    <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}"
+       class="btn btn-primary btn-sm">+ Добавить судью</a>
+  </div>
 </div>
 
 {% if судьи %}
+
+{# ── Сводка по квалификациям ── #}
+<div class="row g-2 mb-3 no-print">
+  <div class="col-auto">
+    <div class="border rounded px-3 py-1 text-center" style="min-width:70px">
+      <div class="fw-bold fs-5 text-primary">{{ стат.всего }}</div>
+      <div class="text-muted" style="font-size:.7rem">всего</div>
+    </div>
+  </div>
+  {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
+  {% if стат.по_квал[квал] %}
+  <div class="col-auto">
+    <div class="border rounded px-3 py-1 text-center" style="min-width:60px">
+      <div class="fw-bold fs-5">
+        <span class="badge bg-{{ квал_цвет[квал] }}">{{ квал }}</span>
+      </div>
+      <div class="fw-bold">{{ стат.по_квал[квал] }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+  <div class="col-auto">
+    <div class="border rounded px-3 py-1 text-center" style="min-width:60px">
+      <div class="fw-bold fs-5 text-success">{{ стат.действующих }}</div>
+      <div class="text-muted" style="font-size:.7rem">действ. кат.</div>
+    </div>
+  </div>
+  {% if стат.муж or стат.жен %}
+  <div class="col-auto">
+    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
+      <div class="fw-bold text-secondary">{{ стат.муж }}м / {{ стат.жен }}ж</div>
+      <div class="text-muted" style="font-size:.7rem">пол</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{# ── Таблица судей ── #}
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
       <tr>
+        <th style="width:32px" class="text-center">#</th>
         <th>ФИО</th>
-        <th>Кат.</th>
+        <th style="width:70px" class="text-center">Кат.</th>
         <th>Субъект РФ</th>
         <th>Должность</th>
-        <th>Конец аттест.</th>
-        <th class="no-print">Действия</th>
+        <th style="width:105px" class="text-center">Конец аттест.</th>
+        <th style="width:70px" class="text-center no-print">Статус</th>
+        <th class="no-print" style="width:110px"></th>
       </tr>
     </thead>
     <tbody>
       {% for с in судьи %}
-      <tr>
-        <td>{{ с.фамилия_имя_отчество }}</td>
+      {% set просрочен = с.конец_аттестации and с.конец_аттестации < сегодня %}
+      <tr class="{{ 'table-danger' if просрочен }}">
+        <td class="text-center text-muted small">{{ loop.index }}</td>
         <td>
-          <span class="badge bg-secondary">{{ с.квалификация or '—' }}</span>
+          <span class="fw-semibold">{{ с.фамилия_имя_отчество }}</span>
+          {% if с.пол %}
+          <span class="text-muted small ms-1">({{ с.пол }})</span>
+          {% endif %}
         </td>
-        <td>{{ с.субъект_рф or '—' }}</td>
-        <td>{{ с.должность or '—' }}</td>
-        <td>{{ с.конец_аттестации.strftime('%d.%m.%Y') if с.конец_аттестации else '—' }}</td>
+        <td class="text-center">
+          {% if с.квалификация %}
+          <span class="badge bg-{{ квал_цвет.get(с.квалификация, 'secondary') }}">
+            {{ с.квалификация }}
+          </span>
+          {% else %}—{% endif %}
+        </td>
+        <td class="small text-muted">{{ с.субъект_рф or '—' }}</td>
+        <td class="small">{{ с.должность or '—' }}</td>
+        <td class="text-center small {{ 'text-danger fw-bold' if просрочен }}">
+          {% if с.конец_аттестации %}
+            {{ с.конец_аттестации.strftime('%d.%m.%Y') }}
+            {% if просрочен %}<div style="font-size:.65rem">просрочена</div>{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td class="text-center no-print">
+          {% if с.действующая_категория %}
+          <span class="badge bg-success" style="font-size:.65rem">действ.</span>
+          {% elif просрочен %}
+          <span class="badge bg-danger" style="font-size:.65rem">просроч.</span>
+          {% else %}
+          <span class="text-muted" style="font-size:.7rem">—</span>
+          {% endif %}
+        </td>
         <td class="no-print">
           <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"
-             class="btn btn-sm btn-outline-secondary">Изм.</a>
+             class="btn btn-sm btn-outline-secondary py-0 px-2">Изм.</a>
           <form action="{{ url_for('судьи.удалить', sor_id=сор.id, id=с.id) }}"
                 method="post" class="d-inline"
-                onsubmit="return confirm('Удалить судью?')">
-            <button class="btn btn-sm btn-outline-danger">Удал.</button>
+                onsubmit="return confirm('Удалить судью {{ с.фамилия_имя_отчество.split()[0] }}?')">
+            <button class="btn btn-sm btn-outline-danger py-0 px-2">Удал.</button>
           </form>
         </td>
       </tr>
       {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="7" class="text-muted small ps-2">
+          Итого: {{ стат.всего }} судей
+          {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
+          {% if стат.по_квал[квал] %}
+          · {{ квал }}: {{ стат.по_квал[квал] }}
+          {% endif %}
+          {% endfor %}
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
+
+{# ── Ссылки на документы ── #}
+<div class="d-flex gap-3 mt-2 no-print">
+  <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}" target="_blank"
+     class="text-decoration-none small">
+    Открыть справку о составе коллегии →
+  </a>
+  <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}" target="_blank"
+     class="text-decoration-none small">
+    Открыть список по форме Минспорта →
+  </a>
+</div>
+
 {% else %}
-<div class="alert alert-info">Нет судей. Нажмите «+ Добавить».</div>
+<div class="text-center py-5">
+  <div class="display-4 text-muted mb-3">⚖️</div>
+  <h6 class="text-muted">Нет судей в составе коллегии</h6>
+  <p class="text-muted small">Добавьте судей для формирования справки и списка Минспорта.</p>
+  <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}" class="btn btn-primary">
+    + Добавить первого судью
+  </a>
+</div>
 {% endif %}
 {% endblock %}
