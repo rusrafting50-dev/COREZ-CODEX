@@ -161,15 +161,28 @@
 {# Дистанции — ссылки (заготовка для будущих разделов) #}
 <h6 class="text-muted mt-4 mb-2 no-print">Дистанции</h6>
 <div class="row g-2 no-print">
-  {% set дистанции = [
-    ('Спринт',              'СП',  'primary'),
+  {# Спринт — активная ссылка #}
+  <div class="col-6 col-md-2">
+    <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-primary text-center">
+        <div class="card-body py-2 px-1">
+          <div class="badge bg-primary mb-1">СП</div>
+          <div class="small">Спринт</div>
+          <div class="mt-1">
+            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% set дистанции_прочие = [
     ('Параллельный спринт', 'ПС',  'info'),
     ('Слалом',              'СЛ',  'success'),
     ('Длинная гонка',       'ДГ',  'warning'),
     ('Многоборье',          'МБ',  'danger'),
     ('Зачёт субъектов',     'ЗС',  'secondary'),
   ] %}
-  {% for название, сокр, цвет in дистанции %}
+  {% for название, сокр, цвет in дистанции_прочие %}
   <div class="col-6 col-md-2">
     <div class="card border-{{ цвет }} text-center">
       <div class="card-body py-2 px-1">

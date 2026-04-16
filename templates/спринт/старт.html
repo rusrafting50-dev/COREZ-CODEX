@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Спринт: Старт — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Спринт — Старт</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Спринт — Стартовый протокол</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Протокол финиша →</a>
+    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты →</a>
+    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">
+  Нет команд. Сначала <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}">проведите жеребьёвку</a>.
+</div>
+{% else %}
+
+<div class="text-muted small mb-2">
+  Формат времени: <code>ЧЧ:ММ:СС.сс</code>&nbsp;&nbsp;
+  +10с / +50с — количество штрафных нарушений на старте
+</div>
+
+<form method="post" id="formСтарт">
+{% for пол, команды, цвет, заг in [('м', муж, 'primary', 'Мужские'), ('ж', жен, 'danger', 'Женские')] %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:45px" class="text-center">№ ст.</th>
+        <th style="width:55px" class="text-center">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:110px">Субъект РФ</th>
+        <th style="width:115px">Время старта</th>
+        <th style="width:52px" class="text-center" title="Штраф +10 сек (кол-во)">+10с</th>
+        <th style="width:52px" class="text-center" title="Штраф +50 сек (кол-во)">+50с</th>
+        <th style="width:38px" class="text-center" title="Дисквалификация">ДК</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for к in команды %}
+      {% set р = к.результат_спринт %}
+      {% set дк = р and р.статус == СТАТУС_ДК %}
+      <tr class="{{ 'table-danger' if дк }}">
+        <td class="text-center fw-semibold">{{ к.стартовый_номер_спринт or '—' }}</td>
+        <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+        <td>{{ к.название or '—' }}</td>
+        <td class="text-muted small">{{ к.субъект.название | truncate(25) if к.субъект else '—' }}</td>
+        <td>
+          <input type="text" name="вс_{{ к.id }}"
+                 class="form-control form-control-sm время-ввод font-monospace"
+                 value="{{ format_time(р.время_старта) if р else '' }}"
+                 placeholder="00:00:00.00" autocomplete="off"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="number" name="с10_{{ к.id }}"
+                 class="form-control form-control-sm text-center штраф-ввод"
+                 value="{{ р.штраф_с10 if р else 0 }}"
+                 min="0" max="9"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="number" name="с50_{{ к.id }}"
+                 class="form-control form-control-sm text-center штраф-ввод"
+                 value="{{ р.штраф_с50 if р else 0 }}"
+                 min="0" max="9"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="checkbox" name="дк_{{ к.id }}" value="1"
+                 class="form-check-input дк-чек" data-row="{{ loop.index }}_{{ пол }}"
+                 {% if дк %}checked{% endif %}>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endfor %}
+
+<button type="submit" class="btn btn-success px-4">Сохранить стартовый протокол</button>
+</form>
+
+{% endif %}
+
+<script>
+// Автоформат времени ЧЧ:ММ:СС.сс
+document.querySelectorAll('.время-ввод').forEach(inp => {
+    inp.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '').slice(0, 8);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            if (i === 2 || i === 4) out += ':';
+            else if (i === 6) out += '.';
+            out += raw[i];
+        }
+        this.value = out;
+    });
+});
+
+// ДК checkbox: блокировка строки
+document.querySelectorAll('.дк-чек').forEach(cb => {
+    cb.addEventListener('change', function () {
+        const row = this.closest('tr');
+        row.querySelectorAll('.время-ввод, .штраф-ввод').forEach(el => {
+            el.disabled = this.checked;
+            if (this.checked) el.value = el.type === 'text' ? '' : '0';
+        });
+        row.classList.toggle('table-danger', this.checked);
+    });
+});
+</script>
+{% endblock %}

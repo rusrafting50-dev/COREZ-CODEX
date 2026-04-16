@@ -1,7 +1,7 @@
 # app.py — главный Flask-сервер системы учёта соревнований по рафтингу
 import os
 from flask import Flask, redirect, url_for
-from models import db, заполнить_таблицу_очков, применить_миграции
+from models import db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -28,6 +28,7 @@ def create_app() -> Flask:
         db.create_all()
         применить_миграции()
         заполнить_таблицу_очков()
+        заполнить_штрафы()
 
     # ------------------------------------------------------------------
     # Маршруты (blueprint-ы)
@@ -39,6 +40,7 @@ def create_app() -> Flask:
     from routes.спортсмены  import bp_спортсмены
     from routes.судьи       import bp_судьи
     from routes.документы   import bp_документы
+    from routes.спринт      import bp_спринт
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -47,6 +49,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_спортсмены,   url_prefix='/спортсмены')
     app.register_blueprint(bp_судьи,        url_prefix='/судьи')
     app.register_blueprint(bp_документы,    url_prefix='/документы')
+    app.register_blueprint(bp_спринт,       url_prefix='/спринт')
 
     return app
 
