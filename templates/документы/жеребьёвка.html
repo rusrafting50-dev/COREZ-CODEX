@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Жеребьёвка — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Жеребьёвка</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h5 class="mb-0">Жеребьёвка</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm" target="_blank">Печатная форма</a>
+</div>
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">
+  Нет команд для жеребьёвки.
+  <a href="{{ url_for('команды.список', sor_id=сор.id) }}">Добавьте команды</a>.
+</div>
+{% else %}
+
+<div class="row g-3 mb-3">
+
+  {# ── Мужские экипажи ── #}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="fw-semibold">Мужские экипажи&nbsp;
+          <span class="badge bg-secondary">{{ муж | length }}</span></span>
+        {% if муж %}
+        <button type="button" class="btn btn-sm btn-outline-primary"
+                onclick="перетасовать(this)">🎲 Перетасовать</button>
+        {% endif %}
+      </div>
+      <ul id="список-м" class="list-group list-group-flush sortable-list">
+        {% for к in муж %}
+        <li class="list-group-item drag-item py-2" data-id="{{ к.id }}" draggable="true">
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
+            <span class="badge bg-primary num-старт" style="min-width:2.2rem">
+              {{ к.стартовый_номер_спринт or loop.index }}
+            </span>
+            <span class="fw-semibold">№{{ к.нагрудный_номер }}</span>
+            <span class="flex-grow-1 text-truncate">{{ к.название or '—' }}</span>
+            <span class="text-muted small text-end" style="min-width:80px">
+              {{ к.субъект.название | truncate(20) if к.субъект else '' }}
+            </span>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted py-3">Нет мужских экипажей</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {# ── Женские экипажи ── #}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="fw-semibold">Женские экипажи&nbsp;
+          <span class="badge bg-secondary">{{ жен | length }}</span></span>
+        {% if жен %}
+        <button type="button" class="btn btn-sm btn-outline-danger"
+                onclick="перетасовать(this)">🎲 Перетасовать</button>
+        {% endif %}
+      </div>
+      <ul id="список-ж" class="list-group list-group-flush sortable-list">
+        {% for к in жен %}
+        <li class="list-group-item drag-item py-2" data-id="{{ к.id }}" draggable="true">
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
+            <span class="badge bg-danger num-старт" style="min-width:2.2rem">
+              {{ к.стартовый_номер_спринт or loop.index }}
+            </span>
+            <span class="fw-semibold">№{{ к.нагрудный_номер }}</span>
+            <span class="flex-grow-1 text-truncate">{{ к.название or '—' }}</span>
+            <span class="text-muted small text-end" style="min-width:80px">
+              {{ к.субъект.название | truncate(20) if к.субъект else '' }}
+            </span>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted py-3">Нет женских экипажей</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+{# ── Форма сохранения ── #}
+<form id="формаСохранения" method="post"
+      action="{{ url_for('документы.жеребьёвка_сохранить', sor_id=сор.id) }}">
+  <div id="hiddenInputs"></div>
+  <div class="d-flex align-items-center gap-3">
+    <button type="submit" class="btn btn-success">Сохранить порядок</button>
+    <span class="text-muted small">Перетащите строки для ручной корректировки</span>
+  </div>
+</form>
+
+{% endif %}
+
+<script>
+const urlСлучайная = "{{ url_for('документы.жеребьёвка_случайная', sor_id=сор.id) }}";
+
+// ── Drag-and-drop (event delegation) ─────────────────────────────────────
+
+document.querySelectorAll('.sortable-list').forEach(list => {
+    let dragging = null;
+
+    list.addEventListener('dragstart', e => {
+        dragging = e.target.closest('.drag-item');
+        if (!dragging) return;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => dragging && dragging.classList.add('opacity-25'), 0);
+    });
+
+    list.addEventListener('dragend', () => {
+        if (dragging) dragging.classList.remove('opacity-25');
+        dragging = null;
+        updateNumbers(list);
+    });
+
+    list.addEventListener('dragover', e => {
+        e.preventDefault();
+        if (!dragging) return;
+        const target = e.target.closest('.drag-item');
+        if (!target || target === dragging || target.closest('ul') !== list) return;
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        list.insertBefore(dragging, after ? target.nextSibling : target);
+    });
+});
+
+function updateNumbers(list) {
+    list.querySelectorAll('.drag-item').forEach((item, i) => {
+        const el = item.querySelector('.num-старт');
+        if (el) el.textContent = i + 1;
+    });
+}
+
+// ── Случайная перетасовка ─────────────────────────────────────────────────
+
+async function перетасовать(btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⌛';
+    try {
+        const resp = await fetch(urlСлучайная, {method: 'POST'});
+        const data = await resp.json();
+        if (data.ok) {
+            rebuildList('список-м', data.муж, 'primary');
+            rebuildList('список-ж', data.жен, 'danger');
+        }
+    } catch (err) {
+        alert('Ошибка при перетасовке: ' + err);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+function rebuildList(listId, данные, цвет) {
+    const list = document.getElementById(listId);
+    list.querySelectorAll('.drag-item').forEach(el => el.remove());
+    данные.forEach((к, i) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item drag-item py-2';
+        li.dataset.id = к.id;
+        li.draggable = true;
+        li.innerHTML =
+            `<div class="d-flex align-items-center gap-2">` +
+            `<span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>` +
+            `<span class="badge bg-${цвет} num-старт" style="min-width:2.2rem">${i + 1}</span>` +
+            `<span class="fw-semibold">№${к.нагрудный}</span>` +
+            `<span class="flex-grow-1 text-truncate">${к.название || '—'}</span>` +
+            `<span class="text-muted small text-end" style="min-width:80px">${к.субъект || ''}</span>` +
+            `</div>`;
+        list.appendChild(li);
+    });
+}
+
+// ── Подготовка формы сохранения ────────────────────────────────────────────
+
+document.getElementById('формаСохранения').addEventListener('submit', () => {
+    const container = document.getElementById('hiddenInputs');
+    container.innerHTML = '';
+    [['список-м', 'порядок_м'], ['список-ж', 'порядок_ж']].forEach(([listId, name]) => {
+        document.querySelectorAll(`#${listId} .drag-item`).forEach(item => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = name;
+            inp.value = item.dataset.id;
+            container.appendChild(inp);
+        });
+    });
+});
+</script>
+{% endblock %}
