@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Выписка из протокола комиссии по допуску — {{ сор.название | truncate(50) }}</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 10pt; }
+      @page { margin: 20mm 10mm 20mm 20mm; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
+    table th, table td { border: 1px solid #333; padding: 3px 6px; vertical-align: middle; }
+    thead { background: #f0f0f0; font-weight: bold; }
+    h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
+    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.4em; }
+    .underline-field { border-bottom: 1px solid #000; min-width: 180px; display: inline-block; }
+  </style>
+</head>
+<body class="px-3 py-3">
+
+<div class="d-flex justify-content-between mb-3 no-print">
+  <a href="{{ url_for('соревнование.карточка', id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm">← К карточке соревнования</a>
+  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+</div>
+
+{% if сор.организаторы %}
+<div class="text-center mb-1" style="font-size:10pt">{{ сор.организаторы }}</div>
+{% endif %}
+
+<div class="text-center mb-3">
+  <h3 class="doc-title mb-1">Выписка</h3>
+  <div style="font-size:11pt">из протокола заседания комиссии по допуску</div>
+  <div class="mt-1" style="font-size:12pt"><strong>{{ сор.название }}</strong></div>
+  <div style="font-size:10pt; color:#555">
+    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
+    {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
+  </div>
+</div>
+
+{# ── Мужские допущенные ── #}
+{% if муж %}
+<div class="section-title">Мужские экипажи — ДОПУЩЕНЫ ({{ муж | length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:28px" class="text-center">№</th>
+      <th style="width:65px" class="text-center">Нагруд. №</th>
+      <th>Команда</th>
+      <th style="min-width:120px">Субъект РФ</th>
+      <th style="width:55px" class="text-center">Класс</th>
+      <th style="width:55px" class="text-center">Спортс.</th>
+      <th style="width:100px" class="text-center">Дистанции</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for к in муж %}
+    <tr>
+      <td class="text-center">{{ loop.index }}</td>
+      <td class="text-center"><strong>{{ к.нагрудный_номер }}</strong></td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td class="text-center">{{ к.класс_судна }}</td>
+      <td class="text-center">{{ к.спортсмены | length }}</td>
+      <td class="text-center" style="font-size:8pt">
+        {{ 'СП' if к.участие_спринт }}{{ ' ПС' if к.участие_пс }}{{ ' СЛ' if к.участие_слалом }}{{ ' ДГ' if к.участие_дг }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# ── Женские допущенные ── #}
+{% if жен %}
+<div class="section-title">Женские экипажи — ДОПУЩЕНЫ ({{ жен | length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:28px" class="text-center">№</th>
+      <th style="width:65px" class="text-center">Нагруд. №</th>
+      <th>Команда</th>
+      <th style="min-width:120px">Субъект РФ</th>
+      <th style="width:55px" class="text-center">Класс</th>
+      <th style="width:55px" class="text-center">Спортс.</th>
+      <th style="width:100px" class="text-center">Дистанции</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for к in жен %}
+    <tr>
+      <td class="text-center">{{ loop.index }}</td>
+      <td class="text-center"><strong>{{ к.нагрудный_номер }}</strong></td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td class="text-center">{{ к.класс_судна }}</td>
+      <td class="text-center">{{ к.спортсмены | length }}</td>
+      <td class="text-center" style="font-size:8pt">
+        {{ 'СП' if к.участие_спринт }}{{ ' ПС' if к.участие_пс }}{{ ' СЛ' if к.участие_слалом }}{{ ' ДГ' if к.участие_дг }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# ── Не допущены ── #}
+{% if не_допущены %}
+<div class="section-title" style="color:#c00">Не допущены к соревнованиям ({{ не_допущены | length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:28px" class="text-center">№</th>
+      <th style="width:65px" class="text-center">Нагруд. №</th>
+      <th>Команда</th>
+      <th>Субъект РФ</th>
+      <th style="width:55px" class="text-center">Класс</th>
+      <th style="width:55px" class="text-center">Спортс.</th>
+      <th>Причина</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for к in не_допущены %}
+    <tr>
+      <td class="text-center">{{ loop.index }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td class="text-center">{{ к.класс_судна }}</td>
+      <td class="text-center">{{ к.спортсмены | length }}</td>
+      <td style="color:#c00; font-size:8pt">
+        Недостаточно спортсменов
+        (есть {{ к.спортсмены | length }}, нужно {{ 4 if к.класс_судна == 'R4' else 6 }})
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# ── Итого ── #}
+<div class="mt-3" style="font-size:10pt">
+  <strong>Итого:</strong>
+  экипажей всего — {{ всего }},
+  допущено — <strong>{{ допущено }}</strong>
+  {% if не_допущены | length %},
+  не допущено — <strong style="color:#c00">{{ не_допущены | length }}</strong>
+  {% endif %}.
+  Спортсменов допущено: <strong>{{ всего_сп }}</strong>.
+</div>
+
+{# ── Подписи ── #}
+<div class="row mt-4" style="font-size:10pt">
+  <div class="col-5">
+    <div>Председатель комиссии по допуску</div>
+    <div class="mt-3">
+      <div class="underline-field">
+        {{ сор.председатель_комиссии_допуска or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}
+      </div>
+      <div style="font-size:8pt; margin-top:2px">подпись / ФИО</div>
+    </div>
+  </div>
+  <div class="col-2"></div>
+  <div class="col-5">
+    <div>Главный секретарь</div>
+    <div class="mt-3">
+      <div class="underline-field">
+        {{ сор.главный_секретарь or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}
+      </div>
+      <div style="font-size:8pt; margin-top:2px">подпись / ФИО</div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3" style="font-size:9pt; color:#666">
+  Дата составления: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
+        crossorigin="anonymous"></script>
+</body>
+</html>
