@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Спринт: Результаты — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Спринт — Результаты</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Спринт — Результаты</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Старт</a>
+    <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Финиш</a>
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+  </div>
+</div>
+
+{% macro таблица_результатов(рез, без, разряды, пол_заг, цвет) %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ пол_заг }} ({{ рез | length + без | length }})</h6>
+{% if not рез and not без %}
+<div class="text-muted small mb-3">Нет данных</div>
+{% else %}
+<div class="table-responsive mb-2">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:40px" class="text-center">Место</th>
+        <th style="width:55px" class="text-center">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:100px">Субъект</th>
+        <th style="width:90px" class="text-center font-monospace">Старт</th>
+        <th style="width:90px" class="text-center font-monospace">Финиш</th>
+        <th style="width:75px" class="text-center font-monospace">Время</th>
+        <th style="width:65px" class="text-center">Штраф</th>
+        <th style="width:80px" class="text-center font-monospace fw-bold">Результат</th>
+        <th style="width:50px" class="text-center">Разряд</th>
+        <th style="width:50px" class="text-center">Очки</th>
+        <th style="width:70px" class="text-center">Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for р in рез %}
+      {% set к = р.команда %}
+      <tr>
+        <td class="text-center fw-bold fs-6">
+          {% if р.статус == 'ПМ' %}
+          <span class="text-muted">{{ р.место }}</span>
+          {% else %}
+          {{ р.место or '—' }}
+          {% endif %}
+        </td>
+        <td class="text-center">{{ к.нагрудный_номер }}</td>
+        <td>{{ к.название or '—' }}</td>
+        <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
+        <td class="text-center small font-monospace text-muted">
+          {{ format_time(р.время_старта) or '—' }}
+        </td>
+        <td class="text-center small font-monospace text-muted">
+          {{ format_time(р.время_финиша) or '—' }}
+        </td>
+        <td class="text-center small font-monospace">
+          {{ format_dur(р.время_прохождения) }}
+        </td>
+        <td class="text-center small {{ 'text-danger' if р.штрафное_время else '' }}">
+          {{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '—' }}
+        </td>
+        <td class="text-center fw-bold font-monospace">
+          {% if р.статус == 'ПМ' %}
+          <span class="text-muted">ПМ</span>
+          {% else %}
+          {{ format_dur(р.результат) }}
+          {% endif %}
+        </td>
+        <td class="text-center small">{{ разряды.get(р.команда_id, '—') }}</td>
+        <td class="text-center small">{{ р.очки | int if р.очки else '—' }}</td>
+        <td class="text-center">
+          <span class="badge bg-{{ ЦВЕТ.get(р.статус, 'secondary') }}" style="font-size:.7rem">
+            {{ р.статус }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+      {% for р in без %}
+      {% set к = р.команда %}
+      <tr class="{{ 'table-danger' if р.статус == 'ДК' else 'table-warning' }}">
+        <td class="text-center text-muted">—</td>
+        <td class="text-center">{{ к.нагрудный_номер }}</td>
+        <td>{{ к.название or '—' }}</td>
+        <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
+        <td class="text-center small font-monospace text-muted">
+          {{ format_time(р.время_старта) or '—' }}
+        </td>
+        <td colspan="6"></td>
+        <td class="text-center">
+          <span class="badge bg-{{ ЦВЕТ.get(р.статус, 'secondary') }}" style="font-size:.7rem">
+            {{ р.статус }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ таблица_результатов(муж_рез, муж_без, муж_разр, 'Мужские экипажи', 'primary') }}
+{{ таблица_результатов(жен_рез, жен_без, жен_разр, 'Женские экипажи', 'danger') }}
+
+{% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
+<div class="alert alert-info mt-3">
+  Нет результатов для расчёта. Введите стартовые и финишные времена.
+</div>
+{% endif %}
+
+<div class="text-muted small mt-2">
+  Пересчёт результатов выполняется автоматически при загрузке страницы.
+  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Спринт: Финиш — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Спринт — Финиш</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Спринт — Протокол финиша</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты →</a>
+    <a href="{{ url_for('спринт.протокол_финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">Нет команд для ввода финиша.</div>
+{% else %}
+
+<div class="text-muted small mb-2">
+  Формат времени: <code>ЧЧ:ММ:СС.сс</code>&nbsp;&nbsp;
+  +50с — кол-во штрафных нарушений на финише
+</div>
+
+<form method="post">
+{% for пол, команды, цвет, заг in [('м', муж, 'primary', 'Мужские'), ('ж', жен, 'danger', 'Женские')] %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:45px" class="text-center">№ ст.</th>
+        <th style="width:55px" class="text-center">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:90px">Субъект</th>
+        <th style="width:100px" class="text-center">Старт</th>
+        <th style="width:115px">Время финиша</th>
+        <th style="width:52px" class="text-center" title="Штраф +50 сек (кол-во)">+50с</th>
+        <th style="width:160px">Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for к in команды %}
+      {% set р = к.результат_спринт %}
+      {% set ст = р.статус if р else СТАТУС_ФИНИШ %}
+      {% set цвет_стр = 'table-danger' if ст == 'ДК' else ('table-warning' if ст in ('НФН', 'НСТ') else ('table-secondary' if ст == 'ПМ' else '')) %}
+      <tr class="{{ цвет_стр }}">
+        <td class="text-center fw-semibold">{{ к.стартовый_номер_спринт or '—' }}</td>
+        <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+        <td>{{ к.название or '—' }}</td>
+        <td class="text-muted small">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+        <td class="text-center font-monospace small text-muted">
+          {{ format_time(р.время_старта) if р and р.время_старта else '—' }}
+        </td>
+        <td>
+          <input type="text" name="вф_{{ к.id }}"
+                 class="form-control form-control-sm время-ввод font-monospace"
+                 value="{{ format_time(р.время_финиша) if р else '' }}"
+                 placeholder="00:00:00.00" autocomplete="off">
+        </td>
+        <td class="text-center">
+          <input type="number" name="ф50_{{ к.id }}"
+                 class="form-control form-control-sm text-center"
+                 value="{{ р.штраф_ф50 if р else 0 }}"
+                 min="0" max="9">
+        </td>
+        <td>
+          <select name="ст_{{ к.id }}" class="form-select form-select-sm">
+            {% for код, метка in СТАТУСЫ %}
+            <option value="{{ код }}" {{ 'selected' if ст == код }}>{{ метка }}</option>
+            {% endfor %}
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endfor %}
+
+<button type="submit" class="btn btn-success px-4">Сохранить протокол финиша</button>
+</form>
+{% endif %}
+
+<script>
+document.querySelectorAll('.время-ввод').forEach(inp => {
+    inp.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '').slice(0, 8);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            if (i === 2 || i === 4) out += ':';
+            else if (i === 6) out += '.';
+            out += raw[i];
+        }
+        this.value = out;
+    });
+});
+</script>
+{% endblock %}
