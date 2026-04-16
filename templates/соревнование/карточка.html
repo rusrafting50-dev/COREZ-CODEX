@@ -175,12 +175,25 @@
       </div>
     </a>
   </div>
+  {# Параллельный спринт — активная ссылка #}
+  <div class="col-6 col-md-2">
+    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-info text-center">
+        <div class="card-body py-2 px-1">
+          <div class="badge bg-info mb-1">ПС</div>
+          <div class="small">Параллельный спринт</div>
+          <div class="mt-1">
+            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
   {% set дистанции_прочие = [
-    ('Параллельный спринт', 'ПС',  'info'),
-    ('Слалом',              'СЛ',  'success'),
-    ('Длинная гонка',       'ДГ',  'warning'),
-    ('Многоборье',          'МБ',  'danger'),
-    ('Зачёт субъектов',     'ЗС',  'secondary'),
+    ('Слалом',          'СЛ',  'success'),
+    ('Длинная гонка',   'ДГ',  'warning'),
+    ('Многоборье',      'МБ',  'danger'),
+    ('Зачёт субъектов', 'ЗС',  'secondary'),
   ] %}
   {% for название, сокр, цвет in дистанции_прочие %}
   <div class="col-6 col-md-2">

@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}ПС: Заезды — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">ПС — Заезды</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Параллельный спринт — Протокол финиша по заездам</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Сетка</a>
+    <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты →</a>
+    <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать сетки</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{% if not муж_стадии and not жен_стадии %}
+<div class="alert alert-warning">
+  Сетка не сформирована. <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}">Сформировать сетку</a>.
+</div>
+{% else %}
+
+<div class="text-muted small mb-3">
+  Формат времени: <code>М:СС.сс</code> или <code>СС.сс</code>&nbsp;&nbsp;·&nbsp;&nbsp;
+  +50с — количество штрафных буёв
+</div>
+
+{# ── Один блок для каждого пола ── #}
+{% for пол, стадии, данные, завершены, цвет, заг in [
+    ('м', муж_стадии, муж_данные, муж_завершены, 'primary', 'Мужские экипажи'),
+    ('ж', жен_стадии, жен_данные, жен_завершены, 'danger',  'Женские экипажи')
+] %}
+{% if стадии %}
+
+<h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
+
+<form method="post">
+{% for стадия in стадии %}
+{% set заезды = данные[стадия] %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center py-2">
+    <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
+    {% if завершены[стадия] %}
+    <span class="badge bg-success">Завершена</span>
+    {% else %}
+    <span class="badge bg-warning text-dark">В процессе</span>
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle mb-0" style="font-size:.87rem">
+      <thead class="table-light">
+        <tr>
+          <th style="width:55px" class="text-center">Заезд</th>
+          <th style="width:50px" class="text-center">Дор.</th>
+          <th style="width:55px" class="text-center">Нагруд.</th>
+          <th>Команда</th>
+          <th style="min-width:90px">Субъект</th>
+          <th style="width:100px">Время (М:СС.сс)</th>
+          <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
+          <th style="width:85px" class="text-center font-monospace">Результат</th>
+          <th style="width:120px">Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for номер, пара in заезды.items() %}
+      {% if номер == 0 %}
+      {# Бай #}
+      {% for з in пара %}
+      <tr class="table-secondary">
+        <td class="text-center text-muted">БАЙ</td>
+        <td class="text-center">—</td>
+        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
+        <td>{{ з.команда.название or '—' }}</td>
+        <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
+        <td colspan="3" class="text-muted text-center">автоматический проход</td>
+        <td class="text-center"><span class="badge bg-secondary">БАЙ</span></td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      {# Реальный заезд #}
+      {% for з in пара %}
+      {% set цвет_стр = 'table-success' if з.победитель is true else ('table-danger' if з.статус in ('ДК','НФН','НСТ') else ('table-warning' if з.победитель is false else '')) %}
+      <tr class="{{ цвет_стр }}">
+        {% if loop.first %}
+        <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
+        {% endif %}
+        <td class="text-center text-muted small">
+          {{ 'Л' if з.дорожка == 'левая' else 'П' }}
+        </td>
+        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
+        <td>{{ з.команда.название or '—' }}</td>
+        <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
+        <td>
+          <input type="text" name="вр_{{ з.id }}"
+                 class="form-control form-control-sm font-monospace время-ввод"
+                 value="{{ format_dur(з.время) if з.время else '' }}"
+                 placeholder="0:00.00" autocomplete="off">
+        </td>
+        <td class="text-center">
+          <input type="number" name="ш50_{{ з.id }}"
+                 class="form-control form-control-sm text-center"
+                 value="{{ (з.штрафное_время | int // 50) if з.штрафное_время else 0 }}"
+                 min="0" max="9">
+        </td>
+        <td class="text-center fw-bold font-monospace">
+          {% if з.результат %}{{ format_dur(з.результат) }}{% else %}—{% endif %}
+          {% if з.победитель is true %}<span class="text-success ms-1">&#x2714;</span>{% endif %}
+        </td>
+        <td>
+          <select name="ст_{{ з.id }}" class="form-select form-select-sm">
+            <option value="ФИН" {{ 'selected' if з.статус == СТАТУС_ФИНИШ }}>Финиш</option>
+            <option value="ДК"  {{ 'selected' if з.статус == СТАТУС_ДК }}>ДК</option>
+            <option value="НФН" {{ 'selected' if з.статус == 'НФН' }}>НФН</option>
+            <option value="НСТ" {{ 'selected' if з.статус == 'НСТ' }}>НСТ</option>
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Кнопка перехода к следующей стадии #}
+{% if завершены[стадия] %}
+{% set след_бд = данные.keys() | list %}
+{% if стадия == '1/2' %}
+  {% if 'Финал_А' not in след_бд %}
+  <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
+    <input type="hidden" name="стадия" value="1/2">
+    <input type="hidden" name="пол" value="{{ пол }}">
+    <button type="submit" class="btn btn-{{ цвет }} btn-sm">
+      Сформировать Финалы А и Б →
+    </button>
+  </form>
+  {% endif %}
+{% elif стадия in СЛЕДУЮЩАЯ %}
+  {% set след_стадия = СЛЕДУЮЩАЯ[стадия] %}
+  {% if след_стадия not in след_бд %}
+  <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
+    <input type="hidden" name="стадия" value="{{ стадия }}">
+    <input type="hidden" name="пол" value="{{ пол }}">
+    <button type="submit" class="btn btn-outline-{{ цвет }} btn-sm">
+      Сформировать {{ НАЗВАНИЯ.get(след_стадия, след_стадия) }} →
+    </button>
+  </form>
+  {% endif %}
+{% endif %}
+{% endif %}
+
+{% endfor %}
+
+<button type="submit" class="btn btn-success px-4 mb-4">
+  Сохранить результаты {{ заг | lower }}
+</button>
+</form>
+
+{% endif %}
+{% endfor %}
+
+{% endif %}
+
+<script>
+document.querySelectorAll('.время-ввод').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/[^\d]/g, '').slice(0, 6);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 1) out += ':';
+      else if (i === 3) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+});
+</script>
+{% endblock %}

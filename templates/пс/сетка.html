@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}ПС: Сетка — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Параллельный спринт — Сетка</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Параллельный спринт — Сетка жеребьёвки</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Заезды →</a>
+    <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты</a>
+    <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать сетки</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{# ── Формирование сетки ── #}
+<div class="card mb-4">
+  <div class="card-header fw-semibold py-2">Формирование сетки</div>
+  <div class="card-body py-3">
+    <p class="text-muted small mb-3">
+      Посев выполняется по результатам дистанции <strong>Спринт</strong>.
+      Команды без результата спринта сортируются по нагрудному номеру.
+    </p>
+    <div class="d-flex gap-3 flex-wrap">
+      <form method="post" class="d-inline">
+        <input type="hidden" name="пол" value="м">
+        <button type="submit" class="btn btn-primary btn-sm"
+                onclick="return confirm('Сформировать сетку мужских экипажей? Текущая сетка будет удалена.')">
+          Мужские ({{ n_муж }} экипажей)
+        </button>
+      </form>
+      <form method="post" class="d-inline">
+        <input type="hidden" name="пол" value="ж">
+        <button type="submit" class="btn btn-danger btn-sm"
+                onclick="return confirm('Сформировать сетку женских экипажей? Текущая сетка будет удалена.')">
+          Женские ({{ n_жен }} экипажей)
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ── Отображение сетки ── #}
+{% for брак, стадии, посев_map, пол_заг, цвет in [
+    (муж_брак, муж_стадии, муж_посев, 'Мужские экипажи', 'primary'),
+    (жен_брак, жен_стадии, жен_посев, 'Женские экипажи', 'danger')
+] %}
+{% if стадии %}
+<h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ пол_заг }}</h6>
+
+<div class="d-flex gap-3 overflow-auto pb-2">
+{% for стадия in стадии %}
+<div style="min-width:220px">
+  <div class="badge bg-{{ цвет }} mb-2 w-100 text-center py-2" style="font-size:.8rem">
+    {{ НАЗВАНИЯ.get(стадия, стадия) }}
+  </div>
+
+  {% set заезды = брак[стадия] %}
+  {% for номер, пара in заезды.items() %}
+  {% if номер == 0 %}
+  {# Бай #}
+  {% for з in пара %}
+  <div class="card border-{{ цвет }} mb-2" style="font-size:.8rem">
+    <div class="card-body py-1 px-2">
+      <span class="badge bg-light text-muted border me-1">{{ посев_map.get(з.команда_id, '?') }}</span>
+      {{ з.команда.название or '—' }}
+      <span class="badge bg-secondary ms-1">БАЙ</span>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  {# Реальный заезд #}
+  <div class="card mb-2" style="font-size:.8rem">
+    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">
+      Заезд {{ номер }}
+    </div>
+    <div class="card-body py-1 px-2">
+      {% for з in пара %}
+      <div class="d-flex justify-content-between align-items-center
+                  {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
+        <div>
+          <span class="badge bg-{{ 'light text-dark' if not з.победитель else цвет }} border me-1">
+            {{ посев_map.get(з.команда_id, '?') }}
+          </span>
+          <span class="{{ 'fw-semibold' if з.победитель else '' }}">{{ з.команда.название or '—' }}</span>
+        </div>
+        <div class="text-end ms-2" style="min-width:55px">
+          {% if з.результат %}
+          <span class="font-monospace text-{{ цвет if з.победитель else 'muted' }}" style="font-size:.75rem">
+            {{ format_dur(з.результат) }}
+          </span>
+          {% elif з.статус in ('ДК','НФН','НСТ') %}
+          <span class="badge bg-danger" style="font-size:.7rem">{{ з.статус }}</span>
+          {% endif %}
+          {% if з.победитель is true %}
+          <span class="text-{{ цвет }}" title="Победитель">&#x2714;</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% if not loop.last %}
+<div class="d-flex align-items-center text-muted fs-4">&#8594;</div>
+{% endif %}
+{% endfor %}
+</div>
+
+{% else %}
+{# Нет сетки #}
+{% if (пол_заг == 'Мужские экипажи' and n_муж > 0) or (пол_заг == 'Женские экипажи' and n_жен > 0) %}
+<div class="alert alert-light border mt-2">
+  <span class="text-muted">Сетка {{ пол_заг | lower }} не сформирована.</span>
+  Нажмите кнопку выше для генерации по посеву Спринта.
+</div>
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% endblock %}

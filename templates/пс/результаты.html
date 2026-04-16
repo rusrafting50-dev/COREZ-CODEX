@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}ПС: Результаты — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">ПС — Результаты</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Параллельный спринт — Результаты</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Заезды</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+  </div>
+</div>
+
+{% macro таблица(итог, заг, цвет) %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }} ({{ итог | length }})</h6>
+{% if not итог %}
+<div class="text-muted small mb-3">Нет данных. Завершите все стадии и рассчитайте результаты.</div>
+{% else %}
+<div class="table-responsive mb-2">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:50px" class="text-center">Место</th>
+        <th style="width:55px" class="text-center">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:110px">Субъект</th>
+        <th style="width:90px" class="text-center">Стадия</th>
+        <th style="width:85px" class="text-center font-monospace">Время</th>
+        <th style="width:60px" class="text-center">Штраф</th>
+        <th style="width:85px" class="text-center font-monospace fw-bold">Результат</th>
+        <th style="width:55px" class="text-center">Очки</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for з in итог %}
+    {% set к = з.команда %}
+    {% set место_цвет = 'table-warning' if з.итоговое_место == 1 else ('table-secondary' if з.итоговое_место == 2 else ('table-danger' if з.итоговое_место == 3 else '')) %}
+    <tr class="{{ место_цвет }}">
+      <td class="text-center fw-bold fs-6">{{ з.итоговое_место }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
+      <td class="text-center small">
+        <span class="badge bg-{{ цвет }}" style="font-size:.7rem">{{ з.стадия }}</span>
+      </td>
+      <td class="text-center font-monospace small">{{ format_dur(з.время) }}</td>
+      <td class="text-center small {{ 'text-danger' if з.штрафное_время else '' }}">
+        {{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}
+      </td>
+      <td class="text-center fw-bold font-monospace">{{ format_dur(з.результат) }}</td>
+      <td class="text-center small">{{ з.очки | int if з.очки else '—' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ таблица(муж_итог, 'Мужские экипажи', 'primary') }}
+{{ таблица(жен_итог, 'Женские экипажи', 'danger') }}
+
+{% if not муж_итог and not жен_итог %}
+<div class="alert alert-info mt-3">
+  Нет результатов. Сформируйте сетку, введите результаты заездов и завершите все стадии.
+</div>
+{% endif %}
+
+<div class="text-muted small mt-2">
+  Пересчёт выполняется автоматически при загрузке страницы.
+  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+</div>
+{% endblock %}
