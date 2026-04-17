@@ -203,8 +203,21 @@
       </div>
     </a>
   </div>
+  {# Длинная гонка — активная ссылка #}
+  <div class="col-6 col-md-2">
+    <a href="{{ url_for('дг.старт', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-warning text-center">
+        <div class="card-body py-2 px-1">
+          <div class="badge bg-warning text-dark mb-1">ДГ</div>
+          <div class="small">Длинная гонка</div>
+          <div class="mt-1">
+            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
   {% set дистанции_прочие = [
-    ('Длинная гонка',   'ДГ',  'warning'),
     ('Многоборье',      'МБ',  'danger'),
     ('Зачёт субъектов', 'ЗС',  'secondary'),
   ] %}

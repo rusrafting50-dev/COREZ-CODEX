@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}ДГ: Старт — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">ДГ — Старт</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Длинная гонка — Стартовый протокол</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('дг.секции', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Секции →</a>
+    <a href="{{ url_for('дг.финиш', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Финиш →</a>
+    <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Результаты →</a>
+    <a href="{{ url_for('дг.протокол_старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+<form method="post">
+
+{# Лимит времени #}
+<div class="card mb-3 border-warning">
+  <div class="card-header fw-semibold py-2 bg-warning bg-opacity-10">Лимит времени дистанции (М:СС.сс)</div>
+  <div class="card-body py-2">
+    <div class="row g-2 align-items-center">
+      <div class="col-auto">
+        <label class="form-label mb-0 small fw-semibold">Мужские:</label>
+      </div>
+      <div class="col-auto">
+        <input type="text" name="лимит_муж" class="form-control form-control-sm font-monospace лимит-ввод"
+               style="width:110px"
+               value="{{ format_dur(сор.лимит_время_муж) if сор.лимит_время_муж else '' }}"
+               placeholder="45:00.00">
+      </div>
+      <div class="col-auto ms-3">
+        <label class="form-label mb-0 small fw-semibold">Женские:</label>
+      </div>
+      <div class="col-auto">
+        <input type="text" name="лимит_жен" class="form-control form-control-sm font-monospace лимит-ввод"
+               style="width:110px"
+               value="{{ format_dur(сор.лимит_время_жен) if сор.лимит_время_жен else '' }}"
+               placeholder="50:00.00">
+      </div>
+      <div class="col-auto ms-2">
+        <span class="text-muted small">Превышение → последнее место автоматически</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="text-muted small mb-2">
+  Порядок старта: по результатам Слалома (худший → первый).
+  Формат времени: <code>ЧЧ:ММ:СС.сс</code>
+</p>
+
+{% macro таблица_старт(команды, заг, цвет) %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm align-middle" style="font-size:.84rem">
+    <thead class="table-light">
+      <tr>
+        <th class="text-center" style="width:40px">№ старта</th>
+        <th class="text-center" style="width:55px">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:110px">Субъект</th>
+        <th class="text-center" style="width:130px">Время старта</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for к in команды %}
+    {% set рез = к.результат_дг %}
+    <tr>
+      <td class="text-center fw-bold">{{ loop.index }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted">{{ к.субъект.название | truncate(25) if к.субъект else '—' }}</td>
+      <td>
+        <input type="text" name="вс_{{ к.id }}"
+               class="form-control form-control-sm font-monospace время-ввод"
+               value="{{ format_time(рез.время_старта) if рез and рез.время_старта else '' }}"
+               placeholder="00:00:00.00" autocomplete="off">
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">Нет команд.</div>
+{% else %}
+{{ таблица_старт(муж, 'Мужские экипажи', 'primary') }}
+{{ таблица_старт(жен, 'Женские экипажи', 'danger') }}
+<button type="submit" class="btn btn-success px-4">Сохранить</button>
+{% endif %}
+</form>
+
+<script>
+document.querySelectorAll('.время-ввод').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+});
+</script>
+{% endblock %}

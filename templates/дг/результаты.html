@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}ДГ: Результаты — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">ДГ — Результаты</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Длинная гонка — Результаты</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('дг.финиш', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Финиш</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+  </div>
+</div>
+
+{% macro таблица_рез(рез, пм, без, разряды, заг, цвет) %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">
+  {{ заг }} ({{ рез | length + пм | length + без | length }})
+</h6>
+{% if not рез and not пм and not без %}
+<div class="text-muted small mb-3">Нет данных</div>
+{% else %}
+<div class="table-responsive mb-2">
+  <table class="table table-sm table-hover align-middle" style="font-size:.85rem">
+    <thead class="table-light">
+      <tr>
+        <th class="text-center" style="width:45px">Место</th>
+        <th class="text-center" style="width:50px">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:100px">Субъект</th>
+        <th class="text-center font-monospace" style="width:80px">Время</th>
+        <th class="text-center" style="width:65px">Шт. старт</th>
+        <th class="text-center" style="width:65px">Шт. финиш</th>
+        <th class="text-center" style="width:70px">Шт. секц.</th>
+        <th class="text-center" style="width:70px">Шт. всего</th>
+        <th class="text-center fw-bold font-monospace" style="width:85px">Результат</th>
+        <th class="text-center" style="width:50px">Разряд</th>
+        <th class="text-center" style="width:50px">Очки</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for р in рез %}
+    {% set к = р.команда %}
+    <tr>
+      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+      <td class="text-center font-monospace small">{{ format_dur(р.время_прохождения) if р.время_прохождения else '—' }}</td>
+      <td class="text-center small {% if р.кол_штраф_старт %}text-danger{% else %}text-muted{% endif %}">
+        {{ '+' ~ (р.кол_штраф_старт * 50) ~ 'с' if р.кол_штраф_старт else '—' }}
+      </td>
+      <td class="text-center small {% if р.кол_штраф_финиш %}text-danger{% else %}text-muted{% endif %}">
+        {{ '+' ~ (р.кол_штраф_финиш * 50) ~ 'с' if р.кол_штраф_финиш else '—' }}
+      </td>
+      <td class="text-center small {% if р.штрафное_время > (р.кол_штраф_старт + р.кол_штраф_финиш) * 50 %}text-danger{% else %}text-muted{% endif %}" style="font-size:.8rem">
+        {% set секц_шт = р.штрафное_время - (р.кол_штраф_старт + р.кол_штраф_финиш) * 50 %}
+        {{ '+' ~ секц_шт | int ~ 'с' if секц_шт > 0 else '—' }}
+      </td>
+      <td class="text-center small {% if р.штрафное_время %}text-danger fw-bold{% else %}text-muted{% endif %}">
+        {{ '+' ~ (р.штрафное_время | int) ~ 'с' if р.штрафное_время else '—' }}
+      </td>
+      <td class="text-center fw-bold font-monospace text-success">{{ format_dur(р.результат) }}</td>
+      <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
+      <td class="text-center small">{{ р.очки | int if р.очки else '—' }}</td>
+    </tr>
+    {% endfor %}
+    {% for р in пм %}
+    {% set к = р.команда %}
+    <tr class="table-warning">
+      <td class="text-center text-muted">{{ р.место }}
+        <span class="badge bg-secondary" style="font-size:.6rem">ПМ</span>
+      </td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted" colspan="9">
+        <span class="badge bg-warning text-dark">Превышен лимит времени — последнее место</span>
+        <span class="ms-2 font-monospace small">{{ format_dur(р.время_прохождения) if р.время_прохождения else '' }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+    {% for р in без %}
+    {% set к = р.команда %}
+    <tr class="table-secondary">
+      <td class="text-center text-muted">—</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted" colspan="9">
+        <span class="badge bg-danger">{{ р.статус }}</span>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ таблица_рез(муж_рез, муж_пм, муж_без, муж_разр, 'Мужские экипажи', 'primary') }}
+{{ таблица_рез(жен_рез, жен_пм, жен_без, жен_разр, 'Женские экипажи', 'danger') }}
+
+{% if not муж_рез and not муж_пм and not муж_без and not жен_рез and not жен_пм and not жен_без %}
+<div class="alert alert-info mt-3">
+  Нет результатов. Введите стартовые и финишные времена, отметьте штрафы.
+</div>
+{% endif %}
+
+<div class="text-muted small mt-2">
+  Пересчёт выполняется при загрузке. Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+</div>
+{% endblock %}
