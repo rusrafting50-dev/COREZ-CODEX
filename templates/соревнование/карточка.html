@@ -2,7 +2,6 @@
 {% block title %}{{ сор.название }} — СЧИТАЛКА{% endblock %}
 
 {% block content %}
-{# Панель действий (не печатается) #}
 <div class="d-flex justify-content-between align-items-start mb-3 no-print">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
@@ -13,58 +12,46 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Редактировать</a>
-    <button onclick="window.print()" class="btn btn-outline-dark btn-sm">Печать</button>
+    <button onclick="window.print()" class="btn btn-outline-dark btn-sm no-print">Печать</button>
   </div>
 </div>
 
-{# ── Шапка протокола (печатается) ── #}
+{# ── Шапка ── #}
 <div class="text-center mb-4">
   {% if сор.организаторы %}
   <div class="small text-muted mb-1">{{ сор.организаторы }}</div>
   {% endif %}
-
-  {# Статус — цветной значок #}
   {% if сор.код_соревнований %}
-  {% set цвета = {
-    'ЧР': 'danger', 'КР': 'primary', 'ПР': 'success', 'ПРЮ': 'success',
-    'ВС': 'info',   'ЧФО': 'warning','ПФО': 'warning', 'ЧС': 'secondary'
-  } %}
+  {% set цвета = {'ЧР':'danger','КР':'primary','ПР':'success','ПРЮ':'success','ВС':'info','ЧФО':'warning','ПФО':'warning','ЧС':'secondary'} %}
   <div class="mb-1">
-    <span class="badge bg-{{ цвета.get(сор.код_соревнований, 'secondary') }} fs-6 px-3">
-      {{ сор.код_соревнований }}
-      {% if сор.код_соревнований in статусы %}
-        — {{ статусы[сор.код_соревнований].полное }}
-      {% endif %}
+    <span class="badge bg-{{ цвета.get(сор.код_соревнований,'secondary') }} fs-6 px-3">
+      {{ сор.код_соревнований }}{% if сор.код_соревнований in статусы %} — {{ статусы[сор.код_соревнований].полное }}{% endif %}
     </span>
     <span class="badge bg-info text-dark fs-6 ms-1">{{ сор.класс_судна }}</span>
   </div>
   {% endif %}
-
   <h4 class="fw-bold my-2">{{ сор.название }}</h4>
-
   <div class="text-muted">
     {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
     {% if сор.место_проведения %}&nbsp;—&nbsp;{{ сор.место_проведения }}{% endif %}
   </div>
 </div>
 
-{# ── Две колонки: судьи + параметры ── #}
+{# ── Судьи + Параметры ── #}
 <div class="row g-3 mb-3">
-
   <div class="col-md-7">
     <div class="card h-100">
       <div class="card-header fw-semibold py-2">Судейская коллегия</div>
       <table class="table table-sm mb-0">
         <tbody>
-        {% set судьи_строки = [
-          ('Главный судья',              сор.главный_судья),
-          ('Главный секретарь',          сор.главный_секретарь),
-          ('Зам. гл. секретаря',         сор.зам_главного_секретаря),
-          ('Пред. комиссии по допуску',  сор.председатель_комиссии_допуска),
-          ('Начальник дистанций',        сор.начальник_дистанции),
-          ('Нач. спасательной службы',   сор.начальник_спасательной_службы),
+        {% for лейбл, значение in [
+          ('Главный судья', сор.главный_судья),
+          ('Главный секретарь', сор.главный_секретарь),
+          ('Зам. гл. секретаря', сор.зам_главного_секретаря),
+          ('Пред. комиссии по допуску', сор.председатель_комиссии_допуска),
+          ('Начальник дистанций', сор.начальник_дистанции),
+          ('Нач. спасательной службы', сор.начальник_спасательной_службы),
         ] %}
-        {% for лейбл, значение in судьи_строки %}
         {% if значение %}
         <tr>
           <td class="text-muted ps-3" style="width:220px;font-size:.85rem">{{ лейбл }}:</td>
@@ -76,23 +63,20 @@
       </table>
     </div>
   </div>
-
   <div class="col-md-5">
     <div class="card h-100">
       <div class="card-header fw-semibold py-2">Параметры</div>
       <table class="table table-sm mb-0">
         <tbody>
-        {% set парам = [
-          ('Класс судна',           сор.класс_судна),
-          ('Возрастная группа',     сор.возрастная_группа),
+        {% for лейбл, значение in [
+          ('Класс судна', сор.класс_судна),
+          ('Возрастная группа', сор.возрастная_группа),
           ('Спортсменов в экипаже', сор.кол_спортсменов_в_экипаже),
-          ('Муж. экипажей',         сор.кол_мужских_экипажей),
-          ('Жен. экипажей',         сор.кол_женских_экипажей),
-          ('Попыток слалом',        сор.кол_попыток_слалом),
-          ('Субъектов РФ',          сор.кол_субъектов),
-          ('Код соревнований',      сор.код_соревнований),
+          ('Муж. экипажей', сор.кол_мужских_экипажей),
+          ('Жен. экипажей', сор.кол_женских_экипажей),
+          ('Субъектов РФ', сор.кол_субъектов),
+          ('Код соревнований', сор.код_соревнований),
         ] %}
-        {% for лейбл, значение in парам %}
         {% if значение %}
         <tr>
           <td class="text-muted ps-3" style="font-size:.85rem">{{ лейбл }}:</td>
@@ -104,28 +88,62 @@
       </table>
     </div>
   </div>
-
 </div>
 
-{# ── Разделы навигации ── #}
-<h6 class="text-muted mt-4 mb-2 no-print">Разделы</h6>
+{# ── Макро: индикатор готовности ── #}
+{% macro значок(готово) %}
+{% if готово %}
+<span class="badge bg-success" style="font-size:.65rem">✓ Готово</span>
+{% else %}
+<span class="badge bg-light text-muted border" style="font-size:.65rem">—</span>
+{% endif %}
+{% endmacro %}
+
+{# ── Макро: карточка дистанции ── #}
+{% macro дист_карта(код, назв, цвет, ссылка, готово, ссылки) %}
+<div class="col-6 col-md-3">
+  <div class="card border-{{ цвет }} h-100">
+    <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-{{ цвет }} bg-opacity-10">
+      <span class="fw-bold small">
+        <span class="badge bg-{{ цвет }} {% if цвет == 'warning' %}text-dark{% endif %}">{{ код }}</span>
+        {{ назв }}
+      </span>
+      {{ значок(готово) }}
+    </div>
+    <div class="card-body py-2 px-2">
+      <a href="{{ ссылка }}" class="btn btn-{{ цвет }} btn-sm w-100 mb-1 {% if цвет == 'warning' %}text-dark{% endif %}">
+        Открыть
+      </a>
+      <div class="d-flex flex-wrap gap-1">
+        {% for текст, url, blank in ссылки %}
+        <a href="{{ url }}" class="btn btn-outline-{{ цвет }} btn-sm py-0 px-1"
+           style="font-size:.72rem" {% if blank %}target="_blank"{% endif %}>{{ текст }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{# ── 1. Подготовка ── #}
+<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
+  <span class="badge bg-secondary me-1">1</span> Подготовка
+</h6>
 <div class="row g-2 no-print">
-  {% set разделы = [
-    ('субъекты.список',    'Субъекты РФ',        сор.субъекты | length, 'secondary', '🏛️'),
-    ('команды.список',     'Команды (экипажи)',   сор.команды  | length, 'primary',   '🚣'),
-    ('спортсмены.список',  'Спортсмены',          '—',                   'success',   '👤'),
-    ('судьи.список',       'Судейская коллегия',  сор.судьи    | length, 'warning',   '⚖️'),
+  {% set подготовка = [
+    ('субъекты.список',   'Субъекты РФ',      сор.субъекты | length,  'secondary', 'субъекты'),
+    ('команды.список',    'Экипажи',           сор.команды  | length,  'primary',   'команды'),
+    ('спортсмены.список', 'Спортсмены',        кол_спортсменов,        'success',   'спортсмены'),
+    ('судьи.список',      'Судьи',             сор.судьи    | length,  'warning',   'судьи'),
   ] %}
-  {% for bp, заголовок, кол, цвет, эмо in разделы %}
+  {% for bp, заг, кол, цвет, ключ in подготовка %}
   <div class="col-6 col-md-3">
     <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card text-center border-{{ цвет }} h-100">
-        <div class="card-body py-3">
-          <div class="fs-2 mb-1">{{ эмо }}</div>
-          <div class="fs-5 fw-bold text-{{ цвет }}">
-            {{ кол if кол != '—' else '&mdash;' }}
-          </div>
-          <div class="small text-muted">{{ заголовок }}</div>
+      <div class="card border-{{ цвет }} h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="fs-4 fw-bold text-{{ цвет }}">{{ кол }}</div>
+          <div class="small text-muted">{{ заг }}</div>
+          <div class="mt-1">{{ значок(готов[ключ]) }}</div>
         </div>
       </div>
     </a>
@@ -133,24 +151,25 @@
   {% endfor %}
 </div>
 
-{# ── Документы и протоколы ── #}
-<h6 class="text-muted mt-4 mb-2 no-print">Документы и протоколы</h6>
-<div class="row g-2 no-print">
+{# ── 2. Документы ── #}
+<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
+  <span class="badge bg-secondary me-1">2</span> Документы
+</h6>
+<div class="row g-2 no-print" style="font-size:.82rem">
   {% set документы = [
-    ('документы.жеребьёвка',       'Жеребьёвка',                   '🎲', 'primary'),
-    ('документы.заявки',            'Технические заявки',            '📋', 'secondary'),
-    ('документы.выписка_допуска',   'Выписка по допуску',            '✅', 'success'),
-    ('документы.нагрудные_номера',  'Протокол нагрудных номеров',    '🏷️', 'warning'),
-    ('документы.акт_тех_комиссии',  'Акт тех. комиссии',             '🔧', 'danger'),
+    ('документы.жеребьёвка',      'Жеребьёвка',          'primary',   false),
+    ('документы.заявки',           'Тех. заявки',          'secondary', false),
+    ('документы.выписка_допуска',  'Допуск',               'success',   true),
+    ('документы.нагрудные_номера', 'Нагрудные номера',     'warning',   true),
+    ('документы.акт_тех_комиссии', 'Акт тех. комиссии',    'danger',    true),
   ] %}
-  {% for bp, заголовок, эмо, цвет in документы %}
-  <div class="col-6 col-md-4 col-lg-2" style="min-width:170px">
-    <a href="{{ url_for(bp, sor_id=сор.id) }}"
-       class="text-decoration-none" {% if bp != 'документы.жеребьёвка' and bp != 'документы.заявки' %}target="_blank"{% endif %}>
-      <div class="card text-center border-{{ цвет }} h-100">
+  {% for bp, заг, цвет, blank in документы %}
+  <div class="col-6 col-md-2" style="min-width:140px">
+    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none"
+       {% if blank %}target="_blank"{% endif %}>
+      <div class="card border-{{ цвет }} text-center h-100">
         <div class="card-body py-2 px-1">
-          <div class="fs-3 mb-1">{{ эмо }}</div>
-          <div class="small text-muted">{{ заголовок }}</div>
+          <div class="small text-{{ цвет }} fw-semibold">{{ заг }}</div>
         </div>
       </div>
     </a>
@@ -158,81 +177,188 @@
   {% endfor %}
 </div>
 
-{# Дистанции — ссылки (заготовка для будущих разделов) #}
-<h6 class="text-muted mt-4 mb-2 no-print">Дистанции</h6>
+{# ── 3. Дистанции ── #}
+<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
+  <span class="badge bg-secondary me-1">3</span> Дистанции
+</h6>
 <div class="row g-2 no-print">
-  {# Спринт — активная ссылка #}
-  <div class="col-6 col-md-2">
-    <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-primary text-center">
-        <div class="card-body py-2 px-1">
-          <div class="badge bg-primary mb-1">СП</div>
-          <div class="small">Спринт</div>
-          <div class="mt-1">
-            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
-          </div>
-        </div>
+
+  {# Спринт #}
+  <div class="col-12 col-md-6">
+    <div class="card border-primary h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-primary me-1">СП</span>Спринт</span>
+        {{ значок(готов.спринт) }}
       </div>
-    </a>
-  </div>
-  {# Параллельный спринт — активная ссылка #}
-  <div class="col-6 col-md-2">
-    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-info text-center">
-        <div class="card-body py-2 px-1">
-          <div class="badge bg-info mb-1">ПС</div>
-          <div class="small">Параллельный спринт</div>
-          <div class="mt-1">
-            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  {# Слалом — активная ссылка #}
-  <div class="col-6 col-md-2">
-    <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-success text-center">
-        <div class="card-body py-2 px-1">
-          <div class="badge bg-success mb-1">СЛ</div>
-          <div class="small">Слалом</div>
-          <div class="mt-1">
-            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  {# Длинная гонка — активная ссылка #}
-  <div class="col-6 col-md-2">
-    <a href="{{ url_for('дг.старт', sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-warning text-center">
-        <div class="card-body py-2 px-1">
-          <div class="badge bg-warning text-dark mb-1">ДГ</div>
-          <div class="small">Длинная гонка</div>
-          <div class="mt-1">
-            <span class="badge bg-success text-white border" style="font-size:.65rem">активно</span>
-          </div>
-        </div>
-      </div>
-    </a>
-  </div>
-  {% set дистанции_прочие = [
-    ('Многоборье',      'МБ',  'danger'),
-    ('Зачёт субъектов', 'ЗС',  'secondary'),
-  ] %}
-  {% for название, сокр, цвет in дистанции_прочие %}
-  <div class="col-6 col-md-2">
-    <div class="card border-{{ цвет }} text-center">
-      <div class="card-body py-2 px-1">
-        <div class="badge bg-{{ цвет }} mb-1">{{ сокр }}</div>
-        <div class="small">{{ название }}</div>
-        <div class="mt-1">
-          <span class="badge bg-light text-muted border" style="font-size:.65rem">скоро</span>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}"
+             class="btn btn-primary btn-sm">Старт</a>
+          <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
+             class="btn btn-outline-primary btn-sm">Финиш</a>
+          <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-primary btn-sm">Результаты</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
         </div>
       </div>
     </div>
   </div>
-  {% endfor %}
+
+  {# Параллельный спринт #}
+  <div class="col-12 col-md-6">
+    <div class="card border-info h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-info bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-info me-1">ПС</span>Параллельный спринт</span>
+        {{ значок(готов.пс) }}
+      </div>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
+             class="btn btn-info btn-sm text-white">Сетка</a>
+          <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
+             class="btn btn-outline-info btn-sm">Заезды</a>
+          <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-info btn-sm">Результаты</a>
+          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Сетка</a>
+          <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Слалом #}
+  <div class="col-12 col-md-6">
+    <div class="card border-success h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-success bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-success me-1">СЛ</span>Слалом</span>
+        {{ значок(готов.слалом) }}
+      </div>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
+             class="btn btn-success btn-sm">Старт</a>
+          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=1) }}"
+             class="btn btn-outline-success btn-sm">Ворота 1</a>
+          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=2) }}"
+             class="btn btn-outline-success btn-sm">Ворота 2</a>
+          <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
+             class="btn btn-outline-success btn-sm">Финиш</a>
+          <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-success btn-sm">Результаты</a>
+          <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Длинная гонка #}
+  <div class="col-12 col-md-6">
+    <div class="card border-warning h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-warning bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-warning text-dark me-1">ДГ</span>Длинная гонка</span>
+        {{ значок(готов.дг) }}
+      </div>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('дг.старт', sor_id=сор.id) }}"
+             class="btn btn-warning btn-sm text-dark">Старт</a>
+          <a href="{{ url_for('дг.секции', sor_id=сор.id) }}"
+             class="btn btn-outline-warning btn-sm">Секции</a>
+          <a href="{{ url_for('дг.финиш', sor_id=сор.id) }}"
+             class="btn btn-outline-warning btn-sm">Финиш</a>
+          <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-warning btn-sm">Результаты</a>
+          <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# ── 4. Итоги ── #}
+<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
+  <span class="badge bg-secondary me-1">4</span> Итоговые протоколы
+</h6>
+<div class="row g-2 no-print">
+
+  {# Многоборье #}
+  <div class="col-12 col-md-6">
+    <div class="card border-danger h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-danger bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-danger me-1">МБ</span>Многоборье</span>
+        {{ значок(готов.многоборье) }}
+      </div>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('многоборье.результаты', sor_id=сор.id) }}"
+             class="btn btn-danger btn-sm">Результаты</a>
+          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Зачёт субъектов #}
+  <div class="col-12 col-md-6">
+    <div class="card border-secondary h-100">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-secondary bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-secondary me-1">ЗС</span>Зачёт субъектов</span>
+        {{ значок(готов.зачет) }}
+      </div>
+      <div class="card-body py-2 px-2">
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('зачет.результаты', sor_id=сор.id) }}"
+             class="btn btn-secondary btn-sm">Результаты</a>
+          <a href="{{ url_for('зачет.протокол', sor_id=сор.id) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
+          <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
+             class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Отчёты #}
+  <div class="col-12 col-md-6">
+    <div class="card border-dark h-100">
+      <div class="card-header py-1 px-2 bg-dark bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-dark me-1">ФРР</span>Отчёт ФРР</span>
+      </div>
+      <div class="card-body py-2 px-2">
+        <a href="{{ url_for('отчеты.фрр', sor_id=сор.id) }}"
+           class="btn btn-dark btn-sm" target="_blank">Сформировать и распечатать</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-6">
+    <div class="card border-dark h-100">
+      <div class="card-header py-1 px-2 bg-dark bg-opacity-10">
+        <span class="fw-bold small"><span class="badge bg-dark me-1">ФЦПСР</span>Отчёт ФЦПСР</span>
+      </div>
+      <div class="card-body py-2 px-2">
+        <a href="{{ url_for('отчеты.фцпср', sor_id=сор.id) }}"
+           class="btn btn-dark btn-sm" target="_blank">Сформировать и распечатать</a>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

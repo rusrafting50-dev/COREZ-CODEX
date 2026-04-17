@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Многоборье — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Многоборье</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Многоборье — Результаты</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+  </div>
+</div>
+
+<div class="alert alert-info py-2 small mb-3">
+  Очки суммируются по результатам дистанций: Спринт + ПС + Слалом + Длинная гонка.
+  Пересчёт — при каждой загрузке страницы.
+</div>
+
+{% macro таблица(рез, разряды, заг, цвет) %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }} ({{ рез | length }})</h6>
+{% if not рез %}
+<div class="text-muted small mb-3">Нет данных — сначала рассчитайте результаты дистанций.</div>
+{% else %}
+<div class="table-responsive mb-3">
+  <table class="table table-sm table-hover align-middle" style="font-size:.85rem">
+    <thead class="table-light">
+      <tr>
+        <th class="text-center" style="width:45px">Место</th>
+        <th class="text-center" style="width:50px">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:100px">Субъект</th>
+        <th class="text-center" style="width:65px">Сп</th>
+        <th class="text-center" style="width:65px">ПС</th>
+        <th class="text-center" style="width:65px">Сл</th>
+        <th class="text-center" style="width:65px">ДГ</th>
+        <th class="text-center fw-bold" style="width:75px">Сумма</th>
+        <th class="text-center" style="width:50px">Разряд</th>
+        <th class="text-center" style="width:65px">Очки МБ</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for р in рез %}
+    {% set к = р.команда %}
+    <tr class="{{ 'table-warning' if р.место == 1 else ('table-light' if р.место == 2 else ('bg-warning bg-opacity-10' if р.место == 3 else '')) }}">
+      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="small text-muted">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+      <td class="text-center small">{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
+      <td class="text-center small">{{ р.очки_пс | int if р.очки_пс else '—' }}</td>
+      <td class="text-center small">{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
+      <td class="text-center small">{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
+      <td class="text-center fw-bold text-primary">{{ р.сумма_очков | int }}</td>
+      <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
+      <td class="text-center small">{{ р.очки_многоборье | int if р.очки_многоборье else '—' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ таблица(муж_рез, муж_разр, 'Мужские экипажи', 'primary') }}
+{{ таблица(жен_рез, жен_разр, 'Женские экипажи', 'danger') }}
+
+<div class="text-muted small mt-2">
+  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+</div>
+{% endblock %}
