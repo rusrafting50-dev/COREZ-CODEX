@@ -108,6 +108,7 @@ class Соревнование(db.Model):
     кол_мужских_экипажей        = db.Column(db.Integer, nullable=True)
     кол_женских_экипажей        = db.Column(db.Integer, nullable=True)
     кол_попыток_слалом          = db.Column(db.Integer, nullable=False, default=2)
+    кол_ворот_слалом            = db.Column(db.Integer, nullable=False, default=10)
     кол_спортсменов_в_экипаже   = db.Column(db.Integer, nullable=False, default=4)
     кол_субъектов               = db.Column(db.Integer, nullable=True)
 
@@ -381,6 +382,27 @@ class РезультатСлалома(db.Model):
         return f'<РезультатСлалом команда_id={self.команда_id} попытка={self.номер_попытки}>'
 
 
+class ШтрафВорот(db.Model):
+    """Штраф на отдельных воротах слалома (5 сек или 50 сек)."""
+    __tablename__ = 'штрафы_ворот'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    команда_id      = db.Column(db.Integer, db.ForeignKey('команды.id'), nullable=False)
+    соревнование_id = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
+    номер_попытки   = db.Column(db.Integer, nullable=False)    # 1 или 2
+    номер_ворот     = db.Column(db.Integer, nullable=False)    # 1–20
+    штраф           = db.Column(db.Integer, nullable=False, default=0)   # 0 / 5 / 50
+
+    __table_args__ = (
+        db.UniqueConstraint('команда_id', 'номер_попытки', 'номер_ворот', name='uq_ворота_штраф'),
+    )
+
+    команда = db.relationship('Команда')
+
+    def __repr__(self):
+        return f'<ШтрафВорот команда_id={self.команда_id} попытка={self.номер_попытки} ворота={self.номер_ворот} = {self.штраф}>'
+
+
 class РезультатДлиннойГонки(db.Model):
     """Результат экипажа на дистанции ДЛИННАЯ ГОНКА."""
     __tablename__ = 'результаты_дг'
@@ -550,6 +572,13 @@ def применить_миграции():
         if 'номер_в_экипаже' not in cols:
             conn.execute(text(
                 'ALTER TABLE спортсмены ADD COLUMN номер_в_экипаже INTEGER'
+            ))
+            conn.commit()
+        # соревнования: кол_ворот_слалом
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        if 'кол_ворот_слалом' not in cols:
+            conn.execute(text(
+                'ALTER TABLE соревнования ADD COLUMN кол_ворот_слалом INTEGER NOT NULL DEFAULT 10'
             ))
             conn.commit()
         # результаты_спринт: новые колонки штрафов по типу

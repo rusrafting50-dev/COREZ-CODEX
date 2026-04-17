@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Протокол результатов — Слалом — {{ сор.название | truncate(50) }}</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 9pt; }
+      @page { margin: 12mm 8mm; size: A4 landscape; }
+      tr { page-break-inside: avoid; }
+    }
+    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
+    table th, table td { border: 1px solid #333; padding: 3px 4px; vertical-align: middle; }
+    thead { background: #f0f0f0; font-weight: bold; }
+    h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
+    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
+    .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
+    .место-1 { background: #fffbe6; font-weight: bold; }
+    .место-2 { background: #f5f5f5; }
+    .место-3 { background: #fdf3e8; }
+    .best { background: #e8ffe8; font-weight: bold; }
+    .no-result { color: #888; font-style: italic; }
+    .badge-dq { background: #dc3545; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 8pt; }
+  </style>
+</head>
+<body class="px-3 py-3">
+
+<div class="d-flex justify-content-between mb-3 no-print">
+  <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm">← Назад</a>
+  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+</div>
+
+{% if сор.организаторы %}
+<div class="text-center mb-1" style="font-size:10pt">{{ сор.организаторы }}</div>
+{% endif %}
+
+<div class="text-center mb-3">
+  <h3 class="doc-title mb-1">
+    {% if итоговый %}Итоговый протокол{% else %}Предварительный протокол{% endif %}
+  </h3>
+  <div style="font-size:11pt">Дистанция: <strong>СЛАЛОМ</strong></div>
+  <div style="font-size:11pt"><strong>{{ сор.название }}</strong></div>
+  <div style="font-size:10pt; color:#555">
+    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
+    {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
+  </div>
+</div>
+
+{% macro таблица(рез, без, разряды, попытки, заг) %}
+{% if рез or без %}
+<div class="section-title">{{ заг }} ({{ рез | length + без | length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2" style="width:40px" class="text-center">Место</th>
+      <th rowspan="2" style="width:50px" class="text-center">Нагруд.</th>
+      <th rowspan="2">Команда</th>
+      <th rowspan="2" style="min-width:100px">Субъект РФ</th>
+      <th colspan="3" class="text-center" style="background:#fffacd">Попытка 1</th>
+      <th colspan="3" class="text-center" style="background:#ffe4e1">Попытка 2</th>
+      <th rowspan="2" style="width:70px" class="text-center">Лучший</th>
+      <th rowspan="2" style="width:40px" class="text-center">Разряд</th>
+      <th rowspan="2" style="width:40px" class="text-center">Очки</th>
+    </tr>
+    <tr>
+      <th style="width:65px" class="text-center">Время</th>
+      <th style="width:50px" class="text-center">Штраф</th>
+      <th style="width:65px" class="text-center">Рез-т</th>
+      <th style="width:65px" class="text-center">Время</th>
+      <th style="width:50px" class="text-center">Штраф</th>
+      <th style="width:65px" class="text-center">Рез-т</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for р in рез %}
+  {% set к = р.команда %}
+  {% set р1 = попытки.get(к.id, {}).get(1) %}
+  {% set р2 = попытки.get(к.id, {}).get(2) %}
+  {% set лучш_ном = р.номер_попытки %}
+  {% set row_cls = 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) %}
+  <tr class="{{ row_cls }}">
+    <td class="text-center fw-bold" style="font-size:10pt">{{ р.место }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '—' }}</td>
+    <td style="font-size:8pt">{{ к.субъект.название if к.субъект else '—' }}</td>
+    {# Попытка 1 #}
+    <td class="text-center {{ 'best' if лучш_ном == 1 }}" style="font-family:monospace;font-size:8pt">
+      {{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}
+    </td>
+    <td class="text-center {{ 'best' if лучш_ном == 1 }}" style="font-size:8pt">
+      {{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1 and р1.штрафное_время else '—' }}
+    </td>
+    <td class="text-center {{ 'best' if лучш_ном == 1 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold">
+      {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
+      {% if лучш_ном == 1 %}★{% endif %}
+    </td>
+    {# Попытка 2 #}
+    <td class="text-center {{ 'best' if лучш_ном == 2 }}" style="font-family:monospace;font-size:8pt">
+      {{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}
+    </td>
+    <td class="text-center {{ 'best' if лучш_ном == 2 }}" style="font-size:8pt">
+      {{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2 and р2.штрафное_время else '—' }}
+    </td>
+    <td class="text-center {{ 'best' if лучш_ном == 2 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold">
+      {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
+      {% if лучш_ном == 2 %}★{% endif %}
+    </td>
+    <td class="text-center fw-bold" style="font-family:monospace;font-size:9pt">{{ format_dur(р.лучший_результат) }}</td>
+    <td class="text-center" style="font-size:8pt">{{ разряды.get(к.id, '—') }}</td>
+    <td class="text-center" style="font-size:8pt">{{ р.очки | int if р.очки else '—' }}</td>
+  </tr>
+  {% endfor %}
+  {% for р in без %}
+  {% set к = р.команда %}
+  <tr class="no-result">
+    <td class="text-center">—</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '—' }}</td>
+    <td style="font-size:8pt">{{ к.субъект.название if к.субъект else '—' }}</td>
+    <td colspan="9" class="text-center">
+      <span class="badge-dq">{{ р.статус_попытки }}</span>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endmacro %}
+
+{{ таблица(муж_рез, муж_без, муж_разр, муж_поп, 'МУЖСКИЕ ЭКИПАЖИ') }}
+{{ таблица(жен_рез, жен_без, жен_разр, жен_поп, 'ЖЕНСКИЕ ЭКИПАЖИ') }}
+
+{% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
+<div style="text-align:center;color:#888;margin:2em 0">Нет результатов</div>
+{% endif %}
+
+{% if итоговый %}
+<div class="row mt-4" style="font-size:10pt">
+  <div class="col-4">
+    <div>Главный судья</div>
+    <div class="mt-2">
+      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
+      <div style="font-size:8pt">подпись / ФИО</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div>Главный секретарь</div>
+    <div class="mt-2">
+      <div class="underline-field">{{ сор.главный_секретарь or '&nbsp;' * 25 }}</div>
+      <div style="font-size:8pt">подпись / ФИО</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div>Протокол утверждён</div>
+    <div class="mt-2">
+      <div class="underline-field">&nbsp;</div>
+      <div style="font-size:8pt">дата</div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="row mt-4" style="font-size:10pt">
+  <div class="col-5">
+    <div>Главный судья</div>
+    <div class="mt-2">
+      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
+      <div style="font-size:8pt">подпись / ФИО</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="mt-2" style="font-size:9pt;color:#666">
+  Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
+  {% if not итоговый %} · <em>ПРЕДВАРИТЕЛЬНЫЙ — не является официальным документом</em>{% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
+        crossorigin="anonymous"></script>
+</body>
+</html>

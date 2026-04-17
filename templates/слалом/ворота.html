@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Слалом: Ворота (попытка {{ попытка }}) — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(30) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Слалом — Ворота попытка {{ попытка }}</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Слалом — Рабочий протокол ворот</h5>
+    <div class="text-muted small">
+      {{ сор.название | truncate(60) }} &nbsp;·&nbsp;
+      <strong>Попытка {{ попытка }}</strong> из {{ сор.кол_попыток_слалом }}
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if попытка == 1 %}
+    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=2) }}"
+       class="btn btn-outline-warning btn-sm">Попытка 2</a>
+    {% else %}
+    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=1) }}"
+       class="btn btn-outline-warning btn-sm">Попытка 1</a>
+    {% endif %}
+    <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Финиш</a>
+    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id, попытка=попытка) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+<form method="post">
+{# Настройка числа ворот #}
+<div class="d-flex align-items-center gap-3 mb-3">
+  <label class="text-muted small fw-semibold mb-0">Ворот на дистанции:</label>
+  <input type="number" name="кол_ворот" value="{{ кол_ворот }}"
+         class="form-control form-control-sm" style="width:80px" min="1" max="20">
+  <span class="text-muted small">(обновится при сохранении)</span>
+</div>
+
+{# Легенда #}
+<div class="d-flex gap-3 mb-2 small text-muted">
+  <span><span class="badge bg-light border text-dark">0</span> чисто</span>
+  <span><span class="badge bg-warning text-dark">5</span> касание</span>
+  <span><span class="badge bg-danger">50</span> неправильное прохождение / пропуск</span>
+</div>
+
+{% for команды, штрафы, цвет, заг in [
+    (муж, муж_штрафы, 'primary', 'Мужские экипажи'),
+    (жен, жен_штрафы, 'danger',  'Женские экипажи')
+] %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-2 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
+<div class="table-responsive">
+  <table class="table table-sm table-bordered align-middle mb-3" style="font-size:.8rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:55px" class="text-center sticky-col">Нагруд.</th>
+        <th style="min-width:120px" class="sticky-col-2">Команда</th>
+        {% for в in range(1, кол_ворот + 1) %}
+        <th class="text-center" style="width:70px">{{ в }}</th>
+        {% endfor %}
+        <th class="text-center" style="width:60px">Σ штраф</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for к in команды %}
+    {% set к_штрафы = штрафы.get(к.id, {}) %}
+    {% set сумма = namespace(val=0) %}
+    <tr>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+      <td class="text-nowrap">{{ к.название or '—' }}</td>
+      {% for в in range(1, кол_ворот + 1) %}
+      {% set текущий = к_штрафы.get(в, 0) %}
+      {% if текущий == 5 %}{% set сумма.val = сумма.val + 5 %}{% endif %}
+      {% if текущий == 50 %}{% set сумма.val = сумма.val + 50 %}{% endif %}
+      <td class="text-center p-0">
+        <select name="в_{{ к.id }}_{{ в }}"
+                class="form-select form-select-sm border-0 штраф-select text-center px-1"
+                style="font-size:.78rem;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
+                onchange="this.style.background=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'')">
+          <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
+          <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
+          <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
+        </select>
+      </td>
+      {% endfor %}
+      <td class="text-center fw-bold {{ 'text-danger' if сумма.val > 0 else 'text-muted' }}">
+        {{ сумма.val if сумма.val > 0 else '—' }}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="2" class="text-muted small">Итого нарушений</td>
+        {% for в in range(1, кол_ворот + 1) %}
+        {% set в_сумма = namespace(val=0) %}
+        {% for к in команды %}
+        {% set кш = штрафы.get(к.id, {}).get(в, 0) %}
+        {% if кш > 0 %}{% set в_сумма.val = в_сумма.val + 1 %}{% endif %}
+        {% endfor %}
+        <td class="text-center small text-muted">{{ в_сумма.val if в_сумма.val > 0 else '' }}</td>
+        {% endfor %}
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endif %}
+{% endfor %}
+
+<button type="submit" class="btn btn-success px-4 mb-3">
+  Сохранить штрафы на воротах (попытка {{ попытка }})
+</button>
+</form>
+{% endblock %}

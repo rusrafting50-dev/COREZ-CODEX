@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Слалом: Финиш — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Слалом — Финиш</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Слалом — Протокол финиша</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Старт</a>
+    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=1) }}"
+       class="btn btn-outline-warning btn-sm">Ворота</a>
+    <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты →</a>
+    <a href="{{ url_for('слалом.протокол_финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+<p class="text-muted small mb-2">
+  Штрафы на воротах обновляются автоматически из рабочего протокола.
+  Формат: <code>ЧЧ:ММ:СС.сс</code>
+</p>
+
+{% macro таблица_финиша(команды, цвет, заг) %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm align-middle" style="font-size:.82rem">
+    <thead class="table-light">
+      <tr>
+        <th rowspan="2" class="text-center align-middle" style="width:35px">№</th>
+        <th rowspan="2" class="text-center align-middle" style="width:50px">Нагруд.</th>
+        <th rowspan="2" class="align-middle" style="min-width:110px">Команда</th>
+        <th colspan="4" class="text-center border-start bg-warning bg-opacity-10">Попытка 1</th>
+        <th colspan="4" class="text-center border-start bg-danger bg-opacity-10">Попытка 2</th>
+      </tr>
+      <tr>
+        <th class="text-center border-start" style="width:105px">Время финиша</th>
+        <th class="text-center" style="width:55px">Штраф</th>
+        <th class="text-center font-monospace" style="width:70px">Результат</th>
+        <th class="text-center" style="width:105px">Статус</th>
+        <th class="text-center border-start" style="width:105px">Время финиша</th>
+        <th class="text-center" style="width:55px">Штраф</th>
+        <th class="text-center font-monospace" style="width:70px">Результат</th>
+        <th class="text-center" style="width:105px">Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for к in команды %}
+    {% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
+    {% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+    {% set ст1 = р1.статус_попытки if р1 else СТАТУС_ФИНИШ %}
+    {% set ст2 = р2.статус_попытки if р2 else СТАТУС_ФИНИШ %}
+    {% set лучш1 = р1 and р1.результат_попытки and р2 and р2.результат_попытки and р1.результат_попытки <= р2.результат_попытки %}
+    {% set лучш2 = р1 and р1.результат_попытки and р2 and р2.результат_попытки and р2.результат_попытки < р1.результат_попытки %}
+    {% set лучш1 = лучш1 or (р1 and р1.результат_попытки and not (р2 and р2.результат_попытки)) %}
+    {% set лучш2 = лучш2 or (р2 and р2.результат_попытки and not (р1 and р1.результат_попытки)) %}
+    <tr class="{{ 'table-danger' if ст1 == 'ДК' and ст2 == 'ДК' else '' }}">
+      <td class="text-center">{{ loop.index }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+
+      {# Попытка 1 #}
+      <td class="border-start">
+        <input type="text" name="вф1_{{ к.id }}"
+               class="form-control form-control-sm font-monospace время-ввод"
+               value="{{ format_time(р1.время_финиша) if р1 and р1.время_финиша else '' }}"
+               placeholder="00:00:00.00" autocomplete="off">
+      </td>
+      <td class="text-center small {{ 'text-danger fw-bold' if р1 and р1.штрафное_время else 'text-muted' }}">
+        {{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1 and р1.штрафное_время else '—' }}
+      </td>
+      <td class="text-center font-monospace fw-bold {{ 'text-success' if лучш1 else '' }}">
+        {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
+        {% if лучш1 %}<span title="Лучшая попытка">★</span>{% endif %}
+      </td>
+      <td>
+        <select name="ст1_{{ к.id }}" class="form-select form-select-sm">
+          {% for код, метка in СТАТУСЫ %}
+          <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
+          {% endfor %}
+        </select>
+      </td>
+
+      {# Попытка 2 #}
+      <td class="border-start">
+        <input type="text" name="вф2_{{ к.id }}"
+               class="form-control form-control-sm font-monospace время-ввод"
+               value="{{ format_time(р2.время_финиша) if р2 and р2.время_финиша else '' }}"
+               placeholder="00:00:00.00" autocomplete="off">
+      </td>
+      <td class="text-center small {{ 'text-danger fw-bold' if р2 and р2.штрафное_время else 'text-muted' }}">
+        {{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2 and р2.штрафное_время else '—' }}
+      </td>
+      <td class="text-center font-monospace fw-bold {{ 'text-success' if лучш2 else '' }}">
+        {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
+        {% if лучш2 %}<span title="Лучшая попытка">★</span>{% endif %}
+      </td>
+      <td>
+        <select name="ст2_{{ к.id }}" class="form-select form-select-sm">
+          {% for код, метка in СТАТУСЫ %}
+          <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">Нет команд.</div>
+{% else %}
+<form method="post">
+{{ таблица_финиша(муж, 'primary', 'Мужские') }}
+{{ таблица_финиша(жен, 'danger',  'Женские') }}
+<button type="submit" class="btn btn-success px-4">Сохранить протокол финиша</button>
+</form>
+{% endif %}
+
+<script>
+document.querySelectorAll('.время-ввод').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+});
+</script>
+{% endblock %}
