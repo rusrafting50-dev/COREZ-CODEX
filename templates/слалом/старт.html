@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Слалом: Старт — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+    </li>
+    <li class="breadcrumb-item active">Слалом — Старт</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h5 class="mb-0">Слалом — Стартовый протокол</h5>
+    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=1) }}"
+       class="btn btn-outline-warning btn-sm">Ворота →</a>
+    <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Финиш</a>
+    <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+  </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+<p class="text-muted small mb-3">
+  Порядок старта по результатам <strong>Параллельного спринта</strong> (худший ПС → первым).
+  Формат времени: <code>ЧЧ:ММ:СС.сс</code>
+</p>
+
+{% if not муж and not жен %}
+<div class="alert alert-warning">Нет команд для формирования стартового протокола.</div>
+{% else %}
+
+<form method="post">
+{% for команды, цвет, заг in [(муж, 'primary', 'Мужские'), (жен, 'danger', 'Женские')] %}
+{% if команды %}
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th style="width:45px" class="text-center">№ ст.</th>
+        <th style="width:55px" class="text-center">Нагруд.</th>
+        <th>Команда</th>
+        <th style="min-width:90px">Субъект</th>
+        <th style="width:120px" class="text-center">Старт попытка 1</th>
+        <th style="width:120px" class="text-center">Старт попытка 2</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for к in команды %}
+    {% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
+    {% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+    <tr>
+      <td class="text-center fw-semibold">{{ loop.index }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td class="text-muted small">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+      <td>
+        <input type="text" name="вс1_{{ к.id }}"
+               class="form-control form-control-sm font-monospace время-ввод"
+               value="{{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}"
+               placeholder="00:00:00.00" autocomplete="off">
+      </td>
+      <td>
+        <input type="text" name="вс2_{{ к.id }}"
+               class="form-control form-control-sm font-monospace время-ввод"
+               value="{{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}"
+               placeholder="00:00:00.00" autocomplete="off">
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endfor %}
+
+<button type="submit" class="btn btn-success px-4">Сохранить стартовые времена</button>
+</form>
+{% endif %}
+
+<script>
+document.querySelectorAll('.время-ввод').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+});
+</script>
+{% endblock %}

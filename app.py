@@ -42,6 +42,7 @@ def create_app() -> Flask:
     from routes.документы   import bp_документы
     from routes.спринт      import bp_спринт
     from routes.пс          import bp_пс
+    from routes.слалом      import bp_слалом
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -52,6 +53,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_документы,    url_prefix='/документы')
     app.register_blueprint(bp_спринт,       url_prefix='/спринт')
     app.register_blueprint(bp_пс,           url_prefix='/пс')
+    app.register_blueprint(bp_слалом,       url_prefix='/слалом')
 
     return app
 
