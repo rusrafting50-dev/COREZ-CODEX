@@ -70,7 +70,7 @@
       <tr>
         <td colspan="4" class="text-muted small ps-2">Итого субъектов: {{ субъекты | length }}</td>
         <td class="text-center fw-bold">
-          {{ субъекты | sum(attribute='команды') | map(attribute='__len__') | list | sum }}
+          {{ субъекты | map(attribute='команды') | map('list') | map('length') | sum }}
         </td>
         <td class="no-print"></td>
       </tr>
