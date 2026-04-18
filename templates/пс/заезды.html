@@ -156,7 +156,8 @@
     <input type="hidden" name="стадия" value="1/2">
     <input type="hidden" name="пол" value="{{ пол }}">
     <button type="submit" class="btn btn-{{ цвет }} btn-sm">
-      Сформировать Финалы А и Б →
+      {% set реальных = данные[стадия].keys() | reject('equalto', 0) | list | length %}
+      Сформировать {% if реальных >= 2 %}Финалы А и Б{% else %}Финал А{% endif %} →
     </button>
   </form>
   {% elif стадия in СЛЕДУЮЩАЯ and СЛЕДУЮЩАЯ[стадия] not in данные %}
