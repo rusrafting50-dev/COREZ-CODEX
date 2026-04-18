@@ -151,31 +151,6 @@
 </button>
 </form>{# ── конец формы сохранения ── #}
 
-{# ── Переход к следующей стадии — ОТДЕЛЬНЫЕ формы, не вложенные ── #}
-{% for стадия in стадии %}
-{% set реальных_в_этапе = данные[стадия].keys() | reject('equalto', 0) | list | length %}
-{% if завершены[стадия] and реальных_в_этапе > 0 %}
-  {% if стадия == '1/2' and 'Финал_А' not in данные %}
-  <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
-    <input type="hidden" name="стадия" value="1/2">
-    <input type="hidden" name="пол" value="{{ пол }}">
-    <button type="submit" class="btn btn-{{ цвет }} btn-sm">
-      {% set реальных = данные[стадия].keys() | reject('equalto', 0) | list | length %}
-      Сформировать {% if реальных >= 2 %}Финалы А и Б{% else %}Финал А{% endif %} →
-    </button>
-  </form>
-  {% elif стадия in СЛЕДУЮЩАЯ and СЛЕДУЮЩАЯ[стадия] not in данные %}
-  <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
-    <input type="hidden" name="стадия" value="{{ стадия }}">
-    <input type="hidden" name="пол" value="{{ пол }}">
-    <button type="submit" class="btn btn-outline-{{ цвет }} btn-sm">
-      Сформировать {{ НАЗВАНИЯ.get(СЛЕДУЮЩАЯ[стадия], СЛЕДУЮЩАЯ[стадия]) }} →
-    </button>
-  </form>
-  {% endif %}
-{% endif %}
-{% endfor %}{# конец цикла кнопок перехода #}
-
 {% endif %}
 {% endfor %}{# конец цикла по полу #}
 
