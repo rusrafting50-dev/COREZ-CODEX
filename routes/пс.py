@@ -176,8 +176,8 @@ def _формировать_начало(sor_id, пол):
         .delete(synchronize_session='fetch')
 
     if n == 3:
-        # Для 3 команд: seed2 ожидает в финале, seed1 vs seed3 — предварительный заезд
-        пары = [(seeded[1], None), (seeded[0], seeded[2])]
+        # seed1 ожидает в финале, seed2 vs seed3 — полуфинал
+        пары = [(seeded[0], None), (seeded[1], seeded[2])]
     else:
         пары = _сформировать_пары(seeded)
     _добавить_заезды(sor_id, first_stage, пары)
