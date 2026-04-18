@@ -18,7 +18,7 @@
     <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, попытка=1) }}"
+    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}"
        class="btn btn-outline-warning btn-sm">Ворота →</a>
     <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Финиш</a>

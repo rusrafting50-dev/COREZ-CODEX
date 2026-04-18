@@ -168,10 +168,11 @@ def старт(sor_id):
                            format_time=format_time)
 
 
-@bp_слалом.route('/<int:sor_id>/ворота/<int:попытка>', methods=['GET', 'POST'])
-def ворота(sor_id, попытка):
+@bp_слалом.route('/<int:sor_id>/ворота/<int:attempt>', methods=['GET', 'POST'])
+def ворота(sor_id, attempt):
+    попытка = attempt
     if попытка not in (1, 2):
-        return redirect(url_for('слалом.ворота', sor_id=sor_id, попытка=1))
+        return redirect(url_for('слалом.ворота', sor_id=sor_id, attempt=1))
     сор = Соревнование.query.get_or_404(sor_id)
     кол_ворот = сор.кол_ворот_слалом or 10
 
@@ -204,7 +205,7 @@ def ворота(sor_id, попытка):
                     _пересчитать_попытку(рез, sor_id)
         db.session.commit()
         flash(f'Штрафы на воротах (попытка {попытка}) сохранены.', 'success')
-        return redirect(url_for('слалом.ворота', sor_id=sor_id, попытка=попытка))
+        return redirect(url_for('слалом.ворота', sor_id=sor_id, attempt=попытка))
 
     муж = _по_посеву(sor_id, 'м')
     жен = _по_посеву(sor_id, 'ж')
@@ -270,8 +271,9 @@ def протокол_старт(sor_id):
                            format_time=format_time, сегодня=date.today())
 
 
-@bp_слалом.route('/<int:sor_id>/протокол-ворота/<int:попытка>')
-def протокол_ворота(sor_id, попытка):
+@bp_слалом.route('/<int:sor_id>/протокол-ворота/<int:attempt>')
+def протокол_ворота(sor_id, attempt):
+    попытка = attempt
     сор = Соревнование.query.get_or_404(sor_id)
     кол_ворот = сор.кол_ворот_слалом or 10
     муж = _по_посеву(sor_id, 'м')
