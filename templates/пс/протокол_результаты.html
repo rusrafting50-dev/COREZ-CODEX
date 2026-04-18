@@ -91,7 +91,7 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '—' }}</td>
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.стадия }}</td>
+    <td class="text-center" style="font-size:8pt">{{ НАЗВАНИЯ.get(з.стадия, з.стадия) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(з.время) }}</td>
     <td class="text-center">{{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}</td>
     <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(з.результат) }}</td>
