@@ -12,7 +12,9 @@ def список(sor_id):
                 .filter_by(соревнование_id=sor_id)
                 .order_by(Субъект.номер_делегации)
                 .all())
-    return render_template('субъекты/список.html', сор=сор, субъекты=субъекты)
+    total_команды = sum(len(с.команды) for с in субъекты)
+    return render_template('субъекты/список.html', сор=сор, субъекты=субъекты,
+                           total_команды=total_команды)
 
 
 @bp_субъекты.route('/<int:sor_id>/добавить', methods=['GET', 'POST'])

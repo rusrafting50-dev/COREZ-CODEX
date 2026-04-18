@@ -168,7 +168,7 @@ def старт(sor_id):
                            format_time=format_time)
 
 
-@bp_слалом.route('/<int:sor_id>/ворота/<int:попытка>', methods=['GET', 'POST'])
+@bp_слалом.route('/<int:sor_id>/ворота/<int:attempt>', methods=['GET', 'POST'])
 def ворота(sor_id, попытка):
     if попытка not in (1, 2):
         return redirect(url_for('слалом.ворота', sor_id=sor_id, попытка=1))
@@ -270,7 +270,7 @@ def протокол_старт(sor_id):
                            format_time=format_time, сегодня=date.today())
 
 
-@bp_слалом.route('/<int:sor_id>/протокол-ворота/<int:попытка>')
+@bp_слалом.route('/<int:sor_id>/протокол-ворота/<int:attempt>')
 def протокол_ворота(sor_id, попытка):
     сор = Соревнование.query.get_or_404(sor_id)
     кол_ворот = сор.кол_ворот_слалом or 10
