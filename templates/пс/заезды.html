@@ -58,6 +58,8 @@
 <form method="post">
 {% for стадия in стадии %}
 {% set заезды_этапа = данные[стадия] %}
+{% set реальных_в_этапе = данные[стадия].keys() | reject('equalto', 0) | list | length %}
+{% if реальных_в_этапе > 0 %}
 <div class="card mb-3">
   <div class="card-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
@@ -141,6 +143,7 @@
     </table>
   </div>
 </div>
+{% endif %}{# реальных_в_этапе > 0 #}
 {% endfor %}{# конец цикла по стадиям #}
 
 <button type="submit" class="btn btn-success px-4 mb-3">
@@ -150,7 +153,8 @@
 
 {# ── Переход к следующей стадии — ОТДЕЛЬНЫЕ формы, не вложенные ── #}
 {% for стадия in стадии %}
-{% if завершены[стадия] %}
+{% set реальных_в_этапе = данные[стадия].keys() | reject('equalto', 0) | list | length %}
+{% if завершены[стадия] and реальных_в_этапе > 0 %}
   {% if стадия == '1/2' and 'Финал_А' not in данные %}
   <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
     <input type="hidden" name="стадия" value="1/2">
