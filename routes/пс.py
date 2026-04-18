@@ -294,7 +294,7 @@ def _рассчитать_итоговые(sor_id, пол):
         start = start_places.get(стадия)
         if start is None:
             continue
-        лузеры.sort(key=lambda з: з.результат or float('inf'))
+        лузеры.sort(key=lambda з: (з.штрафное_время or 0, з.время or float('inf')))
         for i, з in enumerate(лузеры):
             з.итоговое_место = start + i
 

@@ -46,7 +46,6 @@
   +50с — количество штрафных буёв
 </div>
 
-{# ── Один блок для каждого пола ── #}
 {% for пол, стадии, данные, завершены, цвет, заг in [
     ('м', муж_стадии, муж_данные, муж_завершены, 'primary', 'Мужские экипажи'),
     ('ж', жен_стадии, жен_данные, жен_завершены, 'danger',  'Женские экипажи')
@@ -55,9 +54,10 @@
 
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 
+{# ── Форма ввода результатов (все этапы одной формой) ── #}
 <form method="post">
 {% for стадия in стадии %}
-{% set заезды = данные[стадия] %}
+{% set заезды_этапа = данные[стадия] %}
 <div class="card mb-3">
   <div class="card-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
@@ -83,7 +83,7 @@
         </tr>
       </thead>
       <tbody>
-      {% for номер, пара in заезды.items() %}
+      {% for номер, пара in заезды_этапа.items() %}
       {% if номер == 0 %}
       {# Бай #}
       {% for з in пара %}
@@ -105,9 +105,7 @@
         {% if loop.first %}
         <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
         {% endif %}
-        <td class="text-center text-muted small">
-          {{ 'Л' if з.дорожка == 'левая' else 'П' }}
-        </td>
+        <td class="text-center text-muted small">{{ 'Л' if з.дорожка == 'левая' else 'П' }}</td>
         <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td>{{ з.команда.название or '—' }}</td>
         <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
@@ -143,12 +141,17 @@
     </table>
   </div>
 </div>
+{% endfor %}{# конец цикла по стадиям #}
 
-{# Кнопка перехода к следующей стадии #}
+<button type="submit" class="btn btn-success px-4 mb-3">
+  Сохранить результаты {{ заг | lower }}
+</button>
+</form>{# ── конец формы сохранения ── #}
+
+{# ── Переход к следующей стадии — ОТДЕЛЬНЫЕ формы, не вложенные ── #}
+{% for стадия in стадии %}
 {% if завершены[стадия] %}
-{% set след_бд = данные.keys() | list %}
-{% if стадия == '1/2' %}
-  {% if 'Финал_А' not in след_бд %}
+  {% if стадия == '1/2' and 'Финал_А' not in данные %}
   <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
     <input type="hidden" name="стадия" value="1/2">
     <input type="hidden" name="пол" value="{{ пол }}">
@@ -156,30 +159,20 @@
       Сформировать Финалы А и Б →
     </button>
   </form>
-  {% endif %}
-{% elif стадия in СЛЕДУЮЩАЯ %}
-  {% set след_стадия = СЛЕДУЮЩАЯ[стадия] %}
-  {% if след_стадия not in след_бд %}
+  {% elif стадия in СЛЕДУЮЩАЯ and СЛЕДУЮЩАЯ[стадия] not in данные %}
   <form method="post" action="{{ url_for('пс.перейти', sor_id=сор.id) }}" class="mb-3">
     <input type="hidden" name="стадия" value="{{ стадия }}">
     <input type="hidden" name="пол" value="{{ пол }}">
     <button type="submit" class="btn btn-outline-{{ цвет }} btn-sm">
-      Сформировать {{ НАЗВАНИЯ.get(след_стадия, след_стадия) }} →
+      Сформировать {{ НАЗВАНИЯ.get(СЛЕДУЮЩАЯ[стадия], СЛЕДУЮЩАЯ[стадия]) }} →
     </button>
   </form>
   {% endif %}
 {% endif %}
-{% endif %}
-
-{% endfor %}
-
-<button type="submit" class="btn btn-success px-4 mb-4">
-  Сохранить результаты {{ заг | lower }}
-</button>
-</form>
+{% endfor %}{# конец цикла кнопок перехода #}
 
 {% endif %}
-{% endfor %}
+{% endfor %}{# конец цикла по полу #}
 
 {% endif %}
 
