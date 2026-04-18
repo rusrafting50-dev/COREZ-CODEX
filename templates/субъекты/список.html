@@ -70,7 +70,7 @@
       <tr>
         <td colspan="4" class="text-muted small ps-2">Итого субъектов: {{ субъекты | length }}</td>
         <td class="text-center fw-bold">
-          {% set ns = namespace(n=0) %}{% for с in субъекты %}{% set ns.n = ns.n + (с.команды | length) %}{% endfor %}{{ ns.n }}
+          {{ total_команды }}
         </td>
         <td class="no-print"></td>
       </tr>
