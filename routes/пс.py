@@ -129,7 +129,9 @@ def _добавить_заезды(sor_id, стадия, пары):
     пары: list of (left_команда, right_команда | None)
     None = bye for left_команда
     """
-    race_num = 1
+    макс = (db.session.query(db.func.max(РезультатПараллельногоСпринта.номер_заезда))
+             .filter_by(соревнование_id=sor_id).scalar()) or 0
+    race_num = макс + 1
     for кл, кп in пары:
         if кп is None:
             db.session.add(РезультатПараллельногоСпринта(
