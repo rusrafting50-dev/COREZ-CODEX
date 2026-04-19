@@ -39,11 +39,10 @@
             {% for код, info in статусы.items() %}
             <option value="{{ код }}"
               {% if сор and сор.код_соревнований == код %}selected{% endif %}>
-              {{ код }} — {{ info.полное }}
+              {{ info.полное }}
             </option>
             {% endfor %}
           </select>
-          <div class="form-text">ЧР, КР, ПР, ВС, ЧФО…</div>
         </div>
 
         {# Класс судна — чекбоксы (R4 и/или R6) #}
@@ -68,12 +67,18 @@
         <div class="col-md-3">
           <label class="form-label">Возрастная группа</label>
           <select name="возрастная_группа" class="form-select form-select-sm">
-            {% for гр in ['15 лет и старше', '19 лет и старше', '16–18 лет', '14–15 лет'] %}
+            <option value=""
+              {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
+            {% for гр in [
+              'мужчины, женщины',
+              'юниоры, юниорки (до 26 лет)',
+              'юниоры, юниорки (до 24 лет)',
+              'юниоры, юниорки (до 20 лет)',
+              'юноши, девушки (до 16 лет)',
+            ] %}
             <option value="{{ гр }}"
               {{ 'selected' if сор and сор.возрастная_группа == гр }}>{{ гр }}</option>
             {% endfor %}
-            <option value=""
-              {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
           </select>
         </div>
       </div>
@@ -193,59 +198,26 @@
     </div>
   </div>
 
-  {# ── БЛОК 3: Параметры ── #}
+  {# ── БЛОК 3: Представители федерации ── #}
   <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
-         href="#параметры" role="button">
-        ▸ Параметры соревнований
-      </a>
+    <div class="card-header fw-semibold py-2" style="background:#e9ecef">
+      Представители общероссийской (региональной) спортивной федерации
     </div>
-    <div class="collapse{% if not сор %} show{% endif %}" id="параметры">
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-2">
-            <label class="form-label">Муж. экипажей</label>
-            <input type="number" name="кол_мужских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_мужских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Жен. экипажей</label>
-            <input type="number" name="кол_женских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_женских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Субъектов РФ</label>
-            <input type="number" name="кол_субъектов" class="form-control form-control-sm"
-                   min="1" value="{{ сор.кол_субъектов if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Спортсменов в экипаже</label>
-            <select name="кол_спортсменов_в_экипаже" class="form-select form-select-sm">
-              {% for n in [4, 5, 6, 7] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_спортсменов_в_экипаже == n) or (not сор and n == 4) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Попыток слалом</label>
-            <select name="кол_попыток_слалом" class="form-select form-select-sm">
-              {% for n in [1, 2] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_попыток_слалом == n) or (not сор and n == 2) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Код субъекта-хозяина</label>
-            <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
-                   placeholder="47" value="{{ сор.код_субъекта_рф if сор else '' }}">
-          </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label mb-1">Председатель мандатной комиссии</label>
+          <input type="text" name="председатель_мандатной_комиссии"
+                 class="form-control form-control-sm"
+                 placeholder="Фамилия И.О., категория, регион"
+                 value="{{ сор.председатель_мандатной_комиссии if сор else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label mb-1">Технический делегат</label>
+          <input type="text" name="технический_делегат"
+                 class="form-control form-control-sm"
+                 placeholder="Фамилия И.О., категория, регион"
+                 value="{{ сор.технический_делегат if сор else '' }}">
         </div>
       </div>
     </div>

@@ -111,6 +111,8 @@ class Соревнование(db.Model):
     зам_главного_секретаря      = db.Column(db.String(200), nullable=True)
     зам_гл_судьи_орг            = db.Column(db.String(200), nullable=True)
     председатель_комиссии_допуска = db.Column(db.String(200), nullable=True)
+    председатель_мандатной_комиссии = db.Column(db.String(200), nullable=True)
+    технический_делегат          = db.Column(db.String(200), nullable=True)
 
     # Настройки соревнований
     кол_мужских_экипажей        = db.Column(db.Integer, nullable=True)
@@ -636,8 +638,10 @@ def применить_миграции():
             ('организатор_2',          'VARCHAR(300)'),
             ('организатор_3',          'VARCHAR(300)'),
             ('организатор_4',          'VARCHAR(300)'),
-            ('зам_гл_судьи_судейство', 'VARCHAR(200)'),
-            ('зам_гл_судьи_орг',       'VARCHAR(200)'),
+            ('зам_гл_судьи_судейство',       'VARCHAR(200)'),
+            ('зам_гл_судьи_орг',             'VARCHAR(200)'),
+            ('председатель_мандатной_комиссии', 'VARCHAR(200)'),
+            ('технический_делегат',          'VARCHAR(200)'),
         ]:
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
