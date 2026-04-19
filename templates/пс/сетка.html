@@ -58,14 +58,21 @@
           Женские ({{ n_жен }} экипажей)
         </button>
       </form>
+      <form method="post" class="d-inline ms-3">
+        <input type="hidden" name="пол" value="все">
+        <button type="submit" class="btn btn-warning btn-sm"
+                onclick="return confirm('Пересформировать сетку для ВСЕХ экипажей?\nВсе введённые результаты заездов будут удалены.')">
+          ↺ Пересформировать всю сетку
+        </button>
+      </form>
     </div>
   </div>
 </div>
 
 {# ── Отображение сетки ── #}
-{% for брак, стадии, посев_map, пол_заг, цвет in [
-    (муж_брак, муж_стадии, муж_посев, 'Мужские экипажи', 'primary'),
-    (жен_брак, жен_стадии, жен_посев, 'Женские экипажи', 'danger')
+{% for брак, стадии, посев_map, предв, пол_заг, цвет in [
+    (муж_брак, муж_стадии, муж_посев, муж_предв, 'Мужские экипажи', 'primary'),
+    (жен_брак, жен_стадии, жен_посев, жен_предв, 'Женские экипажи', 'danger')
 ] %}
 {% if стадии %}
 <h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ пол_заг }}</h6>
@@ -78,6 +85,26 @@
   </div>
 
   {% set заезды = брак[стадия] %}
+  {% if not заезды %}
+  {# Стадия ещё не сформирована — предварительные участники #}
+  <div class="card mb-2" style="font-size:.8rem; opacity:.75; border-style:dashed">
+    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд 1</div>
+    <div class="card-body py-1 px-2">
+      {% for команда, метка in предв.get(стадия, []) %}
+      <div class="d-flex align-items-center {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
+        {% if команда %}
+        <span class="badge bg-{{ цвет }} me-1">{{ посев_map.get(команда.id, '?') }}</span>
+        <span class="fw-semibold">{{ команда.название or '—' }}</span>
+        {% else %}
+        <span class="text-muted fst-italic">{{ метка }}</span>
+        {% endif %}
+      </div>
+      {% else %}
+      <span class="text-muted fst-italic">Ожидается</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
   {% for номер, пара in заезды.items() %}
   {% if номер == 0 %}
   {# Бай #}
@@ -124,6 +151,7 @@
   </div>
   {% endif %}
   {% endfor %}
+  {% endif %}
 </div>
 {% if not loop.last %}
 <div class="d-flex align-items-center text-muted fs-4">&#8594;</div>

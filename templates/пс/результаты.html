@@ -57,7 +57,7 @@
       <td>{{ к.название or '—' }}</td>
       <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
       <td class="text-center small">
-        <span class="badge bg-{{ цвет }}" style="font-size:.7rem">{{ з.стадия }}</span>
+        <span class="badge bg-{{ цвет }}" style="font-size:.7rem">{{ НАЗВАНИЯ.get(з.стадия, з.стадия) }}</span>
       </td>
       <td class="text-center font-monospace small">{{ format_dur(з.время) }}</td>
       <td class="text-center small {{ 'text-danger' if з.штрафное_время else '' }}">
