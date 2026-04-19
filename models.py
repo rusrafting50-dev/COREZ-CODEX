@@ -96,13 +96,21 @@ class Соревнование(db.Model):
     уровень                     = db.Column(db.String(50), nullable=True)   # России, ФО, области …
     код_соревнований            = db.Column(db.String(20), nullable=True)   # ЧР, КР, ВС …
 
-    # Состав судейской коллегии
+    # Организаторы (4 строки)
+    организатор_1               = db.Column(db.String(300), nullable=True)
+    организатор_2               = db.Column(db.String(300), nullable=True)
+    организатор_3               = db.Column(db.String(300), nullable=True)
+    организатор_4               = db.Column(db.String(300), nullable=True)
+
+    # Главная судейская коллегия
     главный_судья               = db.Column(db.String(200), nullable=True)
-    главный_секретарь           = db.Column(db.String(200), nullable=True)
-    председатель_комиссии_допуска = db.Column(db.String(200), nullable=True)
+    зам_гл_судьи_судейство      = db.Column(db.String(200), nullable=True)
     начальник_дистанции         = db.Column(db.String(200), nullable=True)
     начальник_спасательной_службы = db.Column(db.String(200), nullable=True)
+    главный_секретарь           = db.Column(db.String(200), nullable=True)
     зам_главного_секретаря      = db.Column(db.String(200), nullable=True)
+    зам_гл_судьи_орг            = db.Column(db.String(200), nullable=True)
+    председатель_комиссии_допуска = db.Column(db.String(200), nullable=True)
 
     # Настройки соревнований
     кол_мужских_экипажей        = db.Column(db.Integer, nullable=True)
@@ -125,6 +133,20 @@ class Соревнование(db.Model):
     код_многоборье              = db.Column(db.String(30), nullable=True)
 
     создано                     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    @property
+    def организаторы_строки(self):
+        """Непустые строки организаторов (1–4)."""
+        return [s for s in [self.организатор_1, self.организатор_2,
+                             self.организатор_3, self.организатор_4] if s]
+
+    @property
+    def организаторы_блок(self):
+        """Многострочный текст организаторов; fallback на устаревшее поле."""
+        строки = self.организаторы_строки
+        if строки:
+            return '\n'.join(строки)
+        return self.организаторы or ''
 
     # Связи
     субъекты    = db.relationship('Субъект',  back_populates='соревнование', cascade='all, delete-orphan')
@@ -607,6 +629,19 @@ def применить_миграции():
                 'ALTER TABLE соревнования ADD COLUMN кол_секций_дг INTEGER NOT NULL DEFAULT 5'
             ))
             conn.commit()
+        # соревнования: новые поля организаторов и судейской коллегии
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col, ddl in [
+            ('организатор_1',          'VARCHAR(300)'),
+            ('организатор_2',          'VARCHAR(300)'),
+            ('организатор_3',          'VARCHAR(300)'),
+            ('организатор_4',          'VARCHAR(300)'),
+            ('зам_гл_судьи_судейство', 'VARCHAR(200)'),
+            ('зам_гл_судьи_орг',       'VARCHAR(200)'),
+        ]:
+            if col not in cols:
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
+                conn.commit()
         # результаты_спринт: новые колонки штрафов по типу
         if inspector.has_table('результаты_спринт'):
             cols = {c['name'] for c in inspector.get_columns('результаты_спринт')}
