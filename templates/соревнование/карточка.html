@@ -81,8 +81,7 @@
         {% if орг_строки %}
           {% for стр in орг_строки %}
           <tr>
-            <td class="text-muted ps-3" style="width:100px;font-size:.85rem">Организатор {{ loop.index }}:</td>
-            <td class="fw-semibold" style="font-size:.85rem">{{ стр }}</td>
+            <td colspan="2" class="fw-semibold ps-3" style="font-size:.85rem">{{ стр }}</td>
           </tr>
           {% endfor %}
         {% elif сор.организаторы %}
