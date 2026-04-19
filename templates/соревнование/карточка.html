@@ -75,34 +75,37 @@
   <div class="col-md-5">
     <div class="card h-100">
       <div class="card-header fw-semibold py-2">Организаторы</div>
-      <div class="card-body py-2 px-3">
+      <table class="table table-sm mb-0">
+        <tbody>
         {% set орг_строки = сор.организаторы_строки %}
         {% if орг_строки %}
           {% for стр in орг_строки %}
-          <div style="font-size:.9rem">{{ стр }}</div>
+          <tr>
+            <td class="text-muted ps-3" style="width:100px;font-size:.85rem">Организатор {{ loop.index }}:</td>
+            <td class="fw-semibold" style="font-size:.85rem">{{ стр }}</td>
+          </tr>
           {% endfor %}
         {% elif сор.организаторы %}
-          <div style="font-size:.9rem; white-space:pre-line">{{ сор.организаторы }}</div>
-        {% else %}
-          <span class="text-muted small">— не указаны —</span>
-        {% endif %}
-        <hr class="my-2">
-        <table class="table table-sm mb-0">
-          <tbody>
-          {% for лейбл, значение in [
-            ('Класс судна',      сор.класс_судна),
-            ('Возрастная группа', сор.возрастная_группа),
-          ] %}
-          {% if значение %}
           <tr>
-            <td class="text-muted" style="font-size:.82rem">{{ лейбл }}:</td>
-            <td class="fw-semibold" style="font-size:.82rem">{{ значение }}</td>
+            <td class="text-muted ps-3" style="font-size:.85rem">Организаторы:</td>
+            <td class="fw-semibold" style="font-size:.85rem; white-space:pre-line">{{ сор.организаторы }}</td>
           </tr>
-          {% endif %}
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        {% else %}
+          <tr><td colspan="2" class="text-muted ps-3" style="font-size:.85rem">— не указаны —</td></tr>
+        {% endif %}
+        {% for лейбл, значение in [
+          ('Класс судна',       сор.класс_судна),
+          ('Возрастная группа', сор.возрастная_группа),
+        ] %}
+        {% if значение %}
+        <tr>
+          <td class="text-muted ps-3" style="font-size:.85rem">{{ лейбл }}:</td>
+          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
