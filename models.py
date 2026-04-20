@@ -88,6 +88,7 @@ class Соревнование(db.Model):
     даты_проведения             = db.Column(db.String(100), nullable=True)
     место_проведения            = db.Column(db.String(300), nullable=True)
     код_субъекта_рф             = db.Column(db.Integer,     nullable=True)   # код региона-организатора
+    номер_екп                   = db.Column(db.String(100), nullable=True)   # номер в ЕКП
 
     # Спортивные характеристики
     класс_судна                 = db.Column(db.String(5),  nullable=False, default='R4')  # R4 / R6
@@ -642,6 +643,7 @@ def применить_миграции():
             ('зам_гл_судьи_орг',             'VARCHAR(200)'),
             ('председатель_мандатной_комиссии', 'VARCHAR(200)'),
             ('технический_делегат',          'VARCHAR(200)'),
+            ('номер_екп',                    'VARCHAR(100)'),
         ]:
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))

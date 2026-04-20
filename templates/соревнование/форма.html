@@ -114,6 +114,14 @@
         </div>
       </div>
 
+      {# Номер ЕКП #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
+        <input type="text" name="номер_екп" class="form-control form-control-sm"
+               placeholder="0000000011Я"
+               value="{{ сор.номер_екп if сор else '' }}">
+      </div>
+
       {# Организаторы — 4 строки #}
       <div class="row g-2">
         <div class="col-12">
