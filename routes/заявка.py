@@ -41,10 +41,10 @@ def новая(sor_id):
     return render_template('заявка/форма.html', сор=сор, з=None)
 
 
-@bp_заявка.route('/<int:sor_id>/<int:зid>/редактировать', methods=['GET', 'POST'])
-def редактировать(sor_id, зid):
+@bp_заявка.route('/<int:sor_id>/<int:z_id>/редактировать', methods=['GET', 'POST'])
+def редактировать(sor_id, z_id):
     сор = Соревнование.query.get_or_404(sor_id)
-    з = ПредварительнаяЗаявка.query.get_or_404(зid)
+    з = ПредварительнаяЗаявка.query.get_or_404(z_id)
     if request.method == 'POST':
         з.субъект_рф           = request.form.get('субъект_рф', '').strip()
         з.наименование_команды = request.form.get('наименование_команды', '').strip()
@@ -65,19 +65,19 @@ def редактировать(sor_id, зid):
     return render_template('заявка/форма.html', сор=сор, з=з)
 
 
-@bp_заявка.route('/<int:sor_id>/<int:зid>/удалить', methods=['POST'])
-def удалить(sor_id, зid):
-    з = ПредварительнаяЗаявка.query.get_or_404(зid)
+@bp_заявка.route('/<int:sor_id>/<int:z_id>/удалить', methods=['POST'])
+def удалить(sor_id, z_id):
+    з = ПредварительнаяЗаявка.query.get_or_404(z_id)
     db.session.delete(з)
     db.session.commit()
     flash('Заявка удалена.', 'warning')
     return redirect(url_for('заявка.список', sor_id=sor_id))
 
 
-@bp_заявка.route('/<int:sor_id>/<int:зid>/печать')
-def печать(sor_id, зid):
+@bp_заявка.route('/<int:sor_id>/<int:z_id>/печать')
+def печать(sor_id, z_id):
     сор = Соревнование.query.get_or_404(sor_id)
-    з = ПредварительнаяЗаявка.query.get_or_404(зid)
+    з = ПредварительнаяЗаявка.query.get_or_404(z_id)
     return render_template('заявка/печать.html', сор=сор, з=з,
                            сегодня=date.today())
 
