@@ -83,17 +83,20 @@ def печать(sor_id, z_id):
 
 
 def _сохранить_спортсменов(з, form):
-    фамилии  = form.getlist('фамилия[]')
-    имена    = form.getlist('имя[]')
-    отчества = form.getlist('отчество[]')
-    полы     = form.getlist('пол[]')
-    даты     = form.getlist('дата_рождения[]')
-    квалиф   = form.getlist('квалификация[]')
-    приказы  = form.getlist('номер_приказа[]')
+    фио_list  = form.getlist('фио[]')
+    полы      = form.getlist('пол[]')
+    даты      = form.getlist('дата_рождения[]')
+    квалиф    = form.getlist('квалификация[]')
+    приказы   = form.getlist('номер_приказа[]')
     страховки = form.getlist('номер_страховки[]')
-    for i, фам in enumerate(фамилии):
-        if not фам.strip():
+    for i, фио in enumerate(фио_list):
+        фио = фио.strip()
+        if not фио:
             continue
+        части = фио.split(None, 2)
+        фам  = части[0] if len(части) > 0 else ''
+        имя  = части[1] if len(части) > 1 else ''
+        отч  = части[2] if len(части) > 2 else ''
         др = None
         try:
             from datetime import datetime as dt
@@ -102,13 +105,13 @@ def _сохранить_спортсменов(з, form):
             pass
         сп = СпортсменЗаявки(
             заявка_id       = з.id,
-            фамилия         = фам.strip(),
-            имя             = имена[i].strip()    if i < len(имена)    else '',
-            отчество        = отчества[i].strip() if i < len(отчества) else '',
-            пол             = полы[i]             if i < len(полы)     else '',
+            фамилия         = фам,
+            имя             = имя,
+            отчество        = отч,
+            пол             = полы[i]             if i < len(полы)      else '',
             дата_рождения   = др,
-            квалификация    = квалиф[i].strip()   if i < len(квалиф)   else '',
-            номер_приказа   = приказы[i].strip()  if i < len(приказы)  else '',
+            квалификация    = квалиф[i].strip()   if i < len(квалиф)    else '',
+            номер_приказа   = приказы[i].strip()  if i < len(приказы)   else '',
             номер_страховки = страховки[i].strip() if i < len(страховки) else '',
         )
         db.session.add(сп)

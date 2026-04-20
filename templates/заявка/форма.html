@@ -112,9 +112,7 @@
           <thead class="table-light" style="font-size:.78rem">
             <tr>
               <th class="text-center" style="width:32px">№</th>
-              <th style="min-width:100px">Фамилия</th>
-              <th style="min-width:90px">Имя</th>
-              <th style="min-width:90px">Отчество</th>
+              <th style="min-width:240px">Фамилия, Имя, Отчество</th>
               <th style="width:55px" class="text-center">Пол</th>
               <th style="width:110px">Дата рожд.</th>
               <th style="width:70px">Квалиф.</th>
@@ -128,12 +126,9 @@
             {% for сп in з.спортсмены %}
             <tr>
               <td class="text-center text-muted row-num">{{ loop.index }}</td>
-              <td><input type="text" name="фамилия[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.фамилия or '' }}"></td>
-              <td><input type="text" name="имя[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.имя or '' }}"></td>
-              <td><input type="text" name="отчество[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.отчество or '' }}"></td>
+              <td><input type="text" name="фио[]" class="form-control form-control-sm border-0 px-1"
+                         placeholder="Фамилия Имя Отчество"
+                         value="{{ [сп.фамилия, сп.имя, сп.отчество] | select | join(' ') }}"></td>
               <td>
                 <select name="пол[]" class="form-select form-select-sm border-0 px-1">
                   <option value=""></option>
@@ -185,9 +180,7 @@
 const шаблон = `
 <tr>
   <td class="text-center text-muted row-num"></td>
-  <td><input type="text" name="фамилия[]" class="form-control form-control-sm border-0 px-1" placeholder="Фамилия"></td>
-  <td><input type="text" name="имя[]" class="form-control form-control-sm border-0 px-1" placeholder="Имя"></td>
-  <td><input type="text" name="отчество[]" class="form-control form-control-sm border-0 px-1" placeholder="Отчество"></td>
+  <td><input type="text" name="фио[]" class="form-control form-control-sm border-0 px-1" placeholder="Фамилия Имя Отчество"></td>
   <td><select name="пол[]" class="form-select form-select-sm border-0 px-1">
     <option value=""></option>
     <option value="м">м</option>
