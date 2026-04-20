@@ -4,133 +4,142 @@
   <meta charset="UTF-8">
   <title>Предварительная заявка — {{ сор.название }}</title>
   <style>
-    body { font-family: Arial, sans-serif; font-size: 11pt; margin: 20mm; }
-    h3 { text-align: center; margin-bottom: 4px; }
-    .subtitle { text-align: center; font-size: 10pt; margin-bottom: 16px; }
-    .section-title { font-weight: bold; margin: 12px 0 4px; }
-    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    .info-table td { padding: 3px 6px; vertical-align: top; }
-    .info-table .lbl { color: #555; white-space: nowrap; width: 200px; }
-    table.sportsmen { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9pt; }
-    table.sportsmen th, table.sportsmen td { border: 1px solid #000; padding: 3px 5px; text-align: center; }
-    table.sportsmen th { background: #f0f0f0; font-size: 8pt; }
-    table.sportsmen td:nth-child(2), table.sportsmen td:nth-child(3), table.sportsmen td:nth-child(4) { text-align: left; }
-    .sign-block { margin-top: 24px; display: flex; gap: 60px; }
-    .sign-line { flex: 1; }
-    .sign-line .line { border-bottom: 1px solid #000; margin-top: 30px; }
-    .sign-line .caption { font-size: 8pt; color: #555; margin-top: 2px; }
-    @media print { body { margin: 15mm; } }
+    body { font-family: Arial, sans-serif; font-size: 11pt; margin: 15mm 20mm; }
+    h2 { text-align: center; font-size: 13pt; margin: 0 0 14px; letter-spacing: 1px; }
+
+    .head-grid { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    .head-grid td { padding: 2px 0; font-size: 10.5pt; vertical-align: bottom; }
+    .head-grid .lbl { white-space: nowrap; padding-right: 6px; }
+    .head-grid .val { border-bottom: 1px solid #000; width: 100%; }
+    .head-grid .val strong { font-size: 10.5pt; }
+
+    .head-two { display: flex; gap: 0; margin-bottom: 4px; }
+    .head-two .left  { flex: 2; }
+    .head-two .right { flex: 1; padding-left: 20px; }
+
+    table.sportsmen { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 10pt; }
+    table.sportsmen th { border: 1px solid #000; padding: 4px 5px; text-align: center;
+                         font-size: 9.5pt; background: #f5f5f5; line-height: 1.2; }
+    table.sportsmen td { border: 1px solid #000; padding: 3px 5px; vertical-align: middle; }
+    table.sportsmen td.num { text-align: center; }
+    table.sportsmen td.pol { text-align: center; }
+
+    .sign-block { margin-top: 28px; width: 100%; border-collapse: collapse; }
+    .sign-block td { padding: 0; vertical-align: bottom; font-size: 10.5pt; }
+    .sign-line { border-bottom: 1px solid #000; display: inline-block; min-width: 160px; }
+    .caption { font-size: 8pt; color: #444; text-align: center; margin-top: 2px; }
+
+    @media print {
+      body { margin: 10mm 15mm; }
+      @page { size: A4 landscape; }
+    }
   </style>
 </head>
 <body>
 
-<h3>ПРЕДВАРИТЕЛЬНАЯ ЗАЯВКА</h3>
-<div class="subtitle">
-  на участие в соревнованиях «{{ сор.название }}»<br>
-  {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
-  {% if сор.место_проведения %}&nbsp;—&nbsp;{{ сор.место_проведения }}{% endif %}
-</div>
+<h2>ПРЕДВАРИТЕЛЬНАЯ ЗАЯВКА</h2>
 
-<table class="info-table">
+<table class="head-grid">
   <tr>
-    <td class="lbl">Субъект Российской Федерации:</td>
-    <td><strong>{{ з.субъект_рф or '' }}</strong></td>
+    <td class="lbl">От команды</td>
+    <td class="val"><strong>{{ з.наименование_команды or '' }}</strong></td>
+    <td style="width:24px"></td>
+    <td class="lbl" style="white-space:nowrap">Класс судов</td>
+    <td class="val" style="width:80px"><strong>{{ сор.класс_судна.replace('+', ', ') if сор.класс_судна else '' }}</strong></td>
   </tr>
   <tr>
-    <td class="lbl">Наименование команды:</td>
-    <td><strong>{{ з.наименование_команды or '' }}</strong></td>
+    <td class="lbl">Субъект</td>
+    <td class="val" colspan="4"><strong>{{ з.субъект_рф or '' }}</strong></td>
+  </tr>
+  <tr>
+    <td class="lbl" style="white-space:nowrap">На участие в спортивных соревнованиях</td>
+    <td class="val" colspan="4"><strong>{{ сор.название }}</strong></td>
+  </tr>
+  <tr>
+    <td class="lbl">Проводимых в</td>
+    <td class="val"><strong>{{ сор.место_проведения or '' }}</strong></td>
+    <td style="width:24px"></td>
+    <td class="lbl">в период</td>
+    <td class="val"><strong>{{ сор.даты_проведения or '' }}</strong></td>
   </tr>
 </table>
 
-<div class="section-title">Данные организации, направляющей команду на соревнования</div>
-<table class="info-table">
-  <tr>
-    <td class="lbl">Наименование организации:</td>
-    <td>{{ з.орг_наименование or '' }}</td>
-  </tr>
-  <tr>
-    <td class="lbl">Руководитель (ФИО):</td>
-    <td>{{ з.орг_фио_руководителя or '' }}</td>
-  </tr>
-  <tr>
-    <td class="lbl">Телефон:</td>
-    <td>{{ з.орг_телефон or '' }}</td>
-  </tr>
-  <tr>
-    <td class="lbl">E-mail:</td>
-    <td>{{ з.орг_email or '' }}</td>
-  </tr>
-</table>
-
-<div class="section-title">Данные тренера-представителя команды</div>
-<table class="info-table">
-  <tr>
-    <td class="lbl">ФИО тренера-представителя:</td>
-    <td>{{ з.тренер_фио or '' }}</td>
-  </tr>
-  <tr>
-    <td class="lbl">Телефон:</td>
-    <td>{{ з.тренер_телефон or '' }}</td>
-  </tr>
-  <tr>
-    <td class="lbl">E-mail:</td>
-    <td>{{ з.тренер_email or '' }}</td>
-  </tr>
-</table>
-
-<div class="section-title">Список спортсменов, участвующих в соревнованиях</div>
 <table class="sportsmen">
   <thead>
     <tr>
-      <th style="width:28px">№</th>
-      <th style="min-width:90px">Фамилия</th>
-      <th style="min-width:80px">Имя</th>
-      <th style="min-width:80px">Отчество</th>
-      <th style="width:30px">Пол</th>
-      <th style="width:80px">Дата рожд.</th>
-      <th style="width:55px">Квалиф.</th>
-      <th style="min-width:120px">Номер приказа</th>
-      <th style="min-width:90px">№ страховки</th>
+      <th style="width:32px">№<br>п/п</th>
+      <th>Фамилия, имя, отчество</th>
+      <th style="width:36px">Пол</th>
+      <th style="width:110px">Дата<br>рождения</th>
+      <th style="width:140px">Спортивная<br>квалификация</th>
     </tr>
   </thead>
   <tbody>
   {% for сп in з.спортсмены %}
   <tr>
-    <td>{{ loop.index }}</td>
-    <td>{{ сп.фамилия or '' }}</td>
-    <td>{{ сп.имя or '' }}</td>
-    <td>{{ сп.отчество or '' }}</td>
-    <td>{{ сп.пол or '' }}</td>
-    <td>{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
+    <td class="num">{{ loop.index }}</td>
+    <td>{{ ([сп.фамилия, сп.имя, сп.отчество] | select | join(' ')) }}</td>
+    <td class="pol">{{ (сп.пол or '') | upper }}</td>
+    <td class="num">{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
     <td>{{ сп.квалификация or '' }}</td>
-    <td>{{ сп.номер_приказа or '' }}</td>
-    <td>{{ сп.номер_страховки or '' }}</td>
   </tr>
   {% endfor %}
-  {% for _ in range([5 - з.спортсмены|length, 0]|max) %}
+  {% set пусто = [5 - з.спортсмены|length, 0] | max %}
+  {% for i in range(пусто) %}
   <tr>
-    <td>{{ з.спортсмены|length + loop.index }}</td>
-    <td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    <td class="num">{{ з.спортсмены|length + loop.index }}</td>
+    <td>&nbsp;</td><td></td><td></td><td></td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
 
-<div class="sign-block" style="margin-top:30px">
-  <div class="sign-line">
-    <div>Руководитель организации</div>
-    <div class="line"></div>
-    <div class="caption">подпись / {{ з.орг_фио_руководителя or 'ФИО' }}</div>
-  </div>
-  <div class="sign-line">
-    <div>Тренер-представитель</div>
-    <div class="line"></div>
-    <div class="caption">подпись / {{ з.тренер_фио or 'ФИО' }}</div>
-  </div>
-  <div class="sign-line">
-    <div>Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>
-  </div>
-</div>
+<table style="width:100%; margin-top:28px; border-collapse:collapse;">
+  <tr>
+    <td style="width:50%; font-size:10.5pt; vertical-align:bottom;">
+      {{ з.орг_наименование or 'Руководитель организации' }}
+    </td>
+    <td style="width:50%; font-size:10.5pt; vertical-align:bottom; padding-left:20px;">
+      Тренер-представитель команды
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top:20px; vertical-align:bottom;">
+      <table style="width:100%; border-collapse:collapse;">
+        <tr>
+          <td style="border-bottom:1px solid #000; width:80px; text-align:center;">/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</td>
+          <td style="width:10px"></td>
+          <td style="border-bottom:1px solid #000;">{{ з.орг_фио_руководителя or '' }}</td>
+        </tr>
+        <tr>
+          <td style="font-size:8pt; color:#444; text-align:center;">подпись</td>
+          <td></td>
+          <td style="font-size:8pt; color:#444;">Ф.И.О.</td>
+        </tr>
+      </table>
+    </td>
+    <td style="padding-top:20px; padding-left:20px; vertical-align:bottom;">
+      <table style="width:100%; border-collapse:collapse;">
+        <tr>
+          <td style="border-bottom:1px solid #000; width:80px; text-align:center;">/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</td>
+          <td style="width:10px"></td>
+          <td style="border-bottom:1px solid #000;">{{ з.тренер_фио or '' }}</td>
+        </tr>
+        <tr>
+          <td style="font-size:8pt; color:#444; text-align:center;">подпись</td>
+          <td></td>
+          <td style="font-size:8pt; color:#444;">Ф.И.О.</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top:8px; font-size:10.5pt;">М.П.</td>
+    <td style="padding-top:8px; font-size:10.5pt; padding-left:20px;">
+      {{ сегодня.strftime('%d %B %Y') }} г.
+    </td>
+  </tr>
+</table>
 
 </body>
 </html>
