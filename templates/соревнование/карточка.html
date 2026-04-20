@@ -93,7 +93,6 @@
           <tr><td colspan="2" class="text-muted ps-3" style="font-size:.85rem">— не указаны —</td></tr>
         {% endif %}
         {% for лейбл, значение in [
-          ('Класс судна',       сор.класс_судна),
           ('Возрастная группа', сор.возрастная_группа),
         ] %}
         {% if значение %}
@@ -103,6 +102,16 @@
         </tr>
         {% endif %}
         {% endfor %}
+        {% if сор.класс_судна %}
+        <tr>
+          <td class="text-muted ps-3" style="font-size:.85rem">
+            {{ 'Классы судов' if '+' in сор.класс_судна else 'Класс судна' }}:
+          </td>
+          <td class="fw-semibold" style="font-size:.85rem">
+            {{ сор.класс_судна.replace('+', ', ') }}
+          </td>
+        </tr>
+        {% endif %}
         </tbody>
       </table>
     </div>
