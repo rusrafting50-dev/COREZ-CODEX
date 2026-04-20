@@ -47,6 +47,7 @@ def create_app() -> Flask:
     from routes.многоборье  import bp_многоборье
     from routes.зачет       import bp_зачет
     from routes.отчеты      import bp_отчеты
+    from routes.заявка      import bp_заявка
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -62,6 +63,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_многоборье,   url_prefix='/многоборье')
     app.register_blueprint(bp_зачет,        url_prefix='/зачет')
     app.register_blueprint(bp_отчеты,       url_prefix='/отчеты')
+    app.register_blueprint(bp_заявка,       url_prefix='/заявка')
 
     return app
 

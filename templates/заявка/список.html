@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Предварительные заявки — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a></li>
+    <li class="breadcrumb-item active">Предварительные заявки</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Предварительные заявки</h5>
+  <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая заявка</a>
+</div>
+
+{% if заявки %}
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Субъект РФ</th>
+        <th>Команда</th>
+        <th>Тренер-представитель</th>
+        <th class="text-center">Спортсменов</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for з in заявки %}
+    <tr>
+      <td>{{ з.субъект_рф or '—' }}</td>
+      <td>{{ з.наименование_команды or '—' }}</td>
+      <td>{{ з.тренер_фио or '—' }}</td>
+      <td class="text-center">{{ з.спортсмены | length }}</td>
+      <td class="text-end">
+        <a href="{{ url_for('заявка.печать', sor_id=сор.id, зid=з.id) }}"
+           class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Печать</a>
+        <a href="{{ url_for('заявка.редактировать', sor_id=сор.id, зid=з.id) }}"
+           class="btn btn-outline-primary btn-sm">Изменить</a>
+        <form action="{{ url_for('заявка.удалить', sor_id=сор.id, зid=з.id) }}" method="post"
+              class="d-inline"
+              onsubmit="return confirm('Удалить заявку?')">
+          <button class="btn btn-outline-danger btn-sm">Удалить</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+  Заявок пока нет. <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}">Добавить первую</a>.
+</div>
+{% endif %}
+{% endblock %}

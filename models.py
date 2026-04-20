@@ -591,6 +591,49 @@ def заполнить_штрафы():
     db.session.commit()
 
 
+# ---------------------------------------------------------------------------
+# Предварительная заявка
+# ---------------------------------------------------------------------------
+
+class ПредварительнаяЗаявка(db.Model):
+    __tablename__ = 'предварительные_заявки'
+
+    id                    = db.Column(db.Integer, primary_key=True)
+    соревнование_id       = db.Column(db.Integer, db.ForeignKey('соревнования.id', ondelete='CASCADE'), nullable=False)
+    субъект_рф            = db.Column(db.String(200), nullable=True)
+    наименование_команды  = db.Column(db.String(200), nullable=True)
+    # Организация
+    орг_наименование      = db.Column(db.String(300), nullable=True)
+    орг_фио_руководителя  = db.Column(db.String(200), nullable=True)
+    орг_телефон           = db.Column(db.String(50),  nullable=True)
+    орг_email             = db.Column(db.String(100), nullable=True)
+    # Тренер-представитель
+    тренер_фио            = db.Column(db.String(200), nullable=True)
+    тренер_телефон        = db.Column(db.String(50),  nullable=True)
+    тренер_email          = db.Column(db.String(100), nullable=True)
+    создано               = db.Column(db.DateTime, default=datetime.utcnow)
+
+    соревнование = db.relationship('Соревнование', backref='предварительные_заявки')
+    спортсмены   = db.relationship('СпортсменЗаявки', backref='заявка',
+                                   cascade='all, delete-orphan',
+                                   order_by='СпортсменЗаявки.id')
+
+
+class СпортсменЗаявки(db.Model):
+    __tablename__ = 'спортсмены_заявки'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    заявка_id       = db.Column(db.Integer, db.ForeignKey('предварительные_заявки.id', ondelete='CASCADE'), nullable=False)
+    фамилия         = db.Column(db.String(100), nullable=True)
+    имя             = db.Column(db.String(100), nullable=True)
+    отчество        = db.Column(db.String(100), nullable=True)
+    пол             = db.Column(db.String(5),   nullable=True)
+    дата_рождения   = db.Column(db.Date,        nullable=True)
+    квалификация    = db.Column(db.String(50),  nullable=True)
+    номер_приказа   = db.Column(db.String(150), nullable=True)
+    номер_страховки = db.Column(db.String(100), nullable=True)
+
+
 def применить_миграции():
     """Добавить недостающие колонки в существующую БД (идемпотентно)."""
     from sqlalchemy import inspect, text
