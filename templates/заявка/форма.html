@@ -200,6 +200,7 @@ function добавитьСтроку() {
 }
 
 function удалитьСтроку(btn) {
+  if (!confirm('Удалить спортсмена из заявки?')) return;
   btn.closest('tr').remove();
   обновитьНомера();
 }
