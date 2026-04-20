@@ -27,10 +27,10 @@
     </span>
     {% endif %}
     {% if сор.класс_судна == 'R4+R6' %}
-    <div class="btn-group btn-group-sm" id="classSwitch">
-      <button type="button" class="btn btn-info text-dark active" onclick="setClass('R4')">R4</button>
-      <button type="button" class="btn btn-outline-info" onclick="setClass('R6')">R6</button>
-    </div>
+    <button type="button" class="btn btn-info text-dark btn-sm" id="btnR4"
+            onclick="setClass('R4')"><strong>R4</strong></button>
+    <button type="button" class="btn btn-outline-info btn-sm" id="btnR6"
+            onclick="setClass('R6')"><strong>R6</strong></button>
     {% elif сор.класс_судна %}
     <span class="badge bg-info text-dark fs-6">{{ сор.класс_судна }}</span>
     {% endif %}
@@ -62,7 +62,6 @@
           ('Главный секретарь',              сор.главный_секретарь),
           ('Зам. главного секретаря',        сор.зам_главного_секретаря),
           ('Зам. гл. судьи по орг. вопросам', сор.зам_гл_судьи_орг),
-          ('Пред. комиссии по допуску',      сор.председатель_комиссии_допуска),
         ] %}
         {% if значение %}
         <tr>
@@ -396,12 +395,13 @@
 {% if сор.класс_судна == 'R4+R6' %}
 <script>
 function setClass(cls) {
-  document.querySelectorAll('#classSwitch button').forEach(b => {
-    const active = b.textContent === cls;
-    b.classList.toggle('active',          active);
-    b.classList.toggle('btn-info',        active);
-    b.classList.toggle('text-dark',       active);
-    b.classList.toggle('btn-outline-info', !active);
+  const r4 = document.getElementById('btnR4');
+  const r6 = document.getElementById('btnR6');
+  [r4, r6].forEach(b => {
+    const active = b.id === 'btn' + cls;
+    b.className = active
+      ? 'btn btn-info text-dark btn-sm'
+      : 'btn btn-outline-info btn-sm';
   });
   document.querySelectorAll('.disc-link').forEach(a => {
     const url = new URL(a.href, location.href);
