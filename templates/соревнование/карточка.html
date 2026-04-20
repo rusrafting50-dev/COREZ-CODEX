@@ -158,7 +158,6 @@
 </h6>
 <div class="row g-2 no-print" style="font-size:.82rem">
   {% set документы = [
-    ('документы.жеребьёвка',      'Жеребьёвка',       'primary',   false),
     ('документы.заявки',           'Тех. заявки',       'secondary', false),
     ('документы.выписка_допуска',  'Допуск',            'success',   true),
     ('документы.нагрудные_номера', 'Нагрудные номера',  'warning',   true),
@@ -205,6 +204,8 @@
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
+          <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+             class="btn btn-outline-primary btn-sm">Жеребьёвка</a>
           <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}"
              class="btn btn-primary btn-sm disc-link">Старт</a>
           <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
