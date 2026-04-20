@@ -87,12 +87,13 @@
           </tr>
           {% endfor %}
         {% elif сор.организаторы %}
+          {% for стр in сор.организаторы.splitlines() %}
+          {% if стр and стр.strip() and стр.strip() != 'None' %}
           <tr>
-            <td class="text-muted ps-3" style="font-size:.85rem">Организаторы:</td>
-            <td class="fw-semibold" style="font-size:.85rem; white-space:pre-line">{{ сор.организаторы }}</td>
+            <td colspan="2" class="fw-semibold ps-3" style="font-size:.85rem">{{ стр.strip() }}</td>
           </tr>
-        {% else %}
-          <tr><td colspan="2" class="text-muted ps-3" style="font-size:.85rem">— не указаны —</td></tr>
+          {% endif %}
+          {% endfor %}
         {% endif %}
         {% for лейбл, значение in [
           ('Возрастная группа', сор.возрастная_группа),
