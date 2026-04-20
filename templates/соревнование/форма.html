@@ -130,7 +130,7 @@
         {% for i in [1, 2, 3, 4] %}
         <div class="col-md-6">
           <input type="text" name="организатор_{{ i }}" class="form-control form-control-sm"
-                 placeholder="Организатор {{ i }}"
+                 placeholder="Наименование организации"
                  value="{{ сор|attr('организатор_' ~ i) if сор else '' }}">
         </div>
         {% endfor %}
