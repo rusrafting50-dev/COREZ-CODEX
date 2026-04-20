@@ -137,32 +137,13 @@
   <div class="card mb-3">
     <div class="card-header fw-semibold py-2">Должность на соревновании</div>
     <div class="card-body">
-      <div class="row g-2">
-        {% set должность_сейчас = судья.должность if судья else '' %}
+      {% set должность_сейчас = судья.должность if судья else '' %}
+      <select name="должность" class="form-select" style="max-width:400px">
+        <option value="">— выберите должность —</option>
         {% for д in должности %}
-        <div class="col-6 col-sm-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="должность"
-                   id="долж{{ loop.index }}" value="{{ д }}"
-                   {{ 'checked' if должность_сейчас == д }}>
-            <label class="form-check-label small" for="долж{{ loop.index }}">{{ д }}</label>
-          </div>
-        </div>
+        <option value="{{ д }}" {{ 'selected' if должность_сейчас == д }}>{{ д }}</option>
         {% endfor %}
-        {# Произвольная должность #}
-        <div class="col-12 mt-2">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="должность"
-                   id="должПрочее" value="_прочее"
-                   {{ 'checked' if должность_сейчас and должность_сейчас not in должности }}>
-            <label class="form-check-label small" for="должПрочее">Другая должность:</label>
-          </div>
-          <input type="text" id="fieldДолжностьПрочее" class="form-control form-control-sm mt-1"
-                 style="max-width:320px"
-                 placeholder="Укажите должность…"
-                 value="{{ должность_сейчас if должность_сейчас and должность_сейчас not in должности else '' }}">
-        </div>
-      </div>
+      </select>
     </div>
   </div>
 
@@ -296,27 +277,6 @@ function setField(id, val) {
   const el = document.getElementById(id);
   if (el && val) el.value = val;
 }
-
-// ─── Должность: "другая" → текстовое поле ──────────────────────────────────
-const fieldДолжПрочее = document.getElementById('fieldДолжностьПрочее');
-document.querySelectorAll('input[name="должность"]').forEach(r => {
-  r.addEventListener('change', () => {
-    fieldДолжПрочее.disabled = (r.value !== '_прочее');
-    if (r.value !== '_прочее') fieldДолжПрочее.value = '';
-  });
-});
-// Перехват submit: подменить '_прочее' → текст из поля
-document.getElementById('formСудья').addEventListener('submit', e => {
-  const выбрана = document.querySelector('input[name="должность"]:checked');
-  if (выбрана && выбрана.value === '_прочее') {
-    const текст = fieldДолжПрочее.value.trim();
-    if (!текст) { e.preventDefault(); fieldДолжПрочее.focus(); return; }
-    выбрана.value = текст;
-  }
-});
-// Инициализация состояния
-const прочееРадио = document.getElementById('должПрочее');
-if (прочееРадио && !прочееРадио.checked) fieldДолжПрочее.disabled = true;
 
 // ─── Проверка срока аттестации ────────────────────────────────────────────
 const fieldКонецАтт = document.getElementById('fieldКонецАтт');
