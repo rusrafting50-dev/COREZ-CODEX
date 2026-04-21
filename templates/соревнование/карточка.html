@@ -107,28 +107,6 @@
   </div>
 </div>
 
-{# ── 2. Документы ── #}
-<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
-  <span class="badge bg-secondary me-1">2</span> Документы
-</h6>
-<div class="row g-2 no-print" style="font-size:.82rem">
-  {% set документы = [
-    ('документы.выписка_допуска',  'Допуск', 'success', true),
-  ] %}
-  {% for bp, заг, цвет, blank in документы %}
-  <div class="col-6 col-md-2" style="min-width:140px">
-    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none"
-       {% if blank %}target="_blank"{% endif %}>
-      <div class="card border-{{ цвет }} text-center h-100">
-        <div class="card-body py-2 px-1">
-          <div class="small text-{{ цвет }} fw-semibold">{{ заг }}</div>
-        </div>
-      </div>
-    </a>
-  </div>
-  {% endfor %}
-</div>
-
 {# ── Переменные классов судов ── #}
 {% set классы = сор.класс_судна.split('+') if сор.класс_судна else ['R4'] %}
 {% set двойной = классы | length >= 2 %}

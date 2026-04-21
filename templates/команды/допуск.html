@@ -20,6 +20,8 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('документы.заявки', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Тех. заявки</a>
+    <a href="{{ url_for('документы.выписка_допуска', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm" target="_blank">Протокол комиссии по допуску</a>
     <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Добавить команду</a>
   </div>
