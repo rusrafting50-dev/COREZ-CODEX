@@ -109,91 +109,18 @@
         </div>
       </div>
 
-      {# Организаторы — 4 строки #}
-      <div class="row g-2">
-        <div class="col-12">
-          <label class="form-label fw-semibold">Организаторы</label>
-        </div>
-        {% for i in [1, 2, 3, 4] %}
-        <div class="col-md-6">
-          <input type="text" name="организатор_{{ i }}" class="form-control form-control-sm"
-                 placeholder="Организатор {{ i }}"
-                 value="{{ сор|attr('организатор_' ~ i) if сор else '' }}">
-        </div>
-        {% endfor %}
+      {# Номер ЕКП #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
+        <input type="text" name="номер_екп" class="form-control form-control-sm"
+               placeholder="0000000011Я"
+               value="{{ сор.номер_екп if сор else '' }}">
       </div>
 
     </div>
   </div>
 
-  {# ── БЛОК 2: Главная судейская коллегия ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold bg-secondary text-white py-2">Главная судейская коллегия</div>
-    <div class="card-body">
-      <div class="row g-3">
-
-        {# Левая колонка #}
-        <div class="col-md-6">
-          <div class="mb-2">
-            <label class="form-label fw-semibold mb-1">Главный судья</label>
-            <input type="text" name="главный_судья" class="form-control form-control-sm"
-                   placeholder="Иванов И.И., ССВК, Московская область"
-                   value="{{ сор.главный_судья if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Зам. гл. судьи по судейству</label>
-            <input type="text" name="зам_гл_судьи_судейство" class="form-control form-control-sm"
-                   placeholder="Фамилия И.О., категория, регион"
-                   value="{{ сор.зам_гл_судьи_судейство if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Начальник дистанции</label>
-            <input type="text" name="начальник_дистанции" class="form-control form-control-sm"
-                   placeholder="Сидоров С.С., СС1К, регион"
-                   value="{{ сор.начальник_дистанции if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Начальник спасательной службы</label>
-            <input type="text" name="начальник_спасательной_службы" class="form-control form-control-sm"
-                   placeholder="Фамилия И.О., категория, регион"
-                   value="{{ сор.начальник_спасательной_службы if сор else '' }}">
-          </div>
-        </div>
-
-        {# Правая колонка #}
-        <div class="col-md-6">
-          <div class="mb-2">
-            <label class="form-label fw-semibold mb-1">Главный секретарь</label>
-            <input type="text" name="главный_секретарь" class="form-control form-control-sm"
-                   placeholder="Петров П.П., СС1К, г. Санкт-Петербург"
-                   value="{{ сор.главный_секретарь if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Зам. главного секретаря</label>
-            <input type="text" name="зам_главного_секретаря" class="form-control form-control-sm"
-                   placeholder="Фамилия И.О., категория, регион"
-                   value="{{ сор.зам_главного_секретаря if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Зам. гл. судьи по орг. вопросам</label>
-            <input type="text" name="зам_гл_судьи_орг" class="form-control form-control-sm"
-                   placeholder="Фамилия И.О., категория, регион"
-                   value="{{ сор.зам_гл_судьи_орг if сор else '' }}">
-          </div>
-          <div class="mb-2">
-            <label class="form-label mb-1">Председатель комиссии по допуску</label>
-            <input type="text" name="председатель_комиссии_допуска"
-                   class="form-control form-control-sm"
-                   placeholder="Фамилия И.О., категория, регион"
-                   value="{{ сор.председатель_комиссии_допуска if сор else '' }}">
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  {# ── БЛОК 3: Параметры ── #}
+  {# ── БЛОК 2: Параметры ── #}
   <div class="card mb-3">
     <div class="card-header fw-semibold py-2">
       <a class="text-dark text-decoration-none" data-bs-toggle="collapse"

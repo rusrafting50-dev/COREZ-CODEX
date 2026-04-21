@@ -41,72 +41,6 @@
   </div>
 </div>
 
-{# ── Судьи + Организаторы ── #}
-<div class="row g-3 mb-3">
-  <div class="col-md-7">
-    <div class="card h-100">
-      <div class="card-header fw-semibold py-2">Главная судейская коллегия</div>
-      <table class="table table-sm mb-0">
-        <tbody>
-        {% for лейбл, значение in [
-          ('Главный судья',                 сор.главный_судья),
-          ('Зам. гл. судьи по судейству',   сор.зам_гл_судьи_судейство),
-          ('Начальник дистанции',            сор.начальник_дистанции),
-          ('Нач. спасательной службы',       сор.начальник_спасательной_службы),
-          ('Главный секретарь',              сор.главный_секретарь),
-          ('Зам. главного секретаря',        сор.зам_главного_секретаря),
-          ('Зам. гл. судьи по орг. вопросам', сор.зам_гл_судьи_орг),
-        ] %}
-        {% if значение %}
-        <tr>
-          <td class="text-muted ps-3" style="width:240px;font-size:.85rem">{{ лейбл }}:</td>
-          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="col-md-5">
-    <div class="card h-100">
-      <div class="card-header fw-semibold py-2">Организаторы</div>
-      <div class="card-body py-2 px-3">
-        {% set орг_строки = сор.организаторы_строки %}
-        {% if орг_строки %}
-          {% for стр in орг_строки %}
-          <div style="font-size:.9rem">{{ стр }}</div>
-          {% endfor %}
-        {% elif сор.организаторы %}
-          <div style="font-size:.9rem; white-space:pre-line">{{ сор.организаторы }}</div>
-        {% else %}
-          <span class="text-muted small">— не указаны —</span>
-        {% endif %}
-        <hr class="my-2">
-        <table class="table table-sm mb-0">
-          <tbody>
-          {% for лейбл, значение in [
-            ('Класс судна',             сор.класс_судна),
-            ('Возрастная группа',        сор.возрастная_группа),
-            ('Спортсменов в экипаже',    сор.кол_спортсменов_в_экипаже),
-            ('Муж. экипажей',            сор.кол_мужских_экипажей),
-            ('Жен. экипажей',            сор.кол_женских_экипажей),
-            ('Субъектов РФ',             сор.кол_субъектов),
-          ] %}
-          {% if значение %}
-          <tr>
-            <td class="text-muted" style="font-size:.82rem">{{ лейбл }}:</td>
-            <td class="fw-semibold" style="font-size:.82rem">{{ значение }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
 {# ── Макро: индикатор готовности ── #}
 {% macro значок(готово) %}
 {% if готово %}
@@ -118,38 +52,52 @@
 
 {# ── 1. Подготовка ── #}
 <h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
-  <span class="badge bg-secondary me-1">1</span> Комиссия по допуску
+  <span class="badge bg-secondary me-1">1</span> Подготовка
 </h6>
 <div class="row g-2 no-print">
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-dark h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="small text-dark fw-semibold mt-2">Организаторы</div>
+          <div class="mt-2">{{ значок(готов.организаторы) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('судьи.список', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-warning h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="fs-4 fw-bold text-warning">{{ сор.судьи | length }}</div>
+          <div class="small text-muted">Судейская коллегия</div>
+          <div class="mt-1">{{ значок(готов.судьи) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
   <div class="col-6 col-md-3">
     <a href="{{ url_for('заявка.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="fs-4 fw-bold text-secondary">{{ сор.предварительные_заявки | length }}</div>
-          <div class="small text-muted">Предв. заявки</div>
+          <div class="small text-muted">Предварительные заявки</div>
           <div class="mt-1">{{ значок(сор.предварительные_заявки | length > 0) }}</div>
         </div>
       </div>
     </a>
   </div>
-  {% set подготовка = [
-    ('команды.список',    'Экипажи',    сор.команды  | length,  'primary',   'команды'),
-    ('спортсмены.список', 'Спортсмены', кол_спортсменов,        'success',   'спортсмены'),
-    ('судьи.список',      'Судьи',      сор.судьи    | length,  'warning',   'судьи'),
-  ] %}
-  {% for bp, заг, кол, цвет, ключ in подготовка %}
   <div class="col-6 col-md-3">
-    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-{{ цвет }} h-100 text-center">
+    <a href="{{ url_for('команды.список', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-4 fw-bold text-{{ цвет }}">{{ кол }}</div>
-          <div class="small text-muted">{{ заг }}</div>
-          <div class="mt-1">{{ значок(готов[ключ]) }}</div>
+          <div class="fs-5 fw-bold text-primary">{{ сор.команды | length }} эк. / {{ кол_спортсменов }} сп.</div>
+          <div class="small text-muted">Комиссия по допуску</div>
+          <div class="mt-1">{{ значок(готов.команды) }}</div>
         </div>
       </div>
     </a>
   </div>
-  {% endfor %}
 </div>
 
 {# ── 2. Документы ── #}
