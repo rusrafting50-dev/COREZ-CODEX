@@ -20,6 +20,7 @@
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
       <tr>
+        <th style="width:2rem"></th>
         <th>Субъект РФ</th>
         <th>Команда</th>
         <th>Тренер-представитель</th>
@@ -30,20 +31,21 @@
     <tbody>
     {% for з in заявки %}
     <tr>
+      <td class="text-center">
+        {% if з.спортсмены %}
+        <button class="btn btn-outline-success btn-sm px-1 py-0 toggle-sp"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sp-{{ з.id }}"
+                aria-expanded="false"
+                aria-controls="sp-{{ з.id }}">+</button>
+        {% endif %}
+      </td>
       <td>{{ з.субъект_рф or '—' }}</td>
       <td>{{ з.наименование_команды or '—' }}</td>
       <td>{{ з.тренер_фио or '—' }}</td>
       <td class="text-center">{{ з.спортсмены | length }}</td>
       <td class="text-end text-nowrap">
-        {% if з.спортсмены %}
-        <button class="btn btn-outline-success btn-sm me-1"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#sp-{{ з.id }}"
-                aria-expanded="false"
-                aria-controls="sp-{{ з.id }}"
-                onclick="this.textContent = this.getAttribute('aria-expanded') === 'true' ? '+' : '−'">+</button>
-        {% endif %}
         <a href="{{ url_for('заявка.печать', sor_id=сор.id, z_id=з.id) }}"
            class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Печать</a>
         <a href="{{ url_for('заявка.редактировать', sor_id=сор.id, z_id=з.id) }}"
@@ -56,37 +58,39 @@
       </td>
     </tr>
     {% if з.спортсмены %}
-    <tr class="collapse" id="sp-{{ з.id }}">
-      <td colspan="5" class="p-0">
-        <div class="px-3 py-2 bg-light border-bottom">
-          <table class="table table-sm table-bordered mb-0" style="font-size:.85rem">
-            <thead class="table-secondary">
+    <tr>
+      <td colspan="6" class="p-0 border-0">
+        <div class="collapse" id="sp-{{ з.id }}">
+          <div class="px-3 py-2 bg-light border-bottom">
+            <table class="table table-sm table-bordered mb-0" style="font-size:.85rem">
+              <thead class="table-secondary">
+                <tr>
+                  <th class="text-center" style="width:2.5rem">№</th>
+                  <th>Фамилия</th>
+                  <th>Имя</th>
+                  <th>Отчество</th>
+                  <th class="text-center">Пол</th>
+                  <th class="text-center">Год рождения</th>
+                  <th>Квалификация</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for сп in з.спортсмены %}
               <tr>
-                <th class="text-center" style="width:2.5rem">№</th>
-                <th>Фамилия</th>
-                <th>Имя</th>
-                <th>Отчество</th>
-                <th class="text-center">Пол</th>
-                <th class="text-center">Год рождения</th>
-                <th>Квалификация</th>
+                <td class="text-center text-muted">{{ loop.index }}</td>
+                <td>{{ сп.фамилия or '—' }}</td>
+                <td>{{ сп.имя or '—' }}</td>
+                <td>{{ сп.отчество or '—' }}</td>
+                <td class="text-center">{{ сп.пол or '—' }}</td>
+                <td class="text-center">
+                  {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
+                </td>
+                <td>{{ сп.квалификация or '—' }}</td>
               </tr>
-            </thead>
-            <tbody>
-            {% for сп in з.спортсмены %}
-            <tr>
-              <td class="text-center text-muted">{{ loop.index }}</td>
-              <td>{{ сп.фамилия or '—' }}</td>
-              <td>{{ сп.имя or '—' }}</td>
-              <td>{{ сп.отчество or '—' }}</td>
-              <td class="text-center">{{ сп.пол or '—' }}</td>
-              <td class="text-center">
-                {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
-              </td>
-              <td>{{ сп.квалификация or '—' }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-          </table>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </td>
     </tr>
@@ -100,4 +104,15 @@
   Заявок пока нет. <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}">Добавить первую</a>.
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-bs-toggle="collapse"].toggle-sp').forEach(function(btn) {
+  var target = document.querySelector(btn.dataset.bsTarget);
+  if (!target) return;
+  target.addEventListener('show.bs.collapse', function() { btn.textContent = '−'; });
+  target.addEventListener('hide.bs.collapse', function() { btn.textContent = '+'; });
+});
+</script>
 {% endblock %}
