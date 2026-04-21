@@ -19,6 +19,8 @@
     <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
   </div>
   <div class="d-flex gap-2 flex-wrap no-print">
+    <a href="{{ url_for('судьи.гск', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Состав ГСК</a>
     <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm" target="_blank">Справка о составе</a>
     <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}"
@@ -145,7 +147,11 @@
 </div>
 
 {# ── Ссылки на документы ── #}
-<div class="d-flex gap-3 mt-2 no-print">
+<div class="d-flex gap-3 mt-2 no-print flex-wrap">
+  <a href="{{ url_for('судьи.гск', sor_id=сор.id) }}" target="_blank"
+     class="text-decoration-none small">
+    Открыть состав ГСК →
+  </a>
   <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}" target="_blank"
      class="text-decoration-none small">
     Открыть справку о составе коллегии →
