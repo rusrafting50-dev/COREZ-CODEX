@@ -55,7 +55,7 @@
   <span class="badge bg-secondary me-1">1</span> ИНФОРМАЦИЯ О СОРЕВНОВАНИЯХ
 </h6>
 <div class="row g-2 no-print">
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-2">
     <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}" class="text-decoration-none">
       <div class="card border-dark h-100 text-center">
         <div class="card-body py-2 px-1">
@@ -65,7 +65,7 @@
       </div>
     </a>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-2">
     <a href="{{ url_for('судьи.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-warning h-100 text-center">
         <div class="card-body py-2 px-1">
@@ -75,7 +75,7 @@
       </div>
     </a>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-2">
     <a href="{{ url_for('заявка.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
@@ -85,12 +85,22 @@
       </div>
     </a>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-2">
     <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Комиссия по допуску</div>
           <div class="mt-1">{{ значок(готов.команды) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-2">
+    <a href="{{ url_for('документы.акт_тех_комиссии', sor_id=сор.id) }}" class="text-decoration-none" target="_blank">
+      <div class="card border-danger h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="small text-dark fw-semibold mt-2">Техническая комиссия</div>
+          <div class="mt-1">{{ значок(false) }}</div>
         </div>
       </div>
     </a>
@@ -103,9 +113,7 @@
 </h6>
 <div class="row g-2 no-print" style="font-size:.82rem">
   {% set документы = [
-    ('документы.заявки',           'Тех. заявки',       'secondary', false),
-    ('документы.выписка_допуска',  'Допуск',            'success',   true),
-    ('документы.акт_тех_комиссии', 'Акт тех. комиссии', 'danger',    true),
+    ('документы.выписка_допуска',  'Допуск', 'success', true),
   ] %}
   {% for bp, заг, цвет, blank in документы %}
   <div class="col-6 col-md-2" style="min-width:140px">
