@@ -77,7 +77,7 @@
                 <td class="text-center">
                   {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
                 </td>
-                <td>{{ сп.квалификация or '—' }}</td>
+                <td class="text-center">{{ сп.квалификация or '—' }}</td>
               </tr>
               {% endfor %}
               </tbody>
