@@ -33,12 +33,9 @@
     <tr>
       <td class="text-center">
         {% if з.спортсмены %}
-        <button class="btn btn-outline-success btn-sm px-1 py-0 toggle-sp"
+        <button class="btn btn-outline-success btn-sm px-1 py-0"
                 type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#sp-{{ з.id }}"
-                aria-expanded="false"
-                aria-controls="sp-{{ з.id }}">+</button>
+                onclick="toggleSp(this, 'sp-{{ з.id }}')">+</button>
         {% endif %}
       </td>
       <td>{{ з.субъект_рф or '—' }}</td>
@@ -58,10 +55,9 @@
       </td>
     </tr>
     {% if з.спортсмены %}
-    <tr>
-      <td colspan="6" class="p-0 border-0">
-        <div class="collapse" id="sp-{{ з.id }}">
-          <div class="px-3 py-2 bg-light border-bottom">
+    <tr id="sp-{{ з.id }}" style="display:none">
+      <td colspan="6" class="p-0">
+        <div class="px-3 py-2 bg-light border-bottom">
             <table class="table table-sm table-bordered mb-0" style="font-size:.85rem">
               <thead class="table-secondary">
                 <tr>
@@ -90,7 +86,6 @@
               {% endfor %}
               </tbody>
             </table>
-          </div>
         </div>
       </td>
     </tr>
@@ -108,11 +103,11 @@
 
 {% block scripts %}
 <script>
-document.querySelectorAll('[data-bs-toggle="collapse"].toggle-sp').forEach(function(btn) {
-  var target = document.querySelector(btn.dataset.bsTarget);
-  if (!target) return;
-  target.addEventListener('show.bs.collapse', function() { btn.textContent = '−'; });
-  target.addEventListener('hide.bs.collapse', function() { btn.textContent = '+'; });
-});
+function toggleSp(btn, id) {
+  var row = document.getElementById(id);
+  var hidden = row.style.display === 'none';
+  row.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '−' : '+';
+}
 </script>
 {% endblock %}
