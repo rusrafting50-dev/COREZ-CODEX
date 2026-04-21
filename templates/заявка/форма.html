@@ -112,12 +112,13 @@
           <thead class="table-light" style="font-size:.78rem">
             <tr>
               <th class="text-center" style="width:32px">№</th>
-              <th style="min-width:240px">Фамилия, Имя, Отчество</th>
-              <th style="width:55px" class="text-center">Пол</th>
-              <th style="width:110px">Дата рожд.</th>
-              <th style="width:70px">Квалиф.</th>
-              <th style="min-width:130px">Номер приказа</th>
-              <th style="min-width:110px">№ страховки</th>
+              <th style="min-width:220px">Фамилия, Имя, Отчество</th>
+              <th style="width:50px" class="text-center">Пол</th>
+              <th style="width:108px">Дата рожд.</th>
+              <th style="width:65px">Квалиф.</th>
+              <th style="min-width:150px">Возрастная группа</th>
+              <th style="min-width:120px">Номер приказа</th>
+              <th style="min-width:100px">№ страховки</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -130,16 +131,27 @@
                          placeholder="Фамилия Имя Отчество"
                          value="{{ [сп.фамилия, сп.имя, сп.отчество] | select | join(' ') }}"></td>
               <td>
-                <select name="пол[]" class="form-select form-select-sm border-0 px-1">
+                <select name="пол[]" class="form-select form-select-sm border-0 px-1"
+                        onchange="пересчитатьГруппуСтроки(this.closest('tr'))">
                   <option value=""></option>
                   <option value="м" {{ 'selected' if сп.пол == 'м' }}>м</option>
                   <option value="ж" {{ 'selected' if сп.пол == 'ж' }}>ж</option>
                 </select>
               </td>
-              <td><input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
+              <td><input type="date" name="дата_рождения[]"
+                         class="form-control form-control-sm border-0 px-1"
+                         onchange="пересчитатьГруппуСтроки(this.closest('tr'))"
                          value="{{ сп.дата_рождения.strftime('%Y-%m-%d') if сп.дата_рождения else '' }}"></td>
               <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1"
                          placeholder="КМС" value="{{ сп.квалификация or '' }}"></td>
+              <td>
+                <select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">
+                  <option value=""></option>
+                  {% for г in возрастные_группы %}
+                  <option value="{{ г }}" {{ 'selected' if (сп.возрастная_группа or '') == г }}>{{ г }}</option>
+                  {% endfor %}
+                </select>
+              </td>
               <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"
                          value="{{ сп.номер_приказа or '' }}"></td>
               <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"
@@ -177,17 +189,32 @@
 
 {% block scripts %}
 <script>
+const ВОЗРАСТНЫЕ_ГРУППЫ = [
+  '', 'Мужчины', 'Женщины',
+  'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+  'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)',
+  'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+  'Юноши (до 16 лет)',  'Девушки (до 16 лет)',
+];
+
+function опцииГрупп(выбрана) {
+  return ВОЗРАСТНЫЕ_ГРУППЫ.map(г =>
+    `<option value="${г}" ${г === выбрана ? 'selected' : ''}>${г}</option>`
+  ).join('');
+}
+
 const шаблон = `
 <tr>
   <td class="text-center text-muted row-num"></td>
   <td><input type="text" name="фио[]" class="form-control form-control-sm border-0 px-1" placeholder="Фамилия Имя Отчество"></td>
-  <td><select name="пол[]" class="form-select form-select-sm border-0 px-1">
-    <option value=""></option>
-    <option value="м">м</option>
-    <option value="ж">ж</option>
+  <td><select name="пол[]" class="form-select form-select-sm border-0 px-1"
+              onchange="пересчитатьГруппуСтроки(this.closest('tr'))">
+    <option value=""></option><option value="м">м</option><option value="ж">ж</option>
   </select></td>
-  <td><input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"></td>
+  <td><input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
+             onchange="пересчитатьГруппуСтроки(this.closest('tr'))"></td>
   <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1" placeholder="КМС"></td>
+  <td><select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">${опцииГрупп('')}</select></td>
   <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"></td>
   <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"></td>
   <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger px-1 py-0" onclick="удалитьСтроку(this)">×</button></td>
@@ -211,7 +238,27 @@ function обновитьНомера() {
   });
 }
 
-// Добавить пустую строку если список пуст
+function пересчитатьГруппуСтроки(tr) {
+  const дата = tr.querySelector('input[name="дата_рождения[]"]').value;
+  const пол  = tr.querySelector('select[name="пол[]"]').value;
+  const sel  = tr.querySelector('select.group-sel');
+  if (!sel || !дата || !пол) return;
+
+  const год_рожд = parseInt(дата.substring(0, 4));
+  const год_сор  = new Date().getFullYear();
+  const возраст  = год_сор - год_рожд;
+  const муж      = (пол === 'м');
+
+  let группа = '';
+  if      (возраст <= 16) группа = муж ? 'Юноши (до 16 лет)'  : 'Девушки (до 16 лет)';
+  else if (возраст <= 20) группа = муж ? 'Юниоры (до 20 лет)' : 'Юниорки (до 20 лет)';
+  else if (возраст <= 24) группа = муж ? 'Юниоры (до 24 лет)' : 'Юниорки (до 24 лет)';
+  else if (возраст <= 26) группа = муж ? 'Юниоры (до 26 лет)' : 'Юниорки (до 26 лет)';
+  else                    группа = муж ? 'Мужчины'             : 'Женщины';
+
+  sel.value = группа;
+}
+
 if (!document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
 </script>
 {% endblock %}

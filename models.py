@@ -639,6 +639,7 @@ class СпортсменЗаявки(db.Model):
     квалификация    = db.Column(db.String(50),  nullable=True)
     номер_приказа   = db.Column(db.String(150), nullable=True)
     номер_страховки = db.Column(db.String(100), nullable=True)
+    возрастная_группа = db.Column(db.String(50), nullable=True)
 
 
 def применить_миграции():
@@ -694,6 +695,12 @@ def применить_миграции():
         ]:
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
+                conn.commit()
+        # спортсмены_заявки: возрастная_группа
+        if inspector.has_table('спортсмены_заявки'):
+            cols = {c['name'] for c in inspector.get_columns('спортсмены_заявки')}
+            if 'возрастная_группа' not in cols:
+                conn.execute(text('ALTER TABLE спортсмены_заявки ADD COLUMN возрастная_группа VARCHAR(50)'))
                 conn.commit()
         # команды: принадлежность_к_орг, оплата_взноса
         cols = {c['name'] for c in inspector.get_columns('команды')}
