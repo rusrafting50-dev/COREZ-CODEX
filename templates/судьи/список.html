@@ -13,11 +13,11 @@
 </nav>
 
 {# ── Заголовок ── #}
-<div class="d-flex justify-content-between align-items-start mb-3">
-  <div>
-    <h5 class="mb-0">Судейская коллегия</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
+<div class="text-center mb-1">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Судейская коллегия</h5>
   <div class="d-flex gap-2 flex-wrap no-print">
     <a href="{{ url_for('судьи.гск', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm" target="_blank">Состав ГСК</a>
@@ -31,42 +31,6 @@
 </div>
 
 {% if судьи %}
-
-{# ── Сводка по квалификациям ── #}
-<div class="row g-2 mb-3 no-print">
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:70px">
-      <div class="fw-bold fs-5 text-primary">{{ стат.всего }}</div>
-      <div class="text-muted" style="font-size:.7rem">всего</div>
-    </div>
-  </div>
-  {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
-  {% if стат.по_квал[квал] %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:60px">
-      <div class="fw-bold fs-5">
-        <span class="badge bg-{{ квал_цвет[квал] }}">{{ квал }}</span>
-      </div>
-      <div class="fw-bold">{{ стат.по_квал[квал] }}</div>
-    </div>
-  </div>
-  {% endif %}
-  {% endfor %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:60px">
-      <div class="fw-bold fs-5 text-success">{{ стат.действующих }}</div>
-      <div class="text-muted" style="font-size:.7rem">действ. кат.</div>
-    </div>
-  </div>
-  {% if стат.муж or стат.жен %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
-      <div class="fw-bold text-secondary">{{ стат.муж }}м / {{ стат.жен }}ж</div>
-      <div class="text-muted" style="font-size:.7rem">пол</div>
-    </div>
-  </div>
-  {% endif %}
-</div>
 
 {# ── Таблица судей ── #}
 <div class="table-responsive">
@@ -139,6 +103,11 @@
           · {{ квал }}: {{ стат.по_квал[квал] }}
           {% endif %}
           {% endfor %}
+          &nbsp;&nbsp;&nbsp;
+          <strong>Иногородних судей:</strong>
+          ССВК — {{ стат.по_квал['ССВК'] }},
+          СС1К — {{ стат.по_квал['СС1К'] }}
+          <strong>Всего: {{ стат.по_квал['ССВК'] + стат.по_квал['СС1К'] }}</strong>
         </td>
         <td class="no-print"></td>
       </tr>

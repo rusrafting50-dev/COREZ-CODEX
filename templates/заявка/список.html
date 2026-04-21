@@ -10,6 +10,9 @@
   </ol>
 </nav>
 
+<div class="text-center mb-1">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Предварительные заявки</h5>
   <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая заявка</a>
