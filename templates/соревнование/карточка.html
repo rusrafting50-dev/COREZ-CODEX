@@ -19,20 +19,17 @@
 {# ── Шапка ── #}
 <div class="text-center mb-4">
   <h4 class="fw-bold mb-2">{{ сор.название }}</h4>
-  {% set цвета = {'ЧР':'danger','КР':'primary','ПР':'success','ВС':'info','ЧФО':'warning','ПФО':'warning','ЧС':'secondary','КС':'secondary','ПС':'secondary'} %}
+  {% set цвета = {'ЧР':'danger','КР':'primary','ПР':'success','ПРЮ':'success','ВС':'info','ЧФО':'warning','ПФО':'warning','ЧС':'secondary','КС':'secondary','ПС':'secondary'} %}
   <div class="mb-1 d-flex gap-2 justify-content-center align-items-center flex-wrap">
     {% if сор.код_соревнований %}
     <span class="badge bg-{{ цвета.get(сор.код_соревнований,'secondary') }} fs-6 px-3">
-      {% if сор.код_соревнований in статусы %}{{ статусы[сор.код_соревнований].полное }}{% else %}{{ сор.код_соревнований }}{% endif %}
+      {{ сор.код_соревнований }}{% if сор.код_соревнований in статусы %} — {{ статусы[сор.код_соревнований].полное }}{% endif %}
     </span>
     {% endif %}
-    {% if сор.класс_судна == 'R4+R6' %}
-    <button type="button" class="btn btn-info text-dark btn-sm" id="btnR4"
-            onclick="setClass('R4')"><strong>R4</strong></button>
-    <button type="button" class="btn btn-outline-info btn-sm" id="btnR6"
-            onclick="setClass('R6')"><strong>R6</strong></button>
-    {% elif сор.класс_судна %}
-    <span class="badge bg-info text-dark fs-6">{{ сор.класс_судна }}</span>
+    {% if сор.класс_судна %}
+    {% for cls in сор.класс_судна.split('+') %}
+    <span class="badge bg-info text-dark fs-6">{{ cls }}</span>
+    {% endfor %}
     {% endif %}
     {% if сор.возрастная_группа %}
     <span class="badge bg-light text-dark border fs-6">{{ сор.возрастная_группа }}</span>
@@ -42,107 +39,7 @@
     {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
     {% if сор.место_проведения %}&nbsp;—&nbsp;{{ сор.место_проведения }}{% endif %}
   </div>
-  {% if сор.номер_екп %}
-  <div class="text-muted small mt-1">Номер в ЕКП: <strong>{{ сор.номер_екп }}</strong></div>
-  {% endif %}
 </div>
-
-{# ── Судьи + Организаторы ── #}
-<div class="row g-3 mb-3">
-  <div class="col-md-7">
-    <div class="card h-100">
-      <div class="card-header fw-semibold py-2">Главная судейская коллегия</div>
-      <table class="table table-sm mb-0">
-        <tbody>
-        {% for лейбл, значение in [
-          ('Главный судья',                 сор.главный_судья),
-          ('Зам. гл. судьи по судейству',   сор.зам_гл_судьи_судейство),
-          ('Начальник дистанции',            сор.начальник_дистанции),
-          ('Нач. спасательной службы',       сор.начальник_спасательной_службы),
-          ('Главный секретарь',              сор.главный_секретарь),
-          ('Зам. главного секретаря',        сор.зам_главного_секретаря),
-          ('Зам. гл. судьи по орг. вопросам', сор.зам_гл_судьи_орг),
-        ] %}
-        {% if значение %}
-        <tr>
-          <td class="text-muted ps-3" style="width:240px;font-size:.85rem">{{ лейбл }}:</td>
-          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="col-md-5">
-    <div class="card h-100">
-      <div class="card-header fw-semibold py-2">Организаторы</div>
-      <table class="table table-sm mb-0">
-        <tbody>
-        {% set орг_строки = сор.организаторы_строки %}
-        {% if орг_строки %}
-          {% for стр in орг_строки %}
-          <tr>
-            <td colspan="2" class="fw-semibold ps-3" style="font-size:.85rem">{{ стр }}</td>
-          </tr>
-          {% endfor %}
-        {% elif сор.организаторы %}
-          {% for стр in сор.организаторы.splitlines() %}
-          {% if стр and стр.strip() and стр.strip() != 'None' %}
-          <tr>
-            <td colspan="2" class="fw-semibold ps-3" style="font-size:.85rem">{{ стр.strip() }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-        {% endif %}
-        {% for лейбл, значение in [
-          ('Возрастная группа', сор.возрастная_группа),
-        ] %}
-        {% if значение %}
-        <tr>
-          <td class="text-muted ps-3" style="font-size:.85rem">{{ лейбл }}:</td>
-          <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-        {% if сор.класс_судна %}
-        <tr>
-          <td class="text-muted ps-3" style="font-size:.85rem">
-            {{ 'Классы судов' if '+' in сор.класс_судна else 'Класс судна' }}:
-          </td>
-          <td class="fw-semibold" style="font-size:.85rem">
-            {{ сор.класс_судна.replace('+', ', ') }}
-          </td>
-        </tr>
-        {% endif %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-{% if сор.председатель_мандатной_комиссии or сор.технический_делегат %}
-<div class="card mb-3">
-  <div class="card-header fw-semibold py-2" style="background:#e9ecef">
-    Представители общероссийской (региональной) спортивной федерации
-  </div>
-  <table class="table table-sm mb-0">
-    <tbody>
-    {% for лейбл, значение in [
-      ('Председатель мандатной комиссии', сор.председатель_мандатной_комиссии),
-      ('Технический делегат',             сор.технический_делегат),
-    ] %}
-    {% if значение %}
-    <tr>
-      <td class="text-muted ps-3" style="width:260px;font-size:.85rem">{{ лейбл }}:</td>
-      <td class="fw-semibold" style="font-size:.85rem">{{ значение }}</td>
-    </tr>
-    {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
 
 {# ── Макро: индикатор готовности ── #}
 {% macro значок(готово) %}
@@ -155,38 +52,52 @@
 
 {# ── 1. Подготовка ── #}
 <h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
-  <span class="badge bg-secondary me-1">1</span> Комиссия по допуску
+  <span class="badge bg-secondary me-1">1</span> Подготовка
 </h6>
 <div class="row g-2 no-print">
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-dark h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="small text-dark fw-semibold mt-2">Организаторы</div>
+          <div class="mt-2">{{ значок(готов.организаторы) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('судьи.список', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-warning h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="fs-4 fw-bold text-warning">{{ сор.судьи | length }}</div>
+          <div class="small text-muted">Судейская коллегия</div>
+          <div class="mt-1">{{ значок(готов.судьи) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
   <div class="col-6 col-md-3">
     <a href="{{ url_for('заявка.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="fs-4 fw-bold text-secondary">{{ сор.предварительные_заявки | length }}</div>
-          <div class="small text-muted">Предв. заявки</div>
+          <div class="small text-muted">Предварительные заявки</div>
           <div class="mt-1">{{ значок(сор.предварительные_заявки | length > 0) }}</div>
         </div>
       </div>
     </a>
   </div>
-  {% set подготовка = [
-    ('команды.список',    'Экипажи',    сор.команды  | length,  'primary',   'команды'),
-    ('спортсмены.список', 'Спортсмены', кол_спортсменов,        'success',   'спортсмены'),
-    ('судьи.список',      'Судьи',      сор.судьи    | length,  'warning',   'судьи'),
-  ] %}
-  {% for bp, заг, кол, цвет, ключ in подготовка %}
   <div class="col-6 col-md-3">
-    <a href="{{ url_for(bp, sor_id=сор.id) }}" class="text-decoration-none">
-      <div class="card border-{{ цвет }} h-100 text-center">
+    <a href="{{ url_for('команды.список', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-4 fw-bold text-{{ цвет }}">{{ кол }}</div>
-          <div class="small text-muted">{{ заг }}</div>
-          <div class="mt-1">{{ значок(готов[ключ]) }}</div>
+          <div class="fs-5 fw-bold text-primary">{{ сор.команды | length }} эк. / {{ кол_спортсменов }} сп.</div>
+          <div class="small text-muted">Комиссия по допуску</div>
+          <div class="mt-1">{{ значок(готов.команды) }}</div>
         </div>
       </div>
     </a>
   </div>
-  {% endfor %}
 </div>
 
 {# ── 2. Документы ── #}
@@ -218,6 +129,17 @@
 <h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
   <span class="badge bg-secondary me-1">3</span> Дистанции
 </h6>
+
+{% set двойной = сор.класс_судна == 'R4+R6' %}
+{% if двойной %}
+<div class="mb-2 no-print">
+  <div class="btn-group btn-group-sm" role="group" id="classSwitch">
+    <button type="button" class="btn btn-primary active" onclick="setClass('R4')">R4</button>
+    <button type="button" class="btn btn-outline-primary" onclick="setClass('R6')">R6</button>
+  </div>
+  <span class="text-muted small ms-2" id="classSwitchLabel">Выбран класс R4</span>
+</div>
+{% endif %}
 
 <div class="row g-2 no-print" id="disciplinesBlock">
 
@@ -406,14 +328,16 @@
 {% block scripts %}
 {% if сор.класс_судна == 'R4+R6' %}
 <script>
+let activeClass = 'R4';
+
 function setClass(cls) {
-  const r4 = document.getElementById('btnR4');
-  const r6 = document.getElementById('btnR6');
-  [r4, r6].forEach(b => {
-    const active = b.id === 'btn' + cls;
-    b.className = active
-      ? 'btn btn-info text-dark btn-sm'
-      : 'btn btn-outline-info btn-sm';
+  activeClass = cls;
+  document.getElementById('classSwitchLabel').textContent = 'Выбран класс ' + cls;
+  const btns = document.querySelectorAll('#classSwitch button');
+  btns.forEach(b => {
+    b.classList.toggle('active', b.textContent === cls);
+    b.classList.toggle('btn-primary', b.textContent === cls);
+    b.classList.toggle('btn-outline-primary', b.textContent !== cls);
   });
   document.querySelectorAll('.disc-link').forEach(a => {
     const url = new URL(a.href, location.href);
@@ -421,6 +345,8 @@ function setClass(cls) {
     a.href = url.toString();
   });
 }
+
+// Initialise R4 on page load
 setClass('R4');
 </script>
 {% endif %}
