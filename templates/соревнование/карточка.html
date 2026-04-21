@@ -50,17 +50,16 @@
 {% endif %}
 {% endmacro %}
 
-{# ── 1. Подготовка ── #}
+{# ── 1. Информация о соревнованиях ── #}
 <h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
-  <span class="badge bg-secondary me-1">1</span> Подготовка
+  <span class="badge bg-secondary me-1">1</span> ИНФОРМАЦИЯ О СОРЕВНОВАНИЯХ
 </h6>
 <div class="row g-2 no-print">
   <div class="col-6 col-md-3">
     <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}" class="text-decoration-none">
       <div class="card border-dark h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-4 fw-bold text-dark">{{ сор.организаторы_строки | length or '' }}</div>
-          <div class="small text-dark fw-semibold">Организаторы</div>
+          <div class="small text-dark fw-semibold mt-2">Организаторы</div>
           <div class="mt-1">{{ значок(готов.организаторы) }}</div>
         </div>
       </div>
@@ -70,8 +69,7 @@
     <a href="{{ url_for('судьи.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-warning h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-4 fw-bold text-warning">{{ сор.судьи | length }}</div>
-          <div class="small text-muted">Судейская коллегия</div>
+          <div class="small text-muted fw-semibold mt-2">Судейская коллегия</div>
           <div class="mt-1">{{ значок(готов.судьи) }}</div>
         </div>
       </div>
@@ -81,8 +79,7 @@
     <a href="{{ url_for('заявка.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-4 fw-bold text-secondary">{{ сор.предварительные_заявки | length }}</div>
-          <div class="small text-muted">Предварительные заявки</div>
+          <div class="small text-muted fw-semibold mt-2">Предварительные заявки</div>
           <div class="mt-1">{{ значок(сор.предварительные_заявки | length > 0) }}</div>
         </div>
       </div>
@@ -92,8 +89,7 @@
     <a href="{{ url_for('команды.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="fs-5 fw-bold text-primary">{{ сор.команды | length }} эк. / {{ кол_спортсменов }} сп.</div>
-          <div class="small text-muted">Комиссия по допуску</div>
+          <div class="small text-muted fw-semibold mt-2">Комиссия по допуску</div>
           <div class="mt-1">{{ значок(готов.команды) }}</div>
         </div>
       </div>
