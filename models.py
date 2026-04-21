@@ -201,6 +201,10 @@ class Команда(db.Model):
     участие_дг              = db.Column(db.Boolean, nullable=False, default=True)   # длинная гонка
     участие_многоборье      = db.Column(db.Boolean, nullable=False, default=True)
 
+    # Принадлежность к спортивной организации и оплата взноса (комиссия по допуску)
+    принадлежность_к_орг    = db.Column(db.String(100), nullable=True)
+    оплата_взноса           = db.Column(db.String(50),  nullable=True, default='Ожидает оплаты')
+
     # Номер жеребьёвки для спринта (стартовый порядок)
     стартовый_номер_спринт  = db.Column(db.Integer, nullable=True)
 
@@ -691,6 +695,14 @@ def применить_миграции():
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
                 conn.commit()
+        # команды: принадлежность_к_орг, оплата_взноса
+        cols = {c['name'] for c in inspector.get_columns('команды')}
+        if 'принадлежность_к_орг' not in cols:
+            conn.execute(text("ALTER TABLE команды ADD COLUMN принадлежность_к_орг VARCHAR(100)"))
+            conn.commit()
+        if 'оплата_взноса' not in cols:
+            conn.execute(text("ALTER TABLE команды ADD COLUMN оплата_взноса VARCHAR(50) DEFAULT 'Ожидает оплаты'"))
+            conn.commit()
         # результаты_спринт: новые колонки штрафов по типу
         if inspector.has_table('результаты_спринт'):
             cols = {c['name'] for c in inspector.get_columns('результаты_спринт')}
