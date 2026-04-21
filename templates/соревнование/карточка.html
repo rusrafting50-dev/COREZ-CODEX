@@ -69,7 +69,7 @@
     <a href="{{ url_for('судьи.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-warning h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="small text-muted fw-semibold mt-2">Судейская коллегия</div>
+          <div class="small text-dark fw-semibold mt-2">Судейская коллегия</div>
           <div class="mt-1">{{ значок(готов.судьи) }}</div>
         </div>
       </div>
@@ -79,7 +79,7 @@
     <a href="{{ url_for('заявка.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="small text-muted fw-semibold mt-2">Предварительные заявки</div>
+          <div class="small text-dark fw-semibold mt-2">Предварительные заявки</div>
           <div class="mt-1">{{ значок(сор.предварительные_заявки | length > 0) }}</div>
         </div>
       </div>
@@ -89,7 +89,7 @@
     <a href="{{ url_for('команды.список', sor_id=сор.id) }}" class="text-decoration-none">
       <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="small text-muted fw-semibold mt-2">Комиссия по допуску</div>
+          <div class="small text-dark fw-semibold mt-2">Комиссия по допуску</div>
           <div class="mt-1">{{ значок(готов.команды) }}</div>
         </div>
       </div>
