@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% block title %}Допуск: №{{ команда.нагрудный_номер }} {{ команда.название or '' }} — СЧИТАЛКА{% endblock %}
 
-{% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
     <li class="breadcrumb-item">
-      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(35) }}</a>
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
     <li class="breadcrumb-item">
       <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Комиссия по допуску</a>
     </li>
     <li class="breadcrumb-item active">№{{ команда.нагрудный_номер }} {{ команда.название or '' }}</li>
   </ol>
-</nav>
+{% endblock %}
+
+{% block content %}
 
 <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
   <h5 class="mb-0">

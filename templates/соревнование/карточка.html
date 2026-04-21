@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}{{ сор.название }} — СЧИТАЛКА{% endblock %}
 
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item active">{{ сор.название }}</li>
+  </ol>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-3 no-print">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-      <li class="breadcrumb-item active">{{ сор.название | truncate(50) }}</li>
-    </ol>
-  </nav>
+<div class="d-flex justify-content-end mb-3 no-print">
   <div class="d-flex gap-2">
     <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Редактировать</a>

@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 {% block title %}{{ 'Новая заявка' if not з else 'Редактировать заявку' }} — {{ сор.название | truncate(30) }}{% endblock %}
 
-{% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(30) }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a></li>
     <li class="breadcrumb-item"><a href="{{ url_for('заявка.список', sor_id=сор.id) }}">Заявки</a></li>
     <li class="breadcrumb-item active">{{ 'Новая' if not з else 'Редактировать' }}</li>
   </ol>
-</nav>
+{% endblock %}
+
+{% block content %}
 
 <h5 class="mb-3">{{ 'Новая предварительная заявка' if not з else 'Редактирование заявки' }}</h5>
 

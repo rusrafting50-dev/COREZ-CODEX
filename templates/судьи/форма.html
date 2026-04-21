@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 {% block title %}{{ 'Добавить судью' if not судья else 'Редактировать судью' }} — СЧИТАЛКА{% endblock %}
 
-{% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
     <li class="breadcrumb-item">
-      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
     <li class="breadcrumb-item">
       <a href="{{ url_for('судьи.список', sor_id=сор.id) }}">Судейская коллегия</a>
     </li>
     <li class="breadcrumb-item active">{{ 'Добавить' if not судья else 'Редактировать' }}</li>
   </ol>
-</nav>
+{% endblock %}
+
+{% block content %}
 
 <div class="d-flex align-items-center mb-3">
   <h5 class="mb-0">{{ 'Добавить судью' if not судья else 'Редактировать судью' }}</h5>

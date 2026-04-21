@@ -1,20 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}{{ 'Новое соревнование' if not сор else 'Редактировать соревнование' }} — СЧИТАЛКА{% endblock %}
 
-{% block content %}
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
     {% if сор %}
     <li class="breadcrumb-item">
-      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название | truncate(40) }}</a>
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
     <li class="breadcrumb-item active">Редактировать</li>
     {% else %}
     <li class="breadcrumb-item active">Новое соревнование</li>
     {% endif %}
   </ol>
-</nav>
+{% endblock %}
+
+{% block content %}
 
 <div class="d-flex align-items-center mb-3">
   <h4 class="mb-0">{{ 'Новое соревнование' if not сор else 'Редактирование соревнования' }}</h4>
