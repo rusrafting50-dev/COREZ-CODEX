@@ -62,9 +62,7 @@
               <thead class="table-secondary">
                 <tr>
                   <th class="text-center" style="width:2.5rem">№</th>
-                  <th>Фамилия</th>
-                  <th>Имя</th>
-                  <th>Отчество</th>
+                  <th>Фамилия, Имя, Отчество</th>
                   <th class="text-center">Пол</th>
                   <th class="text-center">Год рождения</th>
                   <th>Квалификация</th>
@@ -74,9 +72,7 @@
               {% for сп in з.спортсмены %}
               <tr>
                 <td class="text-center text-muted">{{ loop.index }}</td>
-                <td>{{ сп.фамилия or '—' }}</td>
-                <td>{{ сп.имя or '—' }}</td>
-                <td>{{ сп.отчество or '—' }}</td>
+                <td>{{ [сп.фамилия, сп.имя, сп.отчество] | select | join(' ') or '—' }}</td>
                 <td class="text-center">{{ сп.пол or '—' }}</td>
                 <td class="text-center">
                   {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
