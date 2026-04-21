@@ -5,6 +5,14 @@ from models import db, Соревнование, Предварительная�
 
 bp_заявка = Blueprint('заявка', __name__)
 
+ВОЗРАСТНЫЕ_ГРУППЫ = [
+    'Мужчины', 'Женщины',
+    'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+    'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)',
+    'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+    'Юноши (до 16 лет)', 'Девушки (до 16 лет)',
+]
+
 
 @bp_заявка.route('/<int:sor_id>')
 def список(sor_id):
@@ -38,7 +46,8 @@ def новая(sor_id):
         db.session.commit()
         flash('Заявка сохранена.', 'success')
         return redirect(url_for('заявка.список', sor_id=sor_id))
-    return render_template('заявка/форма.html', сор=сор, з=None)
+    return render_template('заявка/форма.html', сор=сор, з=None,
+                           возрастные_группы=ВОЗРАСТНЫЕ_ГРУППЫ)
 
 
 @bp_заявка.route('/<int:sor_id>/<int:z_id>/редактировать', methods=['GET', 'POST'])
@@ -62,7 +71,8 @@ def редактировать(sor_id, z_id):
         db.session.commit()
         flash('Заявка обновлена.', 'success')
         return redirect(url_for('заявка.список', sor_id=sor_id))
-    return render_template('заявка/форма.html', сор=сор, з=з)
+    return render_template('заявка/форма.html', сор=сор, з=з,
+                           возрастные_группы=ВОЗРАСТНЫЕ_ГРУППЫ)
 
 
 @bp_заявка.route('/<int:sor_id>/<int:z_id>/удалить', methods=['POST'])
@@ -89,6 +99,7 @@ def _сохранить_спортсменов(з, form):
     квалиф    = form.getlist('квалификация[]')
     приказы   = form.getlist('номер_приказа[]')
     страховки = form.getlist('номер_страховки[]')
+    группы    = form.getlist('возрастная_группа[]')
     for i, фио in enumerate(фио_list):
         фио = фио.strip()
         if not фио:
@@ -104,14 +115,15 @@ def _сохранить_спортсменов(з, form):
         except (ValueError, IndexError):
             pass
         сп = СпортсменЗаявки(
-            заявка_id       = з.id,
-            фамилия         = фам,
-            имя             = имя,
-            отчество        = отч,
-            пол             = полы[i]             if i < len(полы)      else '',
-            дата_рождения   = др,
-            квалификация    = квалиф[i].strip()   if i < len(квалиф)    else '',
-            номер_приказа   = приказы[i].strip()  if i < len(приказы)   else '',
-            номер_страховки = страховки[i].strip() if i < len(страховки) else '',
+            заявка_id         = з.id,
+            фамилия           = фам,
+            имя               = имя,
+            отчество          = отч,
+            пол               = полы[i]              if i < len(полы)      else '',
+            дата_рождения     = др,
+            квалификация      = квалиф[i].strip()    if i < len(квалиф)    else '',
+            номер_приказа     = приказы[i].strip()   if i < len(приказы)   else '',
+            номер_страховки   = страховки[i].strip() if i < len(страховки) else '',
+            возрастная_группа = группы[i].strip()    if i < len(группы)    else '',
         )
         db.session.add(сп)

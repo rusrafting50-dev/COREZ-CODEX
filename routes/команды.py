@@ -1,8 +1,20 @@
-# routes/команды.py — CRUD экипажей (команд)
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Команда, Субъект, Соревнование
+# routes/команды.py — CRUD экипажей (команд) + комиссия по допуску
+from datetime import date
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from models import db, Команда, Субъект, Соревнование, Спортсмен, ПредварительнаяЗаявка
 
 bp_команды = Blueprint('команды', __name__)
+
+ОРГИ = ['ДЮСШ', 'СДЮСШОР', 'СШОР', 'СШ', 'ЦСП', 'УОР', 'Другая']
+ОПЛАТА_СПИСОК = ['Ожидает оплаты', 'Оплачено']
+РАЗРЯДЫ_ДОПУСК = ['МСМК', 'МС', 'КМС', 'I', 'II', 'III']
+ВОЗРАСТНЫЕ_ГРУППЫ = [
+    'Мужчины', 'Женщины',
+    'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+    'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)',
+    'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+    'Юноши (до 16 лет)', 'Девушки (до 16 лет)',
+]
 
 
 @bp_команды.route('/<int:sor_id>')
@@ -75,8 +87,128 @@ def удалить(sor_id, id):
     return redirect(url_for('команды.список', sor_id=sor_id))
 
 
+# ── Комиссия по допуску ───────────────────────────────────────────────────────
+
+@bp_команды.route('/<int:sor_id>/допуск')
+def допуск(sor_id):
+    сор     = Соревнование.query.get_or_404(sor_id)
+    команды = (Команда.query
+               .filter_by(соревнование_id=sor_id)
+               .order_by(Команда.нагрудный_номер)
+               .all())
+    return render_template('команды/допуск.html', сор=сор, команды=команды)
+
+
+@bp_команды.route('/<int:sor_id>/<int:id>/допуск', methods=['GET', 'POST'])
+def допуск_команда(sor_id, id):
+    сор      = Соревнование.query.get_or_404(sor_id)
+    команда  = Команда.query.get_or_404(id)
+    субъекты = (Субъект.query
+                .filter_by(соревнование_id=sor_id)
+                .order_by(Субъект.номер_делегации)
+                .all())
+
+    if request.method == 'POST':
+        action = request.form.get('action', '')
+
+        if action == 'save_team':
+            команда.субъект_id           = _int_or_none(request.form.get('субъект_id'))
+            команда.название             = request.form.get('название', '').strip()
+            команда.принадлежность_к_орг = request.form.get('принадлежность_к_орг', '').strip()
+            команда.оплата_взноса        = request.form.get('оплата_взноса', 'Ожидает оплаты')
+            тренер = request.form.get('тренер_представитель', '').strip()
+            if команда.субъект and тренер:
+                команда.субъект.представитель = тренер
+            db.session.commit()
+            flash('Данные команды сохранены.', 'success')
+            return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=id))
+
+        elif action == 'add_athlete':
+            фио = request.form.get('фио', '').strip()
+            if фио:
+                с = Спортсмен(
+                    команда_id           = id,
+                    субъект_id           = команда.субъект_id,
+                    фамилия_имя_отчество = фио,
+                    пол                  = request.form.get('пол', 'м'),
+                    дата_рождения        = _parse_date(request.form.get('дата_рождения')),
+                    разряд               = request.form.get('разряд', '').strip(),
+                    возрастная_группа    = request.form.get('возрастная_группа', '').strip(),
+                    принадлежность_к_орг = команда.принадлежность_к_орг or '',
+                    тренер_представитель = (команда.субъект.представитель
+                                            if команда.субъект else ''),
+                    участие_спринт       = True,
+                    участие_пс           = True,
+                    участие_слалом       = True,
+                    участие_дг           = True,
+                )
+                db.session.add(с)
+                db.session.commit()
+                flash('Спортсмен добавлен.', 'success')
+            return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=id))
+
+        elif action == 'del_athlete':
+            sp_id = _int_or_none(request.form.get('спортсмен_id'))
+            if sp_id:
+                с = Спортсмен.query.get(sp_id)
+                if с and с.команда_id == id:
+                    db.session.delete(с)
+                    db.session.commit()
+                    flash('Спортсмен удалён.', 'warning')
+            return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=id))
+
+    спортсмены = sorted(команда.спортсмены,
+                        key=lambda с: (с.номер_в_экипаже or 9999, с.id))
+    return render_template('команды/допуск_команда.html',
+                           сор=сор, команда=команда, субъекты=субъекты,
+                           спортсмены=спортсмены,
+                           орги=ОРГИ, оплата_список=ОПЛАТА_СПИСОК,
+                           разряды=РАЗРЯДЫ_ДОПУСК,
+                           возрастные_группы=ВОЗРАСТНЫЕ_ГРУППЫ)
+
+
+@bp_команды.route('/<int:sor_id>/подсказки-спортсменов')
+def подсказки_спортсменов(sor_id):
+    """AJAX: спортсмены из предварительных заявок данного соревнования."""
+    команда_id = _int_or_none(request.args.get('команда_id'))
+    команда    = Команда.query.get(команда_id) if команда_id else None
+
+    заявки = ПредварительнаяЗаявка.query.filter_by(соревнование_id=sor_id).all()
+
+    if команда:
+        субъект_назв  = (команда.субъект.название or '').lower() if команда.субъект else ''
+        назв_команды  = (команда.название or '').lower()
+        подходящие = [
+            з for з in заявки
+            if (субъект_назв and з.субъект_рф
+                and субъект_назв in з.субъект_рф.lower())
+            or (назв_команды and з.наименование_команды
+                and назв_команды in з.наименование_команды.lower())
+        ]
+        заявки = подходящие if подходящие else заявки
+
+    результат = []
+    seen: set = set()
+    for з in заявки:
+        for сп in з.спортсмены:
+            части = [сп.фамилия, сп.имя, сп.отчество]
+            фио = ' '.join(p for p in части if p).strip()
+            if фио and фио not in seen:
+                seen.add(фио)
+                результат.append({
+                    'фио':              фио,
+                    'пол':              сп.пол or '',
+                    'дата_рождения':    сп.дата_рождения.isoformat() if сп.дата_рождения else '',
+                    'квалификация':     сп.квалификация or '',
+                    'возрастная_группа': сп.возрастная_группа or '',
+                })
+
+    return jsonify(sorted(результат, key=lambda x: x['фио']))
+
+
+# ── Вспомогательные функции ───────────────────────────────────────────────────
+
 def _следующий_нагрудный(sor_id):
-    """Возвращает следующий свободный нагрудный номер для соревнования."""
     последний = (Команда.query
                  .filter_by(соревнование_id=sor_id)
                  .order_by(Команда.нагрудный_номер.desc())
@@ -88,4 +220,13 @@ def _int_or_none(val):
     try:
         return int(val) if val and str(val).strip() else None
     except (ValueError, TypeError):
+        return None
+
+
+def _parse_date(val):
+    if not val or not str(val).strip():
+        return None
+    try:
+        return date.fromisoformat(val.strip())
+    except ValueError:
         return None

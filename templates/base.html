@@ -9,6 +9,12 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .navbar-bc .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,.5); }
+    .navbar-bc .breadcrumb-item a { color: rgba(255,255,255,.8); text-decoration: none; }
+    .navbar-bc .breadcrumb-item a:hover { color: #fff; }
+    .navbar-bc .breadcrumb-item.active { color: rgba(255,255,255,.9); }
+  </style>
   {% block head %}{% endblock %}
 </head>
 <body>
@@ -75,6 +81,13 @@
     </div>
   </div>
 </nav>
+{% if self.breadcrumb() | trim %}
+<div class="bg-primary navbar-bc no-print py-1">
+  <div class="container-fluid px-3">
+    {% block breadcrumb %}{% endblock %}
+  </div>
+</div>
+{% endif %}
 
 <!-- Сообщения -->
 <div class="container mt-3 no-print">
