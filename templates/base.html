@@ -29,65 +29,17 @@
             data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('main.index') }}">Главная</a>
-        </li>
-        {% if сор is defined and сор %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-            {{ сор.название | truncate(40) }}
-          </a>
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('соревнование.карточка', id=сор.id) }}">
-                Карточка соревнования
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('субъекты.список', sor_id=сор.id) }}">
-                Субъекты РФ
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('команды.список', sor_id=сор.id) }}">
-                Команды (экипажи)
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('спортсмены.список', sor_id=сор.id) }}">
-                Спортсмены
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('судьи.список', sor_id=сор.id) }}">
-                Судейская коллегия
-              </a>
-            </li>
-          </ul>
-        </li>
+    <div class="collapse navbar-collapse navbar-bc" id="navMenu">
+      <div class="me-auto d-flex align-items-center py-1">
+        {% if self.breadcrumb() | trim %}
+          {% block breadcrumb %}{% endblock %}
+        {% else %}
+          <a class="nav-link py-0" href="{{ url_for('main.index') }}">Главная</a>
         {% endif %}
-      </ul>
-      <button class="btn btn-outline-light btn-sm no-print" onclick="window.print()">
-        Печать
-      </button>
+      </div>
     </div>
   </div>
 </nav>
-{% if self.breadcrumb() | trim %}
-<div class="bg-primary navbar-bc no-print py-1">
-  <div class="container-fluid px-3">
-    {% block breadcrumb %}{% endblock %}
-  </div>
-</div>
-{% endif %}
 
 <!-- Сообщения -->
 <div class="container mt-3 no-print">
