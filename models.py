@@ -135,6 +135,35 @@ class Соревнование(db.Model):
     код_длинная_гонка           = db.Column(db.String(30), nullable=True)
     код_многоборье              = db.Column(db.String(30), nullable=True)
 
+    # Субъект РФ (текстовое название)
+    субъект_рф_название         = db.Column(db.String(200), nullable=True)
+
+    # Главный судья — расширенные поля
+    главный_судья_квалификация  = db.Column(db.String(50),  nullable=True)
+    главный_судья_субъект_рф    = db.Column(db.String(200), nullable=True)
+    главный_судья_телефон       = db.Column(db.String(50),  nullable=True)
+
+    # Проводящая организация
+    проводящая_орг_название     = db.Column(db.String(300), nullable=True)
+    проводящая_орг_руководитель = db.Column(db.String(200), nullable=True)
+    проводящая_орг_должность    = db.Column(db.String(200), nullable=True)
+    проводящая_орг_телефон      = db.Column(db.String(50),  nullable=True)
+    проводящая_орг_email        = db.Column(db.String(100), nullable=True)
+
+    # Программа соревнований — расписание мероприятий (JSON-список)
+    программа_соревнований      = db.Column(db.Text, nullable=True)
+
+    # Финансы
+    заявочный_взнос             = db.Column(db.String(300), nullable=True)
+    реквизиты_оплаты            = db.Column(db.Text, nullable=True)
+    назначение_платежа          = db.Column(db.Text, nullable=True)
+
+    # Логистика
+    проживание_описание         = db.Column(db.Text, nullable=True)
+    инфраструктура_описание     = db.Column(db.Text, nullable=True)
+    проезд_общественный         = db.Column(db.Text, nullable=True)
+    проезд_собственный          = db.Column(db.Text, nullable=True)
+
     создано                     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     @property
@@ -696,12 +725,34 @@ def применить_миграции():
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
                 conn.commit()
-        # соревнования: коды дисциплин во ВРВС
+        # соревнования: коды дисциплин во ВРВС и расширенные поля формы
         cols = {c['name'] for c in inspector.get_columns('соревнования')}
-        for col in ('код_спринт', 'код_параллельный_спринт', 'код_слалом',
-                    'код_длинная_гонка', 'код_многоборье'):
+        for col, ddl in [
+            ('код_спринт',                  'VARCHAR(30)'),
+            ('код_параллельный_спринт',     'VARCHAR(30)'),
+            ('код_слалом',                  'VARCHAR(30)'),
+            ('код_длинная_гонка',           'VARCHAR(30)'),
+            ('код_многоборье',              'VARCHAR(30)'),
+            ('субъект_рф_название',         'VARCHAR(200)'),
+            ('главный_судья_квалификация',  'VARCHAR(50)'),
+            ('главный_судья_субъект_рф',    'VARCHAR(200)'),
+            ('главный_судья_телефон',       'VARCHAR(50)'),
+            ('проводящая_орг_название',     'VARCHAR(300)'),
+            ('проводящая_орг_руководитель', 'VARCHAR(200)'),
+            ('проводящая_орг_должность',    'VARCHAR(200)'),
+            ('проводящая_орг_телефон',      'VARCHAR(50)'),
+            ('проводящая_орг_email',        'VARCHAR(100)'),
+            ('программа_соревнований',      'TEXT'),
+            ('заявочный_взнос',             'VARCHAR(300)'),
+            ('реквизиты_оплаты',            'TEXT'),
+            ('назначение_платежа',          'TEXT'),
+            ('проживание_описание',         'TEXT'),
+            ('инфраструктура_описание',     'TEXT'),
+            ('проезд_общественный',         'TEXT'),
+            ('проезд_собственный',          'TEXT'),
+        ]:
             if col not in cols:
-                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} VARCHAR(30)'))
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
                 conn.commit()
         # спортсмены_заявки: возрастная_группа
         if inspector.has_table('спортсмены_заявки'):

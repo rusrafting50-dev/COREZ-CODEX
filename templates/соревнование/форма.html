@@ -21,16 +21,23 @@
   <h4 class="mb-0">{{ 'Новое соревнование' if not сор else 'Редактирование соревнования' }}</h4>
 </div>
 
+{# Общий datalist субъектов РФ — используется в строках 3 и 4 #}
+<datalist id="datalistСубъектыРФ">
+  {% for субъект in субъекты_рф %}
+  <option value="{{ субъект }}">
+  {% endfor %}
+</datalist>
+
 <form method="post" id="formSor">
 
-  {# ── БЛОК 1: Основные сведения ── #}
+  {# ── Классификация (статус, класс, возраст) ── #}
   <div class="card mb-3">
-    <div class="card-header fw-semibold bg-primary text-white py-2">Основные сведения</div>
+    <div class="card-header fw-semibold bg-primary text-white py-2">
+      Классификация соревнований
+    </div>
     <div class="card-body">
-
-      <div class="row g-3 mb-3">
-        {# Статус — главный выбор #}
-        <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-md-5">
           <label class="form-label fw-semibold">
             Статус соревнований <span class="text-danger">*</span>
           </label>
@@ -43,11 +50,8 @@
             </option>
             {% endfor %}
           </select>
-          <div class="form-text">ЧР, КР, ПР, ВС, ЧФО…</div>
         </div>
-
-        {# Класс судна — чекбоксы (R4 и/или R6) #}
-        <div class="col-md-2">
+        <div class="col-md-3">
           <label class="form-label fw-semibold">Класс судна <span class="text-danger">*</span></label>
           <div class="d-flex gap-3 mt-1">
             {% set выбр = сор.класс_судна if сор else 'R4' %}
@@ -60,11 +64,9 @@
             </div>
             {% endfor %}
           </div>
-          <div class="form-text">R4: 4–5 чел., R6: 6–7 чел.</div>
+          <div class="form-text">R4: 4–5 чел. · R6: 6–7 чел.</div>
         </div>
-
-        {# Возрастная группа #}
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label">Возрастная группа</label>
           <select name="возрастная_группа" class="form-select form-select-sm">
             {% for гр in ['15 лет и старше', '19 лет и старше', '16–18 лет', '14–15 лет'] %}
@@ -76,84 +78,190 @@
           </select>
         </div>
       </div>
-
-      {# Название — длинная строка #}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">
-          Название соревнований <span class="text-danger">*</span>
-        </label>
-        <input type="text" name="название" id="fieldНазвание" class="form-control" required
-               placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
-               value="{{ сор.название if сор else '' }}">
-        <div class="form-text">
-          Полное официальное название, как в документах.
-          <a href="#" class="link-secondary" id="linkАвтоНазвание">Сгенерировать автоматически</a>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-3">
-        {# Даты #}
-        <div class="col-md-5">
-          <label class="form-label fw-semibold">Даты проведения</label>
-          <input type="text" name="даты_проведения" class="form-control form-control-sm"
-                 placeholder="16 — 22 сентября 2025 года"
-                 value="{{ сор.даты_проведения if сор else '' }}">
-        </div>
-        {# Место #}
-        <div class="col-md-7">
-          <label class="form-label fw-semibold">Место проведения</label>
-          <input type="text" name="место_проведения" class="form-control form-control-sm"
-                 placeholder="Ленинградская обл., р. Вуокса"
-                 value="{{ сор.место_проведения if сор else '' }}">
-        </div>
-      </div>
-
-      {# Номер ЕКП #}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
-        <input type="text" name="номер_екп" class="form-control form-control-sm"
-               placeholder="0000000011Я"
-               value="{{ сор.номер_екп if сор else '' }}">
-      </div>
-
     </div>
   </div>
 
-  {# ── БЛОК 2: Виды программы ── #}
+  {# ── 1. Наименование ── #}
   <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">Виды программы</div>
-    <div class="card-body pb-2">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">1</span> Наименование соревнований
+    </div>
+    <div class="card-body">
+      <input type="text" name="название" id="fieldНазвание" class="form-control" required
+             placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ — R4"
+             value="{{ сор.название if сор else '' }}">
+      <div class="form-text">
+        <a href="#" id="linkАвтоНазвание" class="link-secondary">
+          Сгенерировать автоматически
+        </a> по статусу и классу судна.
+      </div>
+    </div>
+  </div>
+
+  {# ── 2. Сроки и место ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">2</span> Сроки и место проведения
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Сроки проведения соревнований</label>
+          <input type="text" name="даты_проведения" class="form-control"
+                 placeholder="16 — 22 сентября 2025 года"
+                 value="{{ сор.даты_проведения if сор else '' }}">
+        </div>
+        <div class="col-md-7">
+          <label class="form-label fw-semibold">Место проведения соревнований</label>
+          <input type="text" name="место_проведения" class="form-control"
+                 placeholder="Ленинградская обл., р. Вуокса, г. Приозерск"
+                 value="{{ сор.место_проведения if сор else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 3. ЕКП и субъект ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">3</span> Идентификаторы соревнования
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
+          <input type="text" name="номер_екп" class="form-control"
+                 placeholder="0000000011Я"
+                 value="{{ сор.номер_екп if сор else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">Субъект Российской Федерации</label>
+          <input type="text" name="субъект_рф_название" list="datalistСубъектыРФ"
+                 class="form-control"
+                 placeholder="Ленинградская область"
+                 value="{{ сор.субъект_рф_название if сор else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 4. Главный судья ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">4</span> Главный судья соревнований
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">ФИО</label>
+          <input type="text" name="главный_судья" class="form-control"
+                 placeholder="Иванов Иван Иванович"
+                 value="{{ сор.главный_судья if сор else '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Квалификация</label>
+          <input type="text" name="главный_судья_квалификация" class="form-control"
+                 placeholder="ССВК"
+                 value="{{ сор.главный_судья_квалификация if сор else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Субъект РФ</label>
+          <input type="text" name="главный_судья_субъект_рф" list="datalistСубъектыРФ"
+                 class="form-control"
+                 placeholder="Московская область"
+                 value="{{ сор.главный_судья_субъект_рф if сор else '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Телефон</label>
+          <input type="tel" name="главный_судья_телефон" class="form-control"
+                 placeholder="+7 (999) 000-00-00"
+                 value="{{ сор.главный_судья_телефон if сор else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 5. Проводящая организация ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">5</span> Проводящая организация соревнований
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Наименование организации</label>
+        <input type="text" name="проводящая_орг_название" class="form-control"
+               placeholder="Федерация рафтинга России"
+               value="{{ сор.проводящая_орг_название if сор else '' }}">
+      </div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Руководитель организации (ФИО)</label>
+          <input type="text" name="проводящая_орг_руководитель" class="form-control"
+                 placeholder="Петров Пётр Петрович"
+                 value="{{ сор.проводящая_орг_руководитель if сор else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Должность</label>
+          <input type="text" name="проводящая_орг_должность" class="form-control"
+                 placeholder="Президент"
+                 value="{{ сор.проводящая_орг_должность if сор else '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Телефон</label>
+          <input type="tel" name="проводящая_орг_телефон" class="form-control"
+                 placeholder="+7 (495) 000-00-00"
+                 value="{{ сор.проводящая_орг_телефон if сор else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Email</label>
+          <input type="email" name="проводящая_орг_email" class="form-control"
+                 placeholder="info@rafting.ru"
+                 value="{{ сор.проводящая_орг_email if сор else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 6. Программа соревнований ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">6</span> Программа соревнований
+    </div>
+    <div class="card-body">
+
+      {# 6а — Виды программы (коды ВРВС) #}
+      <h6 class="fw-semibold text-muted mb-2">Виды программы (коды во ВРВС)</h6>
 
       {% macro select_дисц(selected='') %}
       <select name="виды_дисц[]" class="form-select form-select-sm">
         {% for ключ, назв in [
-          ('спринт','Спринт'),
-          ('пс','Параллельный спринт'),
-          ('слалом','Слалом'),
-          ('дг','Длинная гонка'),
-          ('многоборье','Многоборье'),
+          ('спринт',     'Спринт'),
+          ('пс',         'Параллельный спринт'),
+          ('слалом',     'Слалом'),
+          ('дг',         'Длинная гонка'),
+          ('многоборье', 'Многоборье'),
         ] %}
         <option value="{{ ключ }}" {% if ключ == selected %}selected{% endif %}>{{ назв }}</option>
         {% endfor %}
       </select>
       {% endmacro %}
 
-      <table class="table table-sm mb-2" id="tableВиды">
+      <table class="table table-sm mb-1">
         <thead class="table-light">
           <tr>
-            <th style="width:45%">Дисциплина</th>
-            <th style="width:45%">Код во ВРВС</th>
-            <th style="width:10%"></th>
+            <th style="width:44%">Дисциплина</th>
+            <th style="width:44%">Код во ВРВС</th>
+            <th style="width:8%"></th>
           </tr>
         </thead>
         <tbody id="tbodyВиды">
           {% if сор %}
             {% for ключ, поле in [
-              ('спринт','код_спринт'),
-              ('пс','код_параллельный_спринт'),
-              ('слалом','код_слалом'),
-              ('дг','код_длинная_гонка'),
-              ('многоборье','код_многоборье'),
+              ('спринт',     'код_спринт'),
+              ('пс',         'код_параллельный_спринт'),
+              ('слалом',     'код_слалом'),
+              ('дг',         'код_длинная_гонка'),
+              ('многоборье', 'код_многоборье'),
             ] %}
               {% set код = сор|attr(поле) %}
               {% if код %}
@@ -172,19 +280,154 @@
           {% endif %}
         </tbody>
       </table>
-
-      <button type="button" class="btn btn-outline-primary btn-sm" id="btnДобавитьВид">
+      <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="btnДобавитьВид">
         + Добавить вид программы
       </button>
+
+      <hr class="my-3">
+
+      {# 6б — Расписание мероприятий #}
+      <h6 class="fw-semibold text-muted mb-2">Расписание мероприятий</h6>
+
+      <datalist id="datalistМероприятия">
+        <option value="Комиссия по допуску">
+        <option value="Техническая комиссия">
+        <option value="Заседание ГСК с тренерами-представителями">
+        <option value="Торжественное открытие соревнований">
+        <option value="Спринт — мужчины">
+        <option value="Спринт — женщины">
+        <option value="Параллельный спринт — мужчины">
+        <option value="Параллельный спринт — женщины">
+        <option value="Слалом — мужчины, попытка 1">
+        <option value="Слалом — мужчины, попытка 2">
+        <option value="Слалом — женщины, попытка 1">
+        <option value="Слалом — женщины, попытка 2">
+        <option value="Длинная гонка — мужчины">
+        <option value="Длинная гонка — женщины">
+        <option value="Расписание стартов">
+        <option value="Награждение победителей и призёров">
+        <option value="Торжественное закрытие соревнований">
+      </datalist>
+
+      <table class="table table-sm mb-1" id="tableРасписание">
+        <thead class="table-light">
+          <tr>
+            <th>Наименование мероприятия</th>
+            <th style="width:140px">Дата</th>
+            <th style="width:110px">Время</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyРасписание">
+          {% for событие in программа %}
+          <tr>
+            <td>
+              <input type="text" name="прог_название[]" list="datalistМероприятия"
+                     class="form-control form-control-sm"
+                     value="{{ событие.наименование }}">
+            </td>
+            <td>
+              <input type="text" name="прог_дата[]" class="form-control form-control-sm"
+                     placeholder="16.09.2025" value="{{ событие.дата }}">
+            </td>
+            <td>
+              <input type="text" name="прог_время[]" class="form-control form-control-sm"
+                     placeholder="10:00" value="{{ событие.время }}">
+            </td>
+            <td>
+              <button type="button"
+                      class="btn btn-outline-danger btn-sm px-2 btn-del-прог">×</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="button" class="btn btn-outline-success btn-sm" id="btnДобавитьМероприятие">
+        + Добавить мероприятие
+      </button>
+
     </div>
   </div>
 
-  {# ── БЛОК 3: Параметры ── #}
+  {# ── 7. Заявочный взнос ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">7</span> Заявочный взнос
+    </div>
+    <div class="card-body">
+      <div class="row g-3 mb-3">
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Размер заявочного взноса</label>
+          <input type="text" name="заявочный_взнос" class="form-control"
+                 placeholder="1 000 руб. на одного участника"
+                 value="{{ сор.заявочный_взнос if сор else '' }}">
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Реквизиты для оплаты</label>
+          <textarea name="реквизиты_оплаты" class="form-control" rows="5"
+                    placeholder="ИНН: ...&#10;КПП: ...&#10;Р/с: ...&#10;Банк: ...&#10;БИК: ...">{{ сор.реквизиты_оплаты if сор else '' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Назначение платежа</label>
+          <textarea name="назначение_платежа" class="form-control" rows="5"
+                    placeholder="Пожертвование на уставную деятельность...">{{ сор.назначение_платежа if сор else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── 8. Размещение и проживание ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">8</span> Размещение и проживание участников
+    </div>
+    <div class="card-body">
+      <label class="form-label fw-semibold">Варианты проживания и питания участников</label>
+      <textarea name="проживание_описание" class="form-control" rows="4"
+                placeholder="Гостиница «Название», стоимость: ... руб./сут.&#10;База отдыха «Название», стоимость: ... руб./сут.&#10;Кемпинг, стоимость: ... руб./сут.">{{ сор.проживание_описание if сор else '' }}</textarea>
+    </div>
+  </div>
+
+  {# ── 9. Инфраструктура ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">9</span> Магазины, мобильная связь, стоянка
+    </div>
+    <div class="card-body">
+      <textarea name="инфраструктура_описание" class="form-control" rows="4"
+                placeholder="Магазины: ...&#10;Мобильная связь: операторы ..., качество покрытия ...&#10;Стоянка автомобилей: ...">{{ сор.инфраструктура_описание if сор else '' }}</textarea>
+    </div>
+  </div>
+
+  {# ── 10. Варианты проезда ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">10</span> Варианты проезда
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Общественным транспортом</label>
+          <textarea name="проезд_общественный" class="form-control" rows="4"
+                    placeholder="Поезд до ст. ..., далее автобус маршрута № ... до ост. ...">{{ сор.проезд_общественный if сор else '' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Собственным транспортом</label>
+          <textarea name="проезд_собственный" class="form-control" rows="4"
+                    placeholder="Трасса М-10, съезд на ..., GPS координаты: ...">{{ сор.проезд_собственный if сор else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Параметры (collapsible) ── #}
   <div class="card mb-3">
     <div class="card-header fw-semibold py-2">
       <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
          href="#параметры" role="button">
-        ▸ Параметры соревнований
+        ▸ Параметры соревнований (дополнительно)
       </a>
     </div>
     <div class="collapse{% if not сор %} show{% endif %}" id="параметры">
@@ -237,8 +480,8 @@
     </div>
   </div>
 
-  {# Кнопки #}
-  <div class="d-flex gap-2">
+  {# ── Кнопки ── #}
+  <div class="d-flex gap-2 mb-4">
     <button type="submit" class="btn btn-primary px-4">
       {{ 'Создать' if not сор else 'Сохранить изменения' }}
     </button>
@@ -261,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 const СТАТУСЫ = {{ статусы | tojson }};
 
-// ── Автогенерация названия ─────────────────────────────────────────────────
+// ── Автогенерация названия ────────────────────────────────────────────────
 
 function автоНазвание() {
   const код = document.getElementById('кодСор').value;
@@ -280,7 +523,6 @@ document.getElementById('кодСор').addEventListener('change', function() {
     автоНазвание();
   }
 });
-
 document.querySelectorAll('input[name="класс_судна"]').forEach(function(el) {
   el.addEventListener('change', function() {
     if (document.getElementById('fieldНазвание').dataset.ручное !== '1') {
@@ -288,17 +530,15 @@ document.querySelectorAll('input[name="класс_судна"]').forEach(functio
     }
   });
 });
-
 document.getElementById('fieldНазвание').addEventListener('input', function() {
   this.dataset.ручное = '1';
 });
-
 document.getElementById('linkАвтоНазвание').addEventListener('click', function(e) {
   e.preventDefault();
   автоНазвание();
 });
 
-// ── Виды программы ────────────────────────────────────────────────────────
+// ── Виды программы (коды ВРВС) ───────────────────────────────────────────
 
 const ДИСЦ_ОПЦИИ = [
   ['спринт',     'Спринт'],
@@ -308,7 +548,7 @@ const ДИСЦ_ОПЦИИ = [
   ['многоборье', 'Многоборье'],
 ];
 
-function buildSelect(selected) {
+function buildSelectДисц(selected) {
   const sel = document.createElement('select');
   sel.name = 'виды_дисц[]';
   sel.className = 'form-select form-select-sm';
@@ -322,12 +562,12 @@ function buildSelect(selected) {
   return sel;
 }
 
-function добавитьВид(selected) {
+function добавитьВид() {
   const tbody = document.getElementById('tbodyВиды');
   const tr = document.createElement('tr');
 
   const td1 = document.createElement('td');
-  td1.appendChild(buildSelect(selected || ''));
+  td1.appendChild(buildSelectДисц(''));
 
   const td2 = document.createElement('td');
   const inp = document.createElement('input');
@@ -352,12 +592,61 @@ function добавитьВид(selected) {
   inp.focus();
 }
 
-document.getElementById('btnДобавитьВид').addEventListener('click', function() {
-  добавитьВид();
-});
-
+document.getElementById('btnДобавитьВид').addEventListener('click', добавитьВид);
 document.getElementById('tbodyВиды').addEventListener('click', function(e) {
   if (e.target.classList.contains('btn-del-вид')) {
+    e.target.closest('tr').remove();
+  }
+});
+
+// ── Расписание мероприятий ────────────────────────────────────────────────
+
+function добавитьМероприятие() {
+  const tbody = document.getElementById('tbodyРасписание');
+  const tr = document.createElement('tr');
+
+  const td1 = document.createElement('td');
+  const inp1 = document.createElement('input');
+  inp1.type = 'text';
+  inp1.name = 'прог_название[]';
+  inp1.setAttribute('list', 'datalistМероприятия');
+  inp1.className = 'form-control form-control-sm';
+  td1.appendChild(inp1);
+
+  const td2 = document.createElement('td');
+  const inp2 = document.createElement('input');
+  inp2.type = 'text';
+  inp2.name = 'прог_дата[]';
+  inp2.className = 'form-control form-control-sm';
+  inp2.placeholder = '16.09.2025';
+  td2.appendChild(inp2);
+
+  const td3 = document.createElement('td');
+  const inp3 = document.createElement('input');
+  inp3.type = 'text';
+  inp3.name = 'прог_время[]';
+  inp3.className = 'form-control form-control-sm';
+  inp3.placeholder = '10:00';
+  td3.appendChild(inp3);
+
+  const td4 = document.createElement('td');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-прог';
+  btn.textContent = '×';
+  td4.appendChild(btn);
+
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tr.appendChild(td3);
+  tr.appendChild(td4);
+  tbody.appendChild(tr);
+  inp1.focus();
+}
+
+document.getElementById('btnДобавитьМероприятие').addEventListener('click', добавитьМероприятие);
+document.getElementById('tbodyРасписание').addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-del-прог')) {
     e.target.closest('tr').remove();
   }
 });
