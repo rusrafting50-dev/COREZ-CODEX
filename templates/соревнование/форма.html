@@ -34,8 +34,7 @@
           <label class="form-label fw-semibold">
             Статус соревнований <span class="text-danger">*</span>
           </label>
-          <select name="код_соревнований" id="кодСор" class="form-select form-select-sm" required
-                  onchange="обновитьНазвание()">
+          <select name="код_соревнований" id="кодСор" class="form-select form-select-sm" required>
             <option value="">— выберите статус —</option>
             {% for код, info in статусы.items() %}
             <option value="{{ код }}"
@@ -56,7 +55,6 @@
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="класс_судна"
                      id="cls{{ cls }}" value="{{ cls }}"
-                     onchange="обновитьНазвание()"
                      {{ 'checked' if cls in выбр }}>
               <label class="form-check-label fw-semibold" for="cls{{ cls }}">{{ cls }}</label>
             </div>
@@ -89,7 +87,7 @@
                value="{{ сор.название if сор else '' }}">
         <div class="form-text">
           Полное официальное название, как в документах.
-          <a href="#" class="link-secondary" onclick="автоНазвание(event)">Сгенерировать автоматически</a>
+          <a href="#" class="link-secondary" id="linkАвтоНазвание">Сгенерировать автоматически</a>
         </div>
       </div>
 
@@ -166,8 +164,7 @@
                          placeholder="0000000011Я" value="{{ код }}">
                 </td>
                 <td class="text-end">
-                  <button type="button" class="btn btn-outline-danger btn-sm px-2"
-                          onclick="this.closest('tr').remove()">×</button>
+                  <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-вид">×</button>
                 </td>
               </tr>
               {% endif %}
@@ -262,54 +259,105 @@
 <script>
 const СТАТУСЫ = {{ статусы | tojson }};
 
-function обновитьНазвание() {
-  if (document.getElementById('fieldНазвание').dataset.ручное === '1') return;
-  автоНазвание(null);
-}
+// ── Автогенерация названия ─────────────────────────────────────────────────
 
-function автоНазвание(e) {
-  if (e) e.preventDefault();
+function автоНазвание() {
   const код = document.getElementById('кодСор').value;
-  const checked = [...document.querySelectorAll('input[name="класс_судна"]:checked')]
-    .map(el => el.value).sort();
-  if (!код || !checked.length) return;
+  const checked = Array.from(
+    document.querySelectorAll('input[name="класс_судна"]:checked')
+  ).map(function(el) { return el.value; }).sort();
+  if (!код || !checked.length) { return; }
   const полное = СТАТУСЫ[код] ? СТАТУСЫ[код].полное.toUpperCase() : '';
-  document.getElementById('fieldНазвание').value =
-    полное + ' ПО РАФТИНГУ — ' + checked.join('+');
-  document.getElementById('fieldНазвание').dataset.ручное = '0';
+  const field = document.getElementById('fieldНазвание');
+  field.value = полное + ' ПО РАФТИНГУ — ' + checked.join('+');
+  field.dataset.ручное = '0';
 }
 
-document.getElementById('fieldНазвание').addEventListener('input', function () {
+document.getElementById('кодСор').addEventListener('change', function() {
+  if (document.getElementById('fieldНазвание').dataset.ручное !== '1') {
+    автоНазвание();
+  }
+});
+
+document.querySelectorAll('input[name="класс_судна"]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    if (document.getElementById('fieldНазвание').dataset.ручное !== '1') {
+      автоНазвание();
+    }
+  });
+});
+
+document.getElementById('fieldНазвание').addEventListener('input', function() {
   this.dataset.ручное = '1';
 });
 
+document.getElementById('linkАвтоНазвание').addEventListener('click', function(e) {
+  e.preventDefault();
+  автоНазвание();
+});
+
+// ── Виды программы ────────────────────────────────────────────────────────
+
 const ДИСЦ_ОПЦИИ = [
-  ['спринт',      'Спринт'],
-  ['пс',          'Параллельный спринт'],
-  ['слалом',      'Слалом'],
-  ['дг',          'Длинная гонка'],
-  ['многоборье',  'Многоборье'],
+  ['спринт',     'Спринт'],
+  ['пс',         'Параллельный спринт'],
+  ['слалом',     'Слалом'],
+  ['дг',         'Длинная гонка'],
+  ['многоборье', 'Многоборье'],
 ];
 
-function buildSelectHTML(selected) {
-  return '<select name="виды_дисц[]" class="form-select form-select-sm">' +
-    ДИСЦ_ОПЦИИ.map(([v, t]) =>
-      `<option value="${v}"${v === selected ? ' selected' : ''}>${t}</option>`
-    ).join('') +
-    '</select>';
+function buildSelect(selected) {
+  const sel = document.createElement('select');
+  sel.name = 'виды_дисц[]';
+  sel.className = 'form-select form-select-sm';
+  ДИСЦ_ОПЦИИ.forEach(function(pair) {
+    const opt = document.createElement('option');
+    opt.value = pair[0];
+    opt.textContent = pair[1];
+    if (pair[0] === selected) { opt.selected = true; }
+    sel.appendChild(opt);
+  });
+  return sel;
 }
 
 function добавитьВид(selected) {
   const tbody = document.getElementById('tbodyВиды');
   const tr = document.createElement('tr');
-  tr.innerHTML =
-    `<td>${buildSelectHTML(selected || '')}</td>` +
-    `<td><input type="text" name="виды_код[]" class="form-control form-control-sm" placeholder="0000000011Я"></td>` +
-    `<td class="text-end"><button type="button" class="btn btn-outline-danger btn-sm px-2" onclick="this.closest('tr').remove()">×</button></td>`;
+
+  const td1 = document.createElement('td');
+  td1.appendChild(buildSelect(selected || ''));
+
+  const td2 = document.createElement('td');
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.name = 'виды_код[]';
+  inp.className = 'form-control form-control-sm';
+  inp.placeholder = '0000000011Я';
+  td2.appendChild(inp);
+
+  const td3 = document.createElement('td');
+  td3.className = 'text-end';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-вид';
+  btn.textContent = '×';
+  td3.appendChild(btn);
+
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tr.appendChild(td3);
   tbody.appendChild(tr);
-  tr.querySelector('input').focus();
+  inp.focus();
 }
 
-document.getElementById('btnДобавитьВид').addEventListener('click', () => добавитьВид());
+document.getElementById('btnДобавитьВид').addEventListener('click', function() {
+  добавитьВид();
+});
+
+document.getElementById('tbodyВиды').addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-del-вид')) {
+    e.target.closest('tr').remove();
+  }
+});
 </script>
 {% endblock %}
