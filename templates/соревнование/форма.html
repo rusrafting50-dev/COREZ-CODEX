@@ -257,6 +257,8 @@
 
 {% block scripts %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+
 const СТАТУСЫ = {{ статусы | tojson }};
 
 // ── Автогенерация названия ─────────────────────────────────────────────────
@@ -359,5 +361,7 @@ document.getElementById('tbodyВиды').addEventListener('click', function(e) {
     e.target.closest('tr').remove();
   }
 });
+
+}); // DOMContentLoaded
 </script>
 {% endblock %}

@@ -65,6 +65,20 @@ def create_app() -> Flask:
     app.register_blueprint(bp_отчеты,       url_prefix='/отчеты')
     app.register_blueprint(bp_заявка,       url_prefix='/заявка')
 
+    # ------------------------------------------------------------------
+    # Заголовки безопасности
+    # ------------------------------------------------------------------
+    @app.after_request
+    def add_csp_header(response):
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "img-src 'self' data:; "
+            "font-src 'self' data: cdn.jsdelivr.net;"
+        )
+        return response
+
     return app
 
 
