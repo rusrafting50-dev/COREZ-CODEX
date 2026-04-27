@@ -229,7 +229,7 @@ def _класс_из_формы(form):
     выбраны = [c for c in form.getlist('класс_судна') if c in ('R4', 'R6')]
     if not выбраны:
         return 'R4'
-    return '+'.join(sorted(set(выбраны)))
+    return ' '.join(sorted(set(выбраны)))
 
 
 def _int_or_none(val):

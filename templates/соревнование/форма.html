@@ -30,6 +30,18 @@
 
 <form method="post" id="formSor">
 
+  {# ── 1. Наименование ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">1</span> Наименование соревнований
+    </div>
+    <div class="card-body">
+      <input type="text" name="название" id="fieldНазвание" class="form-control" required
+             placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
+             value="{{ сор.название if сор else '' }}">
+    </div>
+  </div>
+
   {# ── Классификация (статус, класс, возраст) ── #}
   <div class="card mb-3">
     <div class="card-header fw-semibold bg-primary text-white py-2">
@@ -46,13 +58,13 @@
             {% for код, info in статусы.items() %}
             <option value="{{ код }}"
               {% if сор and сор.код_соревнований == код %}selected{% endif %}>
-              {{ код }} — {{ info.полное }}
+              {{ info.полное }}
             </option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label fw-semibold">Класс судна <span class="text-danger">*</span></label>
+          <label class="form-label fw-semibold">Классы судов <span class="text-danger">*</span></label>
           <div class="d-flex gap-3 mt-1">
             {% set выбр = сор.класс_судна if сор else 'R4' %}
             {% for cls in ['R4', 'R6'] %}
@@ -64,12 +76,11 @@
             </div>
             {% endfor %}
           </div>
-          <div class="form-text">R4: 4–5 чел. · R6: 6–7 чел.</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Возрастная группа</label>
           <select name="возрастная_группа" class="form-select form-select-sm">
-            {% for гр in ['15 лет и старше', '19 лет и старше', '16–18 лет', '14–15 лет'] %}
+            {% for гр in ['мужчины', 'женщины', 'юниоры (до 26 лет)', 'юниорки (до 26 лет)', 'юниоры (до 24 лет)', 'юниорки (до 24 лет)', 'юниоры (до 20 лет)', 'юниорки (до 20 лет)', 'юноши (до 16 лет)', 'девушки (до 16 лет)'] %}
             <option value="{{ гр }}"
               {{ 'selected' if сор and сор.возрастная_группа == гр }}>{{ гр }}</option>
             {% endfor %}
@@ -77,23 +88,6 @@
               {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
           </select>
         </div>
-      </div>
-    </div>
-  </div>
-
-  {# ── 1. Наименование ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">1</span> Наименование соревнований
-    </div>
-    <div class="card-body">
-      <input type="text" name="название" id="fieldНазвание" class="form-control" required
-             placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ — R4"
-             value="{{ сор.название if сор else '' }}">
-      <div class="form-text">
-        <a href="#" id="linkАвтоНазвание" class="link-secondary">
-          Сгенерировать автоматически
-        </a> по статусу и классу судна.
       </div>
     </div>
   </div>
@@ -131,7 +125,7 @@
         <div class="col-md-4">
           <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
           <input type="text" name="номер_екп" class="form-control"
-                 placeholder="0000000011Я"
+                 placeholder="0000000000000000"
                  value="{{ сор.номер_екп if сор else '' }}">
         </div>
         <div class="col-md-8">
@@ -269,7 +263,7 @@
                 <td>{{ select_дисц(ключ) }}</td>
                 <td>
                   <input type="text" name="виды_код[]" class="form-control form-control-sm"
-                         placeholder="0000000011Я" value="{{ код }}">
+                         placeholder="0000000000000000" value="{{ код }}">
                 </td>
                 <td class="text-end">
                   <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-вид">×</button>
@@ -294,19 +288,15 @@
         <option value="Техническая комиссия">
         <option value="Заседание ГСК с тренерами-представителями">
         <option value="Торжественное открытие соревнований">
-        <option value="Спринт — мужчины">
-        <option value="Спринт — женщины">
-        <option value="Параллельный спринт — мужчины">
-        <option value="Параллельный спринт — женщины">
-        <option value="Слалом — мужчины, попытка 1">
-        <option value="Слалом — мужчины, попытка 2">
-        <option value="Слалом — женщины, попытка 1">
-        <option value="Слалом — женщины, попытка 2">
-        <option value="Длинная гонка — мужчины">
-        <option value="Длинная гонка — женщины">
         <option value="Расписание стартов">
         <option value="Награждение победителей и призёров">
         <option value="Торжественное закрытие соревнований">
+        {% set _дисц = ['Спринт', 'Параллельный спринт', 'Слалом', 'Длинная гонка', 'Многоборье'] %}
+        {% set _классы = ['R4', 'R6'] %}
+        {% set _группы = ['мужчины', 'женщины', 'юниоры (до 26 лет)', 'юниорки (до 26 лет)', 'юниоры (до 24 лет)', 'юниорки (до 24 лет)', 'юниоры (до 20 лет)', 'юниорки (до 20 лет)', 'юноши (до 16 лет)', 'девушки (до 16 лет)'] %}
+        {% for д in _дисц %}{% for к in _классы %}{% for г in _группы %}
+        <option value="{{ д }} {{ к }} — {{ г }}">
+        {% endfor %}{% endfor %}{% endfor %}
       </datalist>
 
       <table class="table table-sm mb-1" id="tableРасписание">
@@ -508,13 +498,10 @@ const СТАТУСЫ = {{ статусы | tojson }};
 
 function автоНазвание() {
   const код = document.getElementById('кодСор').value;
-  const checked = Array.from(
-    document.querySelectorAll('input[name="класс_судна"]:checked')
-  ).map(function(el) { return el.value; }).sort();
-  if (!код || !checked.length) { return; }
+  if (!код) { return; }
   const полное = СТАТУСЫ[код] ? СТАТУСЫ[код].полное.toUpperCase() : '';
   const field = document.getElementById('fieldНазвание');
-  field.value = полное + ' ПО РАФТИНГУ — ' + checked.join('+');
+  field.value = полное + ' ПО РАФТИНГУ';
   field.dataset.ручное = '0';
 }
 
@@ -523,19 +510,8 @@ document.getElementById('кодСор').addEventListener('change', function() {
     автоНазвание();
   }
 });
-document.querySelectorAll('input[name="класс_судна"]').forEach(function(el) {
-  el.addEventListener('change', function() {
-    if (document.getElementById('fieldНазвание').dataset.ручное !== '1') {
-      автоНазвание();
-    }
-  });
-});
 document.getElementById('fieldНазвание').addEventListener('input', function() {
   this.dataset.ручное = '1';
-});
-document.getElementById('linkАвтоНазвание').addEventListener('click', function(e) {
-  e.preventDefault();
-  автоНазвание();
 });
 
 // ── Виды программы (коды ВРВС) ───────────────────────────────────────────
@@ -574,7 +550,7 @@ function добавитьВид() {
   inp.type = 'text';
   inp.name = 'виды_код[]';
   inp.className = 'form-control form-control-sm';
-  inp.placeholder = '0000000011Я';
+  inp.placeholder = '0000000000000000';
   td2.appendChild(inp);
 
   const td3 = document.createElement('td');
