@@ -121,7 +121,68 @@
     </div>
   </div>
 
-  {# ── БЛОК 2: Параметры ── #}
+  {# ── БЛОК 2: Виды программы ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">Виды программы</div>
+    <div class="card-body pb-2">
+
+      {% macro select_дисц(selected='') %}
+      <select name="виды_дисц[]" class="form-select form-select-sm">
+        {% for ключ, назв in [
+          ('спринт','Спринт'),
+          ('пс','Параллельный спринт'),
+          ('слалом','Слалом'),
+          ('дг','Длинная гонка'),
+          ('многоборье','Многоборье'),
+        ] %}
+        <option value="{{ ключ }}" {% if ключ == selected %}selected{% endif %}>{{ назв }}</option>
+        {% endfor %}
+      </select>
+      {% endmacro %}
+
+      <table class="table table-sm mb-2" id="tableВиды">
+        <thead class="table-light">
+          <tr>
+            <th style="width:45%">Дисциплина</th>
+            <th style="width:45%">Код во ВРВС</th>
+            <th style="width:10%"></th>
+          </tr>
+        </thead>
+        <tbody id="tbodyВиды">
+          {% if сор %}
+            {% for ключ, поле in [
+              ('спринт','код_спринт'),
+              ('пс','код_параллельный_спринт'),
+              ('слалом','код_слалом'),
+              ('дг','код_длинная_гонка'),
+              ('многоборье','код_многоборье'),
+            ] %}
+              {% set код = сор|attr(поле) %}
+              {% if код %}
+              <tr>
+                <td>{{ select_дисц(ключ) }}</td>
+                <td>
+                  <input type="text" name="виды_код[]" class="form-control form-control-sm"
+                         placeholder="0000000011Я" value="{{ код }}">
+                </td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-outline-danger btn-sm px-2"
+                          onclick="this.closest('tr').remove()">×</button>
+                </td>
+              </tr>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </tbody>
+      </table>
+
+      <button type="button" class="btn btn-outline-primary btn-sm" id="btnДобавитьВид">
+        + Добавить вид программы
+      </button>
+    </div>
+  </div>
+
+  {# ── БЛОК 3: Параметры ── #}
   <div class="card mb-3">
     <div class="card-header fw-semibold py-2">
       <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
@@ -221,5 +282,34 @@ function автоНазвание(e) {
 document.getElementById('fieldНазвание').addEventListener('input', function () {
   this.dataset.ручное = '1';
 });
+
+const ДИСЦ_ОПЦИИ = [
+  ['спринт',      'Спринт'],
+  ['пс',          'Параллельный спринт'],
+  ['слалом',      'Слалом'],
+  ['дг',          'Длинная гонка'],
+  ['многоборье',  'Многоборье'],
+];
+
+function buildSelectHTML(selected) {
+  return '<select name="виды_дисц[]" class="form-select form-select-sm">' +
+    ДИСЦ_ОПЦИИ.map(([v, t]) =>
+      `<option value="${v}"${v === selected ? ' selected' : ''}>${t}</option>`
+    ).join('') +
+    '</select>';
+}
+
+function добавитьВид(selected) {
+  const tbody = document.getElementById('tbodyВиды');
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    `<td>${buildSelectHTML(selected || '')}</td>` +
+    `<td><input type="text" name="виды_код[]" class="form-control form-control-sm" placeholder="0000000011Я"></td>` +
+    `<td class="text-end"><button type="button" class="btn btn-outline-danger btn-sm px-2" onclick="this.closest('tr').remove()">×</button></td>`;
+  tbody.appendChild(tr);
+  tr.querySelector('input').focus();
+}
+
+document.getElementById('btnДобавитьВид').addEventListener('click', () => добавитьВид());
 </script>
 {% endblock %}

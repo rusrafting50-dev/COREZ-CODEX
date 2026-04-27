@@ -696,6 +696,13 @@ def применить_миграции():
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
                 conn.commit()
+        # соревнования: коды дисциплин во ВРВС
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col in ('код_спринт', 'код_параллельный_спринт', 'код_слалом',
+                    'код_длинная_гонка', 'код_многоборье'):
+            if col not in cols:
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} VARCHAR(30)'))
+                conn.commit()
         # спортсмены_заявки: возрастная_группа
         if inspector.has_table('спортсмены_заявки'):
             cols = {c['name'] for c in inspector.get_columns('спортсмены_заявки')}
