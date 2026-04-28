@@ -231,19 +231,28 @@
       {# 6а — Виды программы + Последовательность #}
       <h6 class="fw-semibold text-muted mb-2">Виды программы</h6>
 
-      {% set _дисц_опции = [
-        'Спринт – R4', 'Спринт – R6',
-        'Параллельный спринт – R4', 'Параллельный спринт – R6',
-        'Слалом – R4', 'Слалом – R6',
-        'Длинная гонка – R4', 'Длинная гонка – R6',
-        'Многоборье – R4', 'Многоборье – R6',
+      {% set _пол_возраст_опции = [
+        'Мужчины', 'Женщины',
+        'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+        'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)',
+        'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+        'Юноши (до 16 лет)', 'Девушки (до 16 лет)',
       ] %}
 
-      {% macro select_дисц(selected='') %}
+      {% macro select_класс(selected='') %}
       <select name="виды_дисциплина[]" class="form-select form-select-sm">
+        <option value="">—</option>
+        {% for cls in ['R4', 'R6'] %}
+        <option value="{{ cls }}" {% if cls == selected %}selected{% endif %}>{{ cls }}</option>
+        {% endfor %}
+      </select>
+      {% endmacro %}
+
+      {% macro select_пол_возраст_вид(selected='') %}
+      <select name="виды_пол_возраст[]" class="form-select form-select-sm">
         <option value="">— выберите —</option>
-        {% for назв in _дисц_опции %}
-        <option value="{{ назв }}" {% if назв == selected %}selected{% endif %}>{{ назв }}</option>
+        {% for пол in _пол_возраст_опции %}
+        <option value="{{ пол }}" {% if пол == selected %}selected{% endif %}>{{ пол }}</option>
         {% endfor %}
       </select>
       {% endmacro %}
@@ -253,19 +262,16 @@
           <table class="table table-sm mb-1">
             <thead class="table-light">
               <tr>
-                <th style="width:55%">Спортивная дисциплина (коды ВРВС)</th>
-                <th style="width:37%">Пол, возраст</th>
+                <th style="width:20%">Класс судна</th>
+                <th style="width:72%">Пол, возраст</th>
                 <th style="width:8%"></th>
               </tr>
             </thead>
             <tbody id="tbodyВиды">
               {% for вид in виды %}
               <tr>
-                <td>{{ select_дисц(вид.дисциплина) }}</td>
-                <td>
-                  <input type="text" name="виды_пол_возраст[]" class="form-control form-control-sm"
-                         placeholder="мужчины, женщины" value="{{ вид.пол_возраст }}">
-                </td>
+                <td>{{ select_класс(вид.дисциплина) }}</td>
+                <td>{{ select_пол_возраст_вид(вид.пол_возраст) }}</td>
                 <td class="text-end">
                   <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-вид">×</button>
                 </td>
@@ -282,42 +288,18 @@
           <div class="fw-semibold text-muted mb-2" style="font-size:.85rem">
             Последовательность проведения спортивных дисциплин
           </div>
-
-          {# R4 #}
-          <div class="mb-3">
-            <span class="badge bg-info text-dark mb-1">R4</span>
-            <div class="d-flex align-items-center mb-1">
-              <span class="me-2 text-muted small" style="min-width:1.5rem">1.</span>
-              <span class="form-control form-control-sm bg-light text-muted" style="cursor:default">Спринт – R4</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small fw-semibold">1.</span>
+              <span class="form-control form-control-sm bg-light text-muted px-2" style="cursor:default;width:auto">Спринт</span>
             </div>
             {% for поз, idx in [(2, 0), (3, 1), (4, 2)] %}
-            <div class="d-flex align-items-center mb-1">
-              <span class="me-2 text-muted small" style="min-width:1.5rem">{{ поз }}.</span>
+            <div class="d-flex align-items-center gap-1">
+              <span class="text-muted small fw-semibold">{{ поз }}.</span>
               {% set cur = посл_r4[idx] if посл_r4 and посл_r4|length > idx else '' %}
-              <select name="посл_r4_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="r4">
+              <select name="посл_r4_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="посл" style="width:auto">
                 <option value="">— —</option>
-                {% for opt in ['Параллельный спринт – R4', 'Слалом – R4', 'Длинная гонка – R4'] %}
-                <option value="{{ opt }}" {{ 'selected' if cur == opt }}>{{ opt }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            {% endfor %}
-          </div>
-
-          {# R6 #}
-          <div>
-            <span class="badge bg-info text-dark mb-1">R6</span>
-            <div class="d-flex align-items-center mb-1">
-              <span class="me-2 text-muted small" style="min-width:1.5rem">1.</span>
-              <span class="form-control form-control-sm bg-light text-muted" style="cursor:default">Спринт – R6</span>
-            </div>
-            {% for поз, idx in [(2, 0), (3, 1), (4, 2)] %}
-            <div class="d-flex align-items-center mb-1">
-              <span class="me-2 text-muted small" style="min-width:1.5rem">{{ поз }}.</span>
-              {% set cur = посл_r6[idx] if посл_r6 and посл_r6|length > idx else '' %}
-              <select name="посл_r6_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="r6">
-                <option value="">— —</option>
-                {% for opt in ['Параллельный спринт – R6', 'Слалом – R6', 'Длинная гонка – R6'] %}
+                {% for opt in ['Параллельный спринт', 'Слалом', 'Длинная гонка'] %}
                 <option value="{{ opt }}" {{ 'selected' if cur == opt }}>{{ opt }}</option>
                 {% endfor %}
               </select>
@@ -617,26 +599,39 @@ document.getElementById('возрастГруппыКонт').addEventListener('
 
 // ── Виды программы ───────────────────────────────────────────────────────
 
-const ДИСЦ_ОПЦИИ = [
-  'Спринт – R4', 'Спринт – R6',
-  'Параллельный спринт – R4', 'Параллельный спринт – R6',
-  'Слалом – R4', 'Слалом – R6',
-  'Длинная гонка – R4', 'Длинная гонка – R6',
-  'Многоборье – R4', 'Многоборье – R6',
+const ПОЛ_ВОЗРАСТ_ОПЦИИ = [
+  'Мужчины', 'Женщины',
+  'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+  'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)',
+  'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+  'Юноши (до 16 лет)', 'Девушки (до 16 лет)',
 ];
 
-function buildSelectДисц() {
+function buildSelectКласс() {
   const sel = document.createElement('select');
   sel.name = 'виды_дисциплина[]';
+  sel.className = 'form-select form-select-sm';
+  [['', '—'], ['R4', 'R4'], ['R6', 'R6']].forEach(function(pair) {
+    const opt = document.createElement('option');
+    opt.value = pair[0];
+    opt.textContent = pair[1];
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function buildSelectПолВозраст() {
+  const sel = document.createElement('select');
+  sel.name = 'виды_пол_возраст[]';
   sel.className = 'form-select form-select-sm';
   const opt0 = document.createElement('option');
   opt0.value = '';
   opt0.textContent = '— выберите —';
   sel.appendChild(opt0);
-  ДИСЦ_ОПЦИИ.forEach(function(назв) {
+  ПОЛ_ВОЗРАСТ_ОПЦИИ.forEach(function(пол) {
     const opt = document.createElement('option');
-    opt.value = назв;
-    opt.textContent = назв;
+    opt.value = пол;
+    opt.textContent = пол;
     sel.appendChild(opt);
   });
   return sel;
@@ -647,15 +642,10 @@ function добавитьВид() {
   const tr = document.createElement('tr');
 
   const td1 = document.createElement('td');
-  td1.appendChild(buildSelectДисц());
+  td1.appendChild(buildSelectКласс());
 
   const td2 = document.createElement('td');
-  const inp = document.createElement('input');
-  inp.type = 'text';
-  inp.name = 'виды_пол_возраст[]';
-  inp.className = 'form-control form-control-sm';
-  inp.placeholder = 'мужчины, женщины';
-  td2.appendChild(inp);
+  td2.appendChild(buildSelectПолВозраст());
 
   const td3 = document.createElement('td');
   td3.className = 'text-end';
@@ -669,7 +659,6 @@ function добавитьВид() {
   tr.appendChild(td2);
   tr.appendChild(td3);
   tbody.appendChild(tr);
-  inp.focus();
 }
 
 document.getElementById('btnДобавитьВид').addEventListener('click', добавитьВид);

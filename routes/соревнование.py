@@ -138,7 +138,7 @@ def _получить_последовательность(сор, ключ):
     поле = getattr(сор, f'последовательность_{ключ}', None)
     if not поле:
         return ['', '', '']
-    части = [p.strip() for p in поле.split(',')]
+    части = [p.strip().replace(' – R4', '').replace(' – R6', '') for p in поле.split(',')]
     while len(части) < 3:
         части.append('')
     return части[:3]
