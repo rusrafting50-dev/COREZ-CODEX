@@ -153,6 +153,8 @@ class Соревнование(db.Model):
 
     # Программа соревнований — расписание мероприятий (JSON-список)
     программа_соревнований      = db.Column(db.Text, nullable=True)
+    # Виды программы (JSON-список {дисциплина, пол_возраст})
+    виды_список                 = db.Column(db.Text, nullable=True)
 
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
@@ -752,6 +754,7 @@ def применить_миграции():
             ('инфраструктура_описание',     'TEXT'),
             ('проезд_общественный',         'TEXT'),
             ('проезд_собственный',          'TEXT'),
+            ('виды_список',                  'TEXT'),
         ]:
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
