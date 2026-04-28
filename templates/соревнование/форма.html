@@ -228,7 +228,7 @@
     </div>
     <div class="card-body">
 
-      {# 6а — Виды программы #}
+      {# 6а — Виды программы + Последовательность #}
       <h6 class="fw-semibold text-muted mb-2">Виды программы</h6>
 
       {% set _дисц_опции = [
@@ -248,32 +248,84 @@
       </select>
       {% endmacro %}
 
-      <table class="table table-sm mb-1">
-        <thead class="table-light">
-          <tr>
-            <th style="width:55%">Спортивная дисциплина (коды ВРВС)</th>
-            <th style="width:37%">Пол, возраст</th>
-            <th style="width:8%"></th>
-          </tr>
-        </thead>
-        <tbody id="tbodyВиды">
-          {% for вид in виды %}
-          <tr>
-            <td>{{ select_дисц(вид.дисциплина) }}</td>
-            <td>
-              <input type="text" name="виды_пол_возраст[]" class="form-control form-control-sm"
-                     placeholder="мужчины, женщины" value="{{ вид.пол_возраст }}">
-            </td>
-            <td class="text-end">
-              <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-вид">×</button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="btnДобавитьВид">
-        + Добавить вид программы
-      </button>
+      <div class="row g-3 align-items-start">
+        <div class="col-lg-7">
+          <table class="table table-sm mb-1">
+            <thead class="table-light">
+              <tr>
+                <th style="width:55%">Спортивная дисциплина (коды ВРВС)</th>
+                <th style="width:37%">Пол, возраст</th>
+                <th style="width:8%"></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyВиды">
+              {% for вид in виды %}
+              <tr>
+                <td>{{ select_дисц(вид.дисциплина) }}</td>
+                <td>
+                  <input type="text" name="виды_пол_возраст[]" class="form-control form-control-sm"
+                         placeholder="мужчины, женщины" value="{{ вид.пол_возраст }}">
+                </td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-вид">×</button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btnДобавитьВид">
+            + Добавить вид программы
+          </button>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="fw-semibold text-muted mb-2" style="font-size:.85rem">
+            Последовательность проведения спортивных дисциплин
+          </div>
+
+          {# R4 #}
+          <div class="mb-3">
+            <span class="badge bg-info text-dark mb-1">R4</span>
+            <div class="d-flex align-items-center mb-1">
+              <span class="me-2 text-muted small" style="min-width:1.5rem">1.</span>
+              <span class="form-control form-control-sm bg-light text-muted" style="cursor:default">Спринт – R4</span>
+            </div>
+            {% for поз, idx in [(2, 0), (3, 1), (4, 2)] %}
+            <div class="d-flex align-items-center mb-1">
+              <span class="me-2 text-muted small" style="min-width:1.5rem">{{ поз }}.</span>
+              {% set cur = посл_r4[idx] if посл_r4 and посл_r4|length > idx else '' %}
+              <select name="посл_r4_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="r4">
+                <option value="">— —</option>
+                {% for opt in ['Параллельный спринт – R4', 'Слалом – R4', 'Длинная гонка – R4'] %}
+                <option value="{{ opt }}" {{ 'selected' if cur == opt }}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endfor %}
+          </div>
+
+          {# R6 #}
+          <div>
+            <span class="badge bg-info text-dark mb-1">R6</span>
+            <div class="d-flex align-items-center mb-1">
+              <span class="me-2 text-muted small" style="min-width:1.5rem">1.</span>
+              <span class="form-control form-control-sm bg-light text-muted" style="cursor:default">Спринт – R6</span>
+            </div>
+            {% for поз, idx in [(2, 0), (3, 1), (4, 2)] %}
+            <div class="d-flex align-items-center mb-1">
+              <span class="me-2 text-muted small" style="min-width:1.5rem">{{ поз }}.</span>
+              {% set cur = посл_r6[idx] if посл_r6 and посл_r6|length > idx else '' %}
+              <select name="посл_r6_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="r6">
+                <option value="">— —</option>
+                {% for opt in ['Параллельный спринт – R6', 'Слалом – R6', 'Длинная гонка – R6'] %}
+                <option value="{{ opt }}" {{ 'selected' if cur == opt }}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
 
       <hr class="my-3">
 
@@ -677,6 +729,28 @@ document.getElementById('tbodyРасписание').addEventListener('click', f
   if (e.target.classList.contains('btn-del-прог')) {
     e.target.closest('tr').remove();
   }
+});
+
+// ── Последовательность дисциплин (swap при изменении) ────────────────────
+
+document.querySelectorAll('.посл-select').forEach(function(sel) {
+  sel.addEventListener('focus', function() {
+    this.dataset.prev = this.value;
+  });
+  sel.addEventListener('change', function() {
+    var группа = this.dataset['группа'];
+    var newVal = this.value;
+    var oldVal = this.dataset.prev !== undefined ? this.dataset.prev : '';
+    if (!newVal || newVal === oldVal) { this.dataset.prev = newVal; return; }
+    var self = this;
+    document.querySelectorAll('.посл-select[data-группа="' + группа + '"]').forEach(function(other) {
+      if (other !== self && other.value === newVal) {
+        other.value = oldVal;
+        other.dataset.prev = oldVal;
+      }
+    });
+    self.dataset.prev = newVal;
+  });
 });
 
 }); // DOMContentLoaded
