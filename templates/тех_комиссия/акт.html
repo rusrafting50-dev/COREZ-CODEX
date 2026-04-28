@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Акт технической комиссии {{ класс }} — {{ сор.название | truncate(60) }}</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 12pt; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 11pt; }
+      @page { margin: 20mm 15mm 20mm 25mm; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+    h2.doc-title { font-size: 14pt; font-weight: bold; }
+    table { font-size: 10pt; border-collapse: collapse; width: 100%; }
+    table th, table td { border: 1px solid #333; padding: 4px 6px; vertical-align: middle; }
+    thead { background: #f0f0f0; font-weight: bold; }
+    .signature-block { margin-top: 2rem; font-size: 11pt; }
+    .underline-field { border-bottom: 1px solid #000; min-width: 200px; display: inline-block; }
+  </style>
+</head>
+<body class="px-4 py-3">
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+  <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm">← Назад</a>
+  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+</div>
+
+{% if сор.организаторы_блок %}
+<div class="text-center mb-2" style="font-size:10pt">{{ сор.организаторы_блок }}</div>
+<hr class="my-2">
+{% endif %}
+
+<div class="text-center mb-1" style="font-size:13pt; font-weight:bold">
+  {{ сор.название }}
+</div>
+{% if сор.даты_проведения or сор.место_проведения %}
+<div class="text-center mb-3" style="font-size:11pt; color:#555">
+  {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
+  {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
+</div>
+{% else %}
+<div class="mb-3"></div>
+{% endif %}
+
+<h2 class="doc-title text-center mb-1" style="font-size:13pt">
+  АКТ РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ
+</h2>
+<div class="text-center mb-3" style="font-size:12pt">
+  ({{ класс }})
+</div>
+
+{% if проверки %}
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px" rowspan="2" class="text-center">№<br>п/п</th>
+      <th rowspan="2">Субъект РФ /<br>Наименование команды /<br>Тренер-представитель</th>
+      <th colspan="3" class="text-center">Рафты</th>
+      <th colspan="2" class="text-center">Каски</th>
+      <th colspan="2" class="text-center">Спасжилеты</th>
+      <th colspan="2" class="text-center">Вёсла</th>
+    </tr>
+    <tr>
+      <th class="text-center">Вид</th>
+      <th>Марка</th>
+      <th class="text-center">Кол.</th>
+      <th>Марка</th>
+      <th class="text-center">Кол.</th>
+      <th>Марка</th>
+      <th class="text-center">Кол.</th>
+      <th>Марка</th>
+      <th class="text-center">Кол.</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for п in проверки %}
+  {% set рафты      = [] %}
+  {% set каски      = [] %}
+  {% set спасжилеты = [] %}
+  {% set весла      = [] %}
+  {% for с in п.снаряжение %}
+    {% if 'Рафт' in с.наименование %}{% if рафты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Каска' %}{% if каски.append(с) %}{% endif %}
+    {% elif с.наименование == 'Спасжилет' %}{% if спасжилеты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Весло' %}{% if весла.append(с) %}{% endif %}
+    {% endif %}
+  {% endfor %}
+  <tr>
+    <td class="text-center">{{ loop.index }}</td>
+    <td>
+      {% if п.субъект_рф %}<div>{{ п.субъект_рф }}</div>{% endif %}
+      {% if п.наименование_команды %}<div><strong>{{ п.наименование_команды }}</strong></div>{% endif %}
+      {% if п.тренер_фио %}<div style="font-size:9pt">{{ п.тренер_фио }}</div>{% endif %}
+    </td>
+    <td class="text-center">{% for р in рафты %}{{ р.наименование }}<br>{% else %}—{% endfor %}</td>
+    <td>{% for р in рафты %}{{ р.марка or '—' }}<br>{% else %}{% endfor %}</td>
+    <td class="text-center">{% for р in рафты %}{{ р.количество or 1 }}<br>{% else %}{% endfor %}</td>
+    <td>{% for к in каски %}{{ к.марка or '—' }}<br>{% else %}—{% endfor %}</td>
+    <td class="text-center">{% for к in каски %}{{ к.количество or 1 }}<br>{% else %}{% endfor %}</td>
+    <td>{% for с in спасжилеты %}{{ с.марка or '—' }}<br>{% else %}—{% endfor %}</td>
+    <td class="text-center">{% for с in спасжилеты %}{{ с.количество or 1 }}<br>{% else %}{% endfor %}</td>
+    <td>{% for в in весла %}{{ в.марка or '—' }}<br>{% else %}—{% endfor %}</td>
+    <td class="text-center">{% for в in весла %}{{ в.количество or 1 }}<br>{% else %}{% endfor %}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="text-center text-muted">Нет данных о технических проверках.</p>
+{% endif %}
+
+<div class="signature-block mt-4">
+  <div class="mb-3">Состав технической комиссии:</div>
+
+  <div class="row mb-3">
+    <div class="col-4 fw-bold">Председатель комиссии:</div>
+    <div class="col-4">
+      <span class="underline-field">{{ ск.председатель_фио if ск and ск.председатель_фио else '' }}</span>
+    </div>
+    <div class="col-4 text-muted" style="font-size:10pt">
+      {{ ск.председатель_должность if ск and ск.председатель_должность else '' }}
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-4 fw-bold">Члены комиссии:</div>
+    <div class="col-4">
+      <span class="underline-field">{{ ск.член_1_фио if ск and ск.член_1_фио else '' }}</span>
+    </div>
+    <div class="col-4 text-muted" style="font-size:10pt">
+      {{ ск.член_1_должность if ск and ск.член_1_должность else '' }}
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-4"></div>
+    <div class="col-4">
+      <span class="underline-field">{{ ск.член_2_фио if ск and ск.член_2_фио else '' }}</span>
+    </div>
+    <div class="col-4 text-muted" style="font-size:10pt">
+      {{ ск.член_2_должность if ск and ск.член_2_должность else '' }}
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

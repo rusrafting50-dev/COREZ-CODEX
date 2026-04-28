@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Состав технической комиссии — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('тех.список', sor_id=сор.id) }}">Техническая комиссия</a>
+    </li>
+    <li class="breadcrumb-item active">Состав комиссии</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-1">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<h5 class="mb-3">Состав технической комиссии</h5>
+
+{% if судьи %}
+{# Словарь должностей по ФИО для автозаполнения через JS #}
+<script id="judgesData" type="application/json">
+{{ судьи | map(attribute='фамилия_имя_отчество') | list | tojson }}
+</script>
+<script id="judgesDolzhnost" type="application/json">
+{
+  {% for с in судьи %}
+  {{ с.фамилия_имя_отчество | tojson }}: {{ (с.должность or '') | tojson }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+}
+</script>
+{% endif %}
+
+<form method="post">
+  <div class="card mb-3">
+    <div class="card-header fw-semibold bg-primary text-white py-2">
+      Председатель технической комиссии
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Фамилия, имя, отчество</label>
+          <input type="text" name="председатель_фио" id="председатель_фио"
+                 class="form-control form-control-sm judge-fio"
+                 list="судьиList"
+                 placeholder="Иванов Иван Иванович"
+                 data-target="председатель_должность"
+                 value="{{ ск.председатель_фио if ск else '' }}"
+                 oninput="автозаполнитьДолжность(this)">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Должность в Судейской коллегии</label>
+          <input type="text" name="председатель_должность" id="председатель_должность"
+                 class="form-control form-control-sm"
+                 placeholder="Судья"
+                 value="{{ ск.председатель_должность if ск else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2" style="background:#e9ecef">
+      Член комиссии № 1
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Фамилия, имя, отчество</label>
+          <input type="text" name="член_1_фио" id="член_1_фио"
+                 class="form-control form-control-sm judge-fio"
+                 list="судьиList"
+                 placeholder="Петров Пётр Петрович"
+                 data-target="член_1_должность"
+                 value="{{ ск.член_1_фио if ск else '' }}"
+                 oninput="автозаполнитьДолжность(this)">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Должность в Судейской коллегии</label>
+          <input type="text" name="член_1_должность" id="член_1_должность"
+                 class="form-control form-control-sm"
+                 placeholder="Судья"
+                 value="{{ ск.член_1_должность if ск else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2" style="background:#e9ecef">
+      Член комиссии № 2
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Фамилия, имя, отчество</label>
+          <input type="text" name="член_2_фио" id="член_2_фио"
+                 class="form-control form-control-sm judge-fio"
+                 list="судьиList"
+                 placeholder="Сидоров Сидор Сидорович"
+                 data-target="член_2_должность"
+                 value="{{ ск.член_2_фио if ск else '' }}"
+                 oninput="автозаполнитьДолжность(this)">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Должность в Судейской коллегии</label>
+          <input type="text" name="член_2_должность" id="член_2_должность"
+                 class="form-control form-control-sm"
+                 placeholder="Судья"
+                 value="{{ ск.член_2_должность if ск else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <datalist id="судьиList">
+    {% for с in судьи %}
+    <option value="{{ с.фамилия_имя_отчество }}">
+    {% endfor %}
+  </datalist>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary px-4">Сохранить</button>
+    <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary">← Назад</a>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const судьиДолжности = JSON.parse(
+  document.getElementById('judgesDolzhnost')?.textContent || '{}'
+);
+
+function автозаполнитьДолжность(input) {
+  const targetId = input.getAttribute('data-target');
+  const targetEl = document.getElementById(targetId);
+  if (!targetEl) return;
+  const должность = судьиДолжности[input.value.trim()];
+  if (должность !== undefined) {
+    targetEl.value = должность;
+  }
+}
+</script>
+{% endblock %}

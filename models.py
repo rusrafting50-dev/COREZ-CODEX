@@ -187,9 +187,11 @@ class Соревнование(db.Model):
         return self.организаторы or ''
 
     # Связи
-    субъекты    = db.relationship('Субъект',  back_populates='соревнование', cascade='all, delete-orphan')
-    команды     = db.relationship('Команда',  back_populates='соревнование', cascade='all, delete-orphan')
-    судьи       = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
+    субъекты            = db.relationship('Субъект',  back_populates='соревнование', cascade='all, delete-orphan')
+    команды             = db.relationship('Команда',  back_populates='соревнование', cascade='all, delete-orphan')
+    судьи               = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
+    тех_проверки        = db.relationship('ТехПроверка', back_populates='соревнование', cascade='all, delete-orphan')
+    тех_состав_комиссии = db.relationship('ТехСоставКомиссии', back_populates='соревнование', uselist=False)
 
     def __repr__(self):
         return f'<Соревнование id={self.id} "{self.название}" {self.класс_судна}>'
@@ -329,6 +331,61 @@ class Судья(db.Model):
 
     def __repr__(self):
         return f'<Судья "{self.фамилия_имя_отчество}" {self.квалификация}>'
+
+
+# ---------------------------------------------------------------------------
+# Техническая комиссия
+# ---------------------------------------------------------------------------
+
+class ТехПроверка(db.Model):
+    """Техническая проверка одной команды на соревновании."""
+    __tablename__ = 'тех_проверки'
+
+    id                   = db.Column(db.Integer, primary_key=True)
+    соревнование_id      = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
+    субъект_рф           = db.Column(db.String(200), nullable=True)
+    наименование_команды = db.Column(db.String(200), nullable=True)
+    тренер_фио           = db.Column(db.String(200), nullable=True)
+    создано              = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    снаряжение   = db.relationship('ТехСнаряжение', back_populates='проверка',
+                                   cascade='all, delete-orphan', order_by='ТехСнаряжение.порядок')
+    соревнование = db.relationship('Соревнование', back_populates='тех_проверки')
+
+    def __repr__(self):
+        return f'<ТехПроверка id={self.id} "{self.наименование_команды}">'
+
+
+class ТехСнаряжение(db.Model):
+    """Единица снаряжения в технической проверке."""
+    __tablename__ = 'тех_снаряжение'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    проверка_id     = db.Column(db.Integer, db.ForeignKey('тех_проверки.id'), nullable=False)
+    наименование    = db.Column(db.String(50),  nullable=False)   # Рафт R4 / Рафт R6 / Спасжилет / Каска / Весло
+    марка           = db.Column(db.String(100), nullable=True)
+    серийный_номер  = db.Column(db.String(100), nullable=True)
+    количество      = db.Column(db.Integer,     nullable=True, default=1)
+    допуск          = db.Column(db.String(20),  nullable=True, default='Допущен')
+    порядок         = db.Column(db.Integer,     nullable=True, default=0)
+
+    проверка = db.relationship('ТехПроверка', back_populates='снаряжение')
+
+
+class ТехСоставКомиссии(db.Model):
+    """Состав технической комиссии на соревновании (одна запись на соревнование)."""
+    __tablename__ = 'тех_состав_комиссии'
+
+    id                       = db.Column(db.Integer, primary_key=True)
+    соревнование_id          = db.Column(db.Integer, db.ForeignKey('соревнования.id'), unique=True, nullable=False)
+    председатель_фио         = db.Column(db.String(200), nullable=True)
+    председатель_должность   = db.Column(db.String(200), nullable=True)
+    член_1_фио               = db.Column(db.String(200), nullable=True)
+    член_1_должность         = db.Column(db.String(200), nullable=True)
+    член_2_фио               = db.Column(db.String(200), nullable=True)
+    член_2_должность         = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='тех_состав_комиссии')
 
 
 # ---------------------------------------------------------------------------
