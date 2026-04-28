@@ -1,5 +1,6 @@
 # routes/соревнование.py — CRUD соревнований
 import json
+from datetime import date as _date
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Спортсмен, Команда,
                     РезультатСпринт, РезультатПараллельногоСпринта,
@@ -72,6 +73,11 @@ def _применить_доп_поля(сор, form):
 
     сор.номер_екп                    = s('номер_екп')
     сор.главный_судья                = s('главный_судья')
+    дата_str = form.get('дата_начала', '').strip()
+    try:
+        сор.дата_начала = _date.fromisoformat(дата_str) if дата_str else None
+    except ValueError:
+        сор.дата_начала = None
     сор.субъект_рф_название          = s('субъект_рф_название')
     сор.главный_судья_квалификация   = s('главный_судья_квалификация')
     сор.главный_судья_субъект_рф     = s('главный_судья_субъект_рф')

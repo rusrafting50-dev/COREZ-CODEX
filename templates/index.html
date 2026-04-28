@@ -14,9 +14,9 @@
 
 {% if соревнования %}
 
-{# Плиточное представление #}
+{# Плиточное представление — первые три #}
 <div class="row g-3 mb-4">
-  {% for с in соревнования %}
+  {% for с in соревнования[:3] %}
   <div class="col-12 col-md-6 col-xl-4">
     {% set цвет = {
         'ЧР': 'bg-danger',  'КР': 'bg-primary', 'ПР': 'bg-success',
@@ -104,9 +104,13 @@
   {% endfor %}
 </div>
 
-{# Сводная таблица (только при печати или для больших экранов) #}
-<div class="d-none d-xl-block mt-4 no-print">
+{% if соревнования | length > 3 %}
+{# Сводная таблица — соревнования начиная с 4-го #}
+<div class="mt-4">
   <h6 class="text-muted">Сводная таблица</h6>
+  {% set _цт = {'ЧР': 'danger', 'КР': 'primary', 'ПР': 'success', 'ПРЮ': 'success',
+                'ВС': 'info', 'ЧФО': 'warning', 'ПФО': 'warning',
+                'ЧС': 'secondary', 'КС': 'secondary', 'ПС': 'secondary'} %}
   <div class="table-responsive">
     <table class="table table-sm table-hover align-middle border">
       <thead class="table-light">
@@ -122,9 +126,9 @@
         </tr>
       </thead>
       <tbody>
-        {% for с in соревнования %}
+        {% for с in соревнования[3:] %}
         <tr>
-          <td class="text-muted text-center">{{ loop.index }}</td>
+          <td class="text-muted text-center">{{ loop.index + 3 }}</td>
           <td>
             <a href="{{ url_for('соревнование.карточка', id=с.id) }}"
                class="text-decoration-none fw-semibold">
@@ -132,11 +136,20 @@
             </a>
           </td>
           <td class="text-nowrap">
-            {% if с.статус and с.уровень %}
-            {{ с.статус }} {{ с.уровень }}
+            {% if с.код_соревнований %}
+            <span class="badge bg-{{ _цт.get(с.код_соревнований, 'secondary') }}">
+              {{ с.статус }} {{ с.уровень }}
+            </span>
             {% else %}<span class="text-muted">—</span>{% endif %}
           </td>
-          <td>{{ с.класс_судна | replace('+', ' ') if с.класс_судна else '—' }}</td>
+          <td class="text-nowrap">
+            {% if с.класс_судна and 'R4' in с.класс_судна %}
+            <span class="badge bg-info text-dark">R4</span>
+            {% endif %}
+            {% if с.класс_судна and 'R6' in с.класс_судна %}
+            <span class="badge bg-info text-dark">R6</span>
+            {% endif %}
+          </td>
           <td class="text-nowrap">{{ с.даты_проведения or '—' }}</td>
           <td>{{ с.место_проведения | truncate(35) if с.место_проведения else '—' }}</td>
           <td>{{ с.главный_судья | truncate(35) if с.главный_судья else '—' }}</td>
@@ -155,6 +168,7 @@
     </table>
   </div>
 </div>
+{% endif %}
 
 {% else %}
 {# Пустое состояние #}

@@ -7,5 +7,7 @@ bp_main = Blueprint('main', __name__)
 
 @bp_main.route('/')
 def index():
-    соревнования = Соревнование.query.order_by(Соревнование.создано.desc()).all()
-    return render_template('index.html', соревнования=соревнования)
+    все = Соревнование.query.all()
+    # Сортировка по дате начала (ранние вперёд), соревнования без даты — в конец
+    все.sort(key=lambda с: (с.дата_начала is None, с.дата_начала))
+    return render_template('index.html', соревнования=все)

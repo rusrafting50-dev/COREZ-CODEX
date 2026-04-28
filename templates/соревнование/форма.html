@@ -111,13 +111,19 @@
     </div>
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-5">
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Дата начала</label>
+          <input type="date" name="дата_начала" class="form-control"
+                 value="{{ сор.дата_начала.strftime('%Y-%m-%d') if сор and сор.дата_начала else '' }}">
+          <div class="form-text">для сортировки</div>
+        </div>
+        <div class="col-md-4">
           <label class="form-label fw-semibold">Сроки проведения соревнований</label>
           <input type="text" name="даты_проведения" class="form-control"
                  placeholder="16 — 22 сентября 2025 года"
                  value="{{ сор.даты_проведения if сор else '' }}">
         </div>
-        <div class="col-md-7">
+        <div class="col-md-6">
           <label class="form-label fw-semibold">Место проведения соревнований</label>
           <input type="text" name="место_проведения" class="form-control"
                  placeholder="Ленинградская обл., р. Вуокса, г. Приозерск"
