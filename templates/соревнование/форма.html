@@ -79,14 +79,26 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Возрастная группа</label>
-          <select name="возрастная_группа" class="form-select form-select-sm">
-            {% for гр in ['мужчины', 'женщины', 'юниоры (до 26 лет)', 'юниорки (до 26 лет)', 'юниоры (до 24 лет)', 'юниорки (до 24 лет)', 'юниоры (до 20 лет)', 'юниорки (до 20 лет)', 'юноши (до 16 лет)', 'девушки (до 16 лет)'] %}
-            <option value="{{ гр }}"
-              {{ 'selected' if сор and сор.возрастная_группа == гр }}>{{ гр }}</option>
+          {% set _оп = ['мужчины', 'женщины', 'юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 20 лет)', 'юноши, девушки (до 16 лет)'] %}
+          {% set _список = (сор.возрастная_группа.split(' / ') if сор and сор.возрастная_группа else ['']) %}
+          <div id="возрастГруппыКонт">
+            {% for гр_знач in _список %}
+            <div class="d-flex gap-2 mb-1 возраст-строка">
+              <select name="возрастная_группа[]" class="form-select form-select-sm flex-grow-1">
+                <option value="">— не указана —</option>
+                {% for гр in _оп %}
+                <option value="{{ гр }}" {{ 'selected' if гр_знач.strip() == гр }}>{{ гр }}</option>
+                {% endfor %}
+              </select>
+              {% if loop.index > 1 %}
+              <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-возраст">×</button>
+              {% endif %}
+            </div>
             {% endfor %}
-            <option value=""
-              {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
-          </select>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm mt-1" id="btnДобавитьВозраст">
+            + Добавить
+          </button>
         </div>
       </div>
     </div>
@@ -146,26 +158,13 @@
     </div>
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">ФИО</label>
+        <div class="col-md-9">
+          <label class="form-label fw-semibold">Фамилия, имя, отчество, квалификация, субъект Российской Федерации</label>
           <input type="text" name="главный_судья" class="form-control"
-                 placeholder="Иванов Иван Иванович"
+                 placeholder="Иванов Иван Иванович, ССВК, Ленинградская область"
                  value="{{ сор.главный_судья if сор else '' }}">
         </div>
-        <div class="col-md-2">
-          <label class="form-label">Квалификация</label>
-          <input type="text" name="главный_судья_квалификация" class="form-control"
-                 placeholder="ССВК"
-                 value="{{ сор.главный_судья_квалификация if сор else '' }}">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Субъект РФ</label>
-          <input type="text" name="главный_судья_субъект_рф" list="datalistСубъектыРФ"
-                 class="form-control"
-                 placeholder="Московская область"
-                 value="{{ сор.главный_судья_субъект_рф if сор else '' }}">
-        </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <label class="form-label">Телефон</label>
           <input type="tel" name="главный_судья_телефон" class="form-control"
                  placeholder="+7 (999) 000-00-00"
@@ -513,6 +512,59 @@ document.getElementById('кодСор').addEventListener('change', function() {
 document.getElementById('fieldНазвание').addEventListener('input', function() {
   this.dataset.ручное = '1';
 });
+
+// ── Возрастные группы ────────────────────────────────────────────────────
+
+const ВОЗРАСТ_ОПЦИИ = [
+  ['', '— не указана —'],
+  ['мужчины', 'мужчины'],
+  ['женщины', 'женщины'],
+  ['юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 26 лет)'],
+  ['юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 24 лет)'],
+  ['юниоры, юниорки (до 20 лет)', 'юниоры, юниорки (до 20 лет)'],
+  ['юноши, девушки (до 16 лет)', 'юноши, девушки (до 16 лет)'],
+];
+
+function buildSelectВозраст() {
+  const sel = document.createElement('select');
+  sel.name = 'возрастная_группа[]';
+  sel.className = 'form-select form-select-sm flex-grow-1';
+  ВОЗРАСТ_ОПЦИИ.forEach(function(pair) {
+    const opt = document.createElement('option');
+    opt.value = pair[0];
+    opt.textContent = pair[1];
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function обновитьБтнВозраст() {
+  const кол = document.querySelectorAll('.возраст-строка').length;
+  document.getElementById('btnДобавитьВозраст').disabled = (кол >= 3);
+}
+
+document.getElementById('btnДобавитьВозраст').addEventListener('click', function() {
+  if (document.querySelectorAll('.возраст-строка').length >= 3) return;
+  const div = document.createElement('div');
+  div.className = 'd-flex gap-2 mb-1 возраст-строка';
+  div.appendChild(buildSelectВозраст());
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-возраст';
+  btn.textContent = '×';
+  div.appendChild(btn);
+  document.getElementById('возрастГруппыКонт').appendChild(div);
+  обновитьБтнВозраст();
+});
+
+document.getElementById('возрастГруппыКонт').addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-del-возраст')) {
+    e.target.closest('.возраст-строка').remove();
+    обновитьБтнВозраст();
+  }
+});
+
+обновитьБтнВозраст();
 
 // ── Виды программы (коды ВРВС) ───────────────────────────────────────────
 

@@ -46,7 +46,11 @@
           <span class="badge bg-info text-dark">R4</span>
           {% endif %}
           {% if с.возрастная_группа %}
-          <span class="text-muted small">{{ с.возрастная_группа }}</span>
+            {% for гр in с.возрастная_группа.split(' / ') %}
+            {% if гр.strip() %}
+            <span class="text-muted small">{{ гр.strip() }}</span>
+            {% endif %}
+            {% endfor %}
           {% endif %}
           {% if с.класс_судна and 'R6' in с.класс_судна %}
           <span class="badge bg-info text-dark">R6</span>
