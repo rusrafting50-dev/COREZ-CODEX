@@ -59,12 +59,22 @@
 </main>
 
 <footer class="mt-5 py-3 text-center text-muted small no-print">
-  СЧИТАЛКА &mdash; автоматизация соревнований по рафтингу
+  СЧИТАЛКА - система автоматизации соревнований по рафтингу
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmB8F+jKW3pVg0HHTcEbpXrMbTf"
         crossorigin="anonymous"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.btn-close[data-bs-dismiss="alert"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var el = this.closest('.alert');
+      if (el) { el.remove(); }
+    });
+  });
+});
+</script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
