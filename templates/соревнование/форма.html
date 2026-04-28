@@ -439,64 +439,6 @@
     </div>
   </div>
 
-  {# ── Параметры (collapsible) ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
-         href="#параметры" role="button">
-        ▸ Параметры соревнований (дополнительно)
-      </a>
-    </div>
-    <div class="collapse{% if not сор %} show{% endif %}" id="параметры">
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-2">
-            <label class="form-label">Муж. экипажей</label>
-            <input type="number" name="кол_мужских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_мужских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Жен. экипажей</label>
-            <input type="number" name="кол_женских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_женских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Субъектов РФ</label>
-            <input type="number" name="кол_субъектов" class="form-control form-control-sm"
-                   min="1" value="{{ сор.кол_субъектов if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Спортсменов в экипаже</label>
-            <select name="кол_спортсменов_в_экипаже" class="form-select form-select-sm">
-              {% for n in [4, 5, 6, 7] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_спортсменов_в_экипаже == n) or (not сор and n == 4) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Попыток слалом</label>
-            <select name="кол_попыток_слалом" class="form-select form-select-sm">
-              {% for n in [1, 2] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_попыток_слалом == n) or (not сор and n == 2) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Код субъекта-хозяина</label>
-            <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
-                   placeholder="47" value="{{ сор.код_субъекта_рф if сор else '' }}">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   {# ── Кнопки ── #}
   <div class="d-flex gap-2 mb-4">
     <button type="submit" class="btn btn-primary px-4">
