@@ -13,7 +13,7 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Редактировать</a>
-    <button onclick="window.print()" class="btn btn-outline-dark btn-sm no-print">Печать</button>
+    <button onclick="window.print()" class="btn btn-outline-dark btn-sm no-print">Регламент соревнований</button>
   </div>
 </div>
 
@@ -24,16 +24,16 @@
   <div class="mb-1 d-flex gap-2 justify-content-center align-items-center flex-wrap">
     {% if сор.код_соревнований %}
     <span class="badge bg-{{ цвета.get(сор.код_соревнований,'secondary') }} fs-6 px-3">
-      {{ сор.код_соревнований }}{% if сор.код_соревнований in статусы %} — {{ статусы[сор.код_соревнований].полное }}{% endif %}
+      {% if сор.код_соревнований in статусы %}{{ статусы[сор.код_соревнований].полное }}{% else %}{{ сор.код_соревнований }}{% endif %}
     </span>
-    {% endif %}
-    {% if сор.класс_судна %}
-    {% for cls in сор.класс_судна.split('+') %}
-    <span class="badge bg-info text-dark fs-6">{{ cls }}</span>
-    {% endfor %}
     {% endif %}
     {% if сор.возрастная_группа %}
     <span class="badge bg-light text-dark border fs-6">{{ сор.возрастная_группа }}</span>
+    {% endif %}
+    {% if сор.класс_судна %}
+    {% for cls in сор.класс_судна.split(' ') %}
+    <span class="badge bg-info text-dark fs-6">{{ cls }}</span>
+    {% endfor %}
     {% endif %}
   </div>
   <div class="text-muted">

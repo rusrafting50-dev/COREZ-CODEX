@@ -38,12 +38,11 @@
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
       <tr>
-        <th style="width:32px" class="text-center">#</th>
-        <th>ФИО</th>
+        <th style="width:32px" class="text-center">№<br>п/п</th>
+        <th>Фамилия, имя, отчество</th>
+        <th>Должность в судейской коллегии</th>
         <th style="width:70px" class="text-center">Кат.</th>
-        <th>Субъект РФ</th>
-        <th>Должность</th>
-        <th style="width:105px" class="text-center">Конец аттест.</th>
+        <th>Субъект Российской Федерации</th>
         <th style="width:70px" class="text-center no-print">Статус</th>
         <th class="no-print" style="width:110px"></th>
       </tr>
@@ -53,27 +52,10 @@
       {% set просрочен = с.конец_аттестации and с.конец_аттестации < сегодня %}
       <tr class="{{ 'table-danger' if просрочен }}">
         <td class="text-center text-muted small">{{ loop.index }}</td>
-        <td>
-          <span class="fw-semibold">{{ с.фамилия_имя_отчество }}</span>
-          {% if с.пол %}
-          <span class="text-muted small ms-1">({{ с.пол }})</span>
-          {% endif %}
-        </td>
-        <td class="text-center">
-          {% if с.квалификация %}
-          <span class="badge bg-{{ квал_цвет.get(с.квалификация, 'secondary') }}">
-            {{ с.квалификация }}
-          </span>
-          {% else %}—{% endif %}
-        </td>
-        <td class="small text-muted">{{ с.субъект_рф or '—' }}</td>
+        <td>{{ с.фамилия_имя_отчество }}</td>
         <td class="small">{{ с.должность or '—' }}</td>
-        <td class="text-center small {{ 'text-danger fw-bold' if просрочен }}">
-          {% if с.конец_аттестации %}
-            {{ с.конец_аттестации.strftime('%d.%m.%Y') }}
-            {% if просрочен %}<div style="font-size:.65rem">просрочена</div>{% endif %}
-          {% else %}—{% endif %}
-        </td>
+        <td class="text-center small">{{ с.квалификация or '—' }}</td>
+        <td class="small">{{ с.субъект_рф or '—' }}</td>
         <td class="text-center no-print">
           {% if с.действующая_категория %}
           <span class="badge bg-success" style="font-size:.65rem">действ.</span>
@@ -97,7 +79,7 @@
     </tbody>
     <tfoot class="table-light">
       <tr>
-        <td colspan="7" class="text-muted small ps-2">
+        <td colspan="6" class="text-muted small ps-2">
           Итого: {{ стат.всего }} судей
           {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
           {% if стат.по_квал[квал] %}
@@ -105,10 +87,12 @@
           {% endif %}
           {% endfor %}
           &nbsp;&nbsp;&nbsp;
-          <strong>Иногородних судей:</strong>
-          ССВК — {{ стат.по_квал['ССВК'] }},
-          СС1К — {{ стат.по_квал['СС1К'] }}
-          <strong>Всего: {{ стат.по_квал['ССВК'] + стат.по_квал['СС1К'] }}</strong>
+          <strong>Иногородних судей: {{ стат.иногородних }}</strong>
+          {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
+          {% if стат.иногородних_по_квал[квал] %}
+          · {{ квал }}: {{ стат.иногородних_по_квал[квал] }}
+          {% endif %}
+          {% endfor %}
         </td>
         <td class="no-print"></td>
       </tr>
