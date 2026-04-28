@@ -115,11 +115,9 @@
               <th class="text-center" style="width:32px">№</th>
               <th style="min-width:220px">Фамилия, Имя, Отчество</th>
               <th style="width:50px" class="text-center">Пол</th>
-              <th style="width:108px">Дата рожд.</th>
-              <th style="width:65px">Квалиф.</th>
+              <th style="width:120px">Дата рождения</th>
+              <th style="min-width:140px;white-space:nowrap">Спортивная квалификация</th>
               <th style="min-width:150px">Возрастная группа</th>
-              <th style="min-width:120px">Номер приказа</th>
-              <th style="min-width:100px">№ страховки</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -143,8 +141,13 @@
                          class="form-control form-control-sm border-0 px-1"
                          onchange="пересчитатьГруппуСтроки(this.closest('tr'))"
                          value="{{ сп.дата_рождения.strftime('%Y-%m-%d') if сп.дата_рождения else '' }}"></td>
-              <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1"
-                         placeholder="КМС" value="{{ сп.квалификация or '' }}"></td>
+              <td>
+                <select name="квалификация[]" class="form-select form-select-sm border-0 px-1">
+                  {% for к in ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'] %}
+                  <option value="{{ к }}" {{ 'selected' if (сп.квалификация or '') == к }}>{{ к }}</option>
+                  {% endfor %}
+                </select>
+              </td>
               <td>
                 <select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">
                   <option value=""></option>
@@ -153,10 +156,6 @@
                   {% endfor %}
                 </select>
               </td>
-              <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.номер_приказа or '' }}"></td>
-              <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.номер_страховки or '' }}"></td>
               <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger px-1 py-0"
                         onclick="удалитьСтроку(this)">×</button>
@@ -204,6 +203,14 @@ function опцииГрупп(выбрана) {
   ).join('');
 }
 
+const КВАЛИФИКАЦИИ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
+
+function опцииКвал(выбрана) {
+  return КВАЛИФИКАЦИИ.map(к =>
+    `<option value="${к}" ${к === выбрана ? 'selected' : ''}>${к}</option>`
+  ).join('');
+}
+
 const шаблон = `
 <tr>
   <td class="text-center text-muted row-num"></td>
@@ -214,10 +221,8 @@ const шаблон = `
   </select></td>
   <td><input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
              onchange="пересчитатьГруппуСтроки(this.closest('tr'))"></td>
-  <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1" placeholder="КМС"></td>
+  <td><select name="квалификация[]" class="form-select form-select-sm border-0 px-1">${опцииКвал('')}</select></td>
   <td><select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">${опцииГрупп('')}</select></td>
-  <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"></td>
-  <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"></td>
   <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger px-1 py-0" onclick="удалитьСтроку(this)">×</button></td>
 </tr>`;
 

@@ -16,7 +16,7 @@
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Предварительные заявки</h5>
-  <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая заявка</a>
+  <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая предварительная заявка</a>
 </div>
 
 {% if заявки %}
@@ -68,8 +68,9 @@
                   <th class="text-center" style="width:2.5rem">№</th>
                   <th>Фамилия, Имя, Отчество</th>
                   <th class="text-center">Пол</th>
-                  <th class="text-center">Год рождения</th>
-                  <th>Квалификация</th>
+                  <th class="text-center">Дата рождения</th>
+                  <th style="white-space:nowrap">Спортивная квалификация</th>
+                  <th>Возрастная группа</th>
                 </tr>
               </thead>
               <tbody>
@@ -79,9 +80,10 @@
                 <td>{{ [сп.фамилия, сп.имя, сп.отчество] | select | join(' ') or '—' }}</td>
                 <td class="text-center">{{ сп.пол or '—' }}</td>
                 <td class="text-center">
-                  {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
+                  {% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% else %}—{% endif %}
                 </td>
                 <td class="text-center">{{ сп.квалификация or '—' }}</td>
+                <td>{{ сп.возрастная_группа or '—' }}</td>
               </tr>
               {% endfor %}
               </tbody>
