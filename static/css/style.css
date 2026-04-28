@@ -25,6 +25,12 @@ body {
   }
 }
 
+/* Шапки таблиц: центрирование по горизонтали и вертикали */
+thead th {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
 /* Таблицы результатов */
 .table-results th {
   background-color: #e9ecef;

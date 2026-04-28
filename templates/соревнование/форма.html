@@ -258,13 +258,13 @@
       {% endmacro %}
 
       <div class="row g-3 align-items-start">
-        <div class="col-lg-7">
+        <div class="col-lg-4">
           <table class="table table-sm mb-1">
             <thead class="table-light">
               <tr>
-                <th style="width:20%">Класс судна</th>
-                <th style="width:72%">Пол, возраст</th>
-                <th style="width:8%"></th>
+                <th style="width:25%">Класс судна</th>
+                <th style="width:65%">Пол, возраст</th>
+                <th style="width:10%"></th>
               </tr>
             </thead>
             <tbody id="tbodyВиды">
@@ -284,20 +284,20 @@
           </button>
         </div>
 
-        <div class="col-lg-5">
+        <div class="col-lg-8">
           <div class="fw-semibold text-muted mb-2" style="font-size:.85rem">
             Последовательность проведения спортивных дисциплин
           </div>
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <div class="d-flex align-items-center gap-1">
+          <div class="d-flex align-items-center gap-2 flex-nowrap">
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
               <span class="text-muted small fw-semibold">1.</span>
-              <span class="form-control form-control-sm bg-light text-muted px-2" style="cursor:default;width:auto">Спринт</span>
+              <span class="form-control form-control-sm bg-light text-muted px-2 flex-shrink-0" style="cursor:default;width:70px">Спринт</span>
             </div>
             {% for поз, idx in [(2, 0), (3, 1), (4, 2)] %}
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
               <span class="text-muted small fw-semibold">{{ поз }}.</span>
               {% set cur = посл_r4[idx] if посл_r4 and посл_r4|length > idx else '' %}
-              <select name="посл_r4_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="посл" style="width:auto">
+              <select name="посл_r4_{{ поз }}" class="form-select form-select-sm посл-select" data-группа="посл" style="width:160px">
                 <option value="">— —</option>
                 {% for opt in ['Параллельный спринт', 'Слалом', 'Длинная гонка'] %}
                 <option value="{{ opt }}" {{ 'selected' if cur == opt }}>{{ opt }}</option>

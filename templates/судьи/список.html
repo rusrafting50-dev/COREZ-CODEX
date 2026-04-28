@@ -38,13 +38,12 @@
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
       <tr>
-        <th style="width:32px" class="text-center">№<br>п/п</th>
+        <th style="width:32px">№<br>п/п</th>
         <th>Фамилия, имя, отчество</th>
         <th>Должность в судейской коллегии</th>
-        <th style="width:70px" class="text-center">Кат.</th>
+        <th style="width:70px">Кат.</th>
         <th>Субъект Российской Федерации</th>
-        <th style="width:70px" class="text-center no-print">Статус</th>
-        <th class="no-print" style="width:110px"></th>
+        <th class="no-print" style="width:175px"></th>
       </tr>
     </thead>
     <tbody>
@@ -56,30 +55,23 @@
         <td class="small">{{ с.должность or '—' }}</td>
         <td class="text-center small">{{ с.квалификация or '—' }}</td>
         <td class="small">{{ с.субъект_рф or '—' }}</td>
-        <td class="text-center no-print">
-          {% if с.действующая_категория %}
-          <span class="badge bg-success" style="font-size:.65rem">действ.</span>
-          {% elif просрочен %}
-          <span class="badge bg-danger" style="font-size:.65rem">просроч.</span>
-          {% else %}
-          <span class="text-muted" style="font-size:.7rem">—</span>
-          {% endif %}
-        </td>
         <td class="no-print">
-          <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"
-             class="btn btn-sm btn-outline-secondary py-0 px-2">Изм.</a>
-          <form action="{{ url_for('судьи.удалить', sor_id=сор.id, id=с.id) }}"
-                method="post" class="d-inline"
-                onsubmit="return confirm('Удалить судью {{ с.фамилия_имя_отчество.split()[0] }}?')">
-            <button class="btn btn-sm btn-outline-danger py-0 px-2">Удал.</button>
-          </form>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"
+               class="btn btn-sm btn-outline-secondary">Изменить</a>
+            <form action="{{ url_for('судьи.удалить', sor_id=сор.id, id=с.id) }}"
+                  method="post"
+                  onsubmit="return confirm('Удалить судью {{ с.фамилия_имя_отчество.split()[0] }}?')">
+              <button class="btn btn-sm btn-outline-danger">Удалить</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot class="table-light">
       <tr>
-        <td colspan="6" class="text-muted small ps-2">
+        <td colspan="5" class="text-muted small ps-2">
           Итого: {{ стат.всего }} судей
           {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
           {% if стат.по_квал[квал] %}
