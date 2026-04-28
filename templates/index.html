@@ -40,20 +40,31 @@
         </div>
         {% endif %}
 
-        {# R4 | возрастная группа | R6 #}
-        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-          {% if с.класс_судна and 'R4' in с.класс_судна %}
-          <span class="badge bg-info text-dark">R4</span>
-          {% endif %}
+        {# Возрастные группы + классы: для каждой группы — классы справа #}
+        <div class="mb-2">
           {% if с.возрастная_группа %}
             {% for гр in с.возрастная_группа.split(' / ') %}
             {% if гр.strip() %}
-            <span class="text-muted small">{{ гр.strip() }}</span>
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+              <span class="text-muted small">{{ гр.strip() }}</span>
+              {% if с.класс_судна and 'R4' in с.класс_судна %}
+              <span class="badge bg-info text-dark">R4</span>
+              {% endif %}
+              {% if с.класс_судна and 'R6' in с.класс_судна %}
+              <span class="badge bg-info text-dark">R6</span>
+              {% endif %}
+            </div>
             {% endif %}
             {% endfor %}
-          {% endif %}
-          {% if с.класс_судна and 'R6' in с.класс_судна %}
-          <span class="badge bg-info text-dark">R6</span>
+          {% else %}
+            <div class="d-flex gap-2">
+              {% if с.класс_судна and 'R4' in с.класс_судна %}
+              <span class="badge bg-info text-dark">R4</span>
+              {% endif %}
+              {% if с.класс_судна and 'R6' in с.класс_судна %}
+              <span class="badge bg-info text-dark">R6</span>
+              {% endif %}
+            </div>
           {% endif %}
         </div>
 
