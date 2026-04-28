@@ -289,6 +289,10 @@ class Спортсмен(db.Model):
     участие_слалом          = db.Column(db.Boolean, nullable=False, default=True)
     участие_дг              = db.Column(db.Boolean, nullable=False, default=True)
 
+    # Документы
+    номер_приказа           = db.Column(db.String(150), nullable=True)
+    номер_страховки         = db.Column(db.String(100), nullable=True)
+
     # Связи
     команда  = db.relationship('Команда',  back_populates='спортсмены')
     субъект  = db.relationship('Субъект',  back_populates='спортсмены')
@@ -777,6 +781,14 @@ def применить_миграции():
             conn.commit()
         if 'оплата_взноса' not in cols:
             conn.execute(text("ALTER TABLE команды ADD COLUMN оплата_взноса VARCHAR(50) DEFAULT 'Ожидает оплаты'"))
+            conn.commit()
+        # спортсмены: документы
+        cols = {c['name'] for c in inspector.get_columns('спортсмены')}
+        if 'номер_приказа' not in cols:
+            conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_приказа VARCHAR(150)'))
+            conn.commit()
+        if 'номер_страховки' not in cols:
+            conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_страховки VARCHAR(100)'))
             conn.commit()
         # результаты_спринт: новые колонки штрафов по типу
         if inspector.has_table('результаты_спринт'):

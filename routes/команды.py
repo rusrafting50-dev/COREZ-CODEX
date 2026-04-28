@@ -48,7 +48,7 @@ def добавить(sor_id):
         db.session.add(команда)
         db.session.commit()
         flash('Команда добавлена.', 'success')
-        return redirect(url_for('команды.список', sor_id=sor_id))
+        return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=команда.id))
     следующий_номер = _следующий_нагрудный(sor_id)
     return render_template('команды/форма.html', сор=сор, команда=None,
                            субъекты=субъекты,
@@ -123,28 +123,49 @@ def допуск_команда(sor_id, id):
             flash('Данные команды сохранены.', 'success')
             return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=id))
 
-        elif action == 'add_athlete':
-            фио = request.form.get('фио', '').strip()
-            if фио:
+        elif action == 'save_athletes':
+            # Батчевое сохранение: удаляем всех и создаём заново
+            for с in list(команда.спортсмены):
+                db.session.delete(с)
+            db.session.flush()
+            фио_список    = request.form.getlist('фио[]')
+            пол_список    = request.form.getlist('пол[]')
+            дата_список   = request.form.getlist('дата_рождения[]')
+            разряд_список = request.form.getlist('разряд[]')
+            группа_список = request.form.getlist('возрастная_группа[]')
+            приказ_список = request.form.getlist('номер_приказа[]')
+            полис_список  = request.form.getlist('номер_страховки[]')
+            дсп_список    = request.form.getlist('дист_спринт[]')
+            дпс_список    = request.form.getlist('дист_пс[]')
+            дсл_список    = request.form.getlist('дист_слалом[]')
+            ддг_список    = request.form.getlist('дист_дг[]')
+            n = len(фио_список)
+            def _гет(lst, i): return lst[i].strip() if i < len(lst) else ''
+            for i in range(n):
+                фио = фио_список[i].strip()
+                if not фио:
+                    continue
                 с = Спортсмен(
                     команда_id           = id,
                     субъект_id           = команда.субъект_id,
+                    номер_в_экипаже      = i + 1,
                     фамилия_имя_отчество = фио,
-                    пол                  = request.form.get('пол', 'м'),
-                    дата_рождения        = _parse_date(request.form.get('дата_рождения')),
-                    разряд               = request.form.get('разряд', '').strip(),
-                    возрастная_группа    = request.form.get('возрастная_группа', '').strip(),
+                    пол                  = _гет(пол_список, i) or 'м',
+                    дата_рождения        = _parse_date(_гет(дата_список, i)),
+                    разряд               = _гет(разряд_список, i),
+                    возрастная_группа    = _гет(группа_список, i),
+                    номер_приказа        = _гет(приказ_список, i),
+                    номер_страховки      = _гет(полис_список, i),
                     принадлежность_к_орг = команда.принадлежность_к_орг or '',
-                    тренер_представитель = (команда.субъект.представитель
-                                            if команда.субъект else ''),
-                    участие_спринт       = True,
-                    участие_пс           = True,
-                    участие_слалом       = True,
-                    участие_дг           = True,
+                    тренер_представитель = (команда.субъект.представитель if команда.субъект else ''),
+                    участие_спринт       = _гет(дсп_список, i) == '1',
+                    участие_пс           = _гет(дпс_список, i) == '1',
+                    участие_слалом       = _гет(дсл_список, i) == '1',
+                    участие_дг           = _гет(ддг_список, i) == '1',
                 )
                 db.session.add(с)
-                db.session.commit()
-                flash('Спортсмен добавлен.', 'success')
+            db.session.commit()
+            flash('Состав спортсменов сохранён.', 'success')
             return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=id))
 
         elif action == 'del_athlete':

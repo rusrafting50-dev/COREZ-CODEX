@@ -27,7 +27,7 @@
   </span>
 </div>
 
-{# ── Карточка 1: Данные команды ── #}
+{# ── Данные команды ── #}
 <div class="card mb-4">
   <div class="card-header fw-semibold py-2 bg-primary bg-opacity-10">
     Данные команды
@@ -57,14 +57,14 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Тренер-представитель</label>
+          <label class="form-label fw-semibold">Фамилия, имя, отчество тренера-представителя</label>
           <input type="text" name="тренер_представитель" class="form-control"
                  value="{{ команда.субъект.представитель if команда.субъект and команда.субъект.представитель else '' }}"
                  placeholder="Фамилия Имя Отчество">
         </div>
 
         <div class="col-md-3">
-          <label class="form-label fw-semibold">Принадлежность к спортивной организации</label>
+          <label class="form-label fw-semibold">Принадлежность к организации</label>
           <select name="принадлежность_к_орг" class="form-select">
             <option value="">— не указана —</option>
             {% for орг in орги %}
@@ -92,141 +92,105 @@
   </div>
 </div>
 
-{# ── Карточка 2: Состав спортсменов ── #}
+{# ── Список спортсменов ── #}
 {% set мин_состав = 4 if команда.класс_судна == 'R4' else 6 %}
 <div class="card mb-4">
   <div class="card-header py-2 d-flex justify-content-between align-items-center
               {{ 'bg-success bg-opacity-10' if спортсмены | length >= мин_состав else 'bg-warning bg-opacity-10' }}">
     <span class="fw-semibold">
-      Состав спортсменов
+      Список спортсменов
       <span class="badge {{ 'bg-success' if спортсмены | length >= мин_состав else 'bg-warning text-dark' }} ms-1">
         {{ спортсмены | length }} / {{ мин_состав }}+
       </span>
     </span>
+    <button type="button" class="btn btn-sm btn-primary" onclick="добавитьСтроку()">+ Добавить</button>
   </div>
 
-  {# Таблица существующих спортсменов #}
-  {% if спортсмены %}
-  <div class="table-responsive">
-    <table class="table table-sm align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th class="text-center" style="width:2rem">№<br>п/п</th>
-          <th>ФИО</th>
-          <th class="text-center" style="width:3rem">Пол</th>
-          <th style="width:7.5rem">Дата рождения</th>
-          <th class="text-center" style="width:5rem">Квалификация</th>
-          <th>Возрастная группа</th>
-          <th class="text-center" style="width:4rem"></th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for с in спортсмены %}
-      <tr class="{{ 'table-warning' if not с.дата_рождения or not с.разряд }}">
-        <td class="text-center text-muted">{{ loop.index }}</td>
-        <td class="fw-semibold">{{ с.фамилия_имя_отчество }}</td>
-        <td class="text-center text-muted small">{{ с.пол | upper }}</td>
-        <td class="small">
-          {% if с.дата_рождения %}{{ с.дата_рождения.strftime('%d.%m.%Y') }}
-          {% else %}<span class="text-danger">не указана</span>{% endif %}
-        </td>
-        <td class="text-center">
-          {% if с.разряд %}
-          <span class="badge
-            {{ 'bg-danger' if с.разряд in ['МС','МСМК'] else
-               'bg-warning text-dark' if с.разряд == 'КМС' else
-               'bg-primary' if с.разряд == 'I' else 'bg-secondary' }}">
-            {{ с.разряд }}
-          </span>
-          {% else %}<span class="text-muted">—</span>{% endif %}
-        </td>
-        <td class="small text-muted">{{ с.возрастная_группа or '—' }}</td>
-        <td class="text-center">
-          <form method="post" class="d-inline"
-                onsubmit="return confirm('Удалить {{ с.фамилия_имя_отчество.split()[0] }}?')">
-            <input type="hidden" name="action" value="del_athlete">
-            <input type="hidden" name="спортсмен_id" value="{{ с.id }}">
-            <button class="btn btn-outline-danger btn-sm py-0 px-2">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="px-3 py-2 text-muted small">Спортсменов ещё нет.</div>
-  {% endif %}
-
-  {# ── Форма добавления спортсмена ── #}
-  <div class="card-footer bg-light py-3">
-    <div class="fw-semibold small text-muted mb-2">Добавить спортсмена</div>
-
-    {# Быстрый ввод из предварительной заявки #}
-    <div class="mb-3 position-relative" style="max-width:420px">
-      <label class="form-label form-label-sm">
-        Поиск из предварительной заявки
-      </label>
-      <input type="text" id="поискСпортсмена" class="form-control form-control-sm"
-             placeholder="Начните вводить фамилию…" autocomplete="off">
-      <div id="поискРезультаты"
-           class="position-absolute bg-white border rounded shadow-sm"
-           style="top:100%;left:0;right:0;max-height:240px;overflow-y:auto;display:none;z-index:1000"></div>
-      <div class="form-text">Выберите спортсмена — поля заполнятся автоматически.</div>
-    </div>
-
-    <form method="post" id="formДобавитьСпортсмена">
-      <input type="hidden" name="action" value="add_athlete">
-      <div class="row g-2 align-items-end">
-
-        <div class="col-12 col-md-4">
-          <label class="form-label form-label-sm fw-semibold">ФИО <span class="text-danger">*</span></label>
-          <input type="text" name="фио" id="fieldФИО" class="form-control form-control-sm"
-                 placeholder="Иванов Иван Иванович" required>
-        </div>
-
-        <div class="col-6 col-md-1">
-          <label class="form-label form-label-sm fw-semibold">Пол</label>
-          <select name="пол" id="fieldПол" class="form-select form-select-sm"
-                  onchange="пересчитатьГруппу()">
-            <option value="м">М</option>
-            <option value="ж">Ж</option>
-          </select>
-        </div>
-
-        <div class="col-6 col-md-2">
-          <label class="form-label form-label-sm fw-semibold">Дата рождения</label>
-          <input type="date" name="дата_рождения" id="fieldДатаРожд"
-                 class="form-control form-control-sm"
-                 onchange="пересчитатьГруппу()">
-        </div>
-
-        <div class="col-6 col-md-2">
-          <label class="form-label form-label-sm fw-semibold">Квалификация</label>
-          <select name="разряд" id="fieldРазряд" class="form-select form-select-sm">
-            <option value="">—</option>
-            {% for р in разряды %}
-            <option value="{{ р }}">{{ р }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-12 col-md-3">
-          <label class="form-label form-label-sm fw-semibold">Возрастная группа</label>
-          <select name="возрастная_группа" id="fieldГруппа" class="form-select form-select-sm">
-            <option value="">—</option>
-            {% for г in возрастные_группы %}
-            <option value="{{ г }}">{{ г }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="col-auto mt-1">
-          <button type="submit" class="btn btn-success btn-sm px-3">
-            + Добавить
-          </button>
-        </div>
-
+  <div class="card-body p-0">
+    <form method="post" id="formСпортсмены" onsubmit="подготовитьЧекбоксы()">
+      <input type="hidden" name="action" value="save_athletes">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0" id="tableSportsmen" style="font-size:.82rem">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width:2.5rem">№<br>п/п</th>
+              <th style="min-width:200px">Фамилия, имя, отчество</th>
+              <th style="width:55px" class="text-center">Пол</th>
+              <th style="width:115px">Дата рождения</th>
+              <th style="min-width:130px;white-space:nowrap">Спортивная квалификация</th>
+              <th style="min-width:160px">Возрастная группа</th>
+              <th style="min-width:160px">№ приказа о присвоении спортивной квалификации</th>
+              <th style="min-width:130px">№ полиса о страховании</th>
+              <th style="min-width:240px">Участие в спортивных дисциплинах</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodySportsmen">
+          {% for с in спортсмены %}
+          {% set участие = {'спринт': с.участие_спринт, 'пс': с.участие_пс, 'слалом': с.участие_слалом, 'дг': с.участие_дг} %}
+          <tr>
+            <td class="text-center text-muted row-num">{{ loop.index }}</td>
+            <td>
+              <input type="text" name="фио[]" class="form-control form-control-sm border-0 px-1"
+                     value="{{ с.фамилия_имя_отчество }}" placeholder="Фамилия Имя Отчество">
+            </td>
+            <td>
+              <select name="пол[]" class="form-select form-select-sm border-0 px-1"
+                      onchange="пересчитатьГруппуСтроки(this.closest('tr'))">
+                <option value="м" {{ 'selected' if с.пол == 'м' }}>м</option>
+                <option value="ж" {{ 'selected' if с.пол == 'ж' }}>ж</option>
+              </select>
+            </td>
+            <td>
+              <input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
+                     onchange="пересчитатьГруппуСтроки(this.closest('tr'))"
+                     value="{{ с.дата_рождения.strftime('%Y-%m-%d') if с.дата_рождения else '' }}">
+            </td>
+            <td>
+              <select name="разряд[]" class="form-select form-select-sm border-0 px-1">
+                {% for р in ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'] %}
+                <option value="{{ р }}" {{ 'selected' if (с.разряд or '') == р }}>{{ р }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">
+                {% for г in ['', 'Мужчины, женщины', 'Юниоры, юниорки (до 26 лет)', 'Юниоры, юниорки (до 24 лет)', 'Юниоры, юниорки (до 20 лет)', 'Юноши, девушки (до 16 лет)'] %}
+                <option value="{{ г }}" {{ 'selected' if (с.возрастная_группа or '') == г }}>{{ г }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"
+                     value="{{ с.номер_приказа or '' }}">
+            </td>
+            <td>
+              <input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"
+                     value="{{ с.номер_страховки or '' }}">
+            </td>
+            <td>
+              <div class="d-flex flex-wrap gap-2 px-1 py-1">
+                {% for дист_key, лейбл in [('спринт','Спринт'),('пс','Пар. спринт'),('слалом','Слалом'),('дг','Дл. гонка')] %}
+                <div class="form-check form-check-sm mb-0">
+                  <input type="hidden" name="дист_{{ дист_key }}[]" value="{{ '1' if участие[дист_key] else '0' }}" class="hdist">
+                  <input class="form-check-input cb-дист" type="checkbox"
+                         data-дист="{{ дист_key }}" {{ 'checked' if участие[дист_key] }}>
+                  <label class="form-check-label small">{{ лейбл }}</label>
+                </div>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="text-center">
+              <button type="button" class="btn btn-sm btn-outline-danger px-1 py-0"
+                      onclick="удалитьСтроку(this)">×</button>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="px-3 py-2">
+        <button type="submit" class="btn btn-success px-4">Сохранить состав</button>
       </div>
     </form>
   </div>
@@ -239,103 +203,182 @@
 
 {% block scripts %}
 <script>
-const SOR_ID    = {{ сор.id }};
-const TEAM_ID   = {{ команда.id }};
+const РАЗРЯДЫ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
+const ГРУППЫ  = ['', 'Мужчины, женщины', 'Юниоры, юниорки (до 26 лет)',
+                 'Юниоры, юниорки (до 24 лет)', 'Юниоры, юниорки (до 20 лет)',
+                 'Юноши, девушки (до 16 лет)'];
+const ДИСТ    = [['спринт','Спринт'],['пс','Пар. спринт'],['слалом','Слалом'],['дг','Дл. гонка']];
 
-// ── Автодополнение из предварительной заявки ─────────────────────────────────
-const поискВвод  = document.getElementById('поискСпортсмена');
-const поискИтоги = document.getElementById('поискРезультаты');
+function buildSelect(name, opts, selected='') {
+  const sel = document.createElement('select');
+  sel.name = name;
+  sel.className = 'form-select form-select-sm border-0 px-1';
+  opts.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o;
+    opt.textContent = o;
+    if (o === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
 
-let таймер;
-поискВвод.addEventListener('input', () => {
-  clearTimeout(таймер);
-  const q = поискВвод.value.trim();
-  if (q.length < 1) { поискИтоги.style.display = 'none'; return; }
-  таймер = setTimeout(() => загрузитьПодсказки(q), 200);
+function buildДистяТD() {
+  const td = document.createElement('td');
+  const div = document.createElement('div');
+  div.className = 'd-flex flex-wrap gap-2 px-1 py-1';
+  ДИСТ.forEach(function([key, лейбл]) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-check form-check-sm mb-0';
+    const hid = document.createElement('input');
+    hid.type = 'hidden';
+    hid.name = 'дист_' + key + '[]';
+    hid.value = '1';
+    hid.className = 'hdist';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'form-check-input cb-дист';
+    cb.dataset['дист'] = key;
+    cb.checked = true;
+    const lbl = document.createElement('label');
+    lbl.className = 'form-check-label small';
+    lbl.textContent = лейбл;
+    wrap.appendChild(hid);
+    wrap.appendChild(cb);
+    wrap.appendChild(lbl);
+    div.appendChild(wrap);
+  });
+  td.appendChild(div);
+  return td;
+}
+
+function добавитьСтроку() {
+  const tbody = document.getElementById('tbodySportsmen');
+  const tr = document.createElement('tr');
+
+  // № п/п
+  const tdN = document.createElement('td');
+  tdN.className = 'text-center text-muted row-num';
+  tr.appendChild(tdN);
+
+  // ФИО
+  const tdФИО = document.createElement('td');
+  const inpФИО = document.createElement('input');
+  inpФИО.type = 'text'; inpФИО.name = 'фио[]';
+  inpФИО.className = 'form-control form-control-sm border-0 px-1';
+  inpФИО.placeholder = 'Фамилия Имя Отчество';
+  tdФИО.appendChild(inpФИО);
+  tr.appendChild(tdФИО);
+
+  // Пол
+  const tdПол = document.createElement('td');
+  const selПол = buildSelect('пол[]', ['м', 'ж']);
+  selПол.addEventListener('change', () => пересчитатьГруппуСтроки(tr));
+  tdПол.appendChild(selПол);
+  tr.appendChild(tdПол);
+
+  // Дата рождения
+  const tdДата = document.createElement('td');
+  const inpДата = document.createElement('input');
+  inpДата.type = 'date'; inpДата.name = 'дата_рождения[]';
+  inpДата.className = 'form-control form-control-sm border-0 px-1';
+  inpДата.addEventListener('change', () => пересчитатьГруппуСтроки(tr));
+  tdДата.appendChild(inpДата);
+  tr.appendChild(tdДата);
+
+  // Разряд
+  const tdРазряд = document.createElement('td');
+  tdРазряд.appendChild(buildSelect('разряд[]', РАЗРЯДЫ));
+  tr.appendChild(tdРазряд);
+
+  // Возрастная группа
+  const tdГруппа = document.createElement('td');
+  const selГр = buildSelect('возрастная_группа[]', ГРУППЫ);
+  selГр.className += ' group-sel';
+  tdГруппа.appendChild(selГр);
+  tr.appendChild(tdГруппа);
+
+  // Номер приказа
+  const tdПриказ = document.createElement('td');
+  const inpПриказ = document.createElement('input');
+  inpПриказ.type = 'text'; inpПриказ.name = 'номер_приказа[]';
+  inpПриказ.className = 'form-control form-control-sm border-0 px-1';
+  tdПриказ.appendChild(inpПриказ);
+  tr.appendChild(tdПриказ);
+
+  // Номер страховки
+  const tdПолис = document.createElement('td');
+  const inpПолис = document.createElement('input');
+  inpПолис.type = 'text'; inpПолис.name = 'номер_страховки[]';
+  inpПолис.className = 'form-control form-control-sm border-0 px-1';
+  tdПолис.appendChild(inpПолис);
+  tr.appendChild(tdПолис);
+
+  // Дисциплины
+  tr.appendChild(buildДистяТD());
+
+  // Удалить
+  const tdDel = document.createElement('td');
+  tdDel.className = 'text-center';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-sm btn-outline-danger px-1 py-0';
+  btn.textContent = '×';
+  btn.onclick = function() { удалитьСтроку(this); };
+  tdDel.appendChild(btn);
+  tr.appendChild(tdDel);
+
+  tbody.appendChild(tr);
+  обновитьНомера();
+  inpФИО.focus();
+}
+
+function удалитьСтроку(btn) {
+  if (!confirm('Удалить спортсмена из состава?')) return;
+  btn.closest('tr').remove();
+  обновитьНомера();
+}
+
+function обновитьНомера() {
+  document.querySelectorAll('#tbodySportsmen .row-num').forEach((td, i) => {
+    td.textContent = i + 1;
+  });
+}
+
+// Синхронизация чекбоксов → hidden перед отправкой
+function подготовитьЧекбоксы() {
+  document.querySelectorAll('#tbodySportsmen .cb-дист').forEach(cb => {
+    const key = cb.dataset['дист'];
+    const hid = cb.closest('.form-check').querySelector('.hdist');
+    if (hid) hid.value = cb.checked ? '1' : '0';
+  });
+}
+
+// Привязка изменений чекбокса к hidden в реальном времени
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('cb-дист')) {
+    const hid = e.target.closest('.form-check').querySelector('.hdist');
+    if (hid) hid.value = e.target.checked ? '1' : '0';
+  }
 });
-поискВвод.addEventListener('blur', () => {
-  setTimeout(() => { поискИтоги.style.display = 'none'; }, 200);
-});
 
-function загрузитьПодсказки(q) {
-  fetch(`/команды/${SOR_ID}/подсказки-спортсменов?команда_id=${TEAM_ID}`)
-    .then(r => r.json())
-    .then(данные => {
-      const фильтр = данные.filter(с =>
-        с.фио.toLowerCase().includes(q.toLowerCase())
-      );
-      if (!фильтр.length) { поискИтоги.style.display = 'none'; return; }
-      поискИтоги.innerHTML = фильтр.map(с => `
-        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
-             onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
-          <div class="fw-semibold">${с.фио}</div>
-          <div class="text-muted small">
-            ${с.пол ? с.пол.toUpperCase() + ' &nbsp;' : ''}
-            ${с.дата_рождения ? formatDate(с.дата_рождения) + ' &nbsp;' : ''}
-            ${с.квалификация || ''}
-          </div>
-        </div>`).join('');
-      поискИтоги.style.display = 'block';
-    });
+function пересчитатьГруппуСтроки(tr) {
+  const дата = tr.querySelector('input[name="дата_рождения[]"]');
+  const пол  = tr.querySelector('select[name="пол[]"]');
+  const sel  = tr.querySelector('select.group-sel');
+  if (!дата || !пол || !sel || !дата.value) return;
+  const год = parseInt(дата.value.substring(0, 4));
+  const возраст = new Date().getFullYear() - год;
+  const муж = (пол.value === 'м');
+  let г = '';
+  if      (возраст <= 16) г = 'Юноши, девушки (до 16 лет)';
+  else if (возраст <= 20) г = 'Юниоры, юниорки (до 20 лет)';
+  else if (возраст <= 24) г = 'Юниоры, юниорки (до 24 лет)';
+  else if (возраст <= 26) г = 'Юниоры, юниорки (до 26 лет)';
+  else                    г = 'Мужчины, женщины';
+  sel.value = г;
 }
 
-function выбратьСпортсмена(с) {
-  document.getElementById('fieldФИО').value       = с.фио       || '';
-  document.getElementById('fieldДатаРожд').value  = с.дата_рождения || '';
-
-  if (с.пол) {
-    const sel = document.getElementById('fieldПол');
-    sel.value = с.пол.toLowerCase();
-  }
-
-  if (с.квалификация) {
-    const sel = document.getElementById('fieldРазряд');
-    for (let opt of sel.options) {
-      if (opt.value === с.квалификация) { sel.value = с.квалификация; break; }
-    }
-  }
-
-  поискВвод.value = '';
-  поискИтоги.style.display = 'none';
-
-  if (с.возрастная_группа) {
-    const sel = document.getElementById('fieldГруппа');
-    for (let opt of sel.options) {
-      if (opt.value === с.возрастная_группа) { sel.value = с.возрастная_группа; break; }
-    }
-  } else {
-    пересчитатьГруппу();
-  }
-}
-
-// ── Автоматический расчёт возрастной группы ──────────────────────────────────
-function пересчитатьГруппу() {
-  const дата = document.getElementById('fieldДатаРожд').value;
-  const пол  = document.getElementById('fieldПол').value;
-  if (!дата) return;
-
-  const год_рожд = parseInt(дата.substring(0, 4));
-  const год_сор  = new Date().getFullYear();
-  const возраст  = год_сор - год_рожд;
-  const муж      = (пол === 'м');
-
-  let группа = '';
-  if      (возраст <= 16) группа = муж ? 'Юноши (до 16 лет)'      : 'Девушки (до 16 лет)';
-  else if (возраст <= 20) группа = муж ? 'Юниоры (до 20 лет)'     : 'Юниорки (до 20 лет)';
-  else if (возраст <= 24) группа = муж ? 'Юниоры (до 24 лет)'     : 'Юниорки (до 24 лет)';
-  else if (возраст <= 26) группа = муж ? 'Юниоры (до 26 лет)'     : 'Юниорки (до 26 лет)';
-  else                    группа = муж ? 'Мужчины'                 : 'Женщины';
-
-  const sel = document.getElementById('fieldГруппа');
-  for (let opt of sel.options) {
-    if (opt.value === группа) { sel.value = группа; break; }
-  }
-}
-
-function formatDate(iso) {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  return `${d}.${m}.${y}`;
-}
+if (!document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
 </script>
 {% endblock %}
