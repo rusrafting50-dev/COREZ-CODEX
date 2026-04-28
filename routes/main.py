@@ -9,6 +9,6 @@ bp_main = Blueprint('main', __name__)
 @bp_main.route('/')
 def index():
     все = Соревнование.query.all()
-    # Ранние → поздние; без дата_начала — в конец (date.max как ключ-заглушка)
-    все.sort(key=lambda с: с.дата_начала if с.дата_начала is not None else _date.max)
+    # Поздние → ранние; без дата_начала — в конец
+    все.sort(key=lambda с: с.дата_начала if с.дата_начала is not None else _date.min, reverse=True)
     return render_template('index.html', соревнования=все)
