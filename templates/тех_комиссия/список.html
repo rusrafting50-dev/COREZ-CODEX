@@ -21,10 +21,8 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('тех.состав', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Состав комиссии</a>
-    <a href="{{ url_for('тех.акт', sor_id=сор.id, klass='R4') }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Акт R4</a>
-    <a href="{{ url_for('тех.акт', sor_id=сор.id, klass='R6') }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Акт R6</a>
+    <a href="{{ url_for('тех.акт_все', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm" target="_blank">Акт технической комиссии</a>
     <a href="{{ url_for('тех.новая', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Новая проверка команды</a>
   </div>

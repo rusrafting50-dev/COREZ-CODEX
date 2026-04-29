@@ -21,105 +21,75 @@
 </div>
 <h5 class="mb-3">Состав технической комиссии</h5>
 
-{% if судьи %}
-{# Словарь должностей по ФИО для автозаполнения через JS #}
-<script id="judgesData" type="application/json">
-{{ судьи | map(attribute='фамилия_имя_отчество') | list | tojson }}
-</script>
-<script id="judgesDolzhnost" type="application/json">
-{
-  {% for с in судьи %}
-  {{ с.фамилия_имя_отчество | tojson }}: {{ (с.должность or '') | tojson }}{% if not loop.last %},{% endif %}
-  {% endfor %}
-}
-</script>
-{% endif %}
-
 <form method="post">
+
+  {# Macro for a single member card #}
+  {% macro member_card(заголовок, prefix, фио_val, должность_val, квал_val, субъект_val, is_chair) %}
   <div class="card mb-3">
-    <div class="card-header fw-semibold bg-primary text-white py-2">
-      Председатель технической комиссии
+    <div class="card-header fw-semibold py-2 {% if is_chair %}bg-primary text-white{% else %}{% endif %}"
+         {% if not is_chair %}style="background:#e9ecef"{% endif %}>
+      {{ заголовок }}
     </div>
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Фамилия, имя, отчество</label>
-          <input type="text" name="председатель_фио" id="председатель_фио"
-                 class="form-control form-control-sm judge-fio"
-                 list="судьиList"
-                 placeholder="Иванов Иван Иванович"
-                 data-target="председатель_должность"
-                 value="{{ ск.председатель_фио if ск else '' }}"
-                 oninput="автозаполнитьДолжность(this)">
+        <div class="col-md-4">
+          <label class="form-label">Фамилия И.О.</label>
+          <input type="text" name="{{ prefix }}_фио" id="{{ prefix }}_фио"
+                 class="form-control form-control-sm"
+                 placeholder="Иванов И.И."
+                 value="{{ фио_val }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Квалификация спортивного судьи</label>
+          <input type="text" name="{{ prefix }}_квалификация" id="{{ prefix }}_квалификация"
+                 class="form-control form-control-sm"
+                 placeholder="СС1К"
+                 value="{{ квал_val }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Субъект Российской Федерации</label>
+          <input type="text" name="{{ prefix }}_субъект_рф" id="{{ prefix }}_субъект_рф"
+                 class="form-control form-control-sm"
+                 list="субъектыList"
+                 placeholder="Московская область"
+                 value="{{ субъект_val }}">
         </div>
         <div class="col-md-6">
           <label class="form-label">Должность в Судейской коллегии</label>
-          <input type="text" name="председатель_должность" id="председатель_должность"
+          <input type="text" name="{{ prefix }}_должность" id="{{ prefix }}_должность"
                  class="form-control form-control-sm"
                  placeholder="Судья"
-                 value="{{ ск.председатель_должность if ск else '' }}">
+                 value="{{ должность_val }}">
         </div>
       </div>
     </div>
   </div>
+  {% endmacro %}
 
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2" style="background:#e9ecef">
-      Член комиссии № 1
-    </div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Фамилия, имя, отчество</label>
-          <input type="text" name="член_1_фио" id="член_1_фио"
-                 class="form-control form-control-sm judge-fio"
-                 list="судьиList"
-                 placeholder="Петров Пётр Петрович"
-                 data-target="член_1_должность"
-                 value="{{ ск.член_1_фио if ск else '' }}"
-                 oninput="автозаполнитьДолжность(this)">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Должность в Судейской коллегии</label>
-          <input type="text" name="член_1_должность" id="член_1_должность"
-                 class="form-control form-control-sm"
-                 placeholder="Судья"
-                 value="{{ ск.член_1_должность if ск else '' }}">
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ member_card('Член комиссии №1', 'председатель',
+       ск.председатель_фио          if ск else '',
+       ск.председатель_должность    if ск else '',
+       ск.председатель_квалификация if ск else '',
+       ск.председатель_субъект_рф   if ск else '',
+       true) }}
 
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2" style="background:#e9ecef">
-      Член комиссии № 2
-    </div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Фамилия, имя, отчество</label>
-          <input type="text" name="член_2_фио" id="член_2_фио"
-                 class="form-control form-control-sm judge-fio"
-                 list="судьиList"
-                 placeholder="Сидоров Сидор Сидорович"
-                 data-target="член_2_должность"
-                 value="{{ ск.член_2_фио if ск else '' }}"
-                 oninput="автозаполнитьДолжность(this)">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Должность в Судейской коллегии</label>
-          <input type="text" name="член_2_должность" id="член_2_должность"
-                 class="form-control form-control-sm"
-                 placeholder="Судья"
-                 value="{{ ск.член_2_должность if ск else '' }}">
-        </div>
-      </div>
-    </div>
-  </div>
+  {{ member_card('Член комиссии №2', 'член_1',
+       ск.член_1_фио           if ск else '',
+       ск.член_1_должность     if ск else '',
+       ск.член_1_квалификация  if ск else '',
+       ск.член_1_субъект_рф    if ск else '',
+       false) }}
 
-  <datalist id="судьиList">
-    {% for с in судьи %}
-    <option value="{{ с.фамилия_имя_отчество }}">
+  {{ member_card('Член комиссии №3', 'член_2',
+       ск.член_2_фио           if ск else '',
+       ск.член_2_должность     if ск else '',
+       ск.член_2_квалификация  if ск else '',
+       ск.член_2_субъект_рф    if ск else '',
+       false) }}
+
+  <datalist id="субъектыList">
+    {% for субъект in субъекты_рф %}
+    <option value="{{ субъект }}">
     {% endfor %}
   </datalist>
 
@@ -130,22 +100,4 @@
   </div>
 </form>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-const судьиДолжности = JSON.parse(
-  document.getElementById('judgesDolzhnost')?.textContent || '{}'
-);
-
-function автозаполнитьДолжность(input) {
-  const targetId = input.getAttribute('data-target');
-  const targetEl = document.getElementById(targetId);
-  if (!targetEl) return;
-  const должность = судьиДолжности[input.value.trim()];
-  if (должность !== undefined) {
-    targetEl.value = должность;
-  }
-}
-</script>
 {% endblock %}

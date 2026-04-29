@@ -1,6 +1,6 @@
 # routes/тех_комиссия.py — Техническая комиссия
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Соревнование, ТехПроверка, ТехСнаряжение, ТехСоставКомиссии, Судья
+from models import db, Соревнование, ТехПроверка, ТехСнаряжение, ТехСоставКомиссии, Судья, СУБЪЕКТЫ_РФ
 
 bp_тех = Blueprint('тех', __name__)
 
@@ -78,16 +78,35 @@ def состав(sor_id):
         if not ск:
             ск = ТехСоставКомиссии(соревнование_id=sor_id)
             db.session.add(ск)
-        ск.председатель_фио       = request.form.get('председатель_фио', '').strip()
-        ск.председатель_должность = request.form.get('председатель_должность', '').strip()
-        ск.член_1_фио             = request.form.get('член_1_фио', '').strip()
-        ск.член_1_должность       = request.form.get('член_1_должность', '').strip()
-        ск.член_2_фио             = request.form.get('член_2_фио', '').strip()
-        ск.член_2_должность       = request.form.get('член_2_должность', '').strip()
+        ск.председатель_фио          = request.form.get('председатель_фио', '').strip()
+        ск.председатель_должность    = request.form.get('председатель_должность', '').strip()
+        ск.председатель_квалификация = request.form.get('председатель_квалификация', '').strip()
+        ск.председатель_субъект_рф   = request.form.get('председатель_субъект_рф', '').strip()
+        ск.член_1_фио                = request.form.get('член_1_фио', '').strip()
+        ск.член_1_должность          = request.form.get('член_1_должность', '').strip()
+        ск.член_1_квалификация       = request.form.get('член_1_квалификация', '').strip()
+        ск.член_1_субъект_рф         = request.form.get('член_1_субъект_рф', '').strip()
+        ск.член_2_фио                = request.form.get('член_2_фио', '').strip()
+        ск.член_2_должность          = request.form.get('член_2_должность', '').strip()
+        ск.член_2_квалификация       = request.form.get('член_2_квалификация', '').strip()
+        ск.член_2_субъект_рф         = request.form.get('член_2_субъект_рф', '').strip()
         db.session.commit()
         flash('Состав комиссии сохранён.', 'success')
         return redirect(url_for('тех.состав', sor_id=sor_id))
-    return render_template('тех_комиссия/состав.html', сор=сор, ск=ск, судьи=судьи)
+    return render_template('тех_комиссия/состав.html', сор=сор, ск=ск, судьи=судьи,
+                           субъекты_рф=СУБЪЕКТЫ_РФ)
+
+
+@bp_тех.route('/<int:sor_id>/акт')
+def акт_все(sor_id):
+    сор      = Соревнование.query.get_or_404(sor_id)
+    проверки = (ТехПроверка.query
+                .filter_by(соревнование_id=sor_id)
+                .order_by(ТехПроверка.id)
+                .all())
+    ск = ТехСоставКомиссии.query.filter_by(соревнование_id=sor_id).first()
+    return render_template('тех_комиссия/акт.html', сор=сор, проверки=проверки,
+                           ск=ск, класс='')
 
 
 @bp_тех.route('/<int:sor_id>/акт/<klass>')

@@ -378,12 +378,18 @@ class ТехСоставКомиссии(db.Model):
 
     id                       = db.Column(db.Integer, primary_key=True)
     соревнование_id          = db.Column(db.Integer, db.ForeignKey('соревнования.id'), unique=True, nullable=False)
-    председатель_фио         = db.Column(db.String(200), nullable=True)
-    председатель_должность   = db.Column(db.String(200), nullable=True)
-    член_1_фио               = db.Column(db.String(200), nullable=True)
-    член_1_должность         = db.Column(db.String(200), nullable=True)
-    член_2_фио               = db.Column(db.String(200), nullable=True)
-    член_2_должность         = db.Column(db.String(200), nullable=True)
+    председатель_фио           = db.Column(db.String(200), nullable=True)
+    председатель_должность     = db.Column(db.String(200), nullable=True)
+    председатель_квалификация  = db.Column(db.String(100), nullable=True)
+    председатель_субъект_рф    = db.Column(db.String(200), nullable=True)
+    член_1_фио                 = db.Column(db.String(200), nullable=True)
+    член_1_должность           = db.Column(db.String(200), nullable=True)
+    член_1_квалификация        = db.Column(db.String(100), nullable=True)
+    член_1_субъект_рф          = db.Column(db.String(200), nullable=True)
+    член_2_фио                 = db.Column(db.String(200), nullable=True)
+    член_2_должность           = db.Column(db.String(200), nullable=True)
+    член_2_квалификация        = db.Column(db.String(100), nullable=True)
+    член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
 
     соревнование = db.relationship('Соревнование', back_populates='тех_состав_комиссии')
 
@@ -847,6 +853,20 @@ def применить_миграции():
         if 'номер_страховки' not in cols:
             conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_страховки VARCHAR(100)'))
             conn.commit()
+        # тех_состав_комиссии: квалификация и субъект членов
+        if inspector.has_table('тех_состав_комиссии'):
+            cols = {c['name'] for c in inspector.get_columns('тех_состав_комиссии')}
+            for col, ddl in [
+                ('председатель_квалификация', 'VARCHAR(100)'),
+                ('председатель_субъект_рф',   'VARCHAR(200)'),
+                ('член_1_квалификация',        'VARCHAR(100)'),
+                ('член_1_субъект_рф',          'VARCHAR(200)'),
+                ('член_2_квалификация',        'VARCHAR(100)'),
+                ('член_2_субъект_рф',          'VARCHAR(200)'),
+            ]:
+                if col not in cols:
+                    conn.execute(text(f'ALTER TABLE тех_состав_комиссии ADD COLUMN {col} {ddl}'))
+                    conn.commit()
         # результаты_спринт: новые колонки штрафов по типу
         if inspector.has_table('результаты_спринт'):
             cols = {c['name'] for c in inspector.get_columns('результаты_спринт')}
