@@ -13,6 +13,11 @@
 
 {% block content %}
 
+{% set _кл = сор.класс_судна or 'R4' %}
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set заг_м = 'Слалом — ' + _кл + ', мужчины' + _вгр %}
+{% set заг_ж = 'Слалом — ' + _кл + ', женщины' + _вгр %}
+
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
@@ -45,7 +50,7 @@
 
 {% macro таблица_финиша(команды, цвет, заг) %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm align-middle" style="font-size:.82rem">
     <thead class="table-light">
@@ -137,8 +142,8 @@
 <div class="alert alert-warning">Нет команд.</div>
 {% else %}
 <form method="post">
-{{ таблица_финиша(муж, 'primary', 'Мужские') }}
-{{ таблица_финиша(жен, 'danger',  'Женские') }}
+{{ таблица_финиша(муж, 'primary', заг_м) }}
+{{ таблица_финиша(жен, 'danger',  заг_ж) }}
 <button type="submit" class="btn btn-success px-4">Сохранить протокол финиша</button>
 </form>
 {% endif %}

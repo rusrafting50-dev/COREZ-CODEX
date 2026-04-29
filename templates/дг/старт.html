@@ -13,6 +13,11 @@
 
 {% block content %}
 
+{% set _кл = сор.класс_судна or 'R4' %}
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set заг_м = 'Длинная гонка — ' + _кл + ', мужчины' + _вгр %}
+{% set заг_ж = 'Длинная гонка — ' + _кл + ', женщины' + _вгр %}
+
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
@@ -110,8 +115,8 @@
 {% if not муж and not жен %}
 <div class="alert alert-warning">Нет команд.</div>
 {% else %}
-{{ таблица_старт(муж, 'Мужские экипажи', 'primary') }}
-{{ таблица_старт(жен, 'Женские экипажи', 'danger') }}
+{{ таблица_старт(муж, заг_м, 'primary') }}
+{{ таблица_старт(жен, заг_ж, 'danger') }}
 <button type="submit" class="btn btn-success px-4">Сохранить</button>
 {% endif %}
 </form>

@@ -51,9 +51,11 @@
   {% endif %}
 </div>
 
+{% set _кл = сор.класс_судна or 'R4' %}
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
 {# ── Мужские ── #}
 {% if муж %}
-<div class="section-title">Мужские экипажи ({{ муж | length }})</div>
+<div class="section-title">Спринт — {{ _кл }}, мужчины{{ _вгр }} ({{ муж | length }})</div>
 <table>
   <thead>
     <tr>
@@ -80,7 +82,7 @@
 
 {# ── Женские ── #}
 {% if жен %}
-<div class="section-title">Женские экипажи ({{ жен | length }})</div>
+<div class="section-title">Спринт — {{ _кл }}, женщины{{ _вгр }} ({{ жен | length }})</div>
 <table>
   <thead>
     <tr>

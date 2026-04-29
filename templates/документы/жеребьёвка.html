@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Жеребьёвка — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}Жеребьёвка и стартовый протокол — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,21 +7,30 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Жеребьёвка</li>
+    <li class="breadcrumb-item active">Жеребьёвка и стартовый протокол</li>
   </ol>
 {% endblock %}
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3">
-  <div>
-    <h5 class="mb-0">Жеребьёвка</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
+{% set _кл = сор.класс_судна or 'R4' %}
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set заг_м = 'Спринт — ' + _кл + ', мужчины' + _вгр %}
+{% set заг_ж = 'Спринт — ' + _кл + ', женщины' + _вгр %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Жеребьёвка и стартовый протокол</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Протокол жеребьёвки</a>
+    <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
+       class="btn btn-outline-warning btn-sm" target="_blank">Протокол выдачи нагрудных номеров</a>
+    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm" target="_blank">Стартовый протокол</a>
   </div>
-  <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm" target="_blank">Печатная форма</a>
-  <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
-     class="btn btn-outline-warning btn-sm" target="_blank">Нагрудные номера</a>
 </div>
 
 {% if not муж and not жен %}
@@ -37,7 +46,7 @@
   <div class="col-md-6">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold">Мужские экипажи&nbsp;
+        <span class="fw-semibold">{{ заг_м }}&nbsp;
           <span class="badge bg-secondary">{{ муж | length }}</span></span>
         {% if муж %}
         <button type="button" class="btn btn-sm btn-outline-primary"
@@ -70,7 +79,7 @@
   <div class="col-md-6">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold">Женские экипажи&nbsp;
+        <span class="fw-semibold">{{ заг_ж }}&nbsp;
           <span class="badge bg-secondary">{{ жен | length }}</span></span>
         {% if жен %}
         <button type="button" class="btn btn-sm btn-outline-danger"

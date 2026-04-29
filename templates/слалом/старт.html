@@ -13,6 +13,11 @@
 
 {% block content %}
 
+{% set _кл = сор.класс_судна or 'R4' %}
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set заг_м = 'Слалом — ' + _кл + ', мужчины' + _вгр %}
+{% set заг_ж = 'Слалом — ' + _кл + ', женщины' + _вгр %}
+
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
@@ -46,9 +51,9 @@
 {% else %}
 
 <form method="post">
-{% for команды, цвет, заг in [(муж, 'primary', 'Мужские'), (жен, 'danger', 'Женские')] %}
+{% for команды, цвет, заг in [(муж, 'primary', заг_м), (жен, 'danger', заг_ж)] %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">

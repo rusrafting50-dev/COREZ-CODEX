@@ -131,8 +131,7 @@
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
-          <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка</a>
-          <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm" target="_blank">Стартовый протокол</a>
+          <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
           <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}" class="btn btn-primary btn-sm">Старт</a>
           <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Финиш</a>
           <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
@@ -220,8 +219,7 @@
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
-          <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка</a>
-          <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm" target="_blank">Стартовый протокол</a>
+          <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
           <a href="{{ url_for('спринт.старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-primary btn-sm">Старт</a>
           <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-primary btn-sm">Финиш</a>
           <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-primary btn-sm">Результаты</a>
