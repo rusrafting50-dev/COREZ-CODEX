@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Редактировать заявку — СЧИТАЛКА{% endblock %}
+{% set заголовок = 'Новая заявка' if not команда else 'Редактировать заявку' %}
+{% block title %}{{ заголовок }} — СЧИТАЛКА{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -10,13 +11,13 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Комиссия по допуску</a>
     </li>
-    <li class="breadcrumb-item active">Редактировать заявку</li>
+    <li class="breadcrumb-item active">{{ заголовок }}</li>
   </ol>
 {% endblock %}
 
 {% block content %}
 
-<h5 class="mb-4">Редактировать заявку</h5>
+<h5 class="mb-4">{{ заголовок }}</h5>
 
 {# ── Данные команды ── #}
 <div class="card mb-4">
@@ -24,14 +25,20 @@
     Данные команды
   </div>
   <div class="card-body">
-    <form method="post">
+    {% if команда %}
+    <form method="post"
+          action="{{ url_for('команды.допуск_команда', sor_id=сор.id, id=команда.id) }}">
       <input type="hidden" name="action" value="save_team">
+    {% else %}
+    <form method="post"
+          action="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}">
+    {% endif %}
       <div class="row g-3">
 
         <div class="col-md-6">
           <label class="form-label fw-semibold">Наименование команды</label>
           <input type="text" name="название" class="form-control"
-                 value="{{ команда.название or '' }}"
+                 value="{{ команда.название if команда else '' }}"
                  placeholder="Название клуба / команды">
         </div>
 
@@ -40,7 +47,8 @@
           <select name="субъект_id" class="form-select">
             <option value="">— не выбран —</option>
             {% for с in субъекты %}
-            <option value="{{ с.id }}" {{ 'selected' if команда.субъект_id == с.id }}>
+            <option value="{{ с.id }}"
+              {{ 'selected' if команда and команда.субъект_id == с.id }}>
               {{ с.название }}
             </option>
             {% endfor %}
@@ -50,7 +58,7 @@
         <div class="col-md-6">
           <label class="form-label fw-semibold">Фамилия, имя, отчество тренера-представителя</label>
           <input type="text" name="тренер_представитель" class="form-control"
-                 value="{{ команда.субъект.представитель if команда.субъект and команда.субъект.представитель else '' }}"
+                 value="{{ команда.субъект.представитель if команда and команда.субъект and команда.субъект.представитель else '' }}"
                  placeholder="Фамилия Имя Отчество">
         </div>
 
@@ -59,7 +67,8 @@
           <select name="принадлежность_к_орг" class="form-select">
             <option value="">— не указана —</option>
             {% for орг in орги %}
-            <option value="{{ орг }}" {{ 'selected' if команда.принадлежность_к_орг == орг }}>{{ орг }}</option>
+            <option value="{{ орг }}"
+              {{ 'selected' if команда and команда.принадлежность_к_орг == орг }}>{{ орг }}</option>
             {% endfor %}
           </select>
         </div>
@@ -68,7 +77,8 @@
           <label class="form-label fw-semibold">Оплата стартового взноса</label>
           <select name="оплата_взноса" class="form-select">
             {% for статус in оплата_список %}
-            <option value="{{ статус }}" {{ 'selected' if (команда.оплата_взноса or 'Ожидает оплаты') == статус }}>
+            <option value="{{ статус }}"
+              {{ 'selected' if (команда.оплата_взноса if команда else 'Ожидает оплаты') == статус }}>
               {{ статус }}
             </option>
             {% endfor %}
@@ -78,8 +88,8 @@
         <div class="col-md-3">
           <label class="form-label fw-semibold">Класс судов</label>
           <select name="класс_судна" class="form-select">
-            <option value="R4" {{ 'selected' if команда.класс_судна == 'R4' }}>R4</option>
-            <option value="R6" {{ 'selected' if команда.класс_судна == 'R6' }}>R6</option>
+            <option value="R4" {{ 'selected' if not команда or команда.класс_судна == 'R4' }}>R4</option>
+            <option value="R6" {{ 'selected' if команда and команда.класс_судна == 'R6' }}>R6</option>
           </select>
         </div>
 
@@ -88,20 +98,24 @@
           <select name="пол_возраст" class="form-select">
             <option value="">— не указан —</option>
             {% for г in возрастные_группы %}
-            <option value="{{ г }}" {{ 'selected' if команда.возрастная_группа == г }}>{{ г }}</option>
+            <option value="{{ г }}"
+              {{ 'selected' if команда and команда.возрастная_группа == г }}>{{ г }}</option>
             {% endfor %}
           </select>
         </div>
 
       </div>
       <div class="mt-3">
-        <button type="submit" class="btn btn-primary px-4">Сохранить данные команды</button>
+        <button type="submit" class="btn btn-primary px-4">
+          {{ 'Создать заявку' if not команда else 'Сохранить данные команды' }}
+        </button>
       </div>
     </form>
   </div>
 </div>
 
-{# ── Список спортсменов ── #}
+{# ── Список спортсменов (только для существующей заявки) ── #}
+{% if команда %}
 {% set мин_состав = 4 if команда.класс_судна == 'R4' else 6 %}
 <div class="card mb-4">
   <div class="card-header py-2 d-flex justify-content-between align-items-center
@@ -111,7 +125,8 @@
   </div>
 
   <div class="card-body p-0">
-    <form method="post" id="formСпортсмены" onsubmit="подготовитьЧекбоксы()">
+    <form method="post" id="formСпортсмены" onsubmit="подготовитьЧекбоксы()"
+          action="{{ url_for('команды.допуск_команда', sor_id=сор.id, id=команда.id) }}">
       <input type="hidden" name="action" value="save_athletes">
       <div class="table-responsive">
         <table class="table table-sm table-bordered mb-0" id="tableSportsmen" style="font-size:.82rem">
@@ -123,7 +138,7 @@
               <th style="min-width:130px;white-space:nowrap">Спортивная квалификация</th>
               <th style="min-width:160px">№ приказа о присвоении спортивной квалификации</th>
               <th style="min-width:130px">№ полиса о страховании</th>
-              <th style="min-width:240px">Участие в спортивных дисциплинах</th>
+              <th style="min-width:160px">Участие в спортивных дисциплинах</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -156,8 +171,8 @@
                      value="{{ с.номер_страховки or '' }}">
             </td>
             <td>
-              <div class="d-flex flex-wrap gap-2 px-1 py-1">
-                {% for дист_key, лейбл in [('спринт','Спринт'),('пс','Пар. спринт'),('слалом','Слалом'),('дг','Дл. гонка')] %}
+              <div class="d-flex flex-wrap gap-1 px-1 py-1">
+                {% for дист_key, лейбл in [('спринт','СП'),('пс','ПС'),('слалом','СЛ'),('дг','ДГ')] %}
                 <div class="form-check form-check-sm mb-0">
                   <input type="hidden" name="дист_{{ дист_key }}[]" value="{{ '1' if участие[дист_key] else '0' }}" class="hdist">
                   <input class="form-check-input cb-дист" type="checkbox"
@@ -182,6 +197,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
    class="btn btn-outline-secondary btn-sm">← Назад к списку</a>
@@ -191,7 +207,7 @@
 {% block scripts %}
 <script>
 const РАЗРЯДЫ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
-const ДИСТ    = [['спринт','Спринт'],['пс','Пар. спринт'],['слалом','Слалом'],['дг','Дл. гонка']];
+const ДИСТ    = [['спринт','СП'],['пс','ПС'],['слалом','СЛ'],['дг','ДГ']];
 
 function buildSelect(name, opts, selected='') {
   const sel = document.createElement('select');
@@ -210,7 +226,7 @@ function buildSelect(name, opts, selected='') {
 function buildДистяТD() {
   const td = document.createElement('td');
   const div = document.createElement('div');
-  div.className = 'd-flex flex-wrap gap-2 px-1 py-1';
+  div.className = 'd-flex flex-wrap gap-1 px-1 py-1';
   ДИСТ.forEach(function([key, лейбл]) {
     const wrap = document.createElement('div');
     wrap.className = 'form-check form-check-sm mb-0';
@@ -238,14 +254,13 @@ function buildДистяТD() {
 
 function добавитьСтроку() {
   const tbody = document.getElementById('tbodySportsmen');
+  if (!tbody) return;
   const tr = document.createElement('tr');
 
-  // № п/п
   const tdN = document.createElement('td');
   tdN.className = 'text-center text-muted row-num';
   tr.appendChild(tdN);
 
-  // ФИО
   const tdФИО = document.createElement('td');
   const inpФИО = document.createElement('input');
   inpФИО.type = 'text'; inpФИО.name = 'фио[]';
@@ -254,7 +269,6 @@ function добавитьСтроку() {
   tdФИО.appendChild(inpФИО);
   tr.appendChild(tdФИО);
 
-  // Дата рождения
   const tdДата = document.createElement('td');
   const inpДата = document.createElement('input');
   inpДата.type = 'date'; inpДата.name = 'дата_рождения[]';
@@ -262,12 +276,10 @@ function добавитьСтроку() {
   tdДата.appendChild(inpДата);
   tr.appendChild(tdДата);
 
-  // Разряд
   const tdРазряд = document.createElement('td');
   tdРазряд.appendChild(buildSelect('разряд[]', РАЗРЯДЫ));
   tr.appendChild(tdРазряд);
 
-  // Номер приказа
   const tdПриказ = document.createElement('td');
   const inpПриказ = document.createElement('input');
   inpПриказ.type = 'text'; inpПриказ.name = 'номер_приказа[]';
@@ -275,7 +287,6 @@ function добавитьСтроку() {
   tdПриказ.appendChild(inpПриказ);
   tr.appendChild(tdПриказ);
 
-  // Номер страховки
   const tdПолис = document.createElement('td');
   const inpПолис = document.createElement('input');
   inpПолис.type = 'text'; inpПолис.name = 'номер_страховки[]';
@@ -283,10 +294,8 @@ function добавитьСтроку() {
   tdПолис.appendChild(inpПолис);
   tr.appendChild(tdПолис);
 
-  // Дисциплины
   tr.appendChild(buildДистяТD());
 
-  // Удалить
   const tdDel = document.createElement('td');
   tdDel.className = 'text-center';
   const btn = document.createElement('button');
@@ -316,7 +325,6 @@ function обновитьНомера() {
 
 function подготовитьЧекбоксы() {
   document.querySelectorAll('#tbodySportsmen .cb-дист').forEach(cb => {
-    const key = cb.dataset['дист'];
     const hid = cb.closest('.form-check').querySelector('.hdist');
     if (hid) hid.value = cb.checked ? '1' : '0';
   });
@@ -329,6 +337,7 @@ document.addEventListener('change', function(e) {
   }
 });
 
-if (!document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
+if (document.getElementById('tbodySportsmen') &&
+    !document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
 </script>
 {% endblock %}

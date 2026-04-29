@@ -27,16 +27,37 @@ def добавить(sor_id):
     return redirect(url_for('команды.новая_заявка', sor_id=sor_id))
 
 
-@bp_команды.route('/<int:sor_id>/новая', methods=['GET'])
+@bp_команды.route('/<int:sor_id>/новая', methods=['GET', 'POST'])
 def новая_заявка(sor_id):
-    Соревнование.query.get_or_404(sor_id)
-    команда = Команда(
-        соревнование_id=sor_id,
-        нагрудный_номер=_следующий_нагрудный(sor_id),
-    )
-    db.session.add(команда)
-    db.session.commit()
-    return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=команда.id))
+    сор      = Соревнование.query.get_or_404(sor_id)
+    субъекты = Субъект.query.filter_by(соревнование_id=sor_id).order_by(Субъект.номер_делегации).all()
+    if request.method == 'POST':
+        пол_возраст = request.form.get('пол_возраст', '')
+        ж_keywords  = ('Женщины', 'Юниорки', 'Девушки')
+        команда = Команда(
+            соревнование_id      = sor_id,
+            нагрудный_номер      = _следующий_нагрудный(sor_id),
+            субъект_id           = _int_or_none(request.form.get('субъект_id')),
+            название             = request.form.get('название', '').strip(),
+            принадлежность_к_орг = request.form.get('принадлежность_к_орг', '').strip(),
+            оплата_взноса        = request.form.get('оплата_взноса', 'Ожидает оплаты'),
+            класс_судна          = request.form.get('класс_судна', 'R4'),
+            возрастная_группа    = пол_возраст,
+            пол                  = 'ж' if any(пол_возраст.startswith(k) for k in ж_keywords) else 'м',
+        )
+        тренер = request.form.get('тренер_представитель', '').strip()
+        db.session.add(команда)
+        db.session.flush()
+        if команда.субъект and тренер:
+            команда.субъект.представитель = тренер
+        db.session.commit()
+        flash('Заявка создана.', 'success')
+        return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=команда.id))
+    return render_template('команды/допуск_команда.html',
+                           сор=сор, команда=None, субъекты=субъекты,
+                           спортсмены=[],
+                           орги=ОРГИ, оплата_список=ОПЛАТА_СПИСОК,
+                           возрастные_группы=ВОЗРАСТНЫЕ_ГРУППЫ)
 
 
 @bp_команды.route('/<int:sor_id>/<int:id>/редактировать', methods=['GET', 'POST'])
@@ -68,7 +89,7 @@ def удалить(sor_id, id):
     db.session.delete(команда)
     db.session.commit()
     flash('Команда удалена.', 'warning')
-    return redirect(url_for('команды.список', sor_id=sor_id))
+    return redirect(url_for('команды.допуск', sor_id=sor_id))
 
 
 # ── Комиссия по допуску ───────────────────────────────────────────────────────
