@@ -29,30 +29,19 @@ def список(sor_id):
 
 @bp_команды.route('/<int:sor_id>/добавить', methods=['GET', 'POST'])
 def добавить(sor_id):
-    сор      = Соревнование.query.get_or_404(sor_id)
-    субъекты = Субъект.query.filter_by(соревнование_id=sor_id).order_by(Субъект.номер_делегации).all()
-    if request.method == 'POST':
-        команда = Команда(
-            соревнование_id     = sor_id,
-            субъект_id          = _int_or_none(request.form.get('субъект_id')),
-            нагрудный_номер     = int(request.form['нагрудный_номер']),
-            название            = request.form.get('название', '').strip(),
-            класс_судна         = request.form.get('класс_судна', 'R4'),
-            пол                 = request.form.get('пол', 'м'),
-            участие_спринт      = bool(request.form.get('участие_спринт')),
-            участие_пс          = bool(request.form.get('участие_пс')),
-            участие_слалом      = bool(request.form.get('участие_слалом')),
-            участие_дг          = bool(request.form.get('участие_дг')),
-            участие_многоборье  = bool(request.form.get('участие_многоборье')),
-        )
-        db.session.add(команда)
-        db.session.commit()
-        flash('Команда добавлена.', 'success')
-        return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=команда.id))
-    следующий_номер = _следующий_нагрудный(sor_id)
-    return render_template('команды/форма.html', сор=сор, команда=None,
-                           субъекты=субъекты,
-                           следующий_номер=следующий_номер)
+    return redirect(url_for('команды.новая_заявка', sor_id=sor_id))
+
+
+@bp_команды.route('/<int:sor_id>/новая', methods=['GET'])
+def новая_заявка(sor_id):
+    Соревнование.query.get_or_404(sor_id)
+    команда = Команда(
+        соревнование_id=sor_id,
+        нагрудный_номер=_следующий_нагрудный(sor_id),
+    )
+    db.session.add(команда)
+    db.session.commit()
+    return redirect(url_for('команды.допуск_команда', sor_id=sor_id, id=команда.id))
 
 
 @bp_команды.route('/<int:sor_id>/<int:id>/редактировать', methods=['GET', 'POST'])
@@ -116,6 +105,11 @@ def допуск_команда(sor_id, id):
             команда.название             = request.form.get('название', '').strip()
             команда.принадлежность_к_орг = request.form.get('принадлежность_к_орг', '').strip()
             команда.оплата_взноса        = request.form.get('оплата_взноса', 'Ожидает оплаты')
+            команда.класс_судна          = request.form.get('класс_судна', 'R4')
+            пол_возраст = request.form.get('пол_возраст', '')
+            команда.возрастная_группа    = пол_возраст
+            ж_keywords = ('Женщины', 'Юниорки', 'Девушки')
+            команда.пол = 'ж' if any(пол_возраст.startswith(k) for k in ж_keywords) else 'м'
             тренер = request.form.get('тренер_представитель', '').strip()
             if команда.субъект and тренер:
                 команда.субъект.представитель = тренер

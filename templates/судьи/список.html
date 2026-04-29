@@ -33,6 +33,22 @@
 
 {% if судьи %}
 
+<div class="row g-2 mb-3">
+  {% for val, лейбл, цвет in [
+      (стат.всего,       'Заявок',       'primary'),
+      (стат.всего,       'Участников',   'info'),
+      (стат.муж,         'Мужчин',       'secondary'),
+      (стат.жен,         'Женщин',       'danger'),
+  ] %}
+  <div class="col-auto">
+    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
+      <div class="fw-bold fs-5 text-{{ цвет }}">{{ val }}</div>
+      <div class="text-muted" style="font-size:.7rem">{{ лейбл }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
 {# ── Таблица судей ── #}
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
@@ -41,7 +57,7 @@
         <th style="width:32px">№<br>п/п</th>
         <th>Фамилия, имя, отчество</th>
         <th>Должность в судейской коллегии</th>
-        <th style="width:70px">Кат.</th>
+        <th style="min-width:120px">Квалификация спортивного судьи</th>
         <th>Субъект Российской Федерации</th>
         <th class="no-print" style="width:175px"></th>
       </tr>
@@ -54,7 +70,7 @@
         <td>{{ с.фамилия_имя_отчество }}</td>
         <td class="small">{{ с.должность or '—' }}</td>
         <td class="text-center small">{{ с.квалификация or '—' }}</td>
-        <td class="small">{{ с.субъект_рф or '—' }}</td>
+        <td class="text-center small">{{ с.субъект_рф or '—' }}</td>
         <td class="no-print">
           <div class="d-flex gap-1">
             <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"

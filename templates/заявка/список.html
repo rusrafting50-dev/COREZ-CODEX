@@ -70,7 +70,7 @@
                   <th class="text-center">Пол</th>
                   <th class="text-center">Дата рождения</th>
                   <th style="white-space:nowrap">Спортивная квалификация</th>
-                  <th>Возрастная группа</th>
+                  <th class="text-center">Возрастная группа</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,7 +83,7 @@
                   {% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% else %}—{% endif %}
                 </td>
                 <td class="text-center">{{ сп.квалификация or '—' }}</td>
-                <td>{{ сп.возрастная_группа or '—' }}</td>
+                <td class="text-center">{{ сп.возрастная_группа or '—' }}</td>
               </tr>
               {% endfor %}
               </tbody>

@@ -21,7 +21,7 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('документы.выписка_допуска', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm" target="_blank">Протокол комиссии</a>
-    <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}"
+    <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Новая заявка</a>
   </div>
 </div>
@@ -52,8 +52,8 @@
     <thead class="table-light">
       <tr>
         <th style="width:2rem"></th>
-        <th>Наименование команды</th>
         <th>Субъект Российской Федерации</th>
+        <th>Наименование команды</th>
         <th>Фамилия, имя, отчество тренера-представителя</th>
         <th>Принадлежность к организации</th>
         <th>Оплата стартового взноса</th>
@@ -72,10 +72,10 @@
                 onclick="toggleSp(this, 'sp-{{ к.id }}')">+</button>
         {% endif %}
       </td>
-      <td>
-        <span class="fw-semibold">{{ к.название or '<em class="text-muted">без названия</em>' | safe }}</span>
-      </td>
       <td class="small">{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td>
+        {{ к.название or '<em class="text-muted">без названия</em>' | safe }}
+      </td>
       <td class="small">{{ к.субъект.представитель if к.субъект and к.субъект.представитель else '—' }}</td>
       <td class="small text-center">{{ к.принадлежность_к_орг or '—' }}</td>
       <td class="text-center">
@@ -88,8 +88,8 @@
       <td class="text-center small">
         <span class="badge {{ 'bg-primary' if к.класс_судна == 'R4' else 'bg-success' }}">{{ к.класс_судна }}</span>
       </td>
-      <td class="small">
-        {{ к.пол | upper }}{% if к.возрастная_группа %}<br><span class="text-muted" style="font-size:.75rem">{{ к.возрастная_группа }}</span>{% endif %}
+      <td class="small text-center">
+        {{ к.возрастная_группа or к.пол | upper or '—' }}
       </td>
       <td class="text-end text-nowrap no-print">
         <a href="{{ url_for('команды.допуск_команда', sor_id=сор.id, id=к.id) }}"
@@ -153,7 +153,7 @@
 <div class="text-center py-5">
   <div class="display-4 text-muted mb-3">🚣</div>
   <h6 class="text-muted">Нет команд</h6>
-  <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}" class="btn btn-primary">
+  <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}" class="btn btn-primary">
     + Новая заявка
   </a>
 </div>
