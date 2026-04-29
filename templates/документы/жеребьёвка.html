@@ -27,7 +27,7 @@
 {% if not муж and not жен %}
 <div class="alert alert-warning">
   Нет команд для жеребьёвки.
-  <a href="{{ url_for('команды.список', sor_id=сор.id) }}">Добавьте команды</a>.
+  <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Добавьте команды</a>.
 </div>
 {% else %}
 

@@ -19,12 +19,7 @@ bp_команды = Blueprint('команды', __name__)
 
 @bp_команды.route('/<int:sor_id>')
 def список(sor_id):
-    сор     = Соревнование.query.get_or_404(sor_id)
-    команды = (Команда.query
-               .filter_by(соревнование_id=sor_id)
-               .order_by(Команда.нагрудный_номер)
-               .all())
-    return render_template('команды/список.html', сор=сор, команды=команды)
+    return redirect(url_for('команды.допуск', sor_id=sor_id))
 
 
 @bp_команды.route('/<int:sor_id>/добавить', methods=['GET', 'POST'])
@@ -62,7 +57,7 @@ def редактировать(sor_id, id):
         команда.участие_многоборье  = bool(request.form.get('участие_многоборье'))
         db.session.commit()
         flash('Данные сохранены.', 'success')
-        return redirect(url_for('команды.список', sor_id=sor_id))
+        return redirect(url_for('команды.допуск', sor_id=sor_id))
     return render_template('команды/форма.html', сор=сор, команда=команда,
                            субъекты=субъекты, следующий_номер=None)
 
