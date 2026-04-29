@@ -61,7 +61,7 @@
       <div class="card border-dark h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Организаторы</div>
-          <div class="mt-1">{{ значок(готов.организаторы) }}</div>
+          <div class="mt-1">{{ значок(сор.готов_организаторы) }}</div>
         </div>
       </div>
     </a>
@@ -71,7 +71,7 @@
       <div class="card border-warning h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Судейская коллегия</div>
-          <div class="mt-1">{{ значок(готов.судьи) }}</div>
+          <div class="mt-1">{{ значок(сор.готов_судьи) }}</div>
         </div>
       </div>
     </a>
@@ -81,7 +81,7 @@
       <div class="card border-secondary h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Предварительные заявки</div>
-          <div class="mt-1">{{ значок(сор.предварительные_заявки | length > 0) }}</div>
+          <div class="mt-1">{{ значок(сор.готов_заявки) }}</div>
         </div>
       </div>
     </a>
@@ -91,7 +91,7 @@
       <div class="card border-primary h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Комиссия по допуску</div>
-          <div class="mt-1">{{ значок(готов.команды) }}</div>
+          <div class="mt-1">{{ значок(сор.готов_допуск) }}</div>
         </div>
       </div>
     </a>
@@ -101,7 +101,7 @@
       <div class="card border-danger h-100 text-center">
         <div class="card-body py-2 px-1">
           <div class="small text-dark fw-semibold mt-2">Техническая комиссия</div>
-          <div class="mt-1">{{ значок(false) }}</div>
+          <div class="mt-1">{{ значок(сор.готов_тех) }}</div>
         </div>
       </div>
     </a>

@@ -98,6 +98,13 @@ class Соревнование(db.Model):
     уровень                     = db.Column(db.String(50), nullable=True)   # России, ФО, области …
     код_соревнований            = db.Column(db.String(20), nullable=True)   # ЧР, КР, ВС …
 
+    # Статус готовности разделов (ручное переключение В работе / Готово)
+    готов_организаторы  = db.Column(db.Boolean, nullable=False, default=False)
+    готов_судьи         = db.Column(db.Boolean, nullable=False, default=False)
+    готов_заявки        = db.Column(db.Boolean, nullable=False, default=False)
+    готов_допуск        = db.Column(db.Boolean, nullable=False, default=False)
+    готов_тех           = db.Column(db.Boolean, nullable=False, default=False)
+
     # Организаторы (4 строки)
     организатор_1               = db.Column(db.String(300), nullable=True)
     организатор_2               = db.Column(db.String(300), nullable=True)
@@ -853,6 +860,15 @@ def применить_миграции():
         if 'номер_страховки' not in cols:
             conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_страховки VARCHAR(100)'))
             conn.commit()
+        # соревнования: статус готовности разделов
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col in ('готов_организаторы', 'готов_судьи', 'готов_заявки',
+                    'готов_допуск', 'готов_тех'):
+            if col not in cols:
+                conn.execute(text(
+                    f"ALTER TABLE соревнования ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT 0"
+                ))
+                conn.commit()
         # тех_состав_комиссии: квалификация и субъект членов
         if inspector.has_table('тех_состав_комиссии'):
             cols = {c['name'] for c in inspector.get_columns('тех_состав_комиссии')}

@@ -9,7 +9,21 @@
   </ol>
 {% endblock %}
 
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
 {% block content %}
+
+{{ кнопка_готовности(сор.готов_заявки, 'apps') }}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -20,6 +34,14 @@
 </div>
 
 {% if заявки %}
+{# Подсчёт уникальных субъектов #}
+{% set субъ = namespace(seen=[]) %}
+{% for з in заявки %}
+  {% if з.субъект_рф and з.субъект_рф not in субъ.seen %}
+    {% set _ = субъ.seen.append(з.субъект_рф) %}
+  {% endif %}
+{% endfor %}
+
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
@@ -94,6 +116,14 @@
     {% endif %}
     {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="5" class="text-muted small ps-2">
+          Всего {{ заявки | length }} предварительных заявок, из {{ субъ.seen | length }} субъектов Российской Федерации
+        </td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 {% else %}

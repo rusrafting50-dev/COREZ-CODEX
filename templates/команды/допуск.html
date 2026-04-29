@@ -11,7 +11,21 @@
   </ol>
 {% endblock %}
 
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
 {% block content %}
+
+{{ кнопка_готовности(сор.готов_допуск, 'admit') }}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -28,24 +42,11 @@
 
 {% if команды %}
 
-{# Сводка #}
-{% set оплачено = команды | selectattr('оплата_взноса', 'eq', 'Оплачено') | list %}
-{% set с_составом = команды | selectattr('спортсмены') | list %}
-<div class="row g-2 mb-3">
-  {% for val, лейбл, цвет in [
-      (команды | length,    'всего команд',    'primary'),
-      (оплачено | length,   'оплачено',        'success'),
-      ((команды | length) - (оплачено | length), 'ожидают оплаты', 'warning'),
-      (с_составом | length, 'с составом',      'info'),
-  ] %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
-      <div class="fw-bold fs-5 text-{{ цвет }}">{{ val }}</div>
-      <div class="text-muted" style="font-size:.7rem">{{ лейбл }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
+{# Подсчёт по классу и полу #}
+{% set r4m = команды | selectattr('класс_судна','eq','R4') | selectattr('пол','eq','м') | list | length %}
+{% set r4f = команды | selectattr('класс_судна','eq','R4') | selectattr('пол','eq','ж') | list | length %}
+{% set r6m = команды | selectattr('класс_судна','eq','R6') | selectattr('пол','eq','м') | list | length %}
+{% set r6f = команды | selectattr('класс_судна','eq','R6') | selectattr('пол','eq','ж') | list | length %}
 
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
@@ -131,10 +132,10 @@
               <td>{{ с.номер_приказа or '—' }}</td>
               <td>{{ с.номер_страховки or '—' }}</td>
               <td style="white-space:nowrap">
-                {% if с.участие_спринт %}<span class="badge bg-primary" style="font-size:.65rem">Спринт</span>{% endif %}
-                {% if с.участие_пс %}<span class="badge bg-info text-dark" style="font-size:.65rem">Пар. спринт</span>{% endif %}
-                {% if с.участие_слалом %}<span class="badge bg-success" style="font-size:.65rem">Слалом</span>{% endif %}
-                {% if с.участие_дг %}<span class="badge bg-warning text-dark" style="font-size:.65rem">Дл. гонка</span>{% endif %}
+                {% if с.участие_спринт %}<span class="badge bg-primary" style="font-size:.65rem">СП</span>{% endif %}
+                {% if с.участие_пс %}<span class="badge bg-info text-dark" style="font-size:.65rem">ПС</span>{% endif %}
+                {% if с.участие_слалом %}<span class="badge bg-success" style="font-size:.65rem">СЛ</span>{% endif %}
+                {% if с.участие_дг %}<span class="badge bg-warning text-dark" style="font-size:.65rem">ДГ</span>{% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -146,6 +147,18 @@
     {% endif %}
     {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="8" class="text-muted small ps-2">
+          Всего {{ команды | length }} заявок
+          {%- if r4m %}, R4 мужчины — {{ r4m }}{% endif %}
+          {%- if r4f %}, R4 женщины — {{ r4f }}{% endif %}
+          {%- if r6m %}, R6 мужчины — {{ r6m }}{% endif %}
+          {%- if r6f %}, R6 женщины — {{ r6f }}{% endif %}
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 

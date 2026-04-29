@@ -260,6 +260,25 @@ def редактировать(id):
                            субъекты_рф=СУБЪЕКТЫ_РФ)
 
 
+_SECTION_FIELDS = {
+    'org':    'готов_организаторы',
+    'judges': 'готов_судьи',
+    'apps':   'готов_заявки',
+    'admit':  'готов_допуск',
+    'tech':   'готов_тех',
+}
+
+
+@bp_соревнование.route('/<int:id>/готовность/<string:section>', methods=['POST'])
+def переключить_готовность(id, section):
+    сор = Соревнование.query.get_or_404(id)
+    поле = _SECTION_FIELDS.get(section)
+    if поле:
+        setattr(сор, поле, not getattr(сор, поле, False))
+        db.session.commit()
+    return redirect(request.referrer or url_for('соревнование.карточка', id=id))
+
+
 @bp_соревнование.route('/<int:id>/организаторы', methods=['GET', 'POST'])
 def организаторы(id):
     сор = Соревнование.query.get_or_404(id)

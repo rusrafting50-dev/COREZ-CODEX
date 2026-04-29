@@ -11,7 +11,21 @@
   </ol>
 {% endblock %}
 
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
 {% block content %}
+
+{{ кнопка_готовности(сор.готов_судьи, 'judges') }}
 
 {# ── Заголовок ── #}
 <div class="text-center mb-3">
@@ -25,29 +39,13 @@
     <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm" target="_blank">Справка о составе</a>
     <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Список Минспорта</a>
+       class="btn btn-outline-secondary btn-sm" target="_blank">Список судей</a>
     <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Добавить судью</a>
   </div>
 </div>
 
 {% if судьи %}
-
-<div class="row g-2 mb-3">
-  {% for val, лейбл, цвет in [
-      (стат.всего,       'Заявок',       'primary'),
-      (стат.всего,       'Участников',   'info'),
-      (стат.муж,         'Мужчин',       'secondary'),
-      (стат.жен,         'Женщин',       'danger'),
-  ] %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
-      <div class="fw-bold fs-5 text-{{ цвет }}">{{ val }}</div>
-      <div class="text-muted" style="font-size:.7rem">{{ лейбл }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
 
 {# ── Таблица судей ── #}
 <div class="table-responsive">
@@ -106,22 +104,6 @@
       </tr>
     </tfoot>
   </table>
-</div>
-
-{# ── Ссылки на документы ── #}
-<div class="d-flex gap-3 mt-2 no-print flex-wrap">
-  <a href="{{ url_for('судьи.гск', sor_id=сор.id) }}" target="_blank"
-     class="text-decoration-none small">
-    Открыть состав ГСК →
-  </a>
-  <a href="{{ url_for('судьи.справка', sor_id=сор.id) }}" target="_blank"
-     class="text-decoration-none small">
-    Открыть справку о составе коллегии →
-  </a>
-  <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}" target="_blank"
-     class="text-decoration-none small">
-    Открыть список по форме Минспорта →
-  </a>
 </div>
 
 {% else %}

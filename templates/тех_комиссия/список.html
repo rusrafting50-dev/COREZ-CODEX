@@ -11,7 +11,21 @@
   </ol>
 {% endblock %}
 
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
 {% block content %}
+
+{{ кнопка_готовности(сор.готов_тех, 'tech') }}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -164,6 +178,20 @@
     {% endif %}
     {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      {% set субъ = namespace(seen=[]) %}
+      {% for п in проверки %}
+        {% if п.субъект_рф and п.субъект_рф not in субъ.seen %}
+          {% set _ = субъ.seen.append(п.субъект_рф) %}
+        {% endif %}
+      {% endfor %}
+      <tr>
+        <td colspan="12" class="text-muted small ps-2">
+          Всего проверено {{ проверки | length }} команд, из {{ субъ.seen | length }} субъектов Российской Федерации
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
