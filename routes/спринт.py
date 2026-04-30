@@ -163,29 +163,7 @@ def старт(sor_id):
 
 @bp_спринт.route('/<int:sor_id>/финиш', methods=['GET', 'POST'])
 def финиш(sor_id):
-    сор = Соревнование.query.get_or_404(sor_id)
-    if request.method == 'POST':
-        допустимые = {s for s, _ in СТАТУСЫ_СПИСОК}
-        for пол in ('м', 'ж'):
-            for к in _по_старту(sor_id, пол):
-                рез = _получить_или_создать(к, sor_id)
-                рез.время_финиша = parse_time(request.form.get(f'вф_{к.id}', ''))
-                рез.штраф_ф50 = _int0(request.form.get(f'ф50_{к.id}'))
-                ст = request.form.get(f'ст_{к.id}', СТАТУС_ФИНИШ)
-                if ст in допустимые:
-                    рез.статус = ст
-        db.session.commit()
-        flash('Протокол финиша сохранён.', 'success')
-        return redirect(url_for('спринт.финиш', sor_id=sor_id))
-
-    муж = _по_старту(sor_id, 'м')
-    жен = _по_старту(sor_id, 'ж')
-    return render_template('спринт/финиш.html',
-                           сор=сор, муж=муж, жен=жен,
-                           format_time=format_time,
-                           СТАТУСЫ=СТАТУСЫ_СПИСОК,
-                           ЦВЕТ=СТАТУС_ЦВЕТ,
-                           СТАТУС_ФИНИШ=СТАТУС_ФИНИШ)
+    return redirect(url_for('спринт.результаты', sor_id=sor_id))
 
 
 # ── Результаты ────────────────────────────────────────────────────────────────

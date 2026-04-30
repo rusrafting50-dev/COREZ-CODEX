@@ -31,8 +31,6 @@
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">← Старт</a>
-    <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Финиш</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
@@ -50,9 +48,9 @@
 {% endwith %}
 
 {% macro таблица_результатов(рез, без, разряды, пол_заг, цвет) %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ пол_заг }} ({{ рез | length + без | length }})</h6>
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ пол_заг }}</h6>
 {% if not рез and not без %}
-<div class="text-muted small mb-3">Нет данных</div>
+<div class="text-muted mb-3" style="font-size:.82rem">Нет данных</div>
 {% else %}
 <div class="table-responsive mb-2">
   <table class="table table-sm table-hover align-middle" style="font-size:.82rem">
@@ -63,14 +61,14 @@
         <th>Команда</th>
         <th style="min-width:80px">Субъект</th>
         <th style="width:110px">Время старта</th>
-        <th style="width:42px" class="text-center" title="Штраф +10 сек (старт)">+10с</th>
-        <th style="width:42px" class="text-center" title="Штраф +50 сек (старт)">+50с</th>
+        <th style="width:55px" class="text-center" title="Штраф +10 сек (старт)">+10с</th>
+        <th style="width:55px" class="text-center" title="Штраф +50 сек (старт)">+50с</th>
         <th style="width:32px" class="text-center" title="Дисквалификация">ДК</th>
         <th style="width:110px">Время финиша</th>
-        <th style="width:42px" class="text-center" title="Штраф +50 сек (финиш)">+50с</th>
-        <th style="width:65px" class="text-center font-monospace">Время</th>
+        <th style="width:55px" class="text-center" title="Штраф +50 сек (финиш)">+50с</th>
+        <th style="width:65px" class="text-center">Время</th>
         <th style="width:55px" class="text-center">Штраф</th>
-        <th style="width:75px" class="text-center font-monospace fw-bold">Результат</th>
+        <th style="width:75px" class="text-center">Результат</th>
         <th style="width:48px" class="text-center">Разряд</th>
         <th style="width:42px" class="text-center">Очки</th>
         <th style="width:155px">Статус</th>
@@ -88,23 +86,23 @@
         </td>
         <td class="text-center">{{ к.нагрудный_номер }}</td>
         <td>{{ к.название or '—' }}</td>
-        <td class="small text-muted">{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
+        <td>{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
         <td>
           <input type="text" name="вс_{{ р.команда_id }}"
-                 class="form-control form-control-sm время-ввод font-monospace"
+                 class="form-control form-control-sm font-monospace"
                  value="{{ format_time(р.время_старта) }}"
                  placeholder="00:00:00.00" autocomplete="off"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
           <input type="number" name="с10_{{ р.команда_id }}"
-                 class="form-control form-control-sm text-center штраф-ввод"
+                 class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.штраф_с10 or 0 }}" min="0" max="9"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
           <input type="number" name="с50_{{ р.команда_id }}"
-                 class="form-control form-control-sm text-center штраф-ввод"
+                 class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.штраф_с50 or 0 }}" min="0" max="9"
                  {% if дк %}disabled{% endif %}>
         </td>
@@ -115,29 +113,27 @@
         </td>
         <td>
           <input type="text" name="вф_{{ р.команда_id }}"
-                 class="form-control form-control-sm время-ввод font-monospace"
+                 class="form-control form-control-sm font-monospace"
                  value="{{ format_time(р.время_финиша) }}"
                  placeholder="00:00:00.00" autocomplete="off">
         </td>
         <td class="text-center">
           <input type="number" name="ф50_{{ р.команда_id }}"
-                 class="form-control form-control-sm text-center"
+                 class="form-control form-control-sm text-center font-monospace"
                  value="{{ р.штраф_ф50 or 0 }}" min="0" max="9">
         </td>
-        <td class="text-center small font-monospace">
-          {{ format_dur(р.время_прохождения) }}
-        </td>
-        <td class="text-center small {{ 'text-danger' if р.штрафное_время else '' }}">
+        <td class="text-center font-monospace">{{ format_dur(р.время_прохождения) }}</td>
+        <td class="text-center {{ 'text-danger' if р.штрафное_время else '' }}">
           {{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '—' }}
         </td>
         <td class="text-center fw-bold font-monospace">
           {% if р.статус == 'ПМ' %}<span class="text-muted">ПМ</span>
           {% else %}{{ format_dur(р.результат) }}{% endif %}
         </td>
-        <td class="text-center small">{{ разряды.get(р.команда_id, '—') }}</td>
-        <td class="text-center small">{{ р.очки | int if р.очки else '—' }}</td>
+        <td class="text-center">{{ разряды.get(р.команда_id, '—') }}</td>
+        <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
         <td>
-          <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm">
+          <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace">
             {% for код, метка in СТАТУСЫ %}
             <option value="{{ код }}" {{ 'selected' if р.статус == код }}>{{ метка }}</option>
             {% endfor %}
@@ -193,10 +189,23 @@ document.querySelectorAll('.время-ввод').forEach(inp => {
     });
 });
 
+document.querySelectorAll('[name^="вс_"], [name^="вф_"]').forEach(inp => {
+    inp.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '').slice(0, 8);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            if (i === 2 || i === 4) out += ':';
+            else if (i === 6) out += '.';
+            out += raw[i];
+        }
+        this.value = out;
+    });
+});
+
 document.querySelectorAll('.дк-чек').forEach(cb => {
     cb.addEventListener('change', function () {
         const row = this.closest('tr');
-        row.querySelectorAll('.время-ввод, .штраф-ввод').forEach(el => {
+        row.querySelectorAll('.штраф-ввод, [name^="вс_"]').forEach(el => {
             el.disabled = this.checked;
             if (this.checked) el.value = el.type === 'text' ? '' : '0';
         });

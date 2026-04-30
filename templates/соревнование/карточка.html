@@ -132,7 +132,6 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
-          <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Финиш</a>
           <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
@@ -219,7 +218,6 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
-          <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-primary btn-sm">Финиш</a>
           <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-primary btn-sm">Результаты</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>

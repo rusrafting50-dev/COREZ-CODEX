@@ -153,10 +153,10 @@ def жеребьёвка_сохранить(sor_id):
             рез.статус = СТАТУС_ДК
         else:
             рез.время_старта = _parse_time(request.form.get(f'вс_{kid}', ''))
-            рез.штраф_с10 = _int0(request.form.get(f'с10_{kid}', 0))
-            рез.штраф_с50 = _int0(request.form.get(f'с50_{kid}', 0))
-            if рез.статус == СТАТУС_ДК:
-                рез.статус = СТАТУС_ФИНИШ
+            if f'с10_{kid}' in request.form:
+                рез.штраф_с10 = _int0(request.form.get(f'с10_{kid}'))
+            if f'с50_{kid}' in request.form:
+                рез.штраф_с50 = _int0(request.form.get(f'с50_{kid}'))
 
     try:
         db.session.commit()
