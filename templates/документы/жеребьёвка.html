@@ -13,10 +13,9 @@
 
 {% block content %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
 {% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% set заг_м = 'Спринт — ' + _кл + ', мужчины' + _вгр %}
-{% set заг_ж = 'Спринт — ' + _кл + ', женщины' + _вгр %}
+{% set есть_р4 = (муж_р4 | length + жен_р4 | length) > 0 %}
+{% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -24,104 +23,90 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Протокол жеребьёвки</a>
     <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
        class="btn btn-outline-warning btn-sm" target="_blank">Протокол выдачи нагрудных номеров</a>
-    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Стартовый протокол</a>
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Жеребьёвка и стартовый протокол</h5></div>
 
-{% if not муж and not жен %}
+{% if not есть_р4 and not есть_р6 %}
 <div class="alert alert-warning">
   Нет команд для жеребьёвки.
   <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Добавьте команды</a>.
 </div>
 {% else %}
 
-{# ── Мужские экипажи ── #}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <span class="fw-semibold">{{ заг_м }} <span class="badge bg-secondary">{{ муж | length }}</span></span>
-  {% if муж %}
-  <button type="button" class="btn btn-sm btn-outline-primary"
-          onclick="перетасовать(this)">🎲 Перетасовать</button>
-  {% endif %}
+{# ── Макрос одной секции ── #}
+{% macro секция(команды, список_id, заг, цвет) %}
+<div class="d-flex justify-content-between align-items-center mb-1">
+  <span class="fw-semibold">{{ заг }}</span>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    {% if команды %}
+    <button type="button" class="btn btn-sm btn-outline-{{ цвет }}"
+            onclick="перетасовать('{{ список_id }}')">🎲 Перетасовать</button>
+    {% endif %}
+    <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Протокол жеребьёвки</a>
+    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm" target="_blank">Стартовый протокол</a>
+  </div>
 </div>
 <div class="table-responsive mb-4">
   <table class="table table-sm table-hover table-bordered align-middle" style="font-size:.9rem">
     <thead class="table-light">
       <tr>
         <th>Команда</th>
-        <th class="text-center" style="width:105px">Нагрудный номер</th>
+        <th class="text-center" style="width:115px">Нагрудный номер</th>
         <th>Субъект Российской Федерации</th>
         <th class="text-center" style="width:130px">Порядковый номер согласно жеребьёвке</th>
-        <th class="text-center" style="width:110px">Время старта</th>
+        <th class="text-center" style="width:120px">Время старта</th>
       </tr>
     </thead>
-    <tbody id="список-м" class="sortable-list">
-      {% for к in муж %}
+    <tbody id="{{ список_id }}" class="sortable-list">
+      {% for к in команды %}
       <tr class="drag-item" data-id="{{ к.id }}" draggable="true">
         <td>
           <span class="text-muted me-1" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
           {{ к.название or '—' }}
         </td>
-        <td class="text-center">{{ к.нагрудный_номер }}</td>
-        <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-        <td class="text-center num-старт">{{ к.стартовый_номер_спринт or loop.index }}</td>
-        <td></td>
-      </tr>
-      {% else %}
-      <tr><td colspan="5" class="text-center text-muted py-3">Нет мужских экипажей</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-{# ── Женские экипажи ── #}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <span class="fw-semibold">{{ заг_ж }} <span class="badge bg-secondary">{{ жен | length }}</span></span>
-  {% if жен %}
-  <button type="button" class="btn btn-sm btn-outline-danger"
-          onclick="перетасовать(this)">🎲 Перетасовать</button>
-  {% endif %}
-</div>
-<div class="table-responsive mb-4">
-  <table class="table table-sm table-hover table-bordered align-middle" style="font-size:.9rem">
-    <thead class="table-light">
-      <tr>
-        <th>Команда</th>
-        <th class="text-center" style="width:105px">Нагрудный номер</th>
-        <th>Субъект Российской Федерации</th>
-        <th class="text-center" style="width:130px">Порядковый номер согласно жеребьёвке</th>
-        <th class="text-center" style="width:110px">Время старта</th>
-      </tr>
-    </thead>
-    <tbody id="список-ж" class="sortable-list">
-      {% for к in жен %}
-      <tr class="drag-item" data-id="{{ к.id }}" draggable="true">
-        <td>
-          <span class="text-muted me-1" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
-          {{ к.название or '—' }}
+        <td class="text-center">
+          <input type="number" name="номер_{{ к.id }}" value="{{ к.нагрудный_номер }}"
+                 min="1" class="form-control form-control-sm text-center"
+                 style="width:70px;margin:auto">
         </td>
-        <td class="text-center">{{ к.нагрудный_номер }}</td>
         <td>{{ к.субъект.название if к.субъект else '—' }}</td>
         <td class="text-center num-старт">{{ к.стартовый_номер_спринт or loop.index }}</td>
-        <td></td>
+        <td class="text-center">
+          <input type="text" name="время_{{ к.id }}"
+                 value="{{ к.время_старта_спринт_план or '' }}"
+                 placeholder="ЧЧ:ММ:СС"
+                 class="form-control form-control-sm text-center время-ввод"
+                 style="width:95px;margin:auto" autocomplete="off">
+        </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="text-center text-muted py-3">Нет женских экипажей</td></tr>
+      <tr><td colspan="5" class="text-center text-muted py-3">Нет экипажей</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% endmacro %}
 
-{# ── Форма сохранения ── #}
 <form id="формаСохранения" method="post"
       action="{{ url_for('документы.жеребьёвка_сохранить', sor_id=сор.id) }}">
   <div id="hiddenInputs"></div>
-  <div class="d-flex align-items-center gap-3">
+
+{% if есть_р4 %}
+{{ секция(муж_р4, 'список-м-р4', 'Спринт — R4, мужчины' + _вгр, 'primary') }}
+{{ секция(жен_р4, 'список-ж-р4', 'Спринт — R4, женщины' + _вгр, 'danger') }}
+{% endif %}
+
+{% if есть_р6 %}
+{{ секция(муж_р6, 'список-м-р6', 'Спринт — R6, мужчины' + _вгр, 'primary') }}
+{{ секция(жен_р6, 'список-ж-р6', 'Спринт — R6, женщины' + _вгр, 'danger') }}
+{% endif %}
+
+  <div class="d-flex align-items-center gap-3 mt-2">
     <button type="submit" class="btn btn-success">Сохранить порядок</button>
     <span class="text-muted small">Перетащите строки для ручной корректировки</span>
   </div>
@@ -130,8 +115,6 @@
 {% endif %}
 
 <script>
-const urlСлучайная = "{{ url_for('документы.жеребьёвка_случайная', sor_id=сор.id) }}";
-
 // ── Drag-and-drop ─────────────────────────────────────────────────────────
 
 document.querySelectorAll('.sortable-list').forEach(list => {
@@ -168,44 +151,18 @@ function updateNumbers(list) {
     });
 }
 
-// ── Случайная перетасовка ─────────────────────────────────────────────────
+// ── Случайная перетасовка (клиентская) ────────────────────────────────────
 
-async function перетасовать(btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '⌛';
-    try {
-        const resp = await fetch(urlСлучайная, {method: 'POST'});
-        const data = await resp.json();
-        if (data.ok) {
-            rebuildList('список-м', data.муж);
-            rebuildList('список-ж', data.жен);
-        }
-    } catch (err) {
-        alert('Ошибка при перетасовке: ' + err);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = orig;
-    }
-}
-
-function rebuildList(listId, данные) {
+function перетасовать(listId) {
     const tbody = document.getElementById(listId);
     if (!tbody) return;
-    tbody.querySelectorAll('.drag-item').forEach(el => el.remove());
-    данные.forEach((к, i) => {
-        const tr = document.createElement('tr');
-        tr.className = 'drag-item';
-        tr.dataset.id = к.id;
-        tr.draggable = true;
-        tr.innerHTML =
-            `<td><span class="text-muted me-1" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>${к.название || '—'}</td>` +
-            `<td class="text-center">${к.нагрудный}</td>` +
-            `<td>${к.субъект || ''}</td>` +
-            `<td class="text-center num-старт">${i + 1}</td>` +
-            `<td></td>`;
-        tbody.appendChild(tr);
-    });
+    const rows = [...tbody.querySelectorAll('.drag-item')];
+    for (let i = rows.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        tbody.insertBefore(rows[j], rows[i]);
+        [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+    updateNumbers(tbody);
 }
 
 // ── Подготовка формы сохранения ───────────────────────────────────────────
@@ -213,14 +170,35 @@ function rebuildList(listId, данные) {
 document.getElementById('формаСохранения').addEventListener('submit', () => {
     const container = document.getElementById('hiddenInputs');
     container.innerHTML = '';
-    [['список-м', 'порядок_м'], ['список-ж', 'порядок_ж']].forEach(([listId, name]) => {
-        document.querySelectorAll(`#${listId} .drag-item`).forEach(item => {
+    [
+        ['список-м-р4', 'порядок_м_р4'],
+        ['список-ж-р4', 'порядок_ж_р4'],
+        ['список-м-р6', 'порядок_м_р6'],
+        ['список-ж-р6', 'порядок_ж_р6'],
+    ].forEach(([listId, name]) => {
+        const tbody = document.getElementById(listId);
+        if (!tbody) return;
+        tbody.querySelectorAll('.drag-item').forEach(item => {
             const inp = document.createElement('input');
             inp.type = 'hidden';
             inp.name = name;
             inp.value = item.dataset.id;
             container.appendChild(inp);
         });
+    });
+});
+
+// ── Автоформат времени ────────────────────────────────────────────────────
+
+document.querySelectorAll('.время-ввод').forEach(inp => {
+    inp.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '').slice(0, 6);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            if (i === 2 || i === 4) out += ':';
+            out += raw[i];
+        }
+        this.value = out;
     });
 });
 </script>

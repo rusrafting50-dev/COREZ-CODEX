@@ -13,10 +13,12 @@
 
 {% block content %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
 {% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% set заг_м = 'Спринт — ' + _кл + ', мужчины' + _вгр %}
-{% set заг_ж = 'Спринт — ' + _кл + ', женщины' + _вгр %}
+{% set муж_р4 = муж | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set жен_р4 = жен | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set муж_р6 = муж | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set жен_р6 = жен | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -54,9 +56,11 @@
 </div>
 
 <form method="post" id="formСтарт">
-{% for пол, команды, цвет, заг in [('м', муж, 'primary', заг_м), ('ж', жен, 'danger', заг_ж)] %}
+{% set _гр = [('м', муж_р4, 'primary', 'R4'), ('ж', жен_р4, 'danger', 'R4')] %}
+{% if есть_р6 %}{% set _гр = _гр + [('м', муж_р6, 'primary', 'R6'), ('ж', жен_р6, 'danger', 'R6')] %}{% endif %}
+{% for пол, команды, цвет, кл in _гр %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">Спринт — {{ кл }}, {{ 'мужчины' if пол == 'м' else 'женщины' }}{{ _вгр }} ({{ команды | length }})</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">

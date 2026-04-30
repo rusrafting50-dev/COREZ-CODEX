@@ -13,10 +13,12 @@
 
 {% block content %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
 {% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% set заг_м = 'Слалом — ' + _кл + ', мужчины' + _вгр %}
-{% set заг_ж = 'Слалом — ' + _кл + ', женщины' + _вгр %}
+{% set муж_р4 = муж | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set жен_р4 = жен | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set муж_р6 = муж | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set жен_р6 = жен | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -143,8 +145,12 @@
 <div class="alert alert-warning">Нет команд.</div>
 {% else %}
 <form method="post">
-{{ таблица_финиша(муж, 'primary', заг_м) }}
-{{ таблица_финиша(жен, 'danger',  заг_ж) }}
+{{ таблица_финиша(муж_р4, 'primary', 'Слалом — R4, мужчины' + _вгр) }}
+{{ таблица_финиша(жен_р4, 'danger',  'Слалом — R4, женщины' + _вгр) }}
+{% if есть_р6 %}
+{{ таблица_финиша(муж_р6, 'primary', 'Слалом — R6, мужчины' + _вгр) }}
+{{ таблица_финиша(жен_р6, 'danger',  'Слалом — R6, женщины' + _вгр) }}
+{% endif %}
 <button type="submit" class="btn btn-success px-4">Сохранить протокол финиша</button>
 </form>
 {% endif %}

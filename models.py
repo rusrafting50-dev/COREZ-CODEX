@@ -249,8 +249,9 @@ class Команда(db.Model):
     принадлежность_к_орг    = db.Column(db.String(100), nullable=True)
     оплата_взноса           = db.Column(db.String(50),  nullable=True, default='Ожидает оплаты')
 
-    # Номер жеребьёвки для спринта (стартовый порядок)
+    # Номер жеребьёвки для спринта (стартовый порядок) и плановое время старта
     стартовый_номер_спринт  = db.Column(db.Integer, nullable=True)
+    время_старта_спринт_план = db.Column(db.String(20), nullable=True)
 
     # Связи
     соревнование    = db.relationship('Соревнование',  back_populates='команды')
@@ -844,6 +845,11 @@ def применить_миграции():
             if 'возрастная_группа' not in cols:
                 conn.execute(text('ALTER TABLE спортсмены_заявки ADD COLUMN возрастная_группа VARCHAR(50)'))
                 conn.commit()
+        # команды: время_старта_спринт_план
+        cols = {c['name'] for c in inspector.get_columns('команды')}
+        if 'время_старта_спринт_план' not in cols:
+            conn.execute(text("ALTER TABLE команды ADD COLUMN время_старта_спринт_план VARCHAR(20)"))
+            conn.commit()
         # команды: принадлежность_к_орг, оплата_взноса
         cols = {c['name'] for c in inspector.get_columns('команды')}
         if 'принадлежность_к_орг' not in cols:

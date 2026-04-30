@@ -41,49 +41,68 @@ def _parse_взнос(val):
 def жеребьёвка(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     команды = _команды_сор(sor_id)
-    муж = sorted([к for к in команды if к.пол == 'м'],
-                 key=lambda к: (к.стартовый_номер_спринт or 9999, к.нагрудный_номер))
-    жен = sorted([к for к in команды if к.пол == 'ж'],
-                 key=lambda к: (к.стартовый_номер_спринт or 9999, к.нагрудный_номер))
-    return render_template('документы/жеребьёвка.html', сор=сор, муж=муж, жен=жен)
+
+    def сорт(список):
+        return sorted(список, key=lambda к: (к.стартовый_номер_спринт or 9999, к.нагрудный_номер))
+
+    муж_р4 = сорт([к for к in команды if к.пол == 'м' and к.класс_судна == 'R4'])
+    жен_р4 = сорт([к for к in команды if к.пол == 'ж' and к.класс_судна == 'R4'])
+    муж_р6 = сорт([к for к in команды if к.пол == 'м' and к.класс_судна == 'R6'])
+    жен_р6 = сорт([к for к in команды if к.пол == 'ж' and к.класс_судна == 'R6'])
+    return render_template('документы/жеребьёвка.html', сор=сор,
+                           муж_р4=муж_р4, жен_р4=жен_р4,
+                           муж_р6=муж_р6, жен_р6=жен_р6)
 
 
 @bp_документы.route('/<int:sor_id>/жеребьёвка/случайная', methods=['POST'])
 def жеребьёвка_случайная(sor_id):
-    """AJAX: случайная перетасовка стартовых номеров для М и Ж отдельно."""
-    сор = Соревнование.query.get_or_404(sor_id)
-    команды = _команды_сор(sor_id)
-    муж = [к for к in команды if к.пол == 'м']
-    жен = [к for к in команды if к.пол == 'ж']
-    random.shuffle(муж)
-    random.shuffle(жен)
-    for i, к in enumerate(муж, 1):
-        к.стартовый_номер_спринт = i
-    for i, к in enumerate(жен, 1):
-        к.стартовый_номер_спринт = i
-    db.session.commit()
-
-    def сер(список):
-        return [{'id': к.id,
-                 'нагрудный': к.нагрудный_номер,
-                 'название': к.название or '',
-                 'субъект': к.субъект.название if к.субъект else '',
-                 'стартовый': к.стартовый_номер_спринт} for к in список]
-
-    return jsonify({'ok': True, 'муж': сер(муж), 'жен': сер(жен)})
+    """AJAX: больше не используется (shuffle теперь на клиенте), сохранён для совместимости."""
+    return jsonify({'ok': True})
 
 
 @bp_документы.route('/<int:sor_id>/жеребьёвка/сохранить', methods=['POST'])
 def жеребьёвка_сохранить(sor_id):
-    """Сохранить порядок жеребьёвки после ручной корректировки."""
+    """Сохранить порядок жеребьёвки + нагрудные номера + плановые времена старта."""
     сор = Соревнование.query.get_or_404(sor_id)
-    for key in ('порядок_м', 'порядок_ж'):
-        for i, kid in enumerate(request.form.getlist(key), 1):
-            к = Команда.query.get(int(kid))
-            if к and к.соревнование_id == sor_id:
-                к.стартовый_номер_спринт = i
-    db.session.commit()
-    flash('Порядок жеребьёвки сохранён.', 'success')
+
+    # Порядок жеребьёвки по классам и полу
+    for key in ('порядок_м_р4', 'порядок_ж_р4', 'порядок_м_р6', 'порядок_ж_р6'):
+        for i, kid_str in enumerate(request.form.getlist(key), 1):
+            try:
+                к = Команда.query.get(int(kid_str))
+                if к and к.соревнование_id == sor_id:
+                    к.стартовый_номер_спринт = i
+            except (ValueError, TypeError):
+                pass
+
+    # Нагрудные номера
+    for key, val in request.form.items():
+        if key.startswith('номер_'):
+            try:
+                kid = int(key[len('номер_'):])
+                к = Команда.query.get(kid)
+                if к and к.соревнование_id == sor_id and val.strip():
+                    к.нагрудный_номер = int(val)
+            except (ValueError, TypeError):
+                pass
+
+    # Плановые времена старта
+    for key, val in request.form.items():
+        if key.startswith('время_'):
+            try:
+                kid = int(key[len('время_'):])
+                к = Команда.query.get(kid)
+                if к and к.соревнование_id == sor_id:
+                    к.время_старта_спринт_план = val.strip() or None
+            except (ValueError, TypeError):
+                pass
+
+    try:
+        db.session.commit()
+        flash('Порядок жеребьёвки сохранён.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Ошибка при сохранении: возможно, дублирующийся нагрудный номер.', 'danger')
     return redirect(url_for('документы.жеребьёвка', sor_id=sor_id))
 
 
