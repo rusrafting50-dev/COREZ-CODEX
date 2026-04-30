@@ -21,8 +21,8 @@
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Спринт — Стартовый протокол</h5>
+<div class="d-flex justify-content-between align-items-center mb-1">
+  <h5 class="mb-0">Спринт</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Протокол финиша →</a>
@@ -32,6 +32,7 @@
        class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% for cat, msg in messages %}
