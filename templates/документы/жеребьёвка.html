@@ -60,11 +60,16 @@
         <th>Субъект Российской Федерации</th>
         <th class="text-center" style="width:130px">Порядковый номер согласно жеребьёвке</th>
         <th class="text-center" style="width:120px">Время старта</th>
+        <th style="width:52px" class="text-center" title="Штраф +10 сек (кол-во)">+10с</th>
+        <th style="width:52px" class="text-center" title="Штраф +50 сек (кол-во)">+50с</th>
+        <th style="width:38px" class="text-center" title="Дисквалификация">ДК</th>
       </tr>
     </thead>
     <tbody id="{{ список_id }}" class="sortable-list">
       {% for к in команды %}
-      <tr class="drag-item" data-id="{{ к.id }}" draggable="true">
+      {% set р = к.результат_спринт %}
+      {% set дк = р and р.статус == СТАТУС_ДК %}
+      <tr class="drag-item {{ 'table-danger' if дк }}" data-id="{{ к.id }}" draggable="true">
         <td>
           <span class="text-muted me-1" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
           {{ к.название or '—' }}
@@ -72,20 +77,41 @@
         <td class="text-center">
           <input type="number" name="номер_{{ к.id }}" value="{{ к.нагрудный_номер }}"
                  min="1" class="form-control form-control-sm text-center"
-                 style="width:70px;margin:auto">
+                 style="width:70px;margin:auto"
+                 {% if дк %}disabled{% endif %}>
         </td>
         <td>{{ к.субъект.название if к.субъект else '—' }}</td>
         <td class="text-center num-старт">{{ к.стартовый_номер_спринт or loop.index }}</td>
         <td class="text-center">
-          <input type="text" name="время_{{ к.id }}"
-                 value="{{ к.время_старта_спринт_план or '' }}"
-                 placeholder="ЧЧ:ММ:СС"
-                 class="form-control form-control-sm text-center время-ввод"
-                 style="width:95px;margin:auto" autocomplete="off">
+          <input type="text" name="вс_{{ к.id }}"
+                 value="{{ format_time(р.время_старта) if р else '' }}"
+                 placeholder="00:00:00.00"
+                 class="form-control form-control-sm text-center время-ввод font-monospace"
+                 style="width:105px;margin:auto" autocomplete="off"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="number" name="с10_{{ к.id }}"
+                 class="form-control form-control-sm text-center штраф-ввод"
+                 value="{{ р.штраф_с10 if р else 0 }}"
+                 min="0" max="9"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="number" name="с50_{{ к.id }}"
+                 class="form-control form-control-sm text-center штраф-ввод"
+                 value="{{ р.штраф_с50 if р else 0 }}"
+                 min="0" max="9"
+                 {% if дк %}disabled{% endif %}>
+        </td>
+        <td class="text-center">
+          <input type="checkbox" name="дк_{{ к.id }}" value="1"
+                 class="form-check-input дк-чек"
+                 {% if дк %}checked{% endif %}>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="text-center text-muted py-3">Нет экипажей</td></tr>
+      <tr><td colspan="8" class="text-center text-muted py-3">Нет экипажей</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -188,17 +214,33 @@ document.getElementById('формаСохранения').addEventListener('subm
     });
 });
 
-// ── Автоформат времени ────────────────────────────────────────────────────
+// ── Автоформат времени ЧЧ:ММ:СС.сс ──────────────────────────────────────
 
 document.querySelectorAll('.время-ввод').forEach(inp => {
     inp.addEventListener('input', function () {
-        const raw = this.value.replace(/\D/g, '').slice(0, 6);
+        const raw = this.value.replace(/\D/g, '').slice(0, 8);
         let out = '';
         for (let i = 0; i < raw.length; i++) {
             if (i === 2 || i === 4) out += ':';
+            else if (i === 6) out += '.';
             out += raw[i];
         }
         this.value = out;
+    });
+});
+
+// ── ДК checkbox: блокировка строки ───────────────────────────────────────
+
+document.querySelectorAll('.дк-чек').forEach(cb => {
+    cb.addEventListener('change', function () {
+        const row = this.closest('tr');
+        row.querySelectorAll('.время-ввод, .штраф-ввод').forEach(el => {
+            el.disabled = this.checked;
+            if (this.checked) el.value = el.type === 'text' ? '' : '0';
+        });
+        const numInput = row.querySelector('input[type="number"][name^="номер_"]');
+        if (numInput) numInput.disabled = this.checked;
+        row.classList.toggle('table-danger', this.checked);
     });
 });
 </script>

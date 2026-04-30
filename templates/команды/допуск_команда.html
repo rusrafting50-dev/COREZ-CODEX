@@ -197,6 +197,24 @@
     </form>
   </div>
 </div>
+{# ── Поиск спортсмена в базе ── #}
+<div class="card mb-4 border-primary">
+  <div class="card-header fw-semibold py-2 bg-primary text-white">
+    Поиск спортсмена в базе прошлых соревнований
+  </div>
+  <div class="card-body">
+    <div class="position-relative">
+      <input type="text" id="поискСпортФИО" class="form-control"
+             placeholder="Начните вводить фамилию…" autocomplete="off">
+      <div id="поискСпортРезультаты"
+           class="position-absolute w-100 bg-white border rounded shadow-sm z-3"
+           style="top:100%;max-height:300px;overflow-y:auto;display:none"></div>
+    </div>
+    <div class="form-text">
+      Выберите спортсмена из базы — новая строка добавится в таблицу с заполненными данными.
+    </div>
+  </div>
+</div>
 {% endif %}
 
 <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
@@ -339,5 +357,54 @@ document.addEventListener('change', function(e) {
 
 if (document.getElementById('tbodySportsmen') &&
     !document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
+
+// ── Поиск спортсмена в базе ──────────────────────────────────────────────
+const поискСпортВвод  = document.getElementById('поискСпортФИО');
+const поискСпортИтоги = document.getElementById('поискСпортРезультаты');
+
+if (поискСпортВвод) {
+  let таймерСпорт;
+  поискСпортВвод.addEventListener('input', () => {
+    clearTimeout(таймерСпорт);
+    const q = поискСпортВвод.value.trim();
+    if (q.length < 2) { поискСпортИтоги.style.display = 'none'; return; }
+    таймерСпорт = setTimeout(() => загрузитьСпортсменов(q), 250);
+  });
+  поискСпортВвод.addEventListener('blur', () => {
+    setTimeout(() => { поискСпортИтоги.style.display = 'none'; }, 200);
+  });
+}
+
+function загрузитьСпортсменов(q) {
+  fetch(`/спортсмены/поиск?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(данные => {
+      if (!данные.length) { поискСпортИтоги.style.display = 'none'; return; }
+      поискСпортИтоги.innerHTML = данные.map(с => `
+        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
+             onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
+          <div class="fw-semibold">${с.фио}</div>
+          <div class="text-muted small">
+            ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
+            ${с.дата_рождения ? с.дата_рождения : ''}
+          </div>
+        </div>`).join('');
+      поискСпортИтоги.style.display = 'block';
+    });
+}
+
+function выбратьСпортсмена(с) {
+  поискСпортВвод.value = '';
+  поискСпортИтоги.style.display = 'none';
+  добавитьСтроку();
+  const tbody = document.getElementById('tbodySportsmen');
+  const lastRow = tbody.lastElementChild;
+  const fioInp = lastRow.querySelector('input[name="фио[]"]');
+  if (fioInp) fioInp.value = с.фио || '';
+  const dateInp = lastRow.querySelector('input[name="дата_рождения[]"]');
+  if (dateInp && с.дата_рождения) dateInp.value = с.дата_рождения;
+  const razrSel = lastRow.querySelector('select[name="разряд[]"]');
+  if (razrSel && с.разряд) razrSel.value = с.разряд;
+}
 </script>
 {% endblock %}

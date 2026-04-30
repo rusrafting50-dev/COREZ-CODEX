@@ -1,8 +1,10 @@
 # routes/документы.py — жеребьёвка и технические документы соревнования
+import re
 import random
 from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Соревнование, Субъект, Команда, Спортсмен, Судья
+from models import (db, Соревнование, Субъект, Команда, Спортсмен, Судья,
+                    РезультатСпринт, СТАТУС_ДК, СТАТУС_ФИНИШ)
 
 bp_документы = Blueprint('документы', __name__)
 
@@ -35,6 +37,51 @@ def _parse_взнос(val):
         return None
 
 
+def _parse_time(val):
+    if not val or not str(val).strip():
+        return None
+    val = str(val).strip().replace(',', '.')
+    m = re.match(r'^(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d{1,2}))?$', val)
+    if not m:
+        return None
+    h, mm, s = int(m[1]), int(m[2]), int(m[3])
+    cc = int((m[4] or '').ljust(2, '0')[:2])
+    return float(h * 3600 + mm * 60 + s) + cc / 100
+
+
+def _format_time(secs):
+    if secs is None:
+        return ''
+    secs = float(secs)
+    h = int(secs // 3600)
+    rest = secs % 3600
+    m = int(rest // 60)
+    sv = rest % 60
+    si = int(sv)
+    cc = min(99, round((sv - si) * 100))
+    return f'{h:02d}:{m:02d}:{si:02d}.{cc:02d}'
+
+
+def _int0(val):
+    try:
+        return max(0, int(val or 0))
+    except (ValueError, TypeError):
+        return 0
+
+
+def _получить_или_создать_рез(к, sor_id):
+    рез = к.результат_спринт
+    if not рез:
+        рез = РезультатСпринт(
+            команда_id=к.id,
+            соревнование_id=sor_id,
+            стартовый_номер=к.стартовый_номер_спринт,
+        )
+        db.session.add(рез)
+        db.session.flush()
+    return рез
+
+
 # ── Жеребьёвка ──────────────────────────────────────────────────────────────
 
 @bp_документы.route('/<int:sor_id>/жеребьёвка')
@@ -51,7 +98,8 @@ def жеребьёвка(sor_id):
     жен_р6 = сорт([к for к in команды if к.пол == 'ж' and к.класс_судна == 'R6'])
     return render_template('документы/жеребьёвка.html', сор=сор,
                            муж_р4=муж_р4, жен_р4=жен_р4,
-                           муж_р6=муж_р6, жен_р6=жен_р6)
+                           муж_р6=муж_р6, жен_р6=жен_р6,
+                           format_time=_format_time, СТАТУС_ДК=СТАТУС_ДК)
 
 
 @bp_документы.route('/<int:sor_id>/жеребьёвка/случайная', methods=['POST'])
@@ -86,16 +134,29 @@ def жеребьёвка_сохранить(sor_id):
             except (ValueError, TypeError):
                 pass
 
-    # Плановые времена старта
-    for key, val in request.form.items():
-        if key.startswith('время_'):
-            try:
-                kid = int(key[len('время_'):])
-                к = Команда.query.get(kid)
-                if к and к.соревнование_id == sor_id:
-                    к.время_старта_спринт_план = val.strip() or None
-            except (ValueError, TypeError):
-                pass
+    # Стартовый протокол спринта: время старта, штрафы, ДК
+    дк_ids = set()
+    for key in request.form:
+        if key.startswith('дк_') and key[3:].isdigit():
+            дк_ids.add(int(key[3:]))
+
+    все_команды = Команда.query.filter_by(соревнование_id=sor_id).all()
+    for к in все_команды:
+        kid = к.id
+        is_дк = kid in дк_ids
+        in_form = f'вс_{kid}' in request.form or is_дк
+        if not in_form:
+            continue
+        рез = _получить_или_создать_рез(к, sor_id)
+        рез.стартовый_номер = к.стартовый_номер_спринт
+        if is_дк:
+            рез.статус = СТАТУС_ДК
+        else:
+            рез.время_старта = _parse_time(request.form.get(f'вс_{kid}', ''))
+            рез.штраф_с10 = _int0(request.form.get(f'с10_{kid}', 0))
+            рез.штраф_с50 = _int0(request.form.get(f'с50_{kid}', 0))
+            if рез.статус == СТАТУС_ДК:
+                рез.статус = СТАТУС_ФИНИШ
 
     try:
         db.session.commit()

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Новая заявка' if not з else 'Редактировать заявку' }} — {{ сор.название | truncate(30) }}{% endblock %}
+{% block title %}{{ 'Новая предварительная заявка' if not з else 'Редактировать заявку' }} — {{ сор.название | truncate(30) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -179,6 +179,25 @@
 
 </form>
 
+{# ── Поиск спортсмена в базе ── #}
+<div class="card mt-3 border-primary">
+  <div class="card-header fw-semibold py-2 bg-primary text-white">
+    Поиск спортсмена в базе прошлых соревнований
+  </div>
+  <div class="card-body">
+    <div class="position-relative">
+      <input type="text" id="поискСпортФИО" class="form-control"
+             placeholder="Начните вводить фамилию…" autocomplete="off">
+      <div id="поискСпортРезультаты"
+           class="position-absolute w-100 bg-white border rounded shadow-sm z-3"
+           style="top:100%;max-height:300px;overflow-y:auto;display:none"></div>
+    </div>
+    <div class="form-text">
+      Выберите спортсмена из базы — новая строка добавится в таблицу с заполненными данными.
+    </div>
+  </div>
+</div>
+
 {% if з %}
 <form action="{{ url_for('заявка.удалить', sor_id=сор.id, z_id=з.id) }}" method="post" class="mt-3"
       onsubmit="return confirm('Удалить заявку?')">
@@ -266,5 +285,60 @@ function пересчитатьГруппуСтроки(tr) {
 }
 
 if (!document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
+
+// ── Поиск спортсмена в базе ──────────────────────────────────────────────
+const поискСпортВвод  = document.getElementById('поискСпортФИО');
+const поискСпортИтоги = document.getElementById('поискСпортРезультаты');
+
+if (поискСпортВвод) {
+  let таймерСпорт;
+  поискСпортВвод.addEventListener('input', () => {
+    clearTimeout(таймерСпорт);
+    const q = поискСпортВвод.value.trim();
+    if (q.length < 2) { поискСпортИтоги.style.display = 'none'; return; }
+    таймерСпорт = setTimeout(() => загрузитьСпортсменов(q), 250);
+  });
+  поискСпортВвод.addEventListener('blur', () => {
+    setTimeout(() => { поискСпортИтоги.style.display = 'none'; }, 200);
+  });
+}
+
+function загрузитьСпортсменов(q) {
+  fetch(`/спортсмены/поиск?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(данные => {
+      if (!данные.length) { поискСпортИтоги.style.display = 'none'; return; }
+      поискСпортИтоги.innerHTML = данные.map(с => `
+        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
+             onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
+          <div class="fw-semibold">${с.фио}</div>
+          <div class="text-muted small">
+            ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
+            ${с.дата_рождения ? с.дата_рождения : ''}
+          </div>
+        </div>`).join('');
+      поискСпортИтоги.style.display = 'block';
+    });
+}
+
+function выбратьСпортсмена(с) {
+  поискСпортВвод.value = '';
+  поискСпортИтоги.style.display = 'none';
+
+  const tbody = document.getElementById('tbodySportsmen');
+  tbody.insertAdjacentHTML('beforeend', шаблон);
+  обновитьНомера();
+
+  const lastRow = tbody.lastElementChild;
+  const fioInp = lastRow.querySelector('input[name="фио[]"]');
+  if (fioInp) fioInp.value = с.фио || '';
+  const polSel = lastRow.querySelector('select[name="пол[]"]');
+  if (polSel && с.пол) polSel.value = с.пол;
+  const dateInp = lastRow.querySelector('input[name="дата_рождения[]"]');
+  if (dateInp && с.дата_рождения) dateInp.value = с.дата_рождения;
+  const kvalSel = lastRow.querySelector('select[name="квалификация[]"]');
+  if (kvalSel && с.разряд) kvalSel.value = с.разряд;
+  пересчитатьГруппуСтроки(lastRow);
+}
 </script>
 {% endblock %}

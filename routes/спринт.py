@@ -156,29 +156,7 @@ def _рассчитать(sor_id, пол):
 
 @bp_спринт.route('/<int:sor_id>/старт', methods=['GET', 'POST'])
 def старт(sor_id):
-    сор = Соревнование.query.get_or_404(sor_id)
-    if request.method == 'POST':
-        for пол in ('м', 'ж'):
-            for к in _по_старту(sor_id, пол):
-                рез = _получить_или_создать(к, sor_id)
-                рез.стартовый_номер = к.стартовый_номер_спринт
-                рез.время_старта = parse_time(request.form.get(f'вс_{к.id}', ''))
-                рез.штраф_с10 = _int0(request.form.get(f'с10_{к.id}'))
-                рез.штраф_с50 = _int0(request.form.get(f'с50_{к.id}'))
-                if request.form.get(f'дк_{к.id}'):
-                    рез.статус = СТАТУС_ДК
-                elif рез.статус == СТАТУС_ДК:
-                    рез.статус = СТАТУС_ФИНИШ
-        db.session.commit()
-        flash('Стартовый протокол сохранён.', 'success')
-        return redirect(url_for('спринт.старт', sor_id=sor_id))
-
-    муж = _по_старту(sor_id, 'м')
-    жен = _по_старту(sor_id, 'ж')
-    return render_template('спринт/старт.html',
-                           сор=сор, муж=муж, жен=жен,
-                           format_time=format_time,
-                           СТАТУС_ДК=СТАТУС_ДК)
+    return redirect(url_for('документы.жеребьёвка', sor_id=sor_id))
 
 
 # ── Протокол финиша ────────────────────────────────────────────────────────────
