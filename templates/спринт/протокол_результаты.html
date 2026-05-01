@@ -19,13 +19,13 @@
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     thead { background: #f0f0f0; font-weight: bold; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .место-1 { background: #fffde0; }
     .место-2 { background: #f8f8f8; }
     .место-3 { background: #fff4e8; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
+    .gender-row td { background: #e0e0e0; font-weight: bold; font-size: 9pt; padding: 4px; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -35,10 +35,10 @@
      class="btn btn-outline-secondary btn-sm">← Назад к результатам</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}"
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс=класс) }}"
        class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный</a>
     {% else %}
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=1) }}"
        class="btn btn-outline-primary btn-sm" target="_blank">Итоговый</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
@@ -53,12 +53,13 @@
   {{ сор.название }}
 </div>
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; text-transform:uppercase; margin-top:6px">
-  {{ 'ИТОГОВЫЙ' if итоговый else 'ПРЕДВАРИТЕЛЬНЫЙ' }} ПРОТОКОЛ СПОРТИВНЫХ СОРЕВНОВАНИЙ
+<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
+  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол соревнований
 </div>
 
 <div class="text-center mb-1" style="font-size:10pt">
-  Спортивная дисциплина: <strong>СПРИНТ{% if класс %} - {{ класс }}{% endif %}</strong>
+  Спортивная дисциплина:
+  <strong>{% if класс == 'R4' %}СПРИНТ – R4, код ВРВС 1740091811Я{% elif класс == 'R6' %}СПРИНТ – R6, код ВРВС 1740101811Я{% else %}СПРИНТ{% if класс %} – {{ класс }}{% endif %}{% endif %}</strong>
 </div>
 
 <div class="d-flex justify-content-between mb-2" style="font-size:10pt">
@@ -72,10 +73,9 @@
   </div>
 </div>
 
-{# ── Macro: таблица результатов ─────────────────────────────────────────────── #}
-{% macro таблица_рез(рез, без, разряды, заг) %}
-{% if рез or без %}
-<div class="section-title">{{ заг }}</div>
+{# ── Macro: объединённая таблица мужчины + женщины ──────────────────────── #}
+{% macro таблица_рез(муж_рез, муж_без, жен_рез, жен_без, муж_разр, жен_разр) %}
+{% if муж_рез or муж_без or жен_рез or жен_без %}
 <table>
   <thead>
     <tr>
@@ -91,68 +91,112 @@
       <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
     </tr>
     <tr>
-      <th class="text-center" style="width:70px">Старт</th>
-      <th class="text-center" style="width:55px">Лимит времени</th>
-      <th class="text-center" style="width:70px">Финиш</th>
+      <th class="text-center" style="width:65px">Штрафы на старте</th>
+      <th class="text-center" style="width:65px">Штраф за лимит</th>
+      <th class="text-center" style="width:65px">Штрафы на финише</th>
       <th class="text-center" style="width:55px">Штрафное время</th>
       <th class="text-center" style="width:70px">Время прохождения</th>
       <th class="text-center" style="width:70px">Итоговый результат</th>
     </tr>
   </thead>
   <tbody>
+
+  {# ── Мужчины ── #}
+  <tr class="gender-row"><td colspan="14" class="text-center">Мужчины</td></tr>
   {% set ns = namespace(idx=0) %}
-  {% for р in рез %}
+  {% for р in муж_рез %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
+  {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
+  {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
     <td class="text-center">{{ ns.idx }}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
-    </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center" style="font-family:monospace;font-size:7.5pt">
-      {% if р.статус == 'ПМ' %}—{% else %}{{ format_time(р.время_старта) or '—' }}{% endif %}
-    </td>
-    <td class="text-center"></td>
-    <td class="text-center" style="font-family:monospace;font-size:7.5pt">
-      {% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_time(р.время_финиша) or '—' }}{% endif %}
-    </td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '—' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
-    <td class="text-center fw-bold" style="font-family:monospace">
-      {% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) }}{% endif %}
-    </td>
-    <td class="text-center fw-bold">{{ р.место or '—' }}</td>
-    <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
-    <td class="text-center">{{ разряды.get(р.команда_id, '—') }}</td>
+    <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
+    <td class="text-center">-</td>
+    <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
+    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
+    <td class="text-center fw-bold">{{ р.место or '-' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
+    <td class="text-center">{{ муж_разр.get(р.команда_id, '-') }}</td>
   </tr>
   {% endfor %}
-  {% for р in без %}
+  {% for р in муж_без %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#f5f5f5">
     <td class="text-center">{{ ns.idx }}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
-    </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+    <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     <td colspan="6" class="text-center text-muted">
-      <strong>{{ р.статус }}</strong>
-      {% if р.статус == 'ДК' %} — ДИСКВАЛИФИКАЦИЯ
-      {% elif р.статус == 'НФН' %} — НЕ ФИНИШИРОВАЛ
-      {% elif р.статус == 'НСТ' %} — НЕ СТАРТОВАЛ{% endif %}
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
-    <td class="text-center text-muted">—</td>
-    <td class="text-center">—</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
     <td class="text-center">-</td>
   </tr>
   {% endfor %}
+  {% if not муж_рез and not муж_без %}
+  <tr><td colspan="14" class="text-center text-muted" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
+  {# ── Женщины ── #}
+  <tr class="gender-row"><td colspan="14" class="text-center">Женщины</td></tr>
+  {% set ns.idx = 0 %}
+  {% for р in жен_рез %}
+  {% set к = р.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set ns.idx = ns.idx + 1 %}
+  {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
+  {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
+  <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
+    <td class="text-center">{{ ns.idx }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
+    <td class="text-center">-</td>
+    <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
+    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
+    <td class="text-center fw-bold">{{ р.место or '-' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
+    <td class="text-center">{{ жен_разр.get(р.команда_id, '-') }}</td>
+  </tr>
+  {% endfor %}
+  {% for р in жен_без %}
+  {% set к = р.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr style="background:#f5f5f5">
+    <td class="text-center">{{ ns.idx }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td colspan="6" class="text-center text-muted">
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
+    </td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+  </tr>
+  {% endfor %}
+  {% if not жен_рез and not жен_без %}
+  <tr><td colspan="14" class="text-center text-muted" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
   </tbody>
 </table>
 <div style="font-size:8pt; margin-top:4px">
@@ -162,44 +206,49 @@
 {% endif %}
 {% endmacro %}
 
-{% set _кл = класс or 'R4' %}
-{{ таблица_рез(муж_рез, муж_без, муж_разр, 'СПРИНТ — ' + _кл + ', МУЖЧИНЫ') }}
-{{ таблица_рез(жен_рез, жен_без, жен_разр, 'СПРИНТ — ' + _кл + ', ЖЕНЩИНЫ') }}
+{{ таблица_рез(муж_рез, муж_без, жен_рез, жен_без, муж_разр, жен_разр) }}
 
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
 <div class="text-center text-muted py-4">Нет результатов для отображения</div>
 {% endif %}
 
 <div class="mt-4" style="font-size:10pt">
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный судья</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_судья or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
+    <span style="white-space:nowrap">Главный судья</span>
+    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
+    <span>{{ сор.главный_судья or '' }}</span>
   </div>
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный секретарь</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_секретарь or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
+    <span style="white-space:nowrap">Главный секретарь</span>
+    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
+    <span>{{ сор.главный_секретарь or '' }}</span>
   </div>
   {% if сор.зам_главного_секретаря %}
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Заместитель главного секретаря</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.зам_главного_секретаря }}/
-    </span>
+  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
+    <span style="white-space:nowrap">Заместитель главного секретаря</span>
+    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
+    <span>{{ сор.зам_главного_секретаря }}</span>
   </div>
   {% endif %}
 </div>
 
-<div class="mt-3" style="font-size:9pt; color:#666">
-  Время опубликования: {{ сегодня.strftime('%d.%m.%Y') }} &middot;
-  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол
+<div class="mt-3" style="font-size:10pt">
+  Время опубликования: <span id="pubtime"></span>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
         crossorigin="anonymous"></script>
+<script>
+  function updatePubTime() {
+    var now = new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    document.getElementById('pubtime').textContent =
+      pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear() +
+      ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  updatePubTime();
+  window.addEventListener('beforeprint', updatePubTime);
+</script>
 </body>
 </html>
