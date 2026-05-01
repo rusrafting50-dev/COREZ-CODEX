@@ -79,21 +79,21 @@
 <table>
   <thead>
     <tr>
-      <th rowspan="2" class="text-center" style="width:28px">№п/п</th>
+      <th rowspan="2" class="text-center" style="width:28px">№<br>п/п</th>
+      <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
       <th rowspan="2" class="text-center" style="width:48px">Номер экипажа</th>
-      <th rowspan="2" style="min-width:180px">Фамилия, имя, спортивная квалификация участников</th>
-      <th rowspan="2" style="width:80px">Команда</th>
+      <th rowspan="2" style="width:134px">Команда</th>
       <th rowspan="2" style="min-width:90px">Территория</th>
-      <th colspan="3" class="text-center">Прохождение дистанции (штрафные баллы)</th>
+      <th colspan="3" class="text-center">Прохождение дистанции<br>(штрафные баллы)</th>
       <th colspan="3" class="text-center">Результат</th>
       <th rowspan="2" class="text-center" style="width:38px">Место</th>
       <th rowspan="2" class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
       <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
     </tr>
     <tr>
-      <th class="text-center" style="width:65px">Штрафы на старте</th>
-      <th class="text-center" style="width:65px">Штраф за лимит</th>
-      <th class="text-center" style="width:65px">Штрафы на финише</th>
+      <th class="text-center" style="width:55px">Старт</th>
+      <th class="text-center" style="width:65px">Лимит времени</th>
+      <th class="text-center" style="width:55px">Финиш</th>
       <th class="text-center" style="width:55px">Штрафное время</th>
       <th class="text-center" style="width:70px">Время прохождения</th>
       <th class="text-center" style="width:70px">Итоговый результат</th>
@@ -112,8 +112,8 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
@@ -133,8 +133,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#f5f5f5">
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     <td colspan="6" class="text-center text-muted">
@@ -160,8 +160,8 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
@@ -181,8 +181,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#f5f5f5">
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     <td colspan="6" class="text-center text-muted">
@@ -212,24 +212,21 @@
 <div class="text-center text-muted py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<div class="mt-4" style="font-size:10pt">
-  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
-    <span style="white-space:nowrap">Главный судья</span>
-    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
-    <span>{{ сор.главный_судья or '' }}</span>
+<div class="mt-4" style="font-size:10pt; display:flex; gap:0">
+  <div style="width:33.33%; padding-right:16px">
+    <div>Главный судья</div>
+    <div style="margin-top:28px">{{ сор.главный_судья or '' }}</div>
   </div>
-  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
-    <span style="white-space:nowrap">Главный секретарь</span>
-    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
-    <span>{{ сор.главный_секретарь or '' }}</span>
+  <div style="width:33.33%; padding-right:16px">
+    <div>Главный секретарь</div>
+    <div style="margin-top:28px">{{ сор.главный_секретарь or '' }}</div>
   </div>
-  {% if сор.зам_главного_секретаря %}
-  <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:20px">
-    <span style="white-space:nowrap">Заместитель главного секретаря</span>
-    <span style="flex:1; border-bottom:1px solid #000; min-width:120px"></span>
-    <span>{{ сор.зам_главного_секретаря }}</span>
+  <div style="width:33.33%">
+    {% if сор.зам_главного_секретаря %}
+    <div>Заместитель главного секретаря</div>
+    <div style="margin-top:28px">{{ сор.зам_главного_секретаря }}</div>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
 
 <div class="mt-3" style="font-size:10pt">
