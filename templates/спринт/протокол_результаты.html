@@ -20,9 +20,6 @@
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     thead { background: #f0f0f0; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .место-1 { background: #fffde0; }
-    .место-2 { background: #f8f8f8; }
-    .место-3 { background: #fff4e8; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
     .gender-row td { background: #e0e0e0; font-weight: bold; font-size: 9pt; padding: 4px; }
@@ -46,7 +43,7 @@
 </div>
 
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
@@ -54,26 +51,26 @@
 </div>
 
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
-  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол соревнований
+  {% if итоговый %}Протокол соревнований{% else %}Предварительный протокол соревнований{% endif %}
 </div>
 
-<div class="text-center mb-1" style="font-size:10pt">
+<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
   Спортивная дисциплина:
-  <strong>{% if класс == 'R4' %}СПРИНТ – R4, код ВРВС 1740091811Я{% elif класс == 'R6' %}СПРИНТ – R6, код ВРВС 1740101811Я{% else %}СПРИНТ{% if класс %} – {{ класс }}{% endif %}{% endif %}</strong>
+  {% if класс == 'R4' %}СПРИНТ – R4, код ВРВС 1740091811Я{% elif класс == 'R6' %}СПРИНТ – R6, код ВРВС 1740101811Я{% else %}СПРИНТ{% if класс %} – {{ класс }}{% endif %}{% endif %}
 </div>
 
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt">
+<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold">
   <div>
     <div class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt; color:#555">Дата проведения</div>
+    <div style="font-size:8pt">Дата проведения</div>
   </div>
   <div>
     <div class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt; color:#555">Место проведения</div>
+    <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>
 
-{# Число столбцов: 14 в предварительном, 11 в итоговом (без 3 столбцов Прохождения) #}
+{# Число столбцов: 14 в предварительном, 11 в итоговом #}
 {% set ncol = 11 if итоговый else 14 %}
 
 {# ── Macro: объединённая таблица мужчины + женщины ──────────────────────── #}
@@ -81,30 +78,44 @@
 {% if муж_рез or муж_без or жен_рез or жен_без %}
 <table>
   <thead>
-    <tr>
-      <th rowspan="2" class="text-center" style="width:28px">№<br>п/п</th>
-      <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
-      <th rowspan="2" class="text-center" style="width:48px">Номер экипажа</th>
-      <th rowspan="2" style="width:134px">Команда</th>
-      <th rowspan="2" style="min-width:90px">Территория</th>
-      {% if not итоговый %}
-      <th colspan="3" class="text-center">Прохождение дистанции<br>(штрафные баллы)</th>
-      {% endif %}
-      <th colspan="3" class="text-center">Результат</th>
-      <th rowspan="2" class="text-center" style="width:38px">Место</th>
-      <th rowspan="2" class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-      <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
-    </tr>
-    <tr>
-      {% if not итоговый %}
-      <th class="text-center" style="width:55px">Старт</th>
-      <th class="text-center" style="width:65px">Лимит времени</th>
-      <th class="text-center" style="width:55px">Финиш</th>
-      {% endif %}
-      <th class="text-center" style="width:55px">Штрафное время</th>
-      <th class="text-center" style="width:70px">Время прохождения</th>
-      <th class="text-center" style="width:70px">Итоговый результат</th>
-    </tr>
+  {% if итоговый %}
+  {# ── Итоговый: одна строка заголовка, без столбцов Прохождения ── #}
+  <tr>
+    <th class="text-center" style="width:28px">№<br>п/п</th>
+    <th style="min-width:88px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
+    <th class="text-center" style="width:48px">Номер экипажа</th>
+    <th style="width:201px">Команда</th>
+    <th style="min-width:90px">Территория</th>
+    <th class="text-center" style="width:70px">Время</th>
+    <th class="text-center" style="width:55px">Штраф</th>
+    <th class="text-center" style="width:70px">Результат</th>
+    <th class="text-center" style="width:38px">Место</th>
+    <th class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
+    <th class="text-center" style="width:55px">Выполненный норматив*</th>
+  </tr>
+  {% else %}
+  {# ── Предварительный: две строки заголовка, с Прохождением ── #}
+  <tr>
+    <th rowspan="2" class="text-center" style="width:28px">№<br>п/п</th>
+    <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
+    <th rowspan="2" class="text-center" style="width:48px">Номер экипажа</th>
+    <th rowspan="2" style="width:134px">Команда</th>
+    <th rowspan="2" style="min-width:90px">Территория</th>
+    <th colspan="3" class="text-center">Прохождение дистанции<br>(штрафные баллы)</th>
+    <th colspan="3" class="text-center">Результат</th>
+    <th rowspan="2" class="text-center" style="width:38px">Место</th>
+    <th rowspan="2" class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
+    <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
+  </tr>
+  <tr>
+    <th class="text-center" style="width:55px">Старт</th>
+    <th class="text-center" style="width:65px">Лимит времени</th>
+    <th class="text-center" style="width:55px">Финиш</th>
+    <th class="text-center" style="width:55px">Штрафное время</th>
+    <th class="text-center" style="width:70px">Время прохождения</th>
+    <th class="text-center" style="width:70px">Итоговый результат</th>
+  </tr>
+  {% endif %}
   </thead>
   <tbody>
 
@@ -117,7 +128,7 @@
   {% set ns.idx = ns.idx + 1 %}
   {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
-  <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
@@ -127,9 +138,12 @@
     <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
     <td class="text-center">-</td>
     <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
-    {% endif %}
     <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    {% else %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    {% endif %}
     <td class="text-center fw-bold" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
     <td class="text-center fw-bold">{{ р.место or '-' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
@@ -140,13 +154,13 @@
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
-  <tr style="background:#f5f5f5">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center text-muted">
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
       <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
     <td class="text-center">-</td>
@@ -155,7 +169,7 @@
   </tr>
   {% endfor %}
   {% if not муж_рез and not муж_без %}
-  <tr><td colspan="{{ ncol }}" class="text-center text-muted" style="padding:6px">Нет данных</td></tr>
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
   {% endif %}
 
   {# ── Женщины ── #}
@@ -167,7 +181,7 @@
   {% set ns.idx = ns.idx + 1 %}
   {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
-  <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
@@ -177,9 +191,12 @@
     <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
     <td class="text-center">-</td>
     <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
-    {% endif %}
     <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    {% else %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    {% endif %}
     <td class="text-center fw-bold" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
     <td class="text-center fw-bold">{{ р.место or '-' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
@@ -190,13 +207,13 @@
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
-  <tr style="background:#f5f5f5">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">{% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}-{% endif %}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center text-muted">
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
       <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
     <td class="text-center">-</td>
@@ -205,7 +222,7 @@
   </tr>
   {% endfor %}
   {% if not жен_рез and not жен_без %}
-  <tr><td colspan="{{ ncol }}" class="text-center text-muted" style="padding:6px">Нет данных</td></tr>
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
   {% endif %}
 
   </tbody>
@@ -220,7 +237,7 @@
 {{ таблица_рез(муж_рез, муж_без, жен_рез, жен_без, муж_разр, жен_разр) }}
 
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
-<div class="text-center text-muted py-4">Нет результатов для отображения</div>
+<div class="text-center py-4">Нет результатов для отображения</div>
 {% endif %}
 
 <div class="mt-4" style="font-size:10pt">
