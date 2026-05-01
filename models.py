@@ -199,6 +199,9 @@ class Соревнование(db.Model):
     судьи               = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
     тех_проверки        = db.relationship('ТехПроверка', back_populates='соревнование', cascade='all, delete-orphan')
     тех_состав_комиссии = db.relationship('ТехСоставКомиссии', back_populates='соревнование', uselist=False)
+    параметры_дистанций = db.relationship('ПараметрыДистанции', back_populates='соревнование',
+                                          cascade='all, delete-orphan',
+                                          order_by='ПараметрыДистанции.порядок')
 
     def __repr__(self):
         return f'<Соревнование id={self.id} "{self.название}" {self.класс_судна}>'
@@ -400,6 +403,29 @@ class ТехСоставКомиссии(db.Model):
     член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
 
     соревнование = db.relationship('Соревнование', back_populates='тех_состав_комиссии')
+
+
+class ПараметрыДистанции(db.Model):
+    """Параметры одной дистанции в рамках соревнования (до 4 дистанций)."""
+    __tablename__ = 'параметры_дистанций'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    соревнование_id = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
+    порядок         = db.Column(db.Integer, nullable=False, default=1)
+
+    название        = db.Column(db.String(200), nullable=True)
+    протяженность   = db.Column(db.String(50),  nullable=True)
+    категория       = db.Column(db.String(50),  nullable=True)
+    среднее_время   = db.Column(db.String(50),  nullable=True)
+    лимит_времени   = db.Column(db.String(50),  nullable=True)
+    вариант_старта  = db.Column(db.Text,        nullable=True)
+    вариант_финиша  = db.Column(db.Text,        nullable=True)
+    страховка       = db.Column(db.Text,        nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='параметры_дистанций')
+
+    def __repr__(self):
+        return f'<ПараметрыДистанции #{self.порядок} сор={self.соревнование_id}>'
 
 
 # ---------------------------------------------------------------------------
@@ -898,6 +924,9 @@ def применить_миграции():
                         f'ALTER TABLE результаты_спринт ADD COLUMN {col} INTEGER DEFAULT 0'
                     ))
                     conn.commit()
+        # параметры_дистанций: создаём таблицу если нет
+        if not inspector.has_table('параметры_дистанций'):
+            db.create_all()
 
 
 # Справочник: субъекты РФ для автодополнения

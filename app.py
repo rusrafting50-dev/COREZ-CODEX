@@ -49,6 +49,7 @@ def create_app() -> Flask:
     from routes.отчеты      import bp_отчеты
     from routes.заявка           import bp_заявка
     from routes.тех_комиссия    import bp_тех
+    from routes.дистанция       import bp_дистанция
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -66,6 +67,7 @@ def create_app() -> Flask:
     app.register_blueprint(bp_отчеты,       url_prefix='/отчеты')
     app.register_blueprint(bp_заявка,       url_prefix='/заявка')
     app.register_blueprint(bp_тех,          url_prefix='/тех-комиссия')
+    app.register_blueprint(bp_дистанция,    url_prefix='/дистанция')
 
     # ------------------------------------------------------------------
     # Заголовки безопасности

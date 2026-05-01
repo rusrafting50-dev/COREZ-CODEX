@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}Дистанция — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">Дистанция</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('дистанция.акт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm" target="_blank">Акт сдачи-приёмки дистанции</a>
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
+    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты</a>
+  </div>
+</div>
+<div class="text-center mb-3"><h5 class="mb-0">Параметры дистанций</h5></div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+<form id="формаДистанций" method="post"
+      action="{{ url_for('дистанция.сохранить', sor_id=сор.id) }}">
+  <input type="hidden" name="кол_дистанций" id="кол_дистанций" value="{{ дистанции | length }}">
+
+  <div id="блоки-дистанций">
+  {% for д in дистанции %}
+  {% set i = loop.index0 %}
+  <div class="дистанция-блок card mb-3 border-primary">
+    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
+      <span class="fw-semibold" style="font-size:1.1rem">
+        Параметры дистанции
+        <span class="блок-номер text-muted" style="font-size:.9rem">{{ loop.index }}</span>
+      </span>
+      <button type="button" class="btn btn-sm btn-outline-danger удалить-блок"
+              style="display:{% if дистанции | length > 1 %}inline-block{% else %}none{% endif %}">
+        Удалить
+      </button>
+    </div>
+    <div class="card-body py-3 px-3">
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-1">Спортивная дисциплина</label>
+        <input type="text" name="название_{{ i }}" class="form-control form-control-sm"
+               value="{{ д.название or '' }}"
+               placeholder="Например: Спринт – R4, мужчины">
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">1. Общая протяжённость дистанции, м</label>
+          <input type="text" name="протяженность_{{ i }}" class="form-control form-control-sm"
+                 value="{{ д.протяженность or '' }}" placeholder="200">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">2. Категория определяющего препятствия, к. с.</label>
+          <input type="text" name="категория_{{ i }}" class="form-control form-control-sm"
+                 value="{{ д.категория or '' }}" placeholder="2">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">3. Среднее время прохождения, мин.</label>
+          <input type="text" name="среднее_время_{{ i }}" class="form-control form-control-sm"
+                 value="{{ д.среднее_время or '' }}" placeholder="2,5">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">4. Лимит времени для прохождения дистанции, мин.</label>
+          <input type="text" name="лимит_времени_{{ i }}" class="form-control form-control-sm"
+                 value="{{ д.лимит_времени or '' }}" placeholder="5">
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">5. Вариант организации старта</label>
+        <textarea name="вариант_старта_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="Раздельный с воды от берега">{{ д.вариант_старта or '' }}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»">{{ д.вариант_финиша or '' }}</textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">7. Описание видов страховки</label>
+        <textarea name="страховка_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша">{{ д.страховка or '' }}</textarea>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+
+  <div class="d-flex align-items-center gap-3 mt-2">
+    <button type="submit" class="btn btn-success">Сохранить параметры дистанций</button>
+    <button type="button" id="добавить-дистанцию" class="btn btn-outline-primary"
+            {% if дистанции | length >= max_дистанций %}disabled{% endif %}>
+      + Добавить дистанцию
+    </button>
+    <span class="text-muted small">Не более {{ max_дистанций }} дистанций</span>
+  </div>
+</form>
+
+{# Шаблон нового блока (скрытый, клонируется JS) #}
+<template id="шаблон-блока">
+  <div class="дистанция-блок card mb-3 border-primary">
+    <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
+      <span class="fw-semibold" style="font-size:1.1rem">
+        Параметры дистанции
+        <span class="блок-номер text-muted" style="font-size:.9rem"></span>
+      </span>
+      <button type="button" class="btn btn-sm btn-outline-danger удалить-блок">Удалить</button>
+    </div>
+    <div class="card-body py-3 px-3">
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-1">Спортивная дисциплина</label>
+        <input type="text" name="название_IDX" class="form-control form-control-sm"
+               placeholder="Например: Спринт – R4, мужчины">
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">1. Общая протяжённость дистанции, м</label>
+          <input type="text" name="протяженность_IDX" class="form-control form-control-sm" placeholder="200">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">2. Категория определяющего препятствия, к. с.</label>
+          <input type="text" name="категория_IDX" class="form-control form-control-sm" placeholder="2">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">3. Среднее время прохождения, мин.</label>
+          <input type="text" name="среднее_время_IDX" class="form-control form-control-sm" placeholder="2,5">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label mb-1 small">4. Лимит времени для прохождения дистанции, мин.</label>
+          <input type="text" name="лимит_времени_IDX" class="form-control form-control-sm" placeholder="5">
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">5. Вариант организации старта</label>
+        <textarea name="вариант_старта_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="Раздельный с воды от берега"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»"></textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">7. Описание видов страховки</label>
+        <textarea name="страховка_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="С воды. Страхующее судно — моторная лодка с сотрудниками МЧС"></textarea>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+const MAX = {{ max_дистанций }};
+const контейнер = document.getElementById('блоки-дистанций');
+const счётчик = document.getElementById('кол_дистанций');
+const кнопкаДобавить = document.getElementById('добавить-дистанцию');
+
+function обновитьСостояние() {
+    const блоки = контейнер.querySelectorAll('.дистанция-блок');
+    const кол = блоки.length;
+    счётчик.value = кол;
+    кнопкаДобавить.disabled = кол >= MAX;
+    // Показывать кнопку «Удалить» только если блоков > 1
+    блоки.forEach((б, i) => {
+        б.querySelector('.блок-номер').textContent = кол > 1 ? (i + 1) : '';
+        б.querySelector('.удалить-блок').style.display = кол > 1 ? '' : 'none';
+        // Переименовать поля по новому индексу
+        б.querySelectorAll('[name]').forEach(el => {
+            el.name = el.name.replace(/_\d+$/, '_' + i);
+        });
+    });
+}
+
+кнопкаДобавить.addEventListener('click', () => {
+    const кол = контейнер.querySelectorAll('.дистанция-блок').length;
+    if (кол >= MAX) return;
+    const шаблон = document.getElementById('шаблон-блока');
+    const клон = шаблон.content.cloneNode(true);
+    // Заменить IDX на реальный индекс
+    клон.querySelectorAll('[name]').forEach(el => {
+        el.name = el.name.replace('IDX', кол);
+    });
+    контейнер.appendChild(клон);
+    обновитьСостояние();
+    // Прикрепить обработчик удаления к новому блоку
+    const новыйБлок = контейнер.lastElementChild;
+    новыйБлок.querySelector('.удалить-блок').addEventListener('click', удалить);
+});
+
+function удалить() {
+    this.closest('.дистанция-блок').remove();
+    обновитьСостояние();
+}
+
+// Прикрепить обработчики удаления к существующим блокам
+контейнер.querySelectorAll('.удалить-блок').forEach(кн => {
+    кн.addEventListener('click', удалить);
+});
+
+обновитьСостояние();
+</script>
+{% endblock %}
