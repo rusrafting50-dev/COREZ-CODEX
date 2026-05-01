@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Награждение — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">Награждение</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Дистанция</a>
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
+    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты</a>
+  </div>
+</div>
+<div class="text-center mb-3"><h5 class="mb-0">Награждение</h5></div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{# ── Параметры дипломов ── #}
+<div class="card border-primary mb-4">
+  <div class="card-header py-2 px-3 bg-primary bg-opacity-10">
+    <span class="fw-semibold" style="font-size:1.05rem">Параметры дипломов</span>
+  </div>
+  <div class="card-body py-3 px-3">
+    <form method="post" action="{{ url_for('награждение.страница', sor_id=сор.id) }}">
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold mb-1">Используется слово НАГРАЖДАЕТСЯ</label>
+          <select name="использует_награждается" class="form-select form-select-sm">
+            <option value="1" {% if пар.использует_награждается %}selected{% endif %}>Да</option>
+            <option value="0" {% if not пар.использует_награждается %}selected{% endif %}>Нет</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1 small">Отступ сверху, пт</label>
+          <input type="number" name="отступ_сверху" class="form-control form-control-sm"
+                 value="{{ пар.отступ_сверху }}" placeholder="75">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1 small">Отступ снизу, пт</label>
+          <input type="number" name="отступ_снизу" class="form-control form-control-sm"
+                 value="{{ пар.отступ_снизу }}" placeholder="25">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1 small">Отступ слева, пт</label>
+          <input type="number" name="отступ_слева" class="form-control form-control-sm"
+                 value="{{ пар.отступ_слева }}" placeholder="15">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1 small">Отступ справа, пт</label>
+          <input type="number" name="отступ_справа" class="form-control form-control-sm"
+                 value="{{ пар.отступ_справа }}" placeholder="15">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label mb-1 small">Наименование соревнований</label>
+        <input type="text" name="наименование_соревнований" class="form-control form-control-sm"
+               value="{{ пар.наименование_соревнований or '' }}"
+               placeholder="чемпионат Центрального федерального округа Российской Федерации">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label mb-1 small">Должность подписывающего диплом</label>
+        <input type="text" name="должность_подписывающего" class="form-control form-control-sm"
+               value="{{ пар.должность_подписывающего or '' }}"
+               placeholder="Президент ЛООО «Федерация гребного слалома, рафтинга и спортивного туризма»">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label mb-1 small">И. О. Фамилия подписывающего диплом</label>
+        <input type="text" name="ио_фамилия_подписывающего" class="form-control form-control-sm"
+               value="{{ пар.ио_фамилия_подписывающего or '' }}"
+               placeholder="А. Б. Иванов">
+      </div>
+
+      <button type="submit" class="btn btn-success">Сохранить параметры дипломов</button>
+    </form>
+  </div>
+</div>
+
+{# ── Кнопки дипломов по видам программы ── #}
+{% set дисциплины = [
+  ('R4', 'м', 'Спринт – R4, мужчины'),
+  ('R4', 'ж', 'Спринт – R4, женщины'),
+  ('R6', 'м', 'Спринт – R6, мужчины'),
+  ('R6', 'ж', 'Спринт – R6, женщины'),
+] %}
+
+{% set видимые = [] %}
+{% for (кл, п, _) in дисциплины %}
+  {% if (кл, п) in комбинации %}
+    {% set _ = видимые.append((кл, п)) %}
+  {% endif %}
+{% endfor %}
+
+{% if комбинации %}
+<div class="card border-secondary">
+  <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
+    <span class="fw-semibold" style="font-size:1.05rem">Дипломы — открыть для печати</span>
+  </div>
+  <div class="card-body py-3 px-3">
+    <table class="table table-sm table-borderless mb-0">
+      <tbody>
+      {% for кл, пол_к, заголовок in дисциплины %}
+      {% if (кл, пол_к) in комбинации %}
+      <tr class="align-middle">
+        <td class="fw-semibold" style="width:40%; font-size:.95rem">{{ заголовок }}</td>
+        <td>
+          <div class="d-flex gap-2 flex-wrap">
+            {% for м in [1, 2, 3] %}
+            <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс=кл, пол=пол_к, место=м) }}"
+               class="btn btn-sm {% if м == 1 %}btn-warning text-dark{% elif м == 2 %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
+               target="_blank">
+              {{ м }} место
+            </a>
+            {% endfor %}
+          </div>
+        </td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+  Нет команд для отображения дипломов.
+  <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Добавьте команды</a>.
+</div>
+{% endif %}
+
+{% endblock %}

@@ -202,6 +202,8 @@ class Соревнование(db.Model):
     параметры_дистанций = db.relationship('ПараметрыДистанции', back_populates='соревнование',
                                           cascade='all, delete-orphan',
                                           order_by='ПараметрыДистанции.порядок')
+    параметры_награждения = db.relationship('НаграждениеПараметры', back_populates='соревнование',
+                                             uselist=False, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Соревнование id={self.id} "{self.название}" {self.класс_судна}>'
@@ -426,6 +428,28 @@ class ПараметрыДистанции(db.Model):
 
     def __repr__(self):
         return f'<ПараметрыДистанции #{self.порядок} сор={self.соревнование_id}>'
+
+
+class НаграждениеПараметры(db.Model):
+    """Параметры дипломов для страницы Награждение."""
+    __tablename__ = 'награждение_параметры'
+
+    id                        = db.Column(db.Integer, primary_key=True)
+    соревнование_id           = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False, unique=True)
+
+    использует_награждается   = db.Column(db.Boolean, nullable=False, default=True)
+    отступ_сверху             = db.Column(db.Integer, nullable=False, default=75)
+    отступ_снизу              = db.Column(db.Integer, nullable=False, default=25)
+    отступ_слева              = db.Column(db.Integer, nullable=False, default=15)
+    отступ_справа             = db.Column(db.Integer, nullable=False, default=15)
+    наименование_соревнований = db.Column(db.Text,    nullable=True)
+    должность_подписывающего  = db.Column(db.Text,    nullable=True)
+    ио_фамилия_подписывающего = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='параметры_награждения')
+
+    def __repr__(self):
+        return f'<НаграждениеПараметры сор={self.соревнование_id}>'
 
 
 # ---------------------------------------------------------------------------
@@ -926,6 +950,9 @@ def применить_миграции():
                     conn.commit()
         # параметры_дистанций: создаём таблицу если нет
         if not inspector.has_table('параметры_дистанций'):
+            db.create_all()
+        # награждение_параметры: создаём таблицу если нет
+        if not inspector.has_table('награждение_параметры'):
             db.create_all()
 
 
