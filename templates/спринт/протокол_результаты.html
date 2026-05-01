@@ -50,7 +50,7 @@
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
-  {{ сор.название }}{% if сор.уровень %},&nbsp;{{ сор.уровень }}{% endif %}
+  {{ сор.название }}
 </div>
 
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; text-transform:uppercase; margin-top:6px">
@@ -58,23 +58,17 @@
 </div>
 
 <div class="text-center mb-1" style="font-size:10pt">
-  Спортивная дисциплина: <strong>СПРИНТ{% if сор.класс_судна %} - {{ сор.класс_судна }}{% endif %}</strong>
+  Спортивная дисциплина: <strong>СПРИНТ{% if класс %} - {{ класс }}{% endif %}</strong>
 </div>
-
-{% if сор.возрастная_группа %}
-<div class="text-center mb-1" style="font-size:10pt">
-  Вид программы: <strong>{{ сор.возрастная_группа }}</strong>
-</div>
-{% endif %}
 
 <div class="d-flex justify-content-between mb-2" style="font-size:10pt">
   <div>
-    Дата проведения:
-    <span class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <div class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt; color:#555">Дата проведения</div>
   </div>
   <div>
-    Место проведения:
-    <span class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+    <div class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt; color:#555">Место проведения</div>
   </div>
 </div>
 
@@ -168,10 +162,9 @@
 {% endif %}
 {% endmacro %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{{ таблица_рез(муж_рез, муж_без, муж_разр, 'СПРИНТ — ' + _кл + ', МУЖЧИНЫ' + _вгр) }}
-{{ таблица_рез(жен_рез, жен_без, жен_разр, 'СПРИНТ — ' + _кл + ', ЖЕНЩИНЫ' + _вгр) }}
+{% set _кл = класс or 'R4' %}
+{{ таблица_рез(муж_рез, муж_без, муж_разр, 'СПРИНТ — ' + _кл + ', МУЖЧИНЫ') }}
+{{ таблица_рез(жен_рез, жен_без, жен_разр, 'СПРИНТ — ' + _кл + ', ЖЕНЩИНЫ') }}
 
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
 <div class="text-center text-muted py-4">Нет результатов для отображения</div>

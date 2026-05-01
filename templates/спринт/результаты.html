@@ -28,13 +28,21 @@
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
-  <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный протокол</a>
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+  <div class="d-flex flex-column gap-1">
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+         class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4') }}"
+         class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный протокол Спринт - R4</a>
+      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R6') }}"
+         class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный протокол Спринт – R6</a>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
+         class="btn btn-primary btn-sm" target="_blank">Итоговый протокол Спринт - R4</a>
+      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R6', итоговый=1) }}"
+         class="btn btn-primary btn-sm" target="_blank">Итоговый протокол Спринт – R6</a>
+    </div>
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
@@ -48,7 +56,7 @@
 {% endwith %}
 
 {% macro таблица_результатов(рез, без, разряды, пол_заг, цвет) %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ пол_заг }}</h6>
+<h5 class="mt-4 mb-1">{{ пол_заг }}</h5>
 {% if not рез and not без %}
 <div class="text-muted mb-3" style="font-size:.82rem">Нет данных</div>
 {% else %}
