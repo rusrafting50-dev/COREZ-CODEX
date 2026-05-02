@@ -7,52 +7,45 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Times New Roman", Times, serif;
-      font-size: 12pt;
+      font-size: 11pt;
       color: #000;
     }
-    @page { size: A4 landscape; margin: 15mm 20mm 15mm 25mm; }
+    @page { size: A4 portrait; margin: 15mm 20mm 15mm 25mm; }
     @media print {
       .no-print { display: none !important; }
       .page-break { page-break-after: always; }
     }
     .акт-страница {
       width: 100%;
-      max-width: 260mm;
+      max-width: 165mm;
       margin: 0 auto 20mm;
       padding: 0;
     }
-    .center { text-align: center; }
-    .right  { text-align: right; }
-    .bold   { font-weight: bold; }
-    .underline { border-bottom: 1px solid #000; display: inline-block; min-width: 40mm; }
-    .line-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 3pt;
-    }
-    p { margin-bottom: 4pt; text-indent: 0; }
+    p { margin-bottom: 3pt; text-indent: 0; }
     .indent { text-indent: 10mm; }
-    .sig-block { margin-top: 12pt; }
-    .sig-row {
-      display: flex;
-      align-items: baseline;
-      margin-bottom: 10pt;
-    }
-    .sig-title { min-width: 60mm; }
-    .sig-line  { flex: 1; border-bottom: 1px solid #000; margin: 0 6mm; }
-    .sig-name  { min-width: 55mm; }
-    .param-row { display: flex; align-items: baseline; margin-bottom: 4pt; }
-    .param-label { min-width: 85mm; }
-    .param-value { flex: 1; border-bottom: 1px solid #000; min-width: 20mm; padding-left: 2mm; }
-    .param-unit  { margin-left: 2mm; white-space: nowrap; }
-    .param-text  { flex: 1; }
-    h-акт { display: block; font-size: 16pt; font-weight: bold; letter-spacing: 4pt; text-align: center; margin: 6pt 0 2pt; }
+    .underline-field { border-bottom: 1px solid #000; min-width: 120px; display: inline-block; }
+
+    /* Шапка — как в Итоговом протоколе */
+    .орг-блок { text-align: center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:3pt; }
+    .назв-сор  { text-align: center; font-size:11pt; font-weight:bold; margin-bottom:6pt; }
+    .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; font-weight:bold; }
+    .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; }
+
+    h-акт { display: block; font-size: 15pt; font-weight: bold; letter-spacing: 4pt; text-align: center; margin: 8pt 0 2pt; }
+
+    /* Параметры — без подчёркиваний */
+    .param-строка { margin-bottom: 2pt; font-size:11pt; }
+
+    /* Подписи */
+    .sig-block { margin-top: 14pt; }
+    .sig-row   { display:flex; align-items:baseline; margin-bottom:10pt; font-size:11pt; }
+    .sig-pos   { width: 50%; }
+    .sig-fio   { flex: 1; }
   </style>
 </head>
 <body>
 
-<div class="no-print" style="padding:10px; background:#f8f8f8; margin-bottom:12px; display:flex; gap:8px">
+<div class="no-print" style="display:flex; justify-content:space-between; padding:10px; background:#f8f8f8; margin-bottom:12px">
   <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}"
      style="font-family:sans-serif; font-size:10pt; color:#333; text-decoration:none;
             border:1px solid #999; border-radius:4px; padding:4px 10px">← Назад</a>
@@ -66,114 +59,75 @@
 {% for д in дистанции %}
 <div class="акт-страница {% if not loop.last %}page-break{% endif %}">
 
-  {# ── Шапка ── #}
+  {# ── Шапка (как в Итоговом протоколе, без строк протокола и дисциплины) ── #}
   {% if сор.организаторы_блок %}
-  <p class="center" style="font-size:11pt; white-space:pre-line">{{ сор.организаторы_блок }}</p>
+  <div class="орг-блок">{{ сор.организаторы_блок }}</div>
   {% else %}
-  <p class="center" style="font-size:11pt">Министерство спорта Российской Федерации</p>
+  <div class="орг-блок">Министерство спорта Российской Федерации</div>
   {% endif %}
 
-  <p class="center bold" style="font-size:12pt; margin-top:4pt">{{ сор.название }}</p>
+  <div class="назв-сор">{{ сор.название }}</div>
 
-  <div class="line-between" style="margin-top:4pt; font-size:11pt">
-    <span>{{ сор.даты_проведения or '_______ года' }}</span>
-    <span>{{ сор.место_проведения or '' }}</span>
+  <div class="дата-место">
+    <div>
+      <div class="underline-field">{{ сор.даты_проведения or '&nbsp;' }}</div>
+      <div class="подпись">Дата проведения</div>
+    </div>
+    <div style="text-align:right">
+      <div class="underline-field" style="min-width:160px">{{ сор.место_проведения or '&nbsp;' }}</div>
+      <div class="подпись">Место проведения</div>
+    </div>
   </div>
 
   {# ── Заголовок акта ── #}
-  <h-акт style="margin-top:10pt">А К Т</h-акт>
-  <p class="center" style="font-size:11pt; margin-bottom:2pt">утверждения спортивной дистанции</p>
-  <p class="center" style="font-size:11pt; margin-bottom:8pt">
+  <h-акт>А К Т</h-акт>
+  <p style="text-align:center; font-size:11pt; margin-bottom:2pt">утверждения спортивной дистанции</p>
+  <p style="text-align:center; font-size:11pt; margin-bottom:8pt">
     для спортивной дисциплины: «{{ д.название or '—' }}»
   </p>
 
   {# ── Преамбула ── #}
-  <p class="indent" style="text-align:justify">
+  <p class="indent" style="text-align:justify; margin-bottom:6pt">
     Мы, нижеподписавшиеся, главный судья соревнований
-    <span class="underline bold"> {{ сор.главный_судья or '' }} </span>,
+    <strong>{{ сор.главный_судья or '' }}</strong>,
     начальник дистанции
-    <span class="underline bold"> {{ сор.начальник_дистанции or '' }} </span>,
+    <strong>{{ сор.начальник_дистанции or '' }}</strong>,
     начальник спасательной службы
-    <span class="underline bold"> {{ сор.начальник_спасательной_службы or '' }} </span>
+    <strong>{{ сор.начальник_спасательной_службы or '' }}</strong>
     составили настоящий акт о том, что проведён оперативно-технический осмотр спортивной
     дистанции и определены основные её характеристики.
   </p>
 
-  <p class="indent" style="margin-top:6pt; margin-bottom:4pt">
+  <p class="indent" style="margin-bottom:4pt">
     В результате оперативно-технического осмотра установлено:
   </p>
 
-  {# ── Параметры ── #}
+  {# ── Параметры (без подчёркиваний и лишних интервалов) ── #}
   <div style="padding-left:10mm">
-
-    <div class="param-row">
-      <span class="param-label">1. Общая протяжённость дистанции:</span>
-      <span class="param-value bold">{{ д.протяженность or '' }}</span>
-      <span class="param-unit">м.</span>
-    </div>
-
-    <div class="param-row">
-      <span class="param-label">2. Категория определяющего препятствия:</span>
-      <span class="param-value bold">{{ д.категория or '' }}</span>
-      <span class="param-unit">к. с.</span>
-    </div>
-
-    <div class="param-row">
-      <span class="param-label">3. Среднее время прохождения:</span>
-      <span class="param-value bold">{{ д.среднее_время or '' }}</span>
-      <span class="param-unit">мин.</span>
-    </div>
-
-    <div class="param-row">
-      <span class="param-label">4. Лимит времени для прохождения дистанции:</span>
-      <span class="param-value bold">{{ д.лимит_времени or '' }}</span>
-      <span class="param-unit">мин.</span>
-    </div>
-
-    <p style="margin-bottom:2pt">5. Вариант организации старта:
-      {% if д.вариант_старта %}
-        {{ д.вариант_старта }}
-      {% else %}
-        <span class="underline" style="min-width:80mm">&nbsp;</span>
-      {% endif %}
-    </p>
-
-    <p style="margin-bottom:2pt">6. Вариант организации финиша:
-      {% if д.вариант_финиша %}
-        {{ д.вариант_финиша }}
-      {% else %}
-        <span class="underline" style="min-width:80mm">&nbsp;</span>
-      {% endif %}
-    </p>
-
-    <p style="margin-bottom:2pt">7. Описание видов страховки:</p>
-    {% if д.страховка %}
-    <p style="padding-left:5mm; text-align:justify">{{ д.страховка }}</p>
-    {% else %}
-    <p><span class="underline" style="min-width:100%; display:block">&nbsp;</span></p>
-    <p><span class="underline" style="min-width:100%; display:block">&nbsp;</span></p>
-    {% endif %}
-
+    <p class="param-строка">1. Общая протяжённость дистанции: <strong>{{ д.протяженность or '' }}</strong>{% if д.протяженность %} м.{% endif %}</p>
+    <p class="param-строка">2. Категория определяющего препятствия: <strong>{{ д.категория or '' }}</strong>{% if д.категория %} к. с.{% endif %}</p>
+    <p class="param-строка">3. Среднее время прохождения: <strong>{{ д.среднее_время or '' }}</strong>{% if д.среднее_время %} мин.{% endif %}</p>
+    <p class="param-строка">4. Лимит времени для прохождения дистанции: <strong>{{ д.лимит_времени or '' }}</strong>{% if д.лимит_времени %} мин.{% endif %}</p>
+    <p class="param-строка">5. Вариант организации старта: {{ д.вариант_старта or '' }}</p>
+    <p class="param-строка">6. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
+    <p class="param-строка">7. Описание видов страховки: {{ д.страховка or '' }}</p>
   </div>
 
   <p style="margin-top:6pt">Приложение: схема дистанции.</p>
 
-  {# ── Подписи ── #}
+  {# ── Подписи (должность слева, ФИО с 50% ширины, без подчёркивания) ── #}
   <div class="sig-block">
     <div class="sig-row">
-      <span class="sig-title">Главный судья соревнований</span>
-      <span class="sig-line"></span>
-      <span class="sig-name">{{ сор.главный_судья or '' }}</span>
+      <div class="sig-pos">Главный судья соревнований</div>
+      <div class="sig-fio">{{ сор.главный_судья or '' }}</div>
     </div>
     <div class="sig-row">
-      <span class="sig-title">Начальник дистанции</span>
-      <span class="sig-line"></span>
-      <span class="sig-name">{{ сор.начальник_дистанции or '' }}</span>
+      <div class="sig-pos">Начальник дистанции</div>
+      <div class="sig-fio">{{ сор.начальник_дистанции or '' }}</div>
     </div>
     <div class="sig-row">
-      <span class="sig-title">Начальник спасательной службы</span>
-      <span class="sig-line"></span>
-      <span class="sig-name">{{ сор.начальник_спасательной_службы or '' }}</span>
+      <div class="sig-pos">Начальник спасательной службы</div>
+      <div class="sig-fio">{{ сор.начальник_спасательной_службы or '' }}</div>
     </div>
   </div>
 

@@ -36,10 +36,10 @@
   <div class="d-flex gap-2">
     {% if итоговый %}
     <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный</a>
+       class="btn btn-outline-secondary btn-sm">Предварительный</a>
     {% else %}
     <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Итоговый</a>
+       class="btn btn-outline-primary btn-sm">Итоговый</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>

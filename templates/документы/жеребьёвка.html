@@ -23,11 +23,11 @@
   <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Протокол жеребьёвки</a>
+       class="btn btn-outline-secondary btn-sm">Протокол жеребьёвки</a>
     <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
-       class="btn btn-outline-warning btn-sm" target="_blank">Протокол выдачи номеров</a>
+       class="btn btn-outline-warning btn-sm">Протокол выдачи номеров</a>
     <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Стартовый протокол</a>
+       class="btn btn-outline-primary btn-sm">Стартовый протокол</a>
     <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
   </div>
