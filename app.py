@@ -81,7 +81,8 @@ def create_app() -> Flask:
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; "
             "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
             "img-src 'self' data:; "
-            "font-src 'self' data: cdn.jsdelivr.net;"
+            "font-src 'self' data: cdn.jsdelivr.net; "
+            "connect-src 'self' https://cdn.jsdelivr.net;"
         )
         return response
 
