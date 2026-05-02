@@ -26,10 +26,10 @@
     .underline-field { border-bottom: 1px solid #000; min-width: 120px; display: inline-block; }
 
     /* Шапка — как в Итоговом протоколе */
-    .орг-блок { text-align: center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:3pt; }
+    .орг-блок { text-align: center; font-size:10pt; white-space:pre-line; margin-bottom:3pt; }
     .назв-сор  { text-align: center; font-size:11pt; font-weight:bold; margin-bottom:6pt; }
-    .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; font-weight:bold; }
-    .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; }
+    .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; }
+    .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center; }
 
     h-акт { display: block; font-size: 15pt; font-weight: bold; letter-spacing: 4pt; text-align: center; margin: 8pt 0 2pt; }
 
@@ -69,12 +69,12 @@
   <div class="назв-сор">{{ сор.название }}</div>
 
   <div class="дата-место">
-    <div>
-      <div class="underline-field">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
       <div class="подпись">Дата проведения</div>
     </div>
-    <div style="text-align:right">
-      <div class="underline-field" style="min-width:160px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="min-width:160px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
       <div class="подпись">Место проведения</div>
     </div>
   </div>
@@ -89,11 +89,11 @@
   {# ── Преамбула ── #}
   <p class="indent" style="text-align:justify; margin-bottom:6pt">
     Мы, нижеподписавшиеся, главный судья соревнований
-    <strong>{{ сор.главный_судья or '' }}</strong>,
+    {{ сор.главный_судья or '' }},
     начальник дистанции
-    <strong>{{ сор.начальник_дистанции or '' }}</strong>,
+    {{ сор.начальник_дистанции or '' }},
     начальник спасательной службы
-    <strong>{{ сор.начальник_спасательной_службы or '' }}</strong>
+    {{ сор.начальник_спасательной_службы or '' }}
     составили настоящий акт о том, что проведён оперативно-технический осмотр спортивной
     дистанции и определены основные её характеристики.
   </p>
@@ -104,10 +104,10 @@
 
   {# ── Параметры (без подчёркиваний и лишних интервалов) ── #}
   <div style="padding-left:10mm">
-    <p class="param-строка">1. Общая протяжённость дистанции: <strong>{{ д.протяженность or '' }}</strong>{% if д.протяженность %} м.{% endif %}</p>
-    <p class="param-строка">2. Категория определяющего препятствия: <strong>{{ д.категория or '' }}</strong>{% if д.категория %} к. с.{% endif %}</p>
-    <p class="param-строка">3. Среднее время прохождения: <strong>{{ д.среднее_время or '' }}</strong>{% if д.среднее_время %} мин.{% endif %}</p>
-    <p class="param-строка">4. Лимит времени для прохождения дистанции: <strong>{{ д.лимит_времени or '' }}</strong>{% if д.лимит_времени %} мин.{% endif %}</p>
+    <p class="param-строка">1. Общая протяжённость дистанции: {{ д.протяженность or '' }}{% if д.протяженность %} м.{% endif %}</p>
+    <p class="param-строка">2. Категория определяющего препятствия: {{ д.категория or '' }}{% if д.категория %} к. с.{% endif %}</p>
+    <p class="param-строка">3. Среднее время прохождения: {{ д.среднее_время or '' }}{% if д.среднее_время %} мин.{% endif %}</p>
+    <p class="param-строка">4. Лимит времени для прохождения дистанции: {{ д.лимит_времени or '' }}{% if д.лимит_времени %} мин.{% endif %}</p>
     <p class="param-строка">5. Вариант организации старта: {{ д.вариант_старта or '' }}</p>
     <p class="param-строка">6. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
     <p class="param-строка">7. Описание видов страховки: {{ д.страховка or '' }}</p>

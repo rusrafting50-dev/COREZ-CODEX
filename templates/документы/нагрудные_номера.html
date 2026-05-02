@@ -12,7 +12,7 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
+      @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
@@ -56,13 +56,13 @@
   {% else %}СПРИНТ{% if _кл %} – {{ _кл }}{% endif %}{% endif %}
 </div>
 
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold">
-  <div>
-    <div class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Дата проведения</div>
   </div>
-  <div>
-    <div class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</div>
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>

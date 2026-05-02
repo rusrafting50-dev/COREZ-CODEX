@@ -12,7 +12,7 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 10pt; }
-      @page { margin: 15mm 10mm 15mm 20mm; size: A4 landscape; }
+      @page { margin: 15mm 10mm 15mm 20mm; size: A4 portrait; }
       tr { page-break-inside: avoid; }
     }
     table { font-size: 9pt; border-collapse: collapse; width: 100%; }
@@ -39,9 +39,15 @@
   <h3 class="doc-title mb-1">Стартовый протокол</h3>
   <div style="font-size:11pt">Дистанция: <strong>СЛАЛОМ</strong></div>
   <div style="font-size:11pt"><strong>{{ сор.название }}</strong></div>
-  <div style="font-size:10pt; color:#555">
-    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
-    {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
+  <div class="d-flex justify-content-between mb-2 mt-1" style="font-size:10pt">
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+      <div style="font-size:8pt">Дата проведения</div>
+    </div>
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+      <div style="font-size:8pt">Место проведения</div>
+    </div>
   </div>
 </div>
 
