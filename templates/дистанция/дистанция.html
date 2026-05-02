@@ -62,26 +62,28 @@
                value="{{ д.название or '' }}"
                placeholder="Например: Спринт – R4, мужчины">
       </div>
+      <div class="row g-2 mb-1">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">1. Общая протяжённость дистанции, м</label>
+          <input type="text" name="протяженность_{{ i }}" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" value="{{ д.протяженность or '' }}" placeholder="200">
+        </div>
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">2. Категория определяющего препятствия, к. с.</label>
+          <input type="text" name="категория_{{ i }}" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" value="{{ д.категория or '' }}" placeholder="2">
+        </div>
+      </div>
       <div class="row g-2 mb-2">
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">1. Общая протяжённость дистанции, м</label>
-          <input type="text" name="протяженность_{{ i }}" class="form-control form-control-sm"
-                 value="{{ д.протяженность or '' }}" placeholder="200">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">3. Среднее время прохождения, мин.</label>
+          <input type="text" name="среднее_время_{{ i }}" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" value="{{ д.среднее_время or '' }}" placeholder="2,5">
         </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">2. Категория определяющего препятствия, к. с.</label>
-          <input type="text" name="категория_{{ i }}" class="form-control form-control-sm"
-                 value="{{ д.категория or '' }}" placeholder="2">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">3. Среднее время прохождения, мин.</label>
-          <input type="text" name="среднее_время_{{ i }}" class="form-control form-control-sm"
-                 value="{{ д.среднее_время or '' }}" placeholder="2,5">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">4. Лимит времени для прохождения дистанции, мин.</label>
-          <input type="text" name="лимит_времени_{{ i }}" class="form-control form-control-sm"
-                 value="{{ д.лимит_времени or '' }}" placeholder="5">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">4. Лимит времени для прохождения дистанции, мин.</label>
+          <input type="text" name="лимит_времени_{{ i }}" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" value="{{ д.лимит_времени or '' }}" placeholder="5">
         </div>
       </div>
       <div class="mb-2">
@@ -130,22 +132,28 @@
         <input type="text" name="название_IDX" class="form-control form-control-sm"
                placeholder="Например: Спринт – R4, мужчины">
       </div>
+      <div class="row g-2 mb-1">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">1. Общая протяжённость дистанции, м</label>
+          <input type="text" name="протяженность_IDX" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" placeholder="200">
+        </div>
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">2. Категория определяющего препятствия, к. с.</label>
+          <input type="text" name="категория_IDX" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" placeholder="2">
+        </div>
+      </div>
       <div class="row g-2 mb-2">
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">1. Общая протяжённость дистанции, м</label>
-          <input type="text" name="протяженность_IDX" class="form-control form-control-sm" placeholder="200">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">3. Среднее время прохождения, мин.</label>
+          <input type="text" name="среднее_время_IDX" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" placeholder="2,5">
         </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">2. Категория определяющего препятствия, к. с.</label>
-          <input type="text" name="категория_IDX" class="form-control form-control-sm" placeholder="2">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">3. Среднее время прохождения, мин.</label>
-          <input type="text" name="среднее_время_IDX" class="form-control form-control-sm" placeholder="2,5">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label mb-1 small">4. Лимит времени для прохождения дистанции, мин.</label>
-          <input type="text" name="лимит_времени_IDX" class="form-control form-control-sm" placeholder="5">
+        <div class="col-md-6 d-flex align-items-center gap-2">
+          <label class="form-label mb-0 small flex-grow-1">4. Лимит времени для прохождения дистанции, мин.</label>
+          <input type="text" name="лимит_времени_IDX" class="form-control form-control-sm flex-shrink-0"
+                 style="width:75px" placeholder="5">
         </div>
       </div>
       <div class="mb-2">
