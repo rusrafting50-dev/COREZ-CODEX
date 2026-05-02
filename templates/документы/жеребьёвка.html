@@ -125,8 +125,8 @@
         <div class="row g-2" id="порядок-видов">
           {% for поз in range(1, 5) %}
           {% set текущее = текущий_порядок[поз-1] if поз-1 < текущий_порядок|length else '' %}
-          <div class="col-6 col-md-3">
-            <label class="form-label small mb-1">{{ поз }}.</label>
+          <div class="col-6 col-md-3 d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 flex-shrink-0">{{ поз }}.</label>
             <select name="порядок_{{ поз }}" class="form-select form-select-sm вид-программы"
                     data-поз="{{ поз }}">
               {% for код, назв in виды_все %}

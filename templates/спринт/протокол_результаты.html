@@ -140,14 +140,14 @@
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
-    <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
-    <td class="text-center">-</td>
-    <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_ст == 0 %}—{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">—</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_фн == 0 %}—{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
     {% else %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
     {% endif %}
     <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
@@ -209,14 +209,14 @@
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
-    <td class="text-center">{% if р.статус == 'ДК' or шт_ст == 0 %}-{% else %}+{{ шт_ст }}с{% endif %}</td>
-    <td class="text-center">-</td>
-    <td class="text-center">{% if р.статус == 'ДК' or шт_фн == 0 %}-{% else %}+{{ шт_фн }}с{% endif %}</td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_ст == 0 %}—{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">—</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_фн == 0 %}—{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
     {% else %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '-' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
     {% endif %}
     <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
