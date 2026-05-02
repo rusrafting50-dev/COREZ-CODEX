@@ -134,8 +134,10 @@
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Дистанция</a>
           <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
           <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
-          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предв.</a>
-          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итог.</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}?класс=R4" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предварительный протокол R4</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс=R4" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итоговый протокол R4</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id) }}?класс=R6" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Предварительный протокол R6</a>
+          <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс=R6" class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Итоговый протокол R6</a>
           <a href="{{ url_for('награждение.страница', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
@@ -330,7 +332,7 @@
 </div>
 {% endif %}
 
-<div class="row g-2 no-print">
+<div class="row g-2 mt-2 no-print">
 
   {% if not двойной %}
   {# Многоборье — одиночный класс, в общей строке с Зачётом #}

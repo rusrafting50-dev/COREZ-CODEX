@@ -166,6 +166,10 @@ class Соревнование(db.Model):
     последовательность_r4       = db.Column(db.String(300), nullable=True)
     последовательность_r6       = db.Column(db.String(300), nullable=True)
 
+    # Параметры жеребьёвки и стартового протокола
+    последовательность_видов    = db.Column(db.String(100), nullable=True)   # "R4-м,R4-ж,R6-м,R6-ж"
+    вывод_старт_протокола       = db.Column(db.String(20),  nullable=True)   # "Попарно"/"Раздельно"
+
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
     реквизиты_оплаты            = db.Column(db.Text, nullable=True)
@@ -954,6 +958,20 @@ def применить_миграции():
         # награждение_параметры: создаём таблицу если нет
         if not inspector.has_table('награждение_параметры'):
             db.create_all()
+        # параметры жеребьёвки: два новых столбца в соревнованиях
+        cols_сор = {c['name'] for c in inspector.get_columns('соревнования')}
+        if 'последовательность_видов' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_видов VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_протокола' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_протокола VARCHAR(20)"
+                ))
+                conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
