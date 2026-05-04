@@ -46,7 +46,7 @@
 <body>
 
 <div class="no-print" style="display:flex; justify-content:space-between; padding:10px; background:#f8f8f8; margin-bottom:12px">
-  <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}"
+  <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип=тип) }}"
      style="font-family:sans-serif; font-size:10pt; color:#333; text-decoration:none;
             border:1px solid #999; border-radius:4px; padding:4px 10px">← Назад</a>
   <button onclick="window.print()"

@@ -13,18 +13,45 @@
 
 {% block content %}
 
+{% if тип == 'пс' %}
+  {% set заголовок_группы = 'Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ' %}
+{% elif тип == 'слалом' %}
+  {% set заголовок_группы = 'Группа спортивных дисциплин СЛАЛОМ' %}
+{% elif тип == 'дг' %}
+  {% set заголовок_группы = 'Группа спортивных дисциплин ДЛИННАЯ ГОНКА' %}
+{% else %}
+  {% set заголовок_группы = 'Группа спортивных дисциплин СПРИНТ' %}
+{% endif %}
+
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
+  <h5 class="mb-0">{{ заголовок_группы }}</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('дистанция.акт', sor_id=сор.id) }}"
+    <a href="{{ url_for('дистанция.акт', sor_id=сор.id, тип=тип) }}"
        class="btn btn-outline-secondary btn-sm">Акт сдачи-приёмки дистанции</a>
+    {% if тип == 'спринт' %}
     <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
     <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
+    {% elif тип == 'пс' %}
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-info btn-sm">Стартовый протокол</a>
+    <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-info btn-sm">Результаты</a>
+    {% elif тип == 'слалом' %}
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Стартовый протокол</a>
+    <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-success btn-sm">Результаты</a>
+    {% elif тип == 'дг' %}
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-warning btn-sm">Стартовый протокол</a>
+    <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-warning btn-sm">Результаты</a>
+    {% endif %}
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Параметры дистанций</h5></div>
@@ -39,6 +66,7 @@
 
 <form id="формаДистанций" method="post"
       action="{{ url_for('дистанция.сохранить', sor_id=сор.id) }}">
+  <input type="hidden" name="тип" value="{{ тип }}">
   <input type="hidden" name="кол_дистанций" id="кол_дистанций" value="{{ дистанции | length }}">
 
   <div id="блоки-дистанций">
@@ -60,7 +88,10 @@
         <label class="form-label fw-semibold mb-1">Спортивная дисциплина</label>
         <input type="text" name="название_{{ i }}" class="form-control form-control-sm"
                value="{{ д.название or '' }}"
-               placeholder="Например: Спринт – R4, мужчины">
+               {% if тип == 'пс' %}placeholder="Например: Параллельный спринт – R4, Параллельный спринт – R6"
+               {% elif тип == 'слалом' %}placeholder="Например: Слалом – R4, Слалом – R6"
+               {% elif тип == 'дг' %}placeholder="Например: Длинная гонка – R4, Длинная гонка – R6"
+               {% else %}placeholder="Например: Спринт – R4, мужчины"{% endif %}>
       </div>
       <div class="row g-2 mb-1">
         <div class="col-md-6">
@@ -89,8 +120,70 @@
       <div class="mb-2">
         <label class="form-label mb-1 small">5. Вариант организации старта</label>
         <textarea name="вариант_старта_{{ i }}" class="form-control form-control-sm" rows="2"
-                  placeholder="Раздельный с воды от берега">{{ д.вариант_старта or '' }}</textarea>
+                  {% if тип == 'пс' %}placeholder="попарно, от берега"
+                  {% elif тип == 'дг' %}placeholder="групповой, с берега"
+                  {% else %}placeholder="Раздельный с воды от берега"{% endif %}>{{ д.вариант_старта or '' }}</textarea>
       </div>
+      {% if тип == 'пс' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Конструкция и параметры буев</label>
+        <textarea name="буи_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="соответствуют разделу 11 правил вида спорта «рафтинг»">{{ д.буи or '' }}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»">{{ д.вариант_финиша or '' }}</textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">8. Описание видов страховки</label>
+        <textarea name="страховка_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="8.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша">{{ д.страховка or '' }}</textarea>
+      </div>
+      {% elif тип == 'слалом' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Количество ворот (в т.ч. обратных)</label>
+        <div class="d-flex align-items-center gap-2">
+          <input type="text" name="кол_ворот_{{ i }}" class="form-control form-control-sm"
+                 style="width:75px" value="{{ д.кол_ворот or '' }}" placeholder="14">
+          <span class="text-muted">(</span>
+          <input type="text" name="кол_обратных_{{ i }}" class="form-control form-control-sm"
+                 style="width:75px" value="{{ д.кол_обратных or '' }}" placeholder="3">
+          <span class="text-muted">)</span>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Конструкция и параметры ворот</label>
+        <textarea name="конструкция_ворот_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="соответствуют разделу 11 правил вида спорта «рафтинг»">{{ д.конструкция_ворот or '' }}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">8. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»">{{ д.вариант_финиша or '' }}</textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">9. Описание видов страховки</label>
+        <textarea name="страховка_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="9.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша">{{ д.страховка or '' }}</textarea>
+      </div>
+      {% elif тип == 'дг' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Количество, конструкция и параметры буев</label>
+        <textarea name="буи_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="два плавучих, соответствуют разделу 11 правил вида спорта «рафтинг»">{{ д.буи or '' }}</textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»">{{ д.вариант_финиша or '' }}</textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">8. Описание видов страховки</label>
+        <textarea name="страховка_{{ i }}" class="form-control form-control-sm" rows="2"
+                  placeholder="8.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша">{{ д.страховка or '' }}</textarea>
+      </div>
+      {% else %}
       <div class="mb-2">
         <label class="form-label mb-1 small">6. Вариант организации финиша</label>
         <textarea name="вариант_финиша_{{ i }}" class="form-control form-control-sm" rows="2"
@@ -101,6 +194,7 @@
         <textarea name="страховка_{{ i }}" class="form-control form-control-sm" rows="2"
                   placeholder="С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша">{{ д.страховка or '' }}</textarea>
       </div>
+      {% endif %}
     </div>
   </div>
   {% endfor %}
@@ -130,7 +224,10 @@
       <div class="mb-3">
         <label class="form-label fw-semibold mb-1">Спортивная дисциплина</label>
         <input type="text" name="название_IDX" class="form-control form-control-sm"
-               placeholder="Например: Спринт – R4, мужчины">
+               {% if тип == 'пс' %}placeholder="Например: Параллельный спринт – R4, Параллельный спринт – R6"
+               {% elif тип == 'слалом' %}placeholder="Например: Слалом – R4, Слалом – R6"
+               {% elif тип == 'дг' %}placeholder="Например: Длинная гонка – R4, Длинная гонка – R6"
+               {% else %}placeholder="Например: Спринт – R4, мужчины"{% endif %}>
       </div>
       <div class="row g-2 mb-1">
         <div class="col-md-6">
@@ -159,8 +256,70 @@
       <div class="mb-2">
         <label class="form-label mb-1 small">5. Вариант организации старта</label>
         <textarea name="вариант_старта_IDX" class="form-control form-control-sm" rows="2"
-                  placeholder="Раздельный с воды от берега"></textarea>
+                  {% if тип == 'пс' %}placeholder="попарно, от берега"
+                  {% elif тип == 'дг' %}placeholder="групповой, с берега"
+                  {% else %}placeholder="Раздельный с воды от берега"{% endif %}></textarea>
       </div>
+      {% if тип == 'пс' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Конструкция и параметры буев</label>
+        <textarea name="буи_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="соответствуют разделу 11 правил вида спорта «рафтинг»"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»"></textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">8. Описание видов страховки</label>
+        <textarea name="страховка_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="8.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша"></textarea>
+      </div>
+      {% elif тип == 'слалом' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Количество ворот (в т.ч. обратных)</label>
+        <div class="d-flex align-items-center gap-2">
+          <input type="text" name="кол_ворот_IDX" class="form-control form-control-sm"
+                 style="width:75px" placeholder="14">
+          <span class="text-muted">(</span>
+          <input type="text" name="кол_обратных_IDX" class="form-control form-control-sm"
+                 style="width:75px" placeholder="3">
+          <span class="text-muted">)</span>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Конструкция и параметры ворот</label>
+        <textarea name="конструкция_ворот_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="соответствуют разделу 11 правил вида спорта «рафтинг»"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">8. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»"></textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">9. Описание видов страховки</label>
+        <textarea name="страховка_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="9.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша"></textarea>
+      </div>
+      {% elif тип == 'дг' %}
+      <div class="mb-2">
+        <label class="form-label mb-1 small">6. Количество, конструкция и параметры буев</label>
+        <textarea name="буи_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="два плавучих, соответствуют разделу 11 правил вида спорта «рафтинг»"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label mb-1 small">7. Вариант организации финиша</label>
+        <textarea name="вариант_финиша_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="Створ из вешек, подвешенных над водой, обозначенный баннером «Финиш»"></textarea>
+      </div>
+      <div class="mb-1">
+        <label class="form-label mb-1 small">8. Описание видов страховки</label>
+        <textarea name="страховка_IDX" class="form-control form-control-sm" rows="2"
+                  placeholder="8.1. С воды. Страхующее судно — моторная лодка с сотрудниками МЧС, расположено ниже по течению от линии финиша"></textarea>
+      </div>
+      {% else %}
       <div class="mb-2">
         <label class="form-label mb-1 small">6. Вариант организации финиша</label>
         <textarea name="вариант_финиша_IDX" class="form-control form-control-sm" rows="2"
@@ -171,6 +330,7 @@
         <textarea name="страховка_IDX" class="form-control form-control-sm" rows="2"
                   placeholder="С воды. Страхующее судно — моторная лодка с сотрудниками МЧС"></textarea>
       </div>
+      {% endif %}
     </div>
   </div>
 </template>
@@ -186,11 +346,9 @@ function обновитьСостояние() {
     const кол = блоки.length;
     счётчик.value = кол;
     кнопкаДобавить.disabled = кол >= MAX;
-    // Показывать кнопку «Удалить» только если блоков > 1
     блоки.forEach((б, i) => {
         б.querySelector('.блок-номер').textContent = кол > 1 ? (i + 1) : '';
         б.querySelector('.удалить-блок').style.display = кол > 1 ? '' : 'none';
-        // Переименовать поля по новому индексу
         б.querySelectorAll('[name]').forEach(el => {
             el.name = el.name.replace(/_\d+$/, '_' + i);
         });
@@ -202,13 +360,11 @@ function обновитьСостояние() {
     if (кол >= MAX) return;
     const шаблон = document.getElementById('шаблон-блока');
     const клон = шаблон.content.cloneNode(true);
-    // Заменить IDX на реальный индекс
     клон.querySelectorAll('[name]').forEach(el => {
         el.name = el.name.replace('IDX', кол);
     });
     контейнер.appendChild(клон);
     обновитьСостояние();
-    // Прикрепить обработчик удаления к новому блоку
     const новыйБлок = контейнер.lastElementChild;
     новыйБлок.querySelector('.удалить-блок').addEventListener('click', удалить);
 });
@@ -218,7 +374,6 @@ function удалить() {
     обновитьСостояние();
 }
 
-// Прикрепить обработчики удаления к существующим блокам
 контейнер.querySelectorAll('.удалить-блок').forEach(кн => {
     кн.addEventListener('click', удалить);
 });

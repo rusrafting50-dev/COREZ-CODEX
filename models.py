@@ -424,9 +424,14 @@ class ПараметрыДистанции(db.Model):
     категория       = db.Column(db.String(50),  nullable=True)
     среднее_время   = db.Column(db.String(50),  nullable=True)
     лимит_времени   = db.Column(db.String(50),  nullable=True)
-    вариант_старта  = db.Column(db.Text,        nullable=True)
-    вариант_финиша  = db.Column(db.Text,        nullable=True)
-    страховка       = db.Column(db.Text,        nullable=True)
+    вариант_старта    = db.Column(db.Text,        nullable=True)
+    вариант_финиша    = db.Column(db.Text,        nullable=True)
+    страховка         = db.Column(db.Text,        nullable=True)
+    тип               = db.Column(db.String(50),  nullable=False, default='спринт')
+    буи               = db.Column(db.Text,        nullable=True)
+    кол_ворот         = db.Column(db.String(50),  nullable=True)
+    кол_обратных      = db.Column(db.String(50),  nullable=True)
+    конструкция_ворот = db.Column(db.Text,        nullable=True)
 
     соревнование = db.relationship('Соревнование', back_populates='параметры_дистанций')
 
@@ -952,9 +957,21 @@ def применить_миграции():
                         f'ALTER TABLE результаты_спринт ADD COLUMN {col} INTEGER DEFAULT 0'
                     ))
                     conn.commit()
-        # параметры_дистанций: создаём таблицу если нет
+        # параметры_дистанций: создаём таблицу если нет, добавляем новые столбцы
         if not inspector.has_table('параметры_дистанций'):
             db.create_all()
+        else:
+            cols_д = {c['name'] for c in inspector.get_columns('параметры_дистанций')}
+            for col, ddl in [
+                ('тип',               "VARCHAR(50) NOT NULL DEFAULT 'спринт'"),
+                ('буи',               'TEXT'),
+                ('кол_ворот',         'VARCHAR(50)'),
+                ('кол_обратных',      'VARCHAR(50)'),
+                ('конструкция_ворот', 'TEXT'),
+            ]:
+                if col not in cols_д:
+                    conn.execute(text(f'ALTER TABLE параметры_дистанций ADD COLUMN {col} {ddl}'))
+                    conn.commit()
         # награждение_параметры: создаём таблицу если нет
         if not inspector.has_table('награждение_параметры'):
             db.create_all()
