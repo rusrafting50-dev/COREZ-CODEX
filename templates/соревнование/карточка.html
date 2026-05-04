@@ -157,7 +157,7 @@
           <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-info btn-sm text-white">Сетка</a>
           <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Заезды</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Результаты</a>
-          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Сетка</a>
+          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Итог.</a>
         </div>
@@ -252,7 +252,7 @@
           <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-info btn-sm text-white">Сетка</a>
           <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Заезды</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Результаты</a>
-          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Сетка</a>
+          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Итог.</a>
         </div>

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Сетка ПС — {{ сор.название | truncate(60) }}</title>
+  <title>Стартовый протокол ПС — {{ сор.название | truncate(60) }}</title>
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
@@ -12,23 +12,31 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      @page { margin: 12mm 8mm; size: A4 portrait; }
+      @page { margin: 10mm 8mm; size: A4 landscape; }
       tr { page-break-inside: avoid; }
     }
     h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
+    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase;
+                     border-bottom: 1px solid #999; padding-bottom: 2px; }
     .stage-header { font-size: 9pt; font-weight: bold; background: #e8e8e8; padding: 3px 6px;
-                    border: 1px solid #999; text-align: center; }
+                    border: 1px solid #999; text-align: center; margin-bottom: 3px; }
     .heat-box { border: 1px solid #999; margin-bottom: 4px; font-size: 8.5pt; }
-    .heat-header { background: #f5f5f5; padding: 1px 5px; font-size: 7.5pt; color: #555;
-                   border-bottom: 1px solid #ddd; }
+    .heat-header { background: #f5f5f5; padding: 1px 5px; font-size: 7.5pt; color: #444;
+                   border-bottom: 1px solid #ddd; font-weight: bold; }
+    .heat-time { padding: 1px 5px 2px; font-size: 7pt; color: #555; border-bottom: 1px solid #eee; }
+    .time-field { border-bottom: 1px solid #777; display: inline-block; min-width: 68px;
+                  font-family: monospace; letter-spacing: 1px; color: #333; }
     .heat-team { padding: 2px 5px; border-bottom: 1px solid #eee; }
     .heat-team:last-child { border-bottom: none; }
     .winner { font-weight: bold; }
-    .result-col { font-family: monospace; text-align: right; min-width: 60px; }
+    .result-col { font-family: monospace; text-align: right; min-width: 52px; }
+    .seed-col { font-size: 7pt; width: 30px; white-space: nowrap; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .bracket-col { vertical-align: top; padding: 0 8px; }
-    .arrow-col { vertical-align: middle; text-align: center; font-size: 14pt; color: #999; }
+    .bracket-col { vertical-align: top; padding: 0 3px; }
+    .arrow-col { vertical-align: middle; text-align: center; font-size: 12pt; color: #999;
+                 width: 14px; padding: 0; }
+    .fin-b-header { background: #eeeeee; }
+    .fin-a-header { background: #dddddd; font-weight: bold; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -44,7 +52,7 @@
 {% endif %}
 
 <div class="text-center mb-3">
-  <h3 class="doc-title mb-0">Протокол жеребьёвки</h3>
+  <h3 class="doc-title mb-0">Стартовый протокол</h3>
   <div style="font-size:11pt">Дистанция: <strong>ПАРАЛЛЕЛЬНЫЙ СПРИНТ</strong></div>
   <div style="font-size:12pt"><strong>{{ сор.название }}</strong></div>
   <div class="d-flex justify-content-between mb-2 mt-1" style="font-size:10pt">
@@ -59,90 +67,221 @@
   </div>
 </div>
 
-{% macro сетка_пол(брак, стадии, посев_map, предв, заг) %}
-{% if стадии %}
+{# ── Macro: render one bracket (one gender + class) ── #}
+{% macro сетка_пол(брак, стадии, посев_map, предв, заг, n) %}
+{% if n >= 2 %}
 <div class="section-title">{{ заг }}</div>
-<table style="width:100%; border-collapse:collapse">
-  <tr>
-  {% for стадия in стадии %}
-  <td class="bracket-col" style="width:{{ (100 / стадии | length) | int }}%">
-    <div class="stage-header">{{ НАЗВАНИЯ.get(стадия, стадия) }}</div>
 
-    {% set заезды = брак[стадия] %}
-    {% if not заезды %}
-    {# Стадия ещё не сформирована — предварительные участники #}
-    <div class="heat-box" style="opacity:.7;border-style:dashed">
-      <div class="heat-header">Заезд 1</div>
-      {% for команда, метка in предв.get(стадия, []) %}
+{# Determine prelim stage columns left-to-right based on n #}
+{% if n <= 4 %}
+  {% set пред_стадии = ['1/2'] %}
+{% elif n <= 8 %}
+  {% set пред_стадии = ['1/4', '1/2'] %}
+{% elif n <= 16 %}
+  {% set пред_стадии = ['1/8', '1/4', '1/2'] %}
+{% else %}
+  {% set пред_стадии = ['1/16', '1/8', '1/4', '1/2'] %}
+{% endif %}
+
+{% set ДИСП = {'1/2': '½ финала', '1/4': '¼ финала', '1/8': '⅛ финала', '1/16': '1/16 финала'} %}
+{% set has_finb = n > 3 %}
+{% set ns = namespace(hn=0) %}
+
+<table style="width:100%;border-collapse:collapse;margin-bottom:16pt">
+<tr>
+
+{# Regular stage columns #}
+{% for ст in пред_стадии %}
+{% if not loop.first %}<td class="arrow-col">&rarr;</td>{% endif %}
+<td class="bracket-col">
+  <div class="stage-header">{{ ДИСП.get(ст, ст) }}</div>
+  {% set заезды = брак.get(ст, {}) %}
+  {% if заезды %}
+    {# Skip BYE (номер==0); show real heats with sequential numbers #}
+    {% for номер, пара in заезды.items() | sort %}
+    {% if номер > 0 %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat-box">
+      <div class="heat-header">Заезд {{ ns.hn }}</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% for з in пара %}
+      <div class="heat-team{{ ' winner' if з.победитель is true }}{{ ' text-muted' if з.статус in ('ДК','НФН','НСТ') }}">
+        <table style="width:100%;border:0"><tr>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(з.команда_id, '?') }}</td>
+          <td>{{ з.команда.название or '—' }}</td>
+          <td class="result-col">
+            {%- if з.результат %}{{ format_dur(з.результат) }}
+            {%- elif з.статус in ('ДК','НФН','НСТ') %}{{ з.статус }}{% endif %}
+            {%- if з.победитель is true %}&raquo;{% endif -%}
+          </td>
+        </tr></table>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  {% else %}
+    {# Stage not yet formed — show expected participants from предв #}
+    {% set уч = предв.get(ст, []) %}
+    {% if уч %}
+    <div class="heat-box" style="opacity:.75;border-style:dashed">
+      <div class="heat-header">Заезд ?</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% for команда, метка in уч %}
       <div class="heat-team">
         {% if команда %}
         <table style="width:100%;border:0"><tr>
-          <td style="font-size:7pt;width:18px">[{{ посев_map.get(команда.id, '?') }}]</td>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
           <td>{{ команда.название or '—' }}</td>
           <td class="result-col"></td>
         </tr></table>
         {% else %}
-        <span style="font-style:italic;color:#888">{{ метка }}</span>
+        <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
         {% endif %}
       </div>
-      {% else %}
-      <div class="heat-team" style="color:#aaa;font-style:italic">Ожидается</div>
       {% endfor %}
     </div>
     {% else %}
-    {% for номер, пара in заезды.items() %}
-    {% if номер == 0 %}
-    {% for з in пара %}
-    <div class="heat-box">
-      <div class="heat-header">БАЙ</div>
-      <div class="heat-team">
-        <span style="display:inline-block;min-width:18px;font-size:7pt">[{{ посев_map.get(з.команда_id, '?') }}]</span>
-        {{ з.команда.название or '—' }}
-        <span style="font-size:7pt;color:#777"> — авт. проход</span>
-      </div>
-    </div>
-    {% endfor %}
-    {% else %}
-    <div class="heat-box">
-      <div class="heat-header">Заезд {{ номер }}</div>
-      {% for з in пара %}
-      <div class="heat-team {{ 'winner' if з.победитель is true }}
-                              {{ 'text-muted' if з.статус in ('ДК','НФН','НСТ') }}">
-        <table style="width:100%;border:0">
-          <tr>
-            <td style="font-size:7pt;width:18px">[{{ посев_map.get(з.команда_id, '?') }}]</td>
-            <td>{{ з.команда.название or '—' }}</td>
-            <td class="result-col">
-              {% if з.результат %}{{ format_dur(з.результат) }}
-              {% elif з.статус in ('ДК','НФН','НСТ') %}{{ з.статус }}
-              {% endif %}
-              {% if з.победитель is true %}&raquo;{% endif %}
-            </td>
-          </tr>
-        </table>
-      </div>
-      {% endfor %}
+    <div class="heat-box" style="opacity:.4;border-style:dashed">
+      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
     </div>
     {% endif %}
-    {% endfor %}
-    {% endif %}
-  </td>
-  {% if not loop.last %}
-  <td class="arrow-col" style="width:20px">&rarr;</td>
   {% endif %}
-  {% endfor %}
-  </tr>
+</td>
+{% endfor %}
+
+{# Arrow before Финалы #}
+<td class="arrow-col">&rarr;</td>
+
+{# Финалы column: Финал Б on top, Финал А below #}
+<td class="bracket-col">
+  <div class="stage-header">Финалы</div>
+
+  {# ── Финал Б (only when n > 3) ── #}
+  {% if has_finb %}
+  {% set зб = брак.get('Финал_Б', {}) %}
+  {% if зб %}
+    {% for номер, пара in зб.items() | sort %}
+    {% if номер > 0 %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat-box" style="border-color:#aaa">
+      <div class="heat-header fin-b-header">Финал Б · Заезд {{ ns.hn }}</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% for з in пара %}
+      <div class="heat-team{{ ' winner' if з.победитель is true }}">
+        <table style="width:100%;border:0"><tr>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(з.команда_id, '?') }}</td>
+          <td>{{ з.команда.название or '—' }}</td>
+          <td class="result-col">
+            {%- if з.результат %}{{ format_dur(з.результат) }}{% endif %}
+            {%- if з.победитель is true %}&raquo;{% endif -%}
+          </td>
+        </tr></table>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set уч_б = предв.get('Финал_Б', []) %}
+    <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#aaa">
+      <div class="heat-header fin-b-header">Финал Б</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% if уч_б %}
+        {% for команда, метка in уч_б %}
+        <div class="heat-team">
+          {% if команда %}
+          <table style="width:100%;border:0"><tr>
+            <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
+            <td>{{ команда.название or '—' }}</td>
+            <td class="result-col"></td>
+          </tr></table>
+          {% else %}
+          <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% endif %}{# /has_finb #}
+
+  {# ── Финал А ── #}
+  {% set за = брак.get('Финал_А', {}) %}
+  {% if за %}
+    {% for номер, пара in за.items() | sort %}
+    {% if номер > 0 %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat-box" style="border-color:#444;border-width:2px">
+      <div class="heat-header fin-a-header">Финал А · Заезд {{ ns.hn }}</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% for з in пара %}
+      <div class="heat-team{{ ' winner' if з.победитель is true }}">
+        <table style="width:100%;border:0"><tr>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(з.команда_id, '?') }}</td>
+          <td>{{ з.команда.название or '—' }}</td>
+          <td class="result-col">
+            {%- if з.результат %}{{ format_dur(з.результат) }}{% endif %}
+            {%- if з.победитель is true %}&raquo;{% endif -%}
+          </td>
+        </tr></table>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  {% else %}
+    {% set уч_а = предв.get('Финал_А', []) %}
+    <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#555;border-width:2px">
+      <div class="heat-header fin-a-header">Финал А</div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      {% if уч_а %}
+        {% for команда, метка in уч_а %}
+        <div class="heat-team">
+          {% if команда %}
+          <table style="width:100%;border:0"><tr>
+            <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
+            <td>{{ команда.название or '—' }}</td>
+            <td class="result-col"></td>
+          </tr></table>
+          {% else %}
+          <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</td>
+</tr>
 </table>
-{% endif %}
+{% endif %}{# /n >= 2 #}
 {% endmacro %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
+{# ── Render grids ── #}
 {% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{{ сетка_пол(муж_брак, муж_стадии, муж_посев, муж_предв, 'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — ' + _кл + ', МУЖЧИНЫ' + _вгр) }}
-{{ сетка_пол(жен_брак, жен_стадии, жен_посев, жен_предв, 'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — ' + _кл + ', ЖЕНЩИНЫ' + _вгр) }}
 
-{% if not муж_стадии and not жен_стадии %}
-<div style="text-align:center;color:#888;padding:2em">Сетка не сформирована</div>
+{{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4,
+             'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — R4, МУЖЧИНЫ' + _вгр, n_муж_r4) }}
+{{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4,
+             'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — R4, ЖЕНЩИНЫ' + _вгр, n_жен_r4) }}
+
+{% if has_r6 %}
+{{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6,
+             'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — R6, МУЖЧИНЫ' + _вгр, n_муж_r6) }}
+{{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6,
+             'ПАРАЛЛЕЛЬНЫЙ СПРИНТ — R6, ЖЕНЩИНЫ' + _вгр, n_жен_r6) }}
+{% endif %}
+
+{% if n_муж_r4 < 2 and n_жен_r4 < 2 and (not has_r6 or (n_муж_r6 < 2 and n_жен_r6 < 2)) %}
+<div style="text-align:center;color:#888;padding:2em">
+  Команды не зарегистрированы или сетка не сформирована.
+</div>
 {% endif %}
 
 <div class="row mt-4" style="font-size:10pt">
