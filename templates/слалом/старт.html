@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Слалом: Старт — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}Слалом: Стартовый протокол — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,18 +7,18 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Слалом — Старт</li>
+    <li class="breadcrumb-item active">Слалом — Стартовый протокол</li>
   </ol>
 {% endblock %}
 
 {% block content %}
 
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
 {% set муж_р4 = муж | selectattr('класс_судна', 'equalto', 'R4') | list %}
 {% set жен_р4 = жен | selectattr('класс_судна', 'equalto', 'R4') | list %}
 {% set муж_р6 = муж | selectattr('класс_судна', 'equalto', 'R6') | list %}
 {% set жен_р6 = жен | selectattr('класс_судна', 'equalto', 'R6') | list %}
 {% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
+{% set _мб_кол = мб_колонки | length %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -44,41 +44,53 @@
 {% endfor %}
 {% endwith %}
 
-<p class="text-muted small mb-3">
-  Порядок старта по результатам <strong>Параллельного спринта</strong> (худший ПС → первым).
-  Формат времени: <code>ЧЧ:ММ:СС.сс</code>
-</p>
-
 {% if not муж and not жен %}
 <div class="alert alert-warning">Нет команд для формирования стартового протокола.</div>
 {% else %}
 
-<form method="post">
 {% set _гр = [(муж_р4, 'primary', 'R4', 'мужчины'), (жен_р4, 'danger', 'R4', 'женщины')] %}
 {% if есть_р6 %}{% set _гр = _гр + [(муж_р6, 'primary', 'R6', 'мужчины'), (жен_р6, 'danger', 'R6', 'женщины')] %}{% endif %}
+
+<form method="post">
 {% for команды, цвет, кл, пол_текст in _гр %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">Слалом — {{ кл }}, {{ пол_текст }}{{ _вгр }} ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">Слалом — {{ кл }}, {{ пол_текст }}</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">
       <tr>
-        <th style="width:45px" class="text-center">№ ст.</th>
-        <th style="width:55px" class="text-center">Нагруд.</th>
-        <th>Команда</th>
-        <th style="min-width:90px">Субъект</th>
-        <th style="width:120px" class="text-center">Старт попытка 1</th>
-        <th style="width:120px" class="text-center">Старт попытка 2</th>
+        <th rowspan="2" style="width:40px" class="text-center align-middle">№ п/п</th>
+        {% if _мб_кол %}
+        <th colspan="{{ _мб_кол }}" class="text-center" style="border-bottom:0">Очки Многоборье</th>
+        {% endif %}
+        <th rowspan="2" style="width:60px" class="text-center align-middle">Стартовый номер</th>
+        <th rowspan="2" class="align-middle">Команда</th>
+        <th rowspan="2" style="width:70px" class="text-center align-middle">Номер экипажа</th>
+        <th rowspan="2" style="min-width:90px" class="align-middle">Территория</th>
+        <th rowspan="2" style="width:120px" class="text-center align-middle">Время старта попытка 1</th>
+        <th rowspan="2" style="width:120px" class="text-center align-middle">Время старта попытка 2</th>
+      </tr>
+      <tr>
+        {% for кол in мб_колонки %}
+        <th class="text-center" style="width:62px;font-size:.8rem">{{ кол.заг | safe }}</th>
+        {% endfor %}
       </tr>
     </thead>
     <tbody>
     {% for к in команды %}
     {% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
     {% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+    {% set рм = к.результат_многоборья %}
     <tr>
       <td class="text-center fw-semibold">{{ loop.index }}</td>
-      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+      {% for кол in мб_колонки %}
+      <td class="text-center small">
+        {%- if рм -%}{{ (рм | attr(кол.поле) or 0) | int }}{%- else -%}—{%- endif -%}
+      </td>
+      {% endfor %}
+      <td class="text-center fw-semibold">{{ loop.index }}</td>
       <td>{{ к.название or '—' }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
       <td class="text-muted small">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
       <td>
         <input type="text" name="вс1_{{ к.id }}"
@@ -104,6 +116,42 @@
 </form>
 {% endif %}
 
+{# ── Параметры стартового протокола ── #}
+<div class="card border-secondary mb-3 mt-4">
+  <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
+    <span class="fw-semibold">Параметры стартового протокола</span>
+  </div>
+  <div class="card-body py-3 px-3">
+    <form method="post" action="{{ url_for('слалом.параметры_старт', sor_id=сор.id) }}">
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-2">Последовательность видов программ</label>
+        <div class="row g-2">
+          {% for поз in range(1, 5) %}
+          {% set текущее = текущий_порядок[поз-1] if поз-1 < текущий_порядок|length else '' %}
+          <div class="col-6 col-md-3 d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 flex-shrink-0">{{ поз }}.</label>
+            <select name="порядок_{{ поз }}" class="form-select form-select-sm вид-слалом"
+                    data-поз="{{ поз }}">
+              {% for код, назв in виды_все %}
+              <option value="{{ код }}" {% if текущее == код %}selected{% endif %}>{{ назв }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <label class="form-label mb-0 fw-semibold">Выводить стартовый протокол по видам программы</label>
+        <select name="вывод_старт_слалом" class="form-select form-select-sm" style="width:auto">
+          <option value="Попарно" {% if (сор.вывод_старт_слалом or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
+          <option value="Раздельно" {% if сор.вывод_старт_слалом == 'Раздельно' %}selected{% endif %}>Раздельно</option>
+        </select>
+        <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 document.querySelectorAll('.время-ввод').forEach(inp => {
   inp.addEventListener('input', function () {
@@ -115,6 +163,17 @@ document.querySelectorAll('.время-ввод').forEach(inp => {
       out += raw[i];
     }
     this.value = out;
+  });
+});
+
+document.querySelectorAll('.вид-слалом').forEach(sel => {
+  sel.addEventListener('focus', function() { this._старое = this.value; });
+  sel.addEventListener('change', function() {
+    const новое = this.value;
+    const все = [...document.querySelectorAll('.вид-слалом')];
+    const другой = все.find(s => s !== this && s.value === новое);
+    if (другой && this._старое) другой.value = this._старое;
+    this._старое = null;
   });
 });
 </script>
