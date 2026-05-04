@@ -166,9 +166,12 @@ class Соревнование(db.Model):
     последовательность_r4       = db.Column(db.String(300), nullable=True)
     последовательность_r6       = db.Column(db.String(300), nullable=True)
 
-    # Параметры жеребьёвки и стартового протокола
+    # Параметры жеребьёвки и стартового протокола (Спринт)
     последовательность_видов    = db.Column(db.String(100), nullable=True)   # "R4-м,R4-ж,R6-м,R6-ж"
     вывод_старт_протокола       = db.Column(db.String(20),  nullable=True)   # "Попарно"/"Раздельно"
+    # Параметры стартового протокола Слалома
+    последовательность_слалом   = db.Column(db.String(100), nullable=True)
+    вывод_старт_слалом          = db.Column(db.String(20),  nullable=True)
 
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
@@ -341,7 +344,6 @@ class Судья(db.Model):
 
     # Должность на данном соревновании
     должность               = db.Column(db.String(100), nullable=True)
-    # например: «Главный судья», «Главный секретарь», «Судья на старте», …
 
     # Связи
     соревнование = db.relationship('Соревнование', back_populates='судьи')
@@ -520,7 +522,6 @@ class РезультатПараллельногоСпринта(db.Model):
 
     # Стадия турнирной сетки
     стадия          = db.Column(db.String(20), nullable=False)
-    # '1_этап', '1/16', '1/8', '1/4', '1/2', 'Финал_А', 'Финал_Б'
 
     номер_заезда    = db.Column(db.Integer, nullable=True)
     дорожка         = db.Column(db.String(10), nullable=True)   # 'левая' / 'правая'
@@ -987,6 +988,18 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(db.text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_протокола VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'последовательность_слалом' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_слалом VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_слалом' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_слалом VARCHAR(20)"
                 ))
                 conn.commit()
 
