@@ -44,9 +44,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица_рез(рез, пм, без, разряды, заг, цвет) %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">
-  {{ заг }} ({{ рез | length + пм | length + без | length }})
-</h6>
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not рез and not пм and not без %}
 <div class="text-muted small mb-3">Нет данных</div>
 {% else %}
