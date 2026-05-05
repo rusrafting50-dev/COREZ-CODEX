@@ -35,8 +35,10 @@
      class="btn btn-outline-secondary btn-sm">← Назад к результатам</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Предварительный</a>
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}?класс=R6"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}?класс=R4"
+       class="btn btn-outline-secondary btn-sm">Предварительные протоколы R4</a>
     {% else %}
     <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}"
        class="btn btn-outline-primary btn-sm">Итоговый</a>
