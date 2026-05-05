@@ -28,21 +28,11 @@
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
-  <div class="d-flex flex-column gap-1">
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
-         class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
-      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4') }}"
-         class="btn btn-outline-secondary btn-sm">Предварительный протокол R4</a>
-      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R6') }}"
-         class="btn btn-outline-secondary btn-sm">Предварительный протокол R6</a>
-    </div>
-    <div class="d-flex gap-2 flex-wrap">
-      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
-         class="btn btn-primary btn-sm">Итоговый протокол R4</a>
-      <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R6', итоговый=1) }}"
-         class="btn btn-primary btn-sm">Итоговый протокол R6</a>
-    </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
+       class="btn btn-primary btn-sm">Протоколы</a>
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
