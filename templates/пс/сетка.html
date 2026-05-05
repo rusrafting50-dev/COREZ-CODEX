@@ -76,9 +76,10 @@
 {% if n >= 2 %}
 <h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ заг }}</h6>
 
+{% set ns = namespace(счётчик=0) %}
 <div class="d-flex gap-3 overflow-auto pb-2">
 {% for стадия in стадии %}
-<div style="min-width:220px">
+<div style="min-width:250px">
   <div class="badge bg-{{ цвет }} mb-2 w-100 text-center py-2" style="font-size:.8rem">
     {{ НАЗВАНИЯ.get(стадия, стадия) }}
   </div>
@@ -106,12 +107,18 @@
   {% else %}
   {% for номер, пара in заезды.items() | sort %}
   {% if номер == 0 %}
-  {# БАЙ — команда проходит напрямую, не отображается здесь #}
+  {# БАЙ — команда проходит напрямую, не отображается #}
   {% else %}
-  {# Реальный заезд #}
+  {% set ns.счётчик = ns.счётчик + 1 %}
   <div class="card mb-2" style="font-size:.8rem">
-    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">
-      Заезд {{ номер }}
+    <div class="card-header py-1 px-2 text-muted d-flex justify-content-between align-items-center gap-1"
+         style="font-size:.75rem">
+      <span class="flex-shrink-0 fw-semibold">Заезд {{ ns.счётчик }}</span>
+      <input type="text" name="вс_{{ пара[0].id }}"
+             class="form-control form-control-sm font-monospace время-ввод-пс"
+             style="width:105px;font-size:.73rem"
+             value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
+             placeholder="00:00:00.00" autocomplete="off">
     </div>
     <div class="card-body py-1 px-2">
       {% for з in пара %}
@@ -159,23 +166,46 @@
 {% endif %}
 {% endmacro %}
 
-{# ── Отображение сеток ── #}
-{{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4,
-             'Параллельный спринт — R4, мужчины', n_муж_r4, 'primary') }}
-{{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4,
-             'Параллельный спринт — R4, женщины', n_жен_r4, 'danger') }}
+{# ── Отображение сеток c формой для времени старта ── #}
+<form method="post">
+  <input type="hidden" name="action" value="время_старта">
 
-{% if has_r6 %}
-{{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6,
-             'Параллельный спринт — R6, мужчины', n_муж_r6, 'primary') }}
-{{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6,
-             'Параллельный спринт — R6, женщины', n_жен_r6, 'danger') }}
-{% endif %}
+  {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4,
+               'Параллельный спринт — R4, мужчины', n_муж_r4, 'primary') }}
+  {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4,
+               'Параллельный спринт — R4, женщины', n_жен_r4, 'danger') }}
 
-{% if n_муж_r4 + n_жен_r4 + n_муж_r6 + n_жен_r6 == 0 %}
-<div class="alert alert-warning mt-3">
-  Команды не зарегистрированы или сетка не сформирована.
-</div>
-{% endif %}
+  {% if has_r6 %}
+  {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6,
+               'Параллельный спринт — R6, мужчины', n_муж_r6, 'primary') }}
+  {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6,
+               'Параллельный спринт — R6, женщины', n_жен_r6, 'danger') }}
+  {% endif %}
+
+  {% if n_муж_r4 + n_жен_r4 + n_муж_r6 + n_жен_r6 == 0 %}
+  <div class="alert alert-warning mt-3">
+    Команды не зарегистрированы или сетка не сформирована.
+  </div>
+  {% else %}
+  <div class="mt-3">
+    <button type="submit" class="btn btn-success btn-sm px-4">Сохранить время старта</button>
+  </div>
+  {% endif %}
+</form>
+
+<script>
+document.querySelectorAll('.время-ввод-пс').forEach(inp => {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+});
+</script>
 
 {% endblock %}

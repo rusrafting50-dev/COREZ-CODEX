@@ -5,10 +5,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатПараллельногоСпринта,
                     ТаблицаОчков,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
+from routes.спринт import parse_time, format_time
 
 bp_пс = Blueprint('пс', __name__)
 
-ПОРЯДОК_СТАДИЙ = ['1/16', '1/8', '1/4', '1/2', 'Финал_А', 'Финал_Б']
+ПОРЯДОК_СТАДИЙ = ['1/16', '1/8', '1/4', '1/2', 'Финал_Б', 'Финал_А']
 СЛЕДУЮЩАЯ = {'1/16': '1/8', '1/8': '1/4', '1/4': '1/2', '1/2': 'Финал_А'}
 НАЗВАНИЯ = {
     '1/16':    '1/16 финала',
@@ -433,6 +434,22 @@ def сетка(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
 
     if request.method == 'POST':
+        if request.form.get('action') == 'время_старта':
+            все = {з.id: з for з in
+                   РезультатПараллельногоСпринта.query.filter_by(соревнование_id=sor_id).all()}
+            for key, val in request.form.items():
+                if key.startswith('вс_'):
+                    try:
+                        rec_id = int(key[3:])
+                    except ValueError:
+                        continue
+                    з = все.get(rec_id)
+                    if з:
+                        з.время_старта = parse_time(val)
+            db.session.commit()
+            flash('Время старта заездов сохранено.', 'success')
+            return redirect(url_for('пс.сетка', sor_id=sor_id))
+
         пол = request.form.get('пол', 'м')
         if пол == 'все':
             # Полный сброс: удалить ВСЕ записи соревнования (без фильтра по team_id),
@@ -488,7 +505,8 @@ def сетка(sor_id):
                            жен_посев_r6=жен_посев_r6, жен_предв_r6=жен_предв_r6,
                            n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
                            НАЗВАНИЯ=НАЗВАНИЯ,
-                           format_dur=_format_dur)
+                           format_dur=_format_dur,
+                           format_time=format_time)
 
 
 @bp_пс.route('/<int:sor_id>/заезды', methods=['GET', 'POST'])

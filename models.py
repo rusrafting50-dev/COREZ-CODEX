@@ -530,6 +530,7 @@ class РезультатПараллельногоСпринта(db.Model):
     номер_заезда    = db.Column(db.Integer, nullable=True)
     дорожка         = db.Column(db.String(10), nullable=True)   # 'левая' / 'правая'
 
+    время_старта    = db.Column(db.Float, nullable=True)
     время           = db.Column(db.Float, nullable=True)
     штрафное_время  = db.Column(db.Float, nullable=False, default=0)
     результат       = db.Column(db.Float, nullable=True)   # время + штраф
@@ -1018,6 +1019,15 @@ def применить_миграции():
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_дг VARCHAR(20)"
                 ))
                 conn.commit()
+        # результаты_пс: время старта заезда
+        if inspector.has_table('результаты_пс'):
+            cols_пс = {c['name'] for c in inspector.get_columns('результаты_пс')}
+            if 'время_старта' not in cols_пс:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text(
+                        "ALTER TABLE результаты_пс ADD COLUMN время_старта FLOAT"
+                    ))
+                    conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
