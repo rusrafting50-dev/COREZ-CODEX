@@ -157,6 +157,7 @@
           <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_пс', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -179,6 +180,7 @@
           <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Результаты</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_слалом', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -200,6 +202,7 @@
           <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Результаты</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_дг', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -251,6 +254,7 @@
           <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_пс', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -277,6 +281,7 @@
           <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Результаты</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_слалом', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -302,6 +307,7 @@
           <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-warning btn-sm">Результаты</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_дг', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -325,6 +331,7 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('многоборье.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-danger btn-sm">Результаты</a>
           <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_мб', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -348,6 +355,7 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('многоборье.результаты', sor_id=сор.id) }}" class="btn btn-danger btn-sm">Результаты</a>
           <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_мб', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>
@@ -365,6 +373,7 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('зачет.результаты', sor_id=сор.id) }}" class="btn btn-secondary btn-sm">Результаты</a>
           <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+          <a href="{{ url_for('награждение.страница_зачет', sor_id=сор.id) }}" class="btn btn-outline-danger btn-sm">Награждение</a>
         </div>
       </div>
     </div>

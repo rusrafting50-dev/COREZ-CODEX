@@ -17,14 +17,11 @@
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
+  <h5 class="mb-0">Группа спортивных дисциплин {{ заголовок_дисц }}</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}"
-       class="btn btn-outline-primary btn-sm">Дистанция</a>
-    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
-       class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
-    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-success btn-sm">Результаты</a>
+    {% for нав in навигация %}
+    <a href="{{ нав.url }}" class="btn btn-outline-{{ нав.стиль | default('primary') }} btn-sm">{{ нав.метка }}</a>
+    {% endfor %}
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Награждение</h5></div>
@@ -43,7 +40,7 @@
     <span class="fw-semibold" style="font-size:1.05rem">Параметры дипломов</span>
   </div>
   <div class="card-body py-3 px-3">
-    <form method="post" action="{{ url_for('награждение.страница', sor_id=сор.id) }}">
+    <form method="post" action="{{ url_for(маршрут_страница, sor_id=сор.id) }}">
 
       <div class="row g-3 mb-3">
         <div class="col-md-4">
@@ -105,12 +102,6 @@
 </div>
 
 {# ── Кнопки дипломов по видам программы ── #}
-{% set дисциплины = [
-  ('R4', 'м', 'Спринт – R4, мужчины'),
-  ('R4', 'ж', 'Спринт – R4, женщины'),
-  ('R6', 'м', 'Спринт – R6, мужчины'),
-  ('R6', 'ж', 'Спринт – R6, женщины'),
-] %}
 
 {% set видимые = [] %}
 {% for (кл, п, _) in дисциплины %}
@@ -134,7 +125,7 @@
         <td>
           <div class="d-flex gap-2 flex-wrap">
             {% for м in [1, 2, 3] %}
-            <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс=кл, пол=пол_к, место=м) }}"
+            <a href="{{ url_for(маршрут_диплом, sor_id=сор.id, класс=кл, пол=пол_к, место=м) }}"
                class="btn btn-sm {% if м == 1 %}btn-warning text-dark{% elif м == 2 %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
               >
               🖨 Диплом {{ м }} место

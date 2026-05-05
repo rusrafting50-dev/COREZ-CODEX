@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Диплом {{ место }} место — {{ дисциплина }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 14pt;
+      font-weight: bold;
+      color: #000;
+      background: #fff;
+    }
+    @page {
+      size: A4 portrait;
+      margin: {{ пар.отступ_сверху }}pt {{ пар.отступ_справа }}pt {{ пар.отступ_снизу }}pt {{ пар.отступ_слева }}pt;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .диплом-поле { padding: 0; max-width: none; margin: 0; }
+    }
+    .диплом-поле {
+      max-width: 270mm;
+      margin: 0 auto;
+      padding: {{ пар.отступ_сверху }}pt {{ пар.отступ_справа }}pt {{ пар.отступ_снизу }}pt {{ пар.отступ_слева }}pt;
+    }
+    .стр { line-height: 1.5; text-align: center; }
+    .стр-пуст { line-height: 1.5; }
+    .стр-края { display: flex; justify-content: space-between; align-items: flex-start; line-height: 1.5; }
+    .подп-должность {
+      max-width: 50%;
+      word-break: normal;
+      overflow-wrap: normal;
+      hyphens: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="display:flex; justify-content:space-between; align-items:center;
+     padding:8px 12px; background:#f0f0f0; margin-bottom:16px; border-bottom:1px solid #ddd;">
+  <a href="{{ назад_url }}"
+     style="font-family:sans-serif; font-size:10pt; color:#333; text-decoration:none;
+            border:1px solid #999; border-radius:4px; padding:4px 10px; flex-shrink:0">← Назад</a>
+  <div style="flex:1; text-align:center; font-family:sans-serif; font-size:11pt; font-weight:bold; padding:0 16px">
+    Диплом {{ место }} место — {{ дисциплина }}
+  </div>
+  <button onclick="window.print()"
+          style="font-family:sans-serif; font-size:10pt; border:1px solid #0d6efd;
+                 border-radius:4px; padding:4px 14px; background:#0d6efd; color:#fff;
+                 cursor:pointer; flex-shrink:0">Печать</button>
+</div>
+
+<div class="диплом-поле">
+
+  {# 1. НАГРАЖДАЕТСЯ или пустая строка #}
+  {% if пар.использует_награждается %}
+  <div class="стр" style="font-size:18pt; font-weight:bold">НАГРАЖДАЕТСЯ</div>
+  {% else %}
+  <div class="стр-пуст">&nbsp;</div>
+  {% endif %}
+
+  {# 2. Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {% if запись %}
+
+    <div class="стр">{{ запись.субъект.название }}</div>
+
+    <div class="стр">занявший {{ степень }} место в командном зачёте среди субъектов Российской Федерации</div>
+
+    {# Наименование соревнований #}
+    {% set ном_сор = пар.наименование_соревнований or сор.название %}
+    {% if ном_сор | length > 55 %}
+    <div class="стр">наименование соревнований:</div>
+    <div class="стр">{{ ном_сор }}</div>
+    {% else %}
+    <div class="стр">наименование соревнований: {{ ном_сор }}</div>
+    {% endif %}
+
+    <div class="стр">спортивная дисциплина: {{ дисциплина_строка }}</div>
+    <div class="стр">вид программы: {{ пол_название }}</div>
+
+  {% else %}
+
+    <div class="стр">[данные о занявшем {{ место }}-е место ({{ дисциплина }}) не найдены — введите результаты]</div>
+
+    {% set ном_сор = пар.наименование_соревнований or сор.название %}
+    {% if ном_сор | length > 55 %}
+    <div class="стр">наименование соревнований:</div>
+    <div class="стр">{{ ном_сор }}</div>
+    {% else %}
+    <div class="стр">наименование соревнований: {{ ном_сор }}</div>
+    {% endif %}
+    <div class="стр">спортивная дисциплина: {{ дисциплина_строка }}</div>
+    <div class="стр">вид программы: {{ пол_название }}</div>
+
+  {% endif %}
+
+  {# Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {# Сроки и место проведения #}
+  <div class="стр-края" style="font-size:12pt; font-style:italic">
+    <span>{{ сор.даты_проведения or '' }}</span>
+    <span>{{ сор.место_проведения or '' }}</span>
+  </div>
+
+  {# Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {# Должность и подпись #}
+  <div class="стр-края">
+    <div class="подп-должность" lang="ru">{{ пар.должность_подписывающего or '' }}</div>
+    <div>{{ пар.ио_фамилия_подписывающего or '' }}</div>
+  </div>
+
+</div>
+</body>
+</html>
