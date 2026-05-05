@@ -328,7 +328,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('многоборье.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-danger btn-sm">Результаты</a>
-          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
+          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предварительный протокол</a>
           <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Итог.</a>
         </div>
       </div>
@@ -352,7 +352,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('многоборье.результаты', sor_id=сор.id) }}" class="btn btn-danger btn-sm">Результаты</a>
-          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
+          <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предварительный протокол</a>
           <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Итог.</a>
         </div>
       </div>
