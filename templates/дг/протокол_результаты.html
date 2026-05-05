@@ -12,20 +12,17 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
+      @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
-    thead { background: #f0f0f0; font-weight: bold; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; }
+    th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .место-1 { background: #fffde0; }
-    .место-2 { background: #f8f8f8; }
-    .место-3 { background: #fff4e8; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
+    .gender-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -36,38 +33,32 @@
   <div class="d-flex gap-2">
     {% if итоговый %}
     <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Предварительный</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительный протокол</a>
     {% else %}
     <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-outline-primary btn-sm">Итоговый</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговый протокол</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
 
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
-  {{ сор.название }}{% if сор.уровень %},&nbsp;{{ сор.уровень }}{% endif %}
+  {{ сор.название }}
 </div>
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; text-transform:uppercase; margin-top:6px">
-  {{ 'ИТОГОВЫЙ' if итоговый else 'ПРЕДВАРИТЕЛЬНЫЙ' }} ПРОТОКОЛ СПОРТИВНЫХ СОРЕВНОВАНИЙ
+<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
+  {% if итоговый %}Протокол соревнований{% else %}Предварительный протокол соревнований{% endif %}
 </div>
 
-<div class="text-center mb-1" style="font-size:10pt">
-  Спортивная дисциплина: <strong>ДЛИННАЯ ГОНКА{% if сор.класс_судна %} - {{ сор.класс_судна }}{% endif %}</strong>
+<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
+  Спортивная дисциплина: ДЛИННАЯ ГОНКА{% if сор.класс_судна %} – {{ сор.класс_судна }}{% endif %}
 </div>
 
-{% if сор.возрастная_группа %}
-<div class="text-center mb-1" style="font-size:10pt">
-  Вид программы: <strong>{{ сор.возрастная_группа }}</strong>
-</div>
-{% endif %}
-
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt;">
+<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
   <div style="display:inline-block;text-align:center">
     <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Дата проведения</div>
@@ -78,150 +69,289 @@
   </div>
 </div>
 
-{# ── Macro: таблица результатов ─────────────────────────────────────────────── #}
-{% macro таблица_рез(рез, пм, без, разряды, лимит, заг) %}
-{% if рез or пм or без %}
-<div class="section-title">{{ заг }}</div>
+{% set ncol = 11 if итоговый else 14 %}
+
+{# ── Macro: объединённая таблица мужчины + женщины ─────────────────────────── #}
+{% macro таблица_рез(муж_рез, муж_пм, муж_без, жен_рез, жен_пм, жен_без, муж_разр, жен_разр) %}
+{% if муж_рез or муж_пм or муж_без or жен_рез or жен_пм or жен_без %}
 <table>
   <thead>
-    <tr>
-      <th rowspan="2" class="text-center" style="width:28px">№п/п</th>
-      <th rowspan="2" class="text-center" style="width:48px">Номер экипажа</th>
-      <th rowspan="2" style="min-width:180px">Фамилия, имя, спортивная квалификация участников</th>
-      <th rowspan="2" style="width:80px">Команда</th>
-      <th rowspan="2" style="min-width:90px">Территория</th>
-      <th colspan="3" class="text-center">Прохождение дистанции (штрафные баллы)</th>
-      <th colspan="3" class="text-center">Результат</th>
-      <th rowspan="2" class="text-center" style="width:38px">Место</th>
-      <th rowspan="2" class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-      <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
-    </tr>
-    <tr>
-      <th class="text-center" style="width:70px">Старт</th>
-      <th class="text-center" style="width:60px">Лимит времени</th>
-      <th class="text-center" style="width:70px">Финиш</th>
-      <th class="text-center" style="width:55px">Штрафное время</th>
-      <th class="text-center" style="width:70px">Время прохождения</th>
-      <th class="text-center" style="width:70px">Итоговый результат</th>
-    </tr>
+  {% if итоговый %}
+  <tr>
+    <th style="width:28px">№<br>п/п</th>
+    <th style="min-width:88px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
+    <th style="width:48px">Номер экипажа</th>
+    <th style="width:180px">Команда</th>
+    <th style="min-width:90px">Территория</th>
+    <th style="width:70px">Время прохождения</th>
+    <th style="width:60px">Штрафное время</th>
+    <th style="width:70px">Итоговый результат</th>
+    <th style="width:38px">Место</th>
+    <th style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
+    <th style="width:55px">Выполненный норматив*</th>
+  </tr>
+  {% else %}
+  <tr>
+    <th rowspan="2" style="width:28px">№<br>п/п</th>
+    <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
+    <th rowspan="2" style="width:48px">Номер экипажа</th>
+    <th rowspan="2" style="width:134px">Команда</th>
+    <th rowspan="2" style="min-width:90px">Территория</th>
+    <th colspan="3">Прохождение дистанции<br>(штрафные баллы)</th>
+    <th colspan="3">Результат</th>
+    <th rowspan="2" style="width:38px">Место</th>
+    <th rowspan="2" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
+    <th rowspan="2" style="width:55px">Выполненный норматив*</th>
+  </tr>
+  <tr>
+    <th style="width:55px">Старт</th>
+    <th style="width:65px">Лимит времени</th>
+    <th style="width:55px">Финиш</th>
+    <th style="width:60px">Штрафное время</th>
+    <th style="width:70px">Время прохождения</th>
+    <th style="width:70px">Итоговый результат</th>
+  </tr>
+  {% endif %}
   </thead>
   <tbody>
+
+  {# ── Мужчины ── #}
+  <tr class="gender-row"><td colspan="{{ ncol }}" class="text-center">Мужчины</td></tr>
   {% set ns = namespace(idx=0) %}
-  {% for р in рез %}
+  {% for р in муж_рез %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
-  <tr class="{{ 'место-1' if р.место == 1 else ('место-2' if р.место == 2 else ('место-3' if р.место == 3 else '')) }}">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
     </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center" style="font-family:monospace;font-size:7.5pt"></td>
-    <td class="text-center" style="font-size:7.5pt">
-      {{ format_dur(лимит) if лимит else '' }}
-    </td>
-    <td class="text-center" style="font-family:monospace;font-size:7.5pt"></td>
-    <td class="text-center">{{ '+' ~ р.штрафное_время | int ~ 'с' if р.штрафное_время else '—' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
-    <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р.результат) }}</td>
-    <td class="text-center fw-bold">{{ р.место }}</td>
-    <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
-    <td class="text-center">{{ разряды.get(к.id, '—') }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    {% if not итоговый %}
+    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center">{{ format_dur(сор.лимит_время_муж) if сор.лимит_время_муж else '—' }}</td>
+    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    {% else %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    {% endif %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
+    <td class="text-center">{{ р.место or '-' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
+    <td class="text-center">{{ муж_разр.get(к.id, '-') }}</td>
   </tr>
   {% endfor %}
-  {% for р in пм %}
+  {% for р in муж_пм %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#fff3cd">
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
     </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td colspan="6" class="text-center text-muted">
-      <strong>ПМ</strong> — превышен лимит времени
-      {% if р.время_прохождения %} ({{ format_dur(р.время_прохождения) }}){% endif %}
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+      <strong>ПМ</strong> — превышен лимит времени{% if р.время_прохождения %} ({{ format_dur(р.время_прохождения) }}){% endif %}
     </td>
-    <td class="text-center fw-bold">{{ р.место }}</td>
-    <td class="text-center">—</td>
+    <td class="text-center">{{ р.место or '-' }}</td>
+    <td class="text-center">-</td>
     <td class="text-center">-</td>
   </tr>
   {% endfor %}
-  {% for р in без %}
+  {% for р in муж_без %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
-  <tr style="background:#f5f5f5">
+  <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
     </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td colspan="6" class="text-center text-muted">
-      <strong>{{ р.статус }}</strong>
-      {% if р.статус == 'ДК' %} — ДИСКВАЛИФИКАЦИЯ
-      {% elif р.статус == 'НФН' %} — НЕ ФИНИШИРОВАЛ
-      {% elif р.статус == 'НСТ' %} — НЕ СТАРТОВАЛ{% endif %}
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
-    <td class="text-center">—</td>
-    <td class="text-center">—</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
     <td class="text-center">-</td>
   </tr>
   {% endfor %}
+  {% if not муж_рез and not муж_пм and not муж_без %}
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
+  {# ── Женщины ── #}
+  <tr class="gender-row"><td colspan="{{ ncol }}" class="text-center">Женщины</td></tr>
+  {% set ns.idx = 0 %}
+  {% for р in жен_рез %}
+  {% set к = р.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr>
+    <td class="text-center">{{ ns.idx }}</td>
+    <td style="font-size:7.5pt">
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
+    </td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    {% if not итоговый %}
+    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center">{{ format_dur(сор.лимит_время_жен) if сор.лимит_время_жен else '—' }}</td>
+    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    {% else %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    {% endif %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
+    <td class="text-center">{{ р.место or '-' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
+    <td class="text-center">{{ жен_разр.get(к.id, '-') }}</td>
+  </tr>
+  {% endfor %}
+  {% for р in жен_пм %}
+  {% set к = р.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr style="background:#fff3cd">
+    <td class="text-center">{{ ns.idx }}</td>
+    <td style="font-size:7.5pt">
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
+    </td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+      <strong>ПМ</strong> — превышен лимит времени{% if р.время_прохождения %} ({{ format_dur(р.время_прохождения) }}){% endif %}
+    </td>
+    <td class="text-center">{{ р.место or '-' }}</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+  </tr>
+  {% endfor %}
+  {% for р in жен_без %}
+  {% set к = р.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr>
+    <td class="text-center">{{ ns.idx }}</td>
+    <td style="font-size:7.5pt">
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}-{% endif %}
+    </td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
+    </td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+  </tr>
+  {% endfor %}
+  {% if not жен_рез and not жен_пм and not жен_без %}
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
   </tbody>
 </table>
-<div style="font-size:8pt; margin-top:4px">
+<div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
 {% endif %}
 {% endmacro %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{{ таблица_рез(муж_рез, муж_пм, муж_без, муж_разр, сор.лимит_время_муж, 'ДЛИННАЯ ГОНКА — ' + _кл + ', МУЖЧИНЫ' + _вгр) }}
-{{ таблица_рез(жен_рез, жен_пм, жен_без, жен_разр, сор.лимит_время_жен, 'ДЛИННАЯ ГОНКА — ' + _кл + ', ЖЕНЩИНЫ' + _вгр) }}
+{{ таблица_рез(муж_рез, муж_пм, муж_без, жен_рез, жен_пм, жен_без, муж_разр, жен_разр) }}
 
 {% if not муж_рез and not муж_пм and not муж_без and not жен_рез and not жен_пм and not жен_без %}
-<div class="text-center text-muted py-4">Нет результатов для отображения</div>
+<div class="text-center py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<div class="mt-4" style="font-size:10pt">
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный судья</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_судья or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+<div class="mt-4" style="font-size:10pt; font-weight:bold">
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный судья</div>
+    <div>{{ сор.главный_судья or '' }}</div>
   </div>
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный секретарь</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_секретарь or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный секретарь</div>
+    <div>{{ сор.главный_секретарь or '' }}</div>
   </div>
-  {% if сор.зам_главного_секретаря %}
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Заместитель главного секретаря</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.зам_главного_секретаря }}/
-    </span>
+  {% if not итоговый and сор.зам_главного_секретаря %}
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Заместитель главного секретаря</div>
+    <div>{{ сор.зам_главного_секретаря }}</div>
   </div>
   {% endif %}
 </div>
 
-<div class="mt-3" style="font-size:9pt; color:#666">
-  Время опубликования: {{ сегодня.strftime('%d.%m.%Y') }} &middot;
-  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол
+{% if not итоговый %}
+<div class="mt-3" style="font-size:10pt; font-weight:bold">
+  Время опубликования: <span id="pubtime"></span>
 </div>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% if not итоговый %}
+<script>
+  function updatePubTime() {
+    var now = new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    document.getElementById('pubtime').textContent =
+      pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear() +
+      ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  updatePubTime();
+  window.addEventListener('beforeprint', updatePubTime);
+</script>
+{% endif %}
 </body>
 </html>
