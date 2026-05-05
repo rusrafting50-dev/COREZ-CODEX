@@ -173,6 +173,10 @@ class Соревнование(db.Model):
     последовательность_слалом   = db.Column(db.String(100), nullable=True)
     вывод_старт_слалом          = db.Column(db.String(20),  nullable=True)
 
+    # Параметры стартового протокола Длинной Гонки
+    последовательность_дг       = db.Column(db.String(100), nullable=True)
+    вывод_старт_дг              = db.Column(db.String(20),  nullable=True)
+
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
     реквизиты_оплаты            = db.Column(db.Text, nullable=True)
@@ -1000,6 +1004,18 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(db.text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_слалом VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'последовательность_дг' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_дг VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_дг' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_дг VARCHAR(20)"
                 ))
                 conn.commit()
 
