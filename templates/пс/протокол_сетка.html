@@ -121,26 +121,42 @@
     {% endif %}
     {% endfor %}
   {% else %}
-    {# Stage not yet formed — show expected participants from предв #}
+    {# Stage not yet formed — split предв into individual race cards (pairs) #}
     {% set уч = предв.get(ст, []) %}
     {% if уч %}
+    {% for i in range(0, уч|length, 2) %}
+    {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box" style="opacity:.75;border-style:dashed">
-      <div class="heat-header">Заезд ?</div>
+      <div class="heat-header">Заезд {{ ns.hn }}</div>
       <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
-      {% for команда, метка in уч %}
+      {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
       <div class="heat-team">
-        {% if команда %}
+        {% if к0 %}
         <table style="width:100%;border:0"><tr>
-          <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
-          <td>{{ команда.название or '—' }}</td>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(к0.id, '?') }}</td>
+          <td>{{ к0.название or '—' }}</td>
           <td class="result-col"></td>
         </tr></table>
         {% else %}
-        <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
+        <span style="font-style:italic;color:#888;font-size:7pt">{{ м0 }}</span>
         {% endif %}
       </div>
-      {% endfor %}
+      {% if i+1 < уч|length %}
+      {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
+      <div class="heat-team">
+        {% if к1 %}
+        <table style="width:100%;border:0"><tr>
+          <td class="seed-col">СП&nbsp;{{ посев_map.get(к1.id, '?') }}</td>
+          <td>{{ к1.название or '—' }}</td>
+          <td class="result-col"></td>
+        </tr></table>
+        {% else %}
+        <span style="font-style:italic;color:#888;font-size:7pt">{{ м1 }}</span>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
+    {% endfor %}
     {% else %}
     <div class="heat-box" style="opacity:.4;border-style:dashed">
       <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
@@ -184,27 +200,25 @@
     {% endfor %}
   {% else %}
     {% set уч_б = предв.get('Финал_Б', []) %}
+    {% if уч_б %}
+    {% for i in range(0, уч_б|length, 2) %}
+    {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#aaa">
-      <div class="heat-header fin-b-header">Финал Б</div>
+      <div class="heat-header fin-b-header">Финал Б · Заезд {{ ns.hn }}</div>
       <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
-      {% if уч_б %}
-        {% for команда, метка in уч_б %}
-        <div class="heat-team">
-          {% if команда %}
-          <table style="width:100%;border:0"><tr>
-            <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
-            <td>{{ команда.название or '—' }}</td>
-            <td class="result-col"></td>
-          </tr></table>
-          {% else %}
-          <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
-          {% endif %}
-        </div>
-        {% endfor %}
-      {% else %}
-      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+      {% set к0 = уч_б[i][0] %}{% set м0 = уч_б[i][1] %}
+      <div class="heat-team">{% if к0 %}<table style="width:100%;border:0"><tr><td class="seed-col">СП&nbsp;{{ посев_map.get(к0.id, '?') }}</td><td>{{ к0.название or '—' }}</td><td class="result-col"></td></tr></table>{% else %}<span style="font-style:italic;color:#888;font-size:7pt">{{ м0 }}</span>{% endif %}</div>
+      {% if i+1 < уч_б|length %}
+      {% set к1 = уч_б[i+1][0] %}{% set м1 = уч_б[i+1][1] %}
+      <div class="heat-team">{% if к1 %}<table style="width:100%;border:0"><tr><td class="seed-col">СП&nbsp;{{ посев_map.get(к1.id, '?') }}</td><td>{{ к1.название or '—' }}</td><td class="result-col"></td></tr></table>{% else %}<span style="font-style:italic;color:#888;font-size:7pt">{{ м1 }}</span>{% endif %}</div>
       {% endif %}
     </div>
+    {% endfor %}
+    {% else %}
+    <div class="heat-box" style="opacity:.4;border-style:dashed;border-color:#aaa">
+      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+    </div>
+    {% endif %}
   {% endif %}
   {% endif %}{# /has_finb #}
 
@@ -234,27 +248,25 @@
     {% endfor %}
   {% else %}
     {% set уч_а = предв.get('Финал_А', []) %}
+    {% if уч_а %}
+    {% for i in range(0, уч_а|length, 2) %}
+    {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#555;border-width:2px">
-      <div class="heat-header fin-a-header">Финал А</div>
+      <div class="heat-header fin-a-header">Финал А · Заезд {{ ns.hn }}</div>
       <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
-      {% if уч_а %}
-        {% for команда, метка in уч_а %}
-        <div class="heat-team">
-          {% if команда %}
-          <table style="width:100%;border:0"><tr>
-            <td class="seed-col">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</td>
-            <td>{{ команда.название or '—' }}</td>
-            <td class="result-col"></td>
-          </tr></table>
-          {% else %}
-          <span style="font-style:italic;color:#888;font-size:7pt">{{ метка }}</span>
-          {% endif %}
-        </div>
-        {% endfor %}
-      {% else %}
-      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+      {% set к0 = уч_а[i][0] %}{% set м0 = уч_а[i][1] %}
+      <div class="heat-team">{% if к0 %}<table style="width:100%;border:0"><tr><td class="seed-col">СП&nbsp;{{ посев_map.get(к0.id, '?') }}</td><td>{{ к0.название or '—' }}</td><td class="result-col"></td></tr></table>{% else %}<span style="font-style:italic;color:#888;font-size:7pt">{{ м0 }}</span>{% endif %}</div>
+      {% if i+1 < уч_а|length %}
+      {% set к1 = уч_а[i+1][0] %}{% set м1 = уч_а[i+1][1] %}
+      <div class="heat-team">{% if к1 %}<table style="width:100%;border:0"><tr><td class="seed-col">СП&nbsp;{{ посев_map.get(к1.id, '?') }}</td><td>{{ к1.название or '—' }}</td><td class="result-col"></td></tr></table>{% else %}<span style="font-style:italic;color:#888;font-size:7pt">{{ м1 }}</span>{% endif %}</div>
       {% endif %}
     </div>
+    {% endfor %}
+    {% else %}
+    <div class="heat-box" style="opacity:.4;border-style:dashed;border-color:#555;border-width:2px">
+      <div class="heat-team" style="color:#aaa;font-style:italic;font-size:7pt;padding:4px 5px">Ожидается</div>
+    </div>
+    {% endif %}
   {% endif %}
 
 </td>

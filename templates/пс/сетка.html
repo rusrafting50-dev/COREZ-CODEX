@@ -71,6 +71,21 @@
   </div>
 </div>
 
+{# ── Вспомогательный макрос: один слот участника ── #}
+{% macro слот(команда, метка, посев_map, цвет, first) %}
+<div class="d-flex align-items-center {{ 'py-1 border-bottom' if first else 'pt-1' }}"
+     style="min-height:1.6rem">
+  {% if команда %}
+  <span class="badge rounded-pill bg-secondary me-1" style="font-size:.65rem;white-space:nowrap">
+    СП {{ посев_map.get(команда.id, '?') }}
+  </span>
+  <span class="{{ 'fw-semibold' }}">{{ команда.название or '—' }}</span>
+  {% else %}
+  <span class="text-muted fst-italic small">{{ метка }}</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
 {# ── Макрос: одна сетка (пол + класс) ── #}
 {% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет) %}
 {% if n >= 2 %}
@@ -86,25 +101,45 @@
 
   {% set заезды = брак[стадия] %}
   {% if not заезды %}
-  {# Стадия ещё не сформирована — предварительные участники #}
-  <div class="card mb-2" style="font-size:.8rem; opacity:.75; border-style:dashed">
-    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд ?</div>
-    <div class="card-body py-1 px-2">
-      {% for команда, метка in предв.get(стадия, []) %}
-      <div class="d-flex align-items-center {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
-        {% if команда %}
-        <span class="badge bg-{{ цвет }} me-1">СП {{ посев_map.get(команда.id, '?') }}</span>
-        <span class="fw-semibold">{{ команда.название or '—' }}</span>
-        {% else %}
-        <span class="text-muted fst-italic">{{ метка }}</span>
+
+  {# ─ Стадия не сформирована ─ #}
+  {% set уч = предв.get(стадия, []) %}
+  {% if уч %}
+    {# Разбиваем участников попарно — одна пара на заезд #}
+    {% for i in range(0, уч|length, 2) %}
+    {% set ns.счётчик = ns.счётчик + 1 %}
+    <div class="card mb-2" style="font-size:.8rem; opacity:.8; border-style:dashed">
+      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center gap-1"
+           style="font-size:.75rem; background:transparent">
+        <span class="flex-shrink-0 fw-semibold text-muted">Заезд {{ ns.счётчик }}</span>
+        <input type="text"
+               class="form-control form-control-sm font-monospace"
+               style="width:105px;font-size:.73rem"
+               placeholder="00:00:00.00" autocomplete="off" disabled>
+      </div>
+      <div class="card-body py-1 px-2">
+        {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
+        {{ слот(к0, м0, посев_map, цвет, true) }}
+        {% if i+1 < уч|length %}
+        {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
+        {{ слот(к1, м1, посев_map, цвет, false) }}
         {% endif %}
       </div>
-      {% else %}
-      <span class="text-muted fst-italic">Ожидается</span>
-      {% endfor %}
     </div>
-  </div>
+    {% endfor %}
   {% else %}
+    {# Первая стадия до формирования сетки #}
+    <div class="card mb-2" style="font-size:.8rem; opacity:.5; border-style:dashed">
+      <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд ?</div>
+      <div class="card-body py-1 px-2">
+        <span class="text-muted fst-italic">Ожидается</span>
+      </div>
+    </div>
+  {% endif %}
+
+  {% else %}
+
+  {# ─ Стадия сформирована — реальные заезды ─ #}
   {% for номер, пара in заезды.items() | sort %}
   {% if номер == 0 %}
   {# БАЙ — команда проходит напрямую, не отображается #}
@@ -124,8 +159,9 @@
       {% for з in пара %}
       <div class="d-flex justify-content-between align-items-center
                   {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
-        <div>
-          <span class="badge bg-{{ 'light text-dark' if not з.победитель else цвет }} border me-1">
+        <div class="d-flex align-items-center">
+          <span class="badge rounded-pill {{ 'bg-' + цвет if з.победитель else 'bg-secondary' }} me-1"
+                style="font-size:.65rem;white-space:nowrap">
             СП {{ посев_map.get(з.команда_id, '?') }}
           </span>
           <span class="{{ 'fw-semibold' if з.победитель else '' }}">{{ з.команда.название or '—' }}</span>
@@ -148,6 +184,7 @@
   </div>
   {% endif %}
   {% endfor %}
+
   {% endif %}
 </div>
 {% if not loop.last %}
