@@ -154,7 +154,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='пс') }}" class="btn btn-outline-info btn-sm">Дистанция</a>
-          <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-info btn-sm text-white">Сетка</a>
+          <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-info btn-sm text-white">Стартовый протокол</a>
           <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Заезды</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Результаты</a>
           <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
@@ -249,7 +249,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='пс') }}" class="btn btn-outline-info btn-sm">Дистанция</a>
-          <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-info btn-sm text-white">Сетка</a>
+          <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-info btn-sm text-white">Стартовый протокол</a>
           <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Заезды</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Результаты</a>
           <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>

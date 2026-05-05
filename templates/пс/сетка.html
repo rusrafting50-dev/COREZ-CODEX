@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}ПС: Сетка — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}ПС: Стартовый протокол — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,15 +7,11 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Параллельный спринт — Сетка</li>
+    <li class="breadcrumb-item active">Параллельный спринт — Стартовый протокол</li>
   </ol>
 {% endblock %}
 
 {% block content %}
-
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% set заг_м = 'Параллельный спринт — мужчины' + _вгр %}
-{% set заг_ж = 'Параллельный спринт — женщины' + _вгр %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
@@ -28,10 +24,10 @@
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
     <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Печать сетки</a>
+       class="btn btn-outline-secondary btn-sm">Печать</a>
   </div>
 </div>
-<div class="text-center mb-3"><h5 class="mb-0">Сетка жеребьёвки</h5></div>
+<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% for cat, msg in messages %}
@@ -54,14 +50,14 @@
         <input type="hidden" name="пол" value="м">
         <button type="submit" class="btn btn-primary btn-sm"
                 onclick="return confirm('Сформировать сетку мужских экипажей? Текущая сетка будет удалена.')">
-          Мужские ({{ n_муж }} экипажей)
+          Мужские ({{ n_муж_r4 + n_муж_r6 }} экипажей)
         </button>
       </form>
       <form method="post" class="d-inline">
         <input type="hidden" name="пол" value="ж">
         <button type="submit" class="btn btn-danger btn-sm"
                 onclick="return confirm('Сформировать сетку женских экипажей? Текущая сетка будет удалена.')">
-          Женские ({{ n_жен }} экипажей)
+          Женские ({{ n_жен_r4 + n_жен_r6 }} экипажей)
         </button>
       </form>
       <form method="post" class="d-inline ms-3">
@@ -75,13 +71,10 @@
   </div>
 </div>
 
-{# ── Отображение сетки ── #}
-{% for брак, стадии, посев_map, предв, пол_заг, цвет in [
-    (муж_брак, муж_стадии, муж_посев, муж_предв, заг_м, 'primary'),
-    (жен_брак, жен_стадии, жен_посев, жен_предв, заг_ж, 'danger')
-] %}
-{% if стадии %}
-<h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ пол_заг }}</h6>
+{# ── Макрос: одна сетка (пол + класс) ── #}
+{% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет) %}
+{% if n >= 2 %}
+<h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ заг }}</h6>
 
 <div class="d-flex gap-3 overflow-auto pb-2">
 {% for стадия in стадии %}
@@ -94,12 +87,12 @@
   {% if not заезды %}
   {# Стадия ещё не сформирована — предварительные участники #}
   <div class="card mb-2" style="font-size:.8rem; opacity:.75; border-style:dashed">
-    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд 1</div>
+    <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд ?</div>
     <div class="card-body py-1 px-2">
       {% for команда, метка in предв.get(стадия, []) %}
       <div class="d-flex align-items-center {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
         {% if команда %}
-        <span class="badge bg-{{ цвет }} me-1">{{ посев_map.get(команда.id, '?') }}</span>
+        <span class="badge bg-{{ цвет }} me-1">СП {{ посев_map.get(команда.id, '?') }}</span>
         <span class="fw-semibold">{{ команда.название or '—' }}</span>
         {% else %}
         <span class="text-muted fst-italic">{{ метка }}</span>
@@ -111,18 +104,9 @@
     </div>
   </div>
   {% else %}
-  {% for номер, пара in заезды.items() %}
+  {% for номер, пара in заезды.items() | sort %}
   {% if номер == 0 %}
-  {# Бай #}
-  {% for з in пара %}
-  <div class="card border-{{ цвет }} mb-2" style="font-size:.8rem">
-    <div class="card-body py-1 px-2">
-      <span class="badge bg-light text-muted border me-1">{{ посев_map.get(з.команда_id, '?') }}</span>
-      {{ з.команда.название or '—' }}
-      <span class="badge bg-secondary ms-1">БАЙ</span>
-    </div>
-  </div>
-  {% endfor %}
+  {# БАЙ — команда проходит напрямую, не отображается здесь #}
   {% else %}
   {# Реальный заезд #}
   <div class="card mb-2" style="font-size:.8rem">
@@ -135,7 +119,7 @@
                   {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
         <div>
           <span class="badge bg-{{ 'light text-dark' if not з.победитель else цвет }} border me-1">
-            {{ посев_map.get(з.команда_id, '?') }}
+            СП {{ посев_map.get(з.команда_id, '?') }}
           </span>
           <span class="{{ 'fw-semibold' if з.победитель else '' }}">{{ з.команда.название or '—' }}</span>
         </div>
@@ -165,15 +149,33 @@
 {% endfor %}
 </div>
 
+{% elif n == 0 %}
+{# нет команд — ничего не показываем #}
 {% else %}
-{# Нет сетки #}
-{% if (пол_заг == 'Мужские экипажи' and n_муж > 0) or (пол_заг == 'Женские экипажи' and n_жен > 0) %}
 <div class="alert alert-light border mt-2">
-  <span class="text-muted">Сетка {{ пол_заг | lower }} не сформирована.</span>
+  <span class="text-muted">{{ заг }}: сетка не сформирована.</span>
   Нажмите кнопку выше для генерации по посеву Спринта.
 </div>
 {% endif %}
+{% endmacro %}
+
+{# ── Отображение сеток ── #}
+{{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4,
+             'Параллельный спринт — R4, мужчины', n_муж_r4, 'primary') }}
+{{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4,
+             'Параллельный спринт — R4, женщины', n_жен_r4, 'danger') }}
+
+{% if has_r6 %}
+{{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6,
+             'Параллельный спринт — R6, мужчины', n_муж_r6, 'primary') }}
+{{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6,
+             'Параллельный спринт — R6, женщины', n_жен_r6, 'danger') }}
 {% endif %}
-{% endfor %}
+
+{% if n_муж_r4 + n_жен_r4 + n_муж_r6 + n_жен_r6 == 0 %}
+<div class="alert alert-warning mt-3">
+  Команды не зарегистрированы или сетка не сформирована.
+</div>
+{% endif %}
 
 {% endblock %}
