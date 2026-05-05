@@ -13,6 +13,16 @@
 
 {% block content %}
 
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section_наград) }}"
+      style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if готов_наград else 'В работе' }}
+  </button>
+</form>
+
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>

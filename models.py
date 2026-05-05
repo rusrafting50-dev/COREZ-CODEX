@@ -104,6 +104,12 @@ class Соревнование(db.Model):
     готов_заявки        = db.Column(db.Boolean, nullable=False, default=False)
     готов_допуск        = db.Column(db.Boolean, nullable=False, default=False)
     готов_тех           = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_спринт = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_пс     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_слалом = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_дг     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_мб     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_зачет  = db.Column(db.Boolean, nullable=False, default=False)
 
     # Организаторы (4 строки)
     организатор_1               = db.Column(db.String(300), nullable=True)
@@ -934,7 +940,9 @@ def применить_миграции():
         # соревнования: статус готовности разделов
         cols = {c['name'] for c in inspector.get_columns('соревнования')}
         for col in ('готов_организаторы', 'готов_судьи', 'готов_заявки',
-                    'готов_допуск', 'готов_тех'):
+                    'готов_допуск', 'готов_тех',
+                    'готов_наград_спринт', 'готов_наград_пс', 'готов_наград_слалом',
+                    'готов_наград_дг', 'готов_наград_мб', 'готов_наград_зачет'):
             if col not in cols:
                 conn.execute(text(
                     f"ALTER TABLE соревнования ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT 0"
