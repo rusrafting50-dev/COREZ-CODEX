@@ -30,7 +30,7 @@
   <h5 class="mb-0">{{ заголовок_группы }}</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('дистанция.акт', sor_id=сор.id, тип=тип) }}"
-       class="btn btn-outline-secondary btn-sm">Акт сдачи-приёмки дистанции</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Акт сдачи-приёмки дистанции</a>
     {% if тип == 'спринт' %}
     <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
