@@ -8,19 +8,25 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <style>
-    body { font-family: "Times New Roman", serif; font-size: 11pt; }
+    body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 10pt; }
-      @page { margin: 15mm 10mm 15mm 20mm; size: A4 portrait; }
+      body { font-size: 9pt; }
+      @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
+      .разрыв { page-break-after: always; }
+      table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
-    table th, table td { border: 1px solid #333; padding: 3px 5px; vertical-align: middle; }
-    thead { background: #f0f0f0; font-weight: bold; }
-    h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
+    th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
+    .text-center { text-align: center; }
+    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
+    .sig-block { margin-top: 16pt; margin-bottom: 16pt; }
+    .sig-row { display: flex; align-items: baseline; margin-bottom: 10pt; }
+    .sig-pos { width: 38%; font-size: 10pt; }
+    .sig-fio { font-size: 10pt; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -31,84 +37,157 @@
   <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
 </div>
 
+{# ── Макрос: шапка протокола ── #}
+{% macro шапка() %}
 {% if сор.организаторы_блок %}
-<div class="text-center mb-1" style="font-size:10pt">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
 {% endif %}
-
-<div class="text-center mb-3">
-  <h3 class="doc-title mb-1">Стартовый протокол</h3>
-  <div style="font-size:11pt">Дистанция: <strong>СЛАЛОМ</strong></div>
-  <div style="font-size:11pt"><strong>{{ сор.название }}</strong></div>
-  <div class="d-flex justify-content-between mb-2 mt-1" style="font-size:10pt">
-    <div style="display:inline-block;text-align:center">
-      <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
-      <div style="font-size:8pt">Дата проведения</div>
-    </div>
-    <div style="display:inline-block;text-align:center">
-      <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
-      <div style="font-size:8pt">Место проведения</div>
-    </div>
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">{{ сор.название }}</div>
+<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">Стартовый протокол</div>
+<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">Группа спортивных дисциплин СЛАЛОМ</div>
+<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Дата проведения</div>
+  </div>
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>
+{% endmacro %}
 
-{% set _кл = сор.класс_судна or 'R4' %}
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% for команды, заг in [(муж, 'СЛАЛОМ — ' + _кл + ', МУЖЧИНЫ' + _вгр), (жен, 'СЛАЛОМ — ' + _кл + ', ЖЕНЩИНЫ' + _вгр)] %}
-{% if команды %}
-<div class="section-title">{{ заг }} ({{ команды | length }})</div>
-<table>
-  <thead>
-    <tr>
-      <th style="width:40px" class="text-center">№ старта</th>
-      <th style="width:55px" class="text-center">Нагруд.</th>
-      <th>Команда</th>
-      <th style="min-width:110px">Субъект РФ</th>
-      <th style="width:100px" class="text-center">Время старта 1</th>
-      <th style="width:100px" class="text-center">Время старта 2</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for к in команды %}
-  {% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
-  {% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+{# ── Макрос: блок подписей ── #}
+{% macro подписи() %}
+<div class="sig-block">
+  <div class="sig-row">
+    <div class="sig-pos">Главный судья</div>
+    <div class="sig-fio">{{ сор.главный_судья or '' }}</div>
+  </div>
+  <div class="sig-row">
+    <div class="sig-pos">Главный секретарь</div>
+    <div class="sig-fio">{{ сор.главный_секретарь or '' }}</div>
+  </div>
+</div>
+{% endmacro %}
+
+{# ── Макрос: заголовок таблицы ── #}
+{# мб_колонки доступны т.к. переданы через render_template #}
+{% macro thead() %}
+{% set мб_кол = мб_колонки | length %}
+<thead>
   <tr>
-    <td class="text-center fw-bold">{{ loop.index }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center" style="font-family:monospace;font-size:8.5pt">
-      {{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}
-    </td>
-    <td class="text-center" style="font-family:monospace;font-size:8.5pt">
-      {{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}
-    </td>
+    <th rowspan="2" style="width:28px">№<br>п/п</th>
+    <th rowspan="2" style="min-width:98px">Фамилия, имя, отчество участников</th>
+    <th rowspan="2" style="width:55px">Номер экипажа</th>
+    <th rowspan="2" style="width:160px">Команда</th>
+    <th rowspan="2" style="min-width:80px">Территория</th>
+    {% if мб_кол %}
+    <th colspan="{{ мб_кол }}" style="border-bottom:0">Очки Многоборье</th>
+    {% endif %}
+    <th rowspan="2" style="width:75px">Время старта попытка 1</th>
+    <th rowspan="2" style="width:75px">Время старта попытка 2</th>
   </tr>
-  {% endfor %}
-  </tbody>
-</table>
-{% endif %}
-{% endfor %}
+  <tr>
+    {% for кол in мб_колонки %}
+    <th style="width:52px;font-size:7pt">{{ кол.заг | safe }}</th>
+    {% endfor %}
+  </tr>
+</thead>
+{% endmacro %}
 
-<div class="row mt-4" style="font-size:10pt">
-  <div class="col-5">
-    <div>Главный судья</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
+{# ── Макрос: строки одного вида программы в tbody ── #}
+{# мб_колонки доступны т.к. переданы через render_template #}
+{% macro секция(список, метка) %}
+{% if список %}
+{% set colspan = 5 + (мб_колонки | length) + 2 %}
+<tr class="section-row"><td colspan="{{ colspan }}" class="text-center">{{ метка }}</td></tr>
+{% set нс = namespace(пп=0) %}
+{% for к in список %}
+{% set нс.пп = нс.пп + 1 %}
+{% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
+{% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+{% set рм = к.результат_многоборья %}
+<tr>
+  <td class="text-center">{{ нс.пп }}</td>
+  <td>{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td>{{ к.название or '—' }}</td>
+  <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+  {% for кол in мб_колонки %}
+  <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '—' }}</td>
+  {% endfor %}
+  <td class="text-center" style="font-family:monospace">{{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}</td>
+  <td class="text-center" style="font-family:monospace">{{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}</td>
+</tr>
+{% endfor %}
+{% endif %}
+{% endmacro %}
+
+{# ── Вспомогательный макрос: секция по коду ── #}
+{# муж_р4/жен_р4/муж_р6/жен_р6 доступны т.к. переданы через render_template #}
+{% macro секция_код(код) %}
+{% if код == 'R4-м' %}{{ секция(муж_р4, 'Слалом – R4, Мужчины') }}
+{% elif код == 'R4-ж' %}{{ секция(жен_р4, 'Слалом – R4, Женщины') }}
+{% elif код == 'R6-м' %}{{ секция(муж_р6, 'Слалом – R6, Мужчины') }}
+{% elif код == 'R6-ж' %}{{ секция(жен_р6, 'Слалом – R6, Женщины') }}
+{% endif %}
+{% endmacro %}
+
+{# ── Проверка наличия данных ── #}
+{% set есть_данные = (муж_р4 | length + жен_р4 | length + муж_р6 | length + жен_р6 | length) > 0 %}
+
+{% if not есть_данные %}
+<p class="text-center text-muted mt-4">Нет данных для отображения.</p>
+
+{% elif вывод == 'Попарно' %}
+{# ── Попарно: два блока — первые два вида и вторые два вида ── #}
+
+  {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
+  {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
+  {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
+  {% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
+
+  {% set г1_есть = (к0 == 'R4-м' and муж_р4) or (к0 == 'R4-ж' and жен_р4) or (к0 == 'R6-м' and муж_р6) or (к0 == 'R6-ж' and жен_р6)
+                or (к1 == 'R4-м' and муж_р4) or (к1 == 'R4-ж' and жен_р4) or (к1 == 'R6-м' and муж_р6) or (к1 == 'R6-ж' and жен_р6) %}
+  {% set г2_есть = (к2 == 'R4-м' and муж_р4) or (к2 == 'R4-ж' and жен_р4) or (к2 == 'R6-М' and муж_р6) or (к2 == 'R6-ж' and жен_р6)
+                or (к3 == 'R4-м' and муж_р4) or (к3 == 'R4-ж' and жен_р4) or (к3 == 'R6-м' and муж_р6) or (к3 == 'R6-ж' and жен_р6) %}
+
+  {% if г1_есть %}
+  <div class="{% if г2_есть %}разрыв{% endif %}">
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
+    {{ подписи() }}
   </div>
-  <div class="col-2"></div>
-  <div class="col-5">
-    <div>Судья на старте</div>
-    <div class="mt-2">
-      <div class="underline-field">&nbsp;</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
+  {% endif %}
+
+  {% if г2_есть %}
+  <div>
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
+    {{ подписи() }}
   </div>
-</div>
-<div class="mt-2" style="font-size:9pt;color:#666">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
-</div>
+  {% endif %}
+
+{% else %}
+{# ── Раздельно: отдельный блок на каждый вид программы ── #}
+
+  {% set нса = namespace(список=[]) %}
+  {% for код in последовательность %}
+    {% if (код == 'R4-м' and муж_р4) or (код == 'R4-ж' and жен_р4) or (код == 'R6-м' and муж_р6) or (код == 'R6-ж' and жен_р6) %}
+      {% set нса.список = нса.список + [код] %}
+    {% endif %}
+  {% endfor %}
+
+  {% for код in нса.список %}
+  <div class="{% if not loop.last %}разрыв{% endif %}">
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
+    {{ подписи() }}
+  </div>
+  {% endfor %}
+
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
