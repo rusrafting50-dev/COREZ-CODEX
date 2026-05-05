@@ -658,6 +658,7 @@ def протокол_сетка(sor_id):
                            n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
                            НАЗВАНИЯ=НАЗВАНИЯ,
                            format_dur=_format_dur,
+                           format_time=format_time,
                            сегодня=date.today())
 
 

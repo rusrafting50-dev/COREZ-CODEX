@@ -103,7 +103,7 @@
     {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box">
       <div class="heat-header">Заезд {{ ns.hn }}</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></div>
       {% for з in пара %}
       <div class="heat-team{{ ' winner' if з.победитель is true }}{{ ' text-muted' if з.статус in ('ДК','НФН','НСТ') }}">
         <table style="width:100%;border:0"><tr>
@@ -126,7 +126,7 @@
     {% if уч %}
     <div class="heat-box" style="opacity:.75;border-style:dashed">
       <div class="heat-header">Заезд ?</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
       {% for команда, метка in уч %}
       <div class="heat-team">
         {% if команда %}
@@ -166,7 +166,7 @@
     {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box" style="border-color:#aaa">
       <div class="heat-header fin-b-header">Финал Б · Заезд {{ ns.hn }}</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></div>
       {% for з in пара %}
       <div class="heat-team{{ ' winner' if з.победитель is true }}">
         <table style="width:100%;border:0"><tr>
@@ -186,7 +186,7 @@
     {% set уч_б = предв.get('Финал_Б', []) %}
     <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#aaa">
       <div class="heat-header fin-b-header">Финал Б</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
       {% if уч_б %}
         {% for команда, метка in уч_б %}
         <div class="heat-team">
@@ -216,7 +216,7 @@
     {% set ns.hn = ns.hn + 1 %}
     <div class="heat-box" style="border-color:#444;border-width:2px">
       <div class="heat-header fin-a-header">Финал А · Заезд {{ ns.hn }}</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></div>
       {% for з in пара %}
       <div class="heat-team{{ ' winner' if з.победитель is true }}">
         <table style="width:100%;border:0"><tr>
@@ -236,7 +236,7 @@
     {% set уч_а = предв.get('Финал_А', []) %}
     <div class="heat-box" style="opacity:.75;border-style:dashed;border-color:#555;border-width:2px">
       <div class="heat-header fin-a-header">Финал А</div>
-      <div class="heat-time">Старт:&nbsp;<span class="time-field">__:__:__.__</span></div>
+      <div class="heat-time">Старт:&nbsp;<span class="time-field"></span></div>
       {% if уч_а %}
         {% for команда, метка in уч_а %}
         <div class="heat-team">
