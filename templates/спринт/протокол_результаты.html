@@ -38,19 +38,19 @@
      class="btn btn-outline-secondary btn-sm">← Назад к результатам</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
-       class="btn btn-outline-secondary btn-sm">Предварительные протоколы R6</a>
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
        class="btn btn-outline-secondary btn-sm">Предварительные протоколы R4</a>
-    {% else %}
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
-       class="btn btn-outline-secondary btn-sm">Предварительный протокол R6</a>
-    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+       class="btn btn-outline-secondary btn-sm">Предварительные протоколы R6</a>
+    {% else %}
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">Предварительные протоколы R4</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=1, портрет=(1 if портрет else 0)) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
     {% endif %}
     {% if портрет %}
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0)) }}"
