@@ -175,7 +175,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='слалом') }}" class="btn btn-outline-success btn-sm">Дистанция</a>
-          <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="btn btn-success btn-sm">Старт</a>
+          <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="btn btn-success btn-sm">Стартовый протокол</a>
           <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}" class="btn btn-outline-success btn-sm">Ворота 1</a>
           <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=2) }}" class="btn btn-outline-success btn-sm">Ворота 2</a>
           <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Финиш</a>
@@ -274,7 +274,7 @@
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='слалом') }}" class="btn btn-outline-success btn-sm">Дистанция</a>
-          <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-success btn-sm">Старт</a>
+          <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-success btn-sm">Стартовый протокол</a>
           <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Ворота 1</a>
           <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=2) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Ворота 2</a>
           <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Финиш</a>
