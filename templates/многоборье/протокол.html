@@ -12,10 +12,16 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
+      @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
+    {% if портрет %}
+    @media print {
+      @page { size: A4 portrait; }
+      body { zoom: 0.707; }
+    }
+    {% endif %}
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; text-align: center; font-size: 8pt; background: #fff; }
     th { font-weight: bold; }
@@ -32,11 +38,18 @@
      class="btn btn-outline-secondary btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ 'R6' if класс == 'R4' else 'R4' }}"
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0)) }}&класс={{ 'R6' if класс == 'R4' else 'R4' }}"
        class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы {{ 'R6' if класс == 'R4' else 'R4' }}</a>
     {% else %}
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ класс }}"
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0)) }}&класс={{ класс }}"
        class="btn btn-outline-primary btn-sm">Итоговый</a>
+    {% endif %}
+    {% if портрет %}
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0)) }}"
+       class="btn btn-outline-secondary btn-sm">Альбом</a>
+    {% else %}
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0), портрет=1) }}"
+       class="btn btn-outline-secondary btn-sm">Портрет</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
@@ -120,7 +133,7 @@
       <td>{{ loop.index }}</td>
       <td style="font-size:7.5pt; text-align:left">
         {% if состав %}
-          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %},<br>{% endif %}{% endfor %}
+          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}{% if loop.index % 2 == 0 %}<br>{% else %}, {% endif %}{% endif %}{% endfor %}
         {% else %}—{% endif %}
       </td>
       <td>{{ к.нагрудный_номер }}</td>
@@ -158,7 +171,7 @@
       <td>{{ loop.index }}</td>
       <td style="font-size:7.5pt; text-align:left">
         {% if состав %}
-          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %},<br>{% endif %}{% endfor %}
+          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}{% if loop.index % 2 == 0 %}<br>{% else %}, {% endif %}{% endif %}{% endfor %}
         {% else %}—{% endif %}
       </td>
       <td>{{ к.нагрудный_номер }}</td>
