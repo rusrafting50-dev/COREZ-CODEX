@@ -203,17 +203,6 @@
     <div style="width:38%">Главный секретарь</div>
     <div>{{ сор.главный_секретарь or '' }}</div>
   </div>
-  {% if сор.зам_главного_секретаря %}
-  <div style="display:flex; align-items:baseline; margin-bottom:10px">
-    <div style="width:38%">Заместитель главного секретаря</div>
-    <div>{{ сор.зам_главного_секретаря }}</div>
-  </div>
-  {% endif %}
-</div>
-
-<div class="mt-3" style="font-size:9pt; font-weight:bold; color:#666">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }} &middot;
-  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
