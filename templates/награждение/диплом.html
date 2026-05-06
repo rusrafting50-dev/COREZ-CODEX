@@ -38,17 +38,11 @@
 </head>
 <body>
 
-<div class="no-print" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:8px 12px; margin-bottom:16px; font-family:sans-serif;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-    <a href="{{ назад_url }}"
-       style="font-size:.875rem; color:#6c757d; text-decoration:none; border:1px solid #6c757d;
-              border-radius:4px; padding:3px 10px; white-space:nowrap;">← Назад</a>
-    <span style="font-size:11pt; font-weight:bold; padding:0 12px;">Диплом {{ место }} место — {{ дисциплина }}</span>
-    <button onclick="window.print()"
-            style="font-size:.875rem; border:1px solid #0d6efd; border-radius:4px; padding:3px 12px;
-                   background:#0d6efd; color:#fff; cursor:pointer; white-space:nowrap;">Печать</button>
-  </div>
-  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+<div class="no-print" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:8px 12px; margin-bottom:16px; font-family:sans-serif; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+  <a href="{{ назад_url }}"
+     style="font-size:.875rem; color:#6c757d; text-decoration:none; border:1px solid #6c757d;
+            border-radius:4px; padding:3px 10px; white-space:nowrap; flex-shrink:0;">← Назад</a>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center;">
     {% for кл in ['R4', 'R6'] %}
       {% for п, пн in [('м', 'мужчины'), ('ж', 'женщины')] %}
       <div style="display:flex; align-items:center; gap:3px;">
@@ -68,6 +62,9 @@
       {% endfor %}
     {% endfor %}
   </div>
+  <button onclick="window.print()"
+          style="font-size:.875rem; border:1px solid #0d6efd; border-radius:4px; padding:3px 12px;
+                 background:#0d6efd; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0;">Печать</button>
 </div>
 
 <div class="диплом-поле">
