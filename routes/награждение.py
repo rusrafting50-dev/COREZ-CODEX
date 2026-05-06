@@ -1,6 +1,6 @@
 # routes/награждение.py — страница Награждение и печатный диплом
 from flask import Blueprint, render_template, request, url_for
-from models import Соревнование, НаграждениеПараметры, Команда
+from models import db, Соревнование, НаграждениеПараметры, Команда
 from routes.спринт import _рассчитать as _сп_рассчитать
 from routes.пс import _рассчитать_итоговые as _пс_рассчитать
 from routes.слалом import _рассчитать_итог as _сл_рассчитать
