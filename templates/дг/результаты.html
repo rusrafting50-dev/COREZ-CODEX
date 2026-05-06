@@ -49,34 +49,41 @@
 {% macro таблица_результатов(рез, без, разряды, пол_заг) %}
 <h5 class="mt-4 mb-1">{{ пол_заг }}</h5>
 {% if not рез and not без %}
-<div class="text-muted mb-3" style="font-size:.82rem">Нет данных</div>
+<div class="text-muted mb-3" style="font-size:.77rem">Нет данных</div>
 {% else %}
+<style>
+  .дг-рез-таблица { font-size:.77rem }
+  .дг-рез-таблица input.form-control, .дг-рез-таблица select.form-select {
+    font-size:.75rem; padding:1px 3px; height:auto; line-height:1.3
+  }
+  .дг-рез-таблица th, .дг-рез-таблица td { padding:2px 3px; vertical-align:middle }
+</style>
 <div class="table-responsive mb-2">
-  <table class="table table-sm table-hover align-middle" style="font-size:.82rem">
+  <table class="table table-sm table-hover align-middle дг-рез-таблица">
     <thead class="table-light">
       <tr>
         <th rowspan="2">Команда</th>
-        <th rowspan="2" class="text-center" style="width:52px">Номер<br>экипажа</th>
-        <th rowspan="2" style="min-width:80px">Субъект</th>
+        <th rowspan="2" class="text-center" style="width:46px">Номер<br>экипажа</th>
+        <th rowspan="2" style="min-width:70px">Субъект</th>
         <th colspan="4" class="text-center" style="background:#e9f0fb">Старт</th>
         <th colspan="3" class="text-center" style="background:#e9f8f0">Финиш</th>
-        <th rowspan="2" class="text-center" style="width:60px">Секции<br>штраф<br>+50с</th>
-        <th rowspan="2" class="text-center" style="width:65px">Время</th>
-        <th rowspan="2" class="text-center" style="width:55px">Штраф</th>
-        <th rowspan="2" class="text-center" style="width:75px">Результат</th>
-        <th rowspan="2" class="text-center" style="width:38px">Место</th>
-        <th rowspan="2" class="text-center" style="width:42px">Очки</th>
-        <th rowspan="2" class="text-center" style="width:48px">Разряд</th>
-        <th rowspan="2" style="width:155px">Статус</th>
+        <th rowspan="2" class="text-center" style="width:48px">Секции<br>штраф<br>+50с</th>
+        <th rowspan="2" class="text-center" style="width:60px">Время</th>
+        <th rowspan="2" class="text-center" style="width:52px">Штраф</th>
+        <th rowspan="2" class="text-center" style="width:68px">Результат</th>
+        <th rowspan="2" class="text-center" style="width:34px">Место</th>
+        <th rowspan="2" class="text-center" style="width:34px">Очки</th>
+        <th rowspan="2" class="text-center" style="width:40px">Разряд</th>
+        <th rowspan="2" style="width:120px">Статус</th>
       </tr>
       <tr>
-        <th style="width:145px; background:#e9f0fb">Время</th>
-        <th class="text-center" style="width:42px; background:#e9f0fb" title="Штраф +10 сек (старт)">+10с</th>
-        <th class="text-center" style="width:42px; background:#e9f0fb" title="Штраф +50 сек (старт)">+50с</th>
-        <th class="text-center" style="width:32px; background:#e9f0fb" title="Дисквалификация">ДК</th>
-        <th style="width:145px; background:#e9f8f0">Время</th>
-        <th class="text-center" style="width:42px; background:#e9f8f0" title="Штраф +50 сек (финиш)">+50с</th>
-        <th class="text-center" style="width:32px; background:#e9f8f0" title="Не финишировал">НФН</th>
+        <th style="width:108px; background:#e9f0fb">Время</th>
+        <th class="text-center" style="width:36px; background:#e9f0fb" title="Штраф +10 сек (старт)">+10с</th>
+        <th class="text-center" style="width:36px; background:#e9f0fb" title="Штраф +50 сек (старт)">+50с</th>
+        <th class="text-center" style="width:28px; background:#e9f0fb" title="Дисквалификация старт">ДК</th>
+        <th style="width:108px; background:#e9f8f0">Время</th>
+        <th class="text-center" style="width:36px; background:#e9f8f0" title="Штраф +50 сек (финиш)">+50с</th>
+        <th class="text-center" style="width:28px; background:#e9f8f0" title="Дисквалификация финиш">ДК</th>
       </tr>
     </thead>
     <tbody>
@@ -84,13 +91,12 @@
       {% set в_рез = loop.index0 < (рез | length) %}
       {% set к = р.команда %}
       {% set дк = р.статус == СТАТУС_ДК %}
-      {% set нфн = р.статус == СТАТУС_ДНФ %}
       {% set секц_кол = секц_штраф.get(р.команда_id, 0) // 50 %}
-      {% set цвет_стр = 'table-danger' if дк else ('table-warning' if нфн else ('table-secondary' if р.статус in ('НСТ', 'ПМ') else '')) %}
+      {% set цвет_стр = 'table-danger' if дк else ('table-secondary' if р.статус in ('НСТ', 'ПМ') else '') %}
       <tr class="{{ цвет_стр }}">
         <td>{{ к.название or '—' }}</td>
         <td class="text-center">{{ к.нагрудный_номер }}</td>
-        <td>{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
+        <td>{{ к.субъект.название | truncate(16) if к.субъект else '—' }}</td>
         <td>
           <input type="text" name="вс_{{ р.команда_id }}"
                  class="form-control form-control-sm font-monospace"
@@ -120,18 +126,18 @@
                  class="form-control form-control-sm font-monospace"
                  value="{{ format_time(р.время_финиша) }}"
                  placeholder="00:00:00.00" autocomplete="off"
-                 {% if нфн %}disabled{% endif %}>
+                 {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
           <input type="number" name="кф_{{ р.команда_id }}"
                  class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.кол_штраф_финиш or 0 }}" min="0" max="9"
-                 {% if нфн %}disabled{% endif %}>
+                 {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="checkbox" name="нфн_{{ р.команда_id }}" value="1"
-                 class="form-check-input нфн-чек"
-                 {% if нфн %}checked{% endif %}>
+          <input type="checkbox" name="дк_фин_{{ р.команда_id }}" value="1"
+                 class="form-check-input дк-фин-чек"
+                 {% if дк %}checked{% endif %}>
         </td>
         <td class="text-center">
           <input type="number" name="секц_{{ р.команда_id }}"
@@ -227,27 +233,25 @@ document.querySelectorAll('[name^="с10_"], [name^="кс_"], [name^="кф_"], [n
 document.querySelectorAll('.дк-чек').forEach(cb => {
     cb.addEventListener('change', function () {
         const row = this.closest('tr');
-        row.querySelectorAll('[name^="вс_"], .штраф-ввод[name^="с10_"], .штраф-ввод[name^="кс_"]').forEach(el => {
+        row.querySelectorAll('[name^="вс_"], [name^="вф_"], .штраф-ввод').forEach(el => {
             el.disabled = this.checked;
             if (this.checked) el.value = el.type === 'text' ? '' : '0';
         });
         row.classList.toggle('table-danger', this.checked);
-        if (this.checked) row.classList.remove('table-warning');
         пересчитатьСтроку(row);
     });
 });
 
-// ── НФН: блокировка финиша ────────────────────────────────────────────────
+// ── ДК финиш: блокировка финиша ──────────────────────────────────────────
 
-document.querySelectorAll('.нфн-чек').forEach(cb => {
+document.querySelectorAll('.дк-фин-чек').forEach(cb => {
     cb.addEventListener('change', function () {
         const row = this.closest('tr');
-        row.querySelectorAll('[name^="вф_"], .штраф-ввод[name^="кф_"]').forEach(el => {
+        row.querySelectorAll('[name^="вс_"], [name^="вф_"], .штраф-ввод').forEach(el => {
             el.disabled = this.checked;
             if (this.checked) el.value = el.type === 'text' ? '' : '0';
         });
-        row.classList.toggle('table-warning', this.checked);
-        if (this.checked) row.classList.remove('table-danger');
+        row.classList.toggle('table-danger', this.checked);
         пересчитатьСтроку(row);
     });
 });
