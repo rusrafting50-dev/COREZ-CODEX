@@ -64,16 +64,6 @@
       {% endfor %}
       </tbody>
     </table>
-    <div class="d-flex justify-content-end mt-3">
-      <form method="post"
-            action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section_наград) }}">
-        <button type="submit"
-                class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary' }}"
-                style="min-width:120px;font-size:.95rem">
-          {{ '✓ Готово' if готов_наград else 'В работе' }}
-        </button>
-      </form>
-    </div>
   </div>
 </div>
 {% else %}
