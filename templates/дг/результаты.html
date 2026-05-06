@@ -29,7 +29,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('дг.финиш', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Финиш</a>
+    <a href="{{ url_for('дг.протокол_старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
     <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
        class="btn btn-primary btn-sm">🖨 Протоколы</a>
     <a href="{{ url_for('награждение.диплом_дг', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
@@ -178,7 +178,7 @@
 {{ таблица_результатов(жен_р6_рез, жен_р6_без, жен_разр, 'Длинная гонка — R6, женщины') }}
 {% endif %}
 
-<button type="submit" class="btn btn-success px-4 mt-2">Сохранить</button>
+<button type="submit" id="btn-сохранить" class="btn btn-success px-4 mt-2">Сохранить</button>
 </form>
 
 {% endif %}
@@ -196,6 +196,15 @@
 </div>
 
 <script>
+// ── Защита от двойного нажатия Сохранить ─────────────────────────────────
+const btnСохр = document.getElementById('btn-сохранить');
+if (btnСохр) {
+    btnСохр.closest('form').addEventListener('submit', function () {
+        btnСохр.disabled = true;
+        btnСохр.textContent = 'Сохранение…';
+    });
+}
+
 // ── Форматирование времени ЧЧ:ММ:СС.сс при вводе ─────────────────────────
 
 document.querySelectorAll('[name^="вс_"], [name^="вф_"]').forEach(inp => {
