@@ -51,13 +51,6 @@
 {% endif %}
 {% endmacro %}
 
-{% macro кнопка_наград(готово, section) %}
-<form method="post" action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}" class="d-inline m-0">
-  <button type="submit" class="btn btn-sm {{ 'btn-success' if готово else 'btn-outline-secondary bg-white' }}" style="font-size:.6rem; padding:1px 7px; line-height:1.6">
-    {{ '✓ Готово' if готово else 'В работе' }}
-  </button>
-</form>
-{% endmacro %}
 
 {# ── 1. Информация о соревнованиях ── #}
 <h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
@@ -135,7 +128,7 @@
     <div class="card border-primary h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-primary me-1">СП</span>Группа спортивных дисциплин СПРИНТ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.спринт) }}{{ кнопка_наград(сор.готов_наград_спринт, 'наград-спринт') }}</div>
+        {{ значок(сор.готов_наград_спринт) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -154,7 +147,7 @@
     <div class="card border-info h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-info bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-info me-1">ПС</span>Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.пс) }}{{ кнопка_наград(сор.готов_наград_пс, 'наград-пс') }}</div>
+        {{ значок(сор.готов_наград_пс) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -176,7 +169,7 @@
     <div class="card border-success h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-success bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-success me-1">СЛ</span>Группа спортивных дисциплин СЛАЛОМ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.слалом) }}{{ кнопка_наград(сор.готов_наград_слалом, 'наград-слалом') }}</div>
+        {{ значок(сор.готов_наград_слалом) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -199,7 +192,7 @@
     <div class="card border-warning h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-warning bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-warning text-dark me-1">ДГ</span>Группа спортивных дисциплин ДЛИННАЯ ГОНКА</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.дг) }}{{ кнопка_наград(сор.готов_наград_дг, 'наград-дг') }}</div>
+        {{ значок(сор.готов_наград_дг) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -228,7 +221,7 @@
     <div class="card border-primary h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-primary me-1">СП</span>Группа спортивных дисциплин СПРИНТ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.спринт) }}{{ кнопка_наград(сор.готов_наград_спринт, 'наград-спринт') }}</div>
+        {{ значок(сор.готов_наград_спринт) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -251,7 +244,7 @@
     <div class="card border-info h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-info bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-info me-1">ПС</span>Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.пс) }}{{ кнопка_наград(сор.готов_наград_пс, 'наград-пс') }}</div>
+        {{ значок(сор.готов_наград_пс) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -277,7 +270,7 @@
     <div class="card border-success h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-success bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-success me-1">СЛ</span>Группа спортивных дисциплин СЛАЛОМ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.слалом) }}{{ кнопка_наград(сор.готов_наград_слалом, 'наград-слалом') }}</div>
+        {{ значок(сор.готов_наград_слалом) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -304,7 +297,7 @@
     <div class="card border-warning h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-warning bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-warning text-dark me-1">ДГ</span>Группа спортивных дисциплин ДЛИННАЯ ГОНКА</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.дг) }}{{ кнопка_наград(сор.готов_наград_дг, 'наград-дг') }}</div>
+        {{ значок(сор.готов_наград_дг) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -333,7 +326,7 @@
     <div class="card border-danger h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-danger bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-danger me-1">МБ</span>Группа спортивных дисциплин МНОГОБОРЬЕ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.многоборье) }}{{ кнопка_наград(сор.готов_наград_мб, 'наград-мб') }}</div>
+        {{ значок(сор.готов_наград_мб) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -357,7 +350,7 @@
     <div class="card border-danger h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-danger bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-danger me-1">МБ</span>Группа спортивных дисциплин МНОГОБОРЬЕ</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.многоборье) }}{{ кнопка_наград(сор.готов_наград_мб, 'наград-мб') }}</div>
+        {{ значок(сор.готов_наград_мб) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
@@ -375,7 +368,7 @@
     <div class="card border-secondary h-100">
       <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center bg-secondary bg-opacity-10">
         <span class="fw-bold small"><span class="badge bg-secondary me-1">ЗС</span>Командный зачет среди субъектов Российской Федерации</span>
-        <div class="d-flex gap-1 align-items-center">{{ значок(готов.зачет) }}{{ кнопка_наград(сор.готов_наград_зачет, 'наград-зачет') }}</div>
+        {{ значок(сор.готов_наград_зачет) }}
       </div>
       <div class="card-body py-2 px-2">
         <div class="d-flex flex-wrap gap-1">
