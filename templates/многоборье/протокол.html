@@ -32,10 +32,10 @@
      class="btn btn-outline-secondary btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}?класс={{ 'R6' if класс == 'R4' else 'R4' }}"
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ 'R6' if класс == 'R4' else 'R4' }}"
        class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы {{ 'R6' if класс == 'R4' else 'R4' }}</a>
     {% else %}
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}?класс={{ класс }}"
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}&класс={{ класс }}"
        class="btn btn-outline-primary btn-sm">Итоговый</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
@@ -47,7 +47,7 @@
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
-  {{ сор.название }}{% if сор.уровень %},&nbsp;{{ сор.уровень }}{% endif %}
+  {{ сор.название }}
 </div>
 
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
