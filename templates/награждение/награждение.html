@@ -36,13 +36,6 @@
 
 {# ── Кнопки дипломов по видам программы ── #}
 
-{% set видимые = [] %}
-{% for (кл, п, _) in дисциплины %}
-  {% if (кл, п) in комбинации %}
-    {% set _ = видимые.append((кл, п)) %}
-  {% endif %}
-{% endfor %}
-
 {% if комбинации %}
 <div class="card border-secondary">
   <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">

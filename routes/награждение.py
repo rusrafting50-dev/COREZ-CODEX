@@ -36,13 +36,13 @@ def _получить_или_создать_пар(sor_id):
 
 
 def _комбинации(sor_id):
-    return (
+    rows = (
         db.session.query(Команда.класс_судна, Команда.пол)
         .filter_by(соревнование_id=sor_id)
         .distinct()
-        .order_by(Команда.класс_судна, Команда.пол)
         .all()
     )
+    return {(r[0], r[1]) for r in rows}
 
 
 def _дисциплины(дисц_назв):
