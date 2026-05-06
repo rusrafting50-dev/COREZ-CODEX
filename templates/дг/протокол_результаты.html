@@ -16,6 +16,12 @@
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
+    {% if портрет %}
+    @media print {
+      @page { size: A4 portrait; }
+      body { zoom: 0.707; }
+    }
+    {% endif %}
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     th { text-align: center; background: #fff; font-weight: bold; }
@@ -29,14 +35,47 @@
 
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← Назад к результатам</a>
+     class="btn btn-outline-secondary btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
     {% if итоговый %}
-    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Предварительный протокол</a>
+      {% if класс == 'R4' %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R6</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+      {% else %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">Предварительные протоколы R6</a>
+      {% endif %}
     {% else %}
-    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Итоговый протокол</a>
+      {% if класс == 'R4' %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R6</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+      {% else %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+      {% endif %}
+    {% endif %}
+    {% if портрет %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0)) }}"
+       class="btn btn-outline-secondary btn-sm">Альбом</a>
+    {% else %}
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0), портрет=1) }}"
+       class="btn btn-outline-secondary btn-sm">Портрет</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
@@ -55,7 +94,8 @@
 </div>
 
 <div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
-  Спортивная дисциплина: ДЛИННАЯ ГОНКА{% if сор.класс_судна %} – {{ сор.класс_судна }}{% endif %}
+  Спортивная дисциплина:
+  {% if класс == 'R4' %}ДЛИННАЯ ГОНКА – R4, код ВРВС 1740011811Я{% elif класс == 'R6' %}ДЛИННАЯ ГОНКА – R6, код ВРВС 1740021811Я{% else %}ДЛИННАЯ ГОНКА{% if класс %} – {{ класс }}{% endif %}{% endif %}
 </div>
 
 <div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
