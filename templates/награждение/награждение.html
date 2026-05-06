@@ -54,7 +54,7 @@
             <a href="{{ url_for(маршрут_диплом, sor_id=сор.id, класс=кл, пол=пол_к, место=м) }}"
                class="btn btn-sm {% if м == 1 %}btn-warning text-dark{% elif м == 2 %}btn-secondary{% else %}btn-outline-secondary{% endif %}"
               >
-              🖨 Диплом {{ м }} место
+              🖨 {{ м }} место
             </a>
             {% endfor %}
           </div>
