@@ -27,7 +27,6 @@
   <h5 class="mb-0">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('дг.секции', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Секции →</a>
-    <a href="{{ url_for('дг.финиш', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Финиш →</a>
     <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Результаты →</a>
     <a href="{{ url_for('дг.протокол_старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">Печать</a>
   </div>

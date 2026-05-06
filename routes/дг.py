@@ -268,44 +268,6 @@ def секции(sor_id):
                            муж_штрафы=муж_штрафы, жен_штрафы=жен_штрафы)
 
 
-@bp_дг.route('/<int:sor_id>/финиш', methods=['GET', 'POST'])
-def финиш(sor_id):
-    сор = Соревнование.query.get_or_404(sor_id)
-    допустимые = {s for s, _ in СТАТУСЫ_СПИСОК}
-
-    if request.method == 'POST':
-        for пол in ('м', 'ж'):
-            for к in _по_посеву(sor_id, пол):
-                рез = _get_or_create(к, sor_id)
-                вс = parse_time(request.form.get(f'вс_{к.id}', ''))
-                вф = parse_time(request.form.get(f'вф_{к.id}', ''))
-                кс = _int0(request.form.get(f'кс_{к.id}', 0))
-                кф = _int0(request.form.get(f'кф_{к.id}', 0))
-                ст = request.form.get(f'ст_{к.id}', СТАТУС_ФИНИШ)
-                if ст not in допустимые:
-                    ст = СТАТУС_ФИНИШ
-                рез.время_старта = вс
-                рез.время_финиша = вф
-                рез.кол_штраф_старт = кс
-                рез.кол_штраф_финиш = кф
-                рез.статус = ст
-                _пересчитать(рез, сор)
-        db.session.commit()
-        flash('Протокол финиша сохранён.', 'success')
-        return redirect(url_for('дг.финиш', sor_id=sor_id))
-
-    муж = _по_посеву(sor_id, 'м')
-    жен = _по_посеву(sor_id, 'ж')
-    секц_штраф = {}
-    for к in муж + жен:
-        _, шт = _суммировать_секции(к.id, sor_id)
-        секц_штраф[к.id] = шт
-    return render_template('дг/финиш.html',
-                           сор=сор, муж=муж, жен=жен,
-                           секц_штраф=секц_штраф,
-                           format_time=format_time, format_dur=format_dur,
-                           СТАТУСЫ=СТАТУСЫ_СПИСОК, СТАТУС_ФИНИШ=СТАТУС_ФИНИШ)
-
 
 @bp_дг.route('/<int:sor_id>/результаты', methods=['GET', 'POST'])
 def результаты(sor_id):
@@ -389,21 +351,6 @@ def протокол_секции(sor_id):
                            муж_штрафы=муж_штрафы, жен_штрафы=жен_штрафы,
                            сегодня=date.today())
 
-
-@bp_дг.route('/<int:sor_id>/протокол-финиш')
-def протокол_финиш(sor_id):
-    сор = Соревнование.query.get_or_404(sor_id)
-    муж = _по_посеву(sor_id, 'м')
-    жен = _по_посеву(sor_id, 'ж')
-    секц_штраф = {}
-    for к in муж + жен:
-        _, шт = _суммировать_секции(к.id, sor_id)
-        секц_штраф[к.id] = шт
-    return render_template('дг/протокол_финиш.html',
-                           сор=сор, муж=муж, жен=жен,
-                           секц_штраф=секц_штраф,
-                           format_time=format_time, format_dur=format_dur,
-                           сегодня=date.today())
 
 
 @bp_дг.route('/<int:sor_id>/протокол-результаты')
