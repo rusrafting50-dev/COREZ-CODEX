@@ -647,6 +647,7 @@ class РезультатДлиннойГонки(db.Model):
     время_финиша        = db.Column(db.Float, nullable=True)
     время_прохождения   = db.Column(db.Float, nullable=True)
 
+    кол_штраф_с10       = db.Column(db.Integer, nullable=False, default=0)
     кол_штраф_старт     = db.Column(db.Integer, nullable=False, default=0)
     кол_штраф_финиш     = db.Column(db.Integer, nullable=False, default=0)
     штрафное_время      = db.Column(db.Float,   nullable=False, default=0)
@@ -1026,6 +1027,12 @@ def применить_миграции():
                 conn.execute(db.text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_дг VARCHAR(20)"
                 ))
+                conn.commit()
+        # результаты_дг: штраф +10с (новый столбец)
+        if inspector.has_table('результаты_дг'):
+            cols_дг = {c['name'] for c in inspector.get_columns('результаты_дг')}
+            if 'кол_штраф_с10' not in cols_дг:
+                conn.execute(text('ALTER TABLE результаты_дг ADD COLUMN кол_штраф_с10 INTEGER DEFAULT 0'))
                 conn.commit()
         # результаты_пс: время старта заезда
         if inspector.has_table('результаты_пс'):
