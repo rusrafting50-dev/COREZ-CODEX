@@ -49,16 +49,17 @@
     font-size:.75rem; padding:1px 3px; height:auto; line-height:1.3
   }
   .дг-рез-таблица th, .дг-рез-таблица td { padding:2px 3px; vertical-align:middle }
+  .дг-рез-таблица thead th { background-color: #f0f0f0; }
 </style>
 <div class="table-responsive mb-2">
   <table class="table table-sm table-hover align-middle дг-рез-таблица">
-    <thead class="table-light">
+    <thead>
       <tr>
         <th rowspan="2">Команда</th>
         <th rowspan="2" class="text-center" style="width:46px">Номер<br>экипажа</th>
         <th rowspan="2" style="min-width:70px">Субъект</th>
-        <th colspan="4" class="text-center" style="background:#f0f0f0">Старт</th>
-        <th colspan="3" class="text-center" style="background:#f0f0f0">Финиш</th>
+        <th colspan="4" class="text-center">Старт</th>
+        <th colspan="3" class="text-center">Финиш</th>
         <th rowspan="2" class="text-center" style="width:48px">Секции<br>штраф<br>+50с</th>
         <th rowspan="2" class="text-center" style="width:60px">Время</th>
         <th rowspan="2" class="text-center" style="width:52px">Штраф</th>
@@ -69,13 +70,13 @@
         <th rowspan="2" style="width:120px">Статус</th>
       </tr>
       <tr>
-        <th style="width:108px; background:#f0f0f0">Время</th>
-        <th class="text-center" style="width:36px; background:#f0f0f0" title="Штраф +10 сек (старт)">+10с</th>
-        <th class="text-center" style="width:36px; background:#f0f0f0" title="Штраф +50 сек (старт)">+50с</th>
-        <th class="text-center" style="width:28px; background:#f0f0f0" title="Дисквалификация старт">ДК</th>
-        <th style="width:108px; background:#f0f0f0">Время</th>
-        <th class="text-center" style="width:36px; background:#f0f0f0" title="Штраф +50 сек (финиш)">+50с</th>
-        <th class="text-center" style="width:28px; background:#f0f0f0" title="Дисквалификация финиш">ДК</th>
+        <th style="width:108px">Время</th>
+        <th class="text-center" style="width:36px" title="Штраф +10 сек (старт)">+10с</th>
+        <th class="text-center" style="width:36px" title="Штраф +50 сек (старт)">+50с</th>
+        <th class="text-center" style="width:28px" title="Дисквалификация старт">ДК</th>
+        <th style="width:108px">Время</th>
+        <th class="text-center" style="width:36px" title="Штраф +50 сек (финиш)">+50с</th>
+        <th class="text-center" style="width:28px" title="Дисквалификация финиш">ДК</th>
       </tr>
     </thead>
     <tbody>
