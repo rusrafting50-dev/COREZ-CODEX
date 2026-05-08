@@ -37,12 +37,12 @@
     <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
     {% elif тип == 'пс' %}
-    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
        class="btn btn-outline-info btn-sm">Стартовый протокол</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-info btn-sm">Результаты</a>
     {% elif тип == 'слалом' %}
-    <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
+    <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Стартовый протокол</a>
     <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
