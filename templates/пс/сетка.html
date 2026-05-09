@@ -78,10 +78,11 @@
   <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap no-print">
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
-       class="btn btn-outline-primary btn-sm">Результаты заездов</a>
+       class="btn btn-outline-primary btn-sm">Результаты заездов →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
-    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</button>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
