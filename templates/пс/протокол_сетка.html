@@ -7,7 +7,7 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
-  <style>
+  <style id="orient-style">
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
@@ -57,7 +57,10 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  <div class="d-flex gap-2">
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
 {# ── Шапка ── #}
@@ -178,7 +181,6 @@
       </div>
       {% endfor %}
     {% elif за %}
-      {# BYE-заглушка: seed1 ожидает победителя 1/2 #}
       {% set бай = за.get(0, []) %}
       {% if бай %}
       {% set ns.hn = ns.hn + 1 %}
@@ -198,57 +200,96 @@
 {% endif %}
 {% endmacro %}
 
-{# ── Разделы по группам ── #}
-{% set _вгр = (' (' ~ сор.возрастная_группа ~ ')') if сор.возрастная_группа else '' %}
+{# ── Вспомогательный макрос ── #}
+{% macro секция_код(код) %}
+{% if код == 'R4-м' and n_муж_r4 >= 2 %}
+  {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, 'Параллельный спринт — R4, мужчины', n_муж_r4) }}
+{% elif код == 'R4-ж' and n_жен_r4 >= 2 %}
+  {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, 'Параллельный спринт — R4, женщины', n_жен_r4) }}
+{% elif код == 'R6-м' and n_муж_r6 >= 2 %}
+  {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, 'Параллельный спринт — R6, мужчины', n_муж_r6) }}
+{% elif код == 'R6-ж' and n_жен_r6 >= 2 %}
+  {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, 'Параллельный спринт — R6, женщины', n_жен_r6) }}
+{% endif %}
+{% endmacro %}
+
+{# ── Подсчёт доступных разделов ── #}
 {% set _всего = (n_муж_r4 >= 2) | int + (n_жен_r4 >= 2) | int
               + (has_r6 and n_муж_r6 >= 2) | int + (has_r6 and n_жен_r6 >= 2) | int %}
-{% set нс = namespace(i=0) %}
-
-{% if n_муж_r4 >= 2 %}
-{% set нс.i = нс.i + 1 %}
-<div class="{{ 'разрыв' if нс.i < _всего }}">
-  {{ шапка() }}
-  {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, 'R4, мужчины' ~ _вгр, n_муж_r4) }}
-  {{ подписи() }}
-</div>
-{% endif %}
-
-{% if n_жен_r4 >= 2 %}
-{% set нс.i = нс.i + 1 %}
-<div class="{{ 'разрыв' if нс.i < _всего }}">
-  {{ шапка() }}
-  {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, 'R4, женщины' ~ _вгр, n_жен_r4) }}
-  {{ подписи() }}
-</div>
-{% endif %}
-
-{% if has_r6 %}
-{% if n_муж_r6 >= 2 %}
-{% set нс.i = нс.i + 1 %}
-<div class="{{ 'разрыв' if нс.i < _всего }}">
-  {{ шапка() }}
-  {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, 'R6, мужчины' ~ _вгр, n_муж_r6) }}
-  {{ подписи() }}
-</div>
-{% endif %}
-{% if n_жен_r6 >= 2 %}
-{% set нс.i = нс.i + 1 %}
-<div class="{{ 'разрыв' if нс.i < _всего }}">
-  {{ шапка() }}
-  {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, 'R6, женщины' ~ _вгр, n_жен_r6) }}
-  {{ подписи() }}
-</div>
-{% endif %}
-{% endif %}
 
 {% if _всего == 0 %}
 <div class="text-center text-muted mt-4">Нет данных для отображения.</div>
+
+{% elif вывод == 'Все' %}
+{# ── Режим «Все»: одна шапка, все сетки подряд, одни подписи ── #}
+{{ шапка() }}
+{% for код in последовательность %}
+{{ секция_код(код) }}
+{% endfor %}
+{{ подписи() }}
+
+{% elif вывод == 'Попарно' %}
+{# ── Режим «Попарно»: группируем по 2 вида на страницу ── #}
+{% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
+{% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
+{% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
+{% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
+
+{% set г1_есть = (к0 == 'R4-м' and n_муж_r4 >= 2) or (к0 == 'R4-ж' and n_жен_r4 >= 2)
+              or (к0 == 'R6-м' and n_муж_r6 >= 2) or (к0 == 'R6-ж' and n_жен_r6 >= 2)
+              or (к1 == 'R4-м' and n_муж_r4 >= 2) or (к1 == 'R4-ж' and n_жен_r4 >= 2)
+              or (к1 == 'R6-м' and n_муж_r6 >= 2) or (к1 == 'R6-ж' and n_жен_r6 >= 2) %}
+{% set г2_есть = (к2 == 'R4-м' and n_муж_r4 >= 2) or (к2 == 'R4-ж' and n_жен_r4 >= 2)
+              or (к2 == 'R6-м' and n_муж_r6 >= 2) or (к2 == 'R6-ж' and n_жен_r6 >= 2)
+              or (к3 == 'R4-м' and n_муж_r4 >= 2) or (к3 == 'R4-ж' and n_жен_r4 >= 2)
+              or (к3 == 'R6-м' and n_муж_r6 >= 2) or (к3 == 'R6-ж' and n_жен_r6 >= 2) %}
+
+{% if г1_есть %}
+<div class="{{ 'разрыв' if г2_есть }}">
+  {{ шапка() }}
+  {{ секция_код(к0) }}{{ секция_код(к1) }}
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if г2_есть %}
+<div>
+  {{ шапка() }}
+  {{ секция_код(к2) }}{{ секция_код(к3) }}
+  {{ подписи() }}
+</div>
+{% endif %}
+
+{% else %}
+{# ── Режим «Раздельно»: каждый вид на отдельной странице ── #}
+{% set нс = namespace(i=0) %}
+{% for код in последовательность %}
+{% set есть = (код == 'R4-м' and n_муж_r4 >= 2) or (код == 'R4-ж' and n_жен_r4 >= 2)
+           or (код == 'R6-м' and n_муж_r6 >= 2) or (код == 'R6-ж' and n_жен_r6 >= 2) %}
+{% if есть %}{% set нс.i = нс.i + 1 %}
+<div class="{{ 'разрыв' if нс.i < _всего }}">
+  {{ шапка() }}
+  {{ секция_код(код) }}
+  {{ подписи() }}
+</div>
+{% endif %}
+{% endfor %}
 {% endif %}
 
 <div class="mt-2 no-print" style="font-size:9pt;color:#888">
   Сформировано: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
 </div>
 
+<script>
+let landscape = true;
+function toggleOrient() {
+  landscape = !landscape;
+  const sz = landscape ? 'A4 landscape' : 'A4 portrait';
+  document.getElementById('orient-style').textContent =
+    document.getElementById('orient-style').textContent
+      .replace(/@page\s*\{[^}]*size:[^;]+;/, '@page { margin: 12mm 8mm; size: ' + sz + ';');
+  document.getElementById('btn-orient').textContent = landscape ? 'Портрет' : 'Альбом';
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

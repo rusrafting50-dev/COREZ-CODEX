@@ -183,6 +183,10 @@ class Соревнование(db.Model):
     последовательность_дг       = db.Column(db.String(100), nullable=True)
     вывод_старт_дг              = db.Column(db.String(20),  nullable=True)
 
+    # Параметры стартового протокола Параллельного Спринта
+    последовательность_пс       = db.Column(db.String(100), nullable=True)
+    вывод_старт_пс              = db.Column(db.String(20),  nullable=True)
+
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
     реквизиты_оплаты            = db.Column(db.Text, nullable=True)
@@ -1043,6 +1047,18 @@ def применить_миграции():
                         "ALTER TABLE результаты_пс ADD COLUMN время_старта FLOAT"
                     ))
                     conn.commit()
+        if 'последовательность_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_пс VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_пс VARCHAR(20)"
+                ))
+                conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
