@@ -23,11 +23,9 @@
        class="btn btn-outline-secondary btn-sm">← Сетка</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты →</a>
-    <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Печать сетки</a>
   </div>
 </div>
-<div class="text-center mb-3"><h5 class="mb-0">Протокол финиша по заездам</h5></div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты заездов</h5></div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% for cat, msg in messages %}
@@ -49,14 +47,16 @@
   +50с — количество штрафных буёв
 </div>
 
-{% macro секция(пол, стадии, данные, завершены, цвет, заг) %}
+{% macro секция(пол, стадии, данные, завершены, предв_сл, цвет, заг) %}
 {% if стадии %}
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <form method="post">
 {% for стадия in стадии %}
 {% set заезды_этапа = данные[стадия] %}
 {% set реальных_в_этапе = данные[стадия].keys() | reject('equalto', 0) | list | length %}
+
 {% if реальных_в_этапе > 0 %}
+{# ── Сформированная стадия с реальными заездами ── #}
 <div class="card mb-3">
   <div class="card-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
@@ -71,8 +71,7 @@
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
-          <th style="width:50px" class="text-center">Дор.</th>
-          <th style="width:55px" class="text-center">Нагруд.</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
           <th>Команда</th>
           <th style="min-width:90px">Субъект</th>
           <th style="width:100px">Время (М:СС.сс)</th>
@@ -82,27 +81,14 @@
         </tr>
       </thead>
       <tbody>
-      {% for номер, пара in заезды_этапа.items() %}
-      {% if номер == 0 %}
-      {% for з in пара %}
-      <tr class="table-secondary">
-        <td class="text-center text-muted">БАЙ</td>
-        <td class="text-center">—</td>
-        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
-        <td>{{ з.команда.название or '—' }}</td>
-        <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
-        <td colspan="3" class="text-muted text-center">автоматический проход</td>
-        <td class="text-center"><span class="badge bg-secondary">БАЙ</span></td>
-      </tr>
-      {% endfor %}
-      {% else %}
+      {% for номер, пара in заезды_этапа.items() | sort %}
+      {% if номер > 0 %}
       {% for з in пара %}
       {% set цвет_стр = 'table-success' if з.победитель is true else ('table-danger' if з.статус in ('ДК','НФН','НСТ') else ('table-warning' if з.победитель is false else '')) %}
       <tr class="{{ цвет_стр }}">
         {% if loop.first %}
         <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
         {% endif %}
-        <td class="text-center text-muted small">{{ 'Л' if з.дорожка == 'левая' else 'П' }}</td>
         <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td>{{ з.команда.название or '—' }}</td>
         <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
@@ -138,20 +124,74 @@
     </table>
   </div>
 </div>
+
+{% elif стадия in предв_сл %}
+{# ── Стадия ещё не сформирована: BYE-команда + ожидаемый соперник ── #}
+<div class="card mb-3 border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center py-2 bg-light">
+    <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
+    <span class="badge bg-secondary">Ожидается</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0 text-muted" style="font-size:.87rem">
+      <thead class="table-light">
+        <tr>
+          <th style="width:55px" class="text-center">Заезд</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
+          <th>Команда</th>
+          <th style="min-width:90px">Субъект</th>
+          <th colspan="4" class="text-center text-muted small">—</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set уч = предв_сл[стадия] %}
+      {% for i in range(0, уч|length, 2) %}
+      {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
+      {% set к1 = уч[i+1][0] if i+1 < уч|length else none %}
+      {% set м1 = уч[i+1][1] if i+1 < уч|length else none %}
+      <tr>
+        <td class="text-center fw-bold" rowspan="2">{{ (i // 2) + 1 }}</td>
+        {% if к0 %}
+        <td class="text-center">{{ к0.нагрудный_номер }}</td>
+        <td>{{ к0.название or '—' }}</td>
+        <td class="small">{{ к0.субъект.название | truncate(20) if к0.субъект else '—' }}</td>
+        {% else %}
+        <td></td>
+        <td colspan="2"><em class="text-muted">{{ м0 or 'Ожидается' }}</em></td>
+        {% endif %}
+        <td colspan="4"></td>
+      </tr>
+      <tr>
+        {% if к1 %}
+        <td class="text-center">{{ к1.нагрудный_номер }}</td>
+        <td>{{ к1.название or '—' }}</td>
+        <td class="small">{{ к1.субъект.название | truncate(20) if к1.субъект else '—' }}</td>
+        {% else %}
+        <td></td>
+        <td colspan="2"><em class="text-muted">{{ м1 or 'Ожидается' }}</em></td>
+        {% endif %}
+        <td colspan="4"></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endif %}
+
 {% endfor %}
 <button type="submit" class="btn btn-success px-4 mb-3">
-  Сохранить результаты {{ заг | lower }}
+  Сохранить результаты {{ заг }}
 </button>
 </form>
 {% endif %}
 {% endmacro %}
 
-{{ секция('м', муж_р4_стадии, муж_р4_данные, муж_р4_завершены, 'primary', 'Параллельный спринт — R4, мужчины') }}
-{{ секция('ж', жен_р4_стадии, жен_р4_данные, жен_р4_завершены, 'danger',  'Параллельный спринт — R4, женщины') }}
+{{ секция('м', муж_р4_стадии, муж_р4_данные, муж_р4_завершены, муж_р4_предв_сл, 'primary', 'Параллельный спринт — R4, мужчины') }}
+{{ секция('ж', жен_р4_стадии, жен_р4_данные, жен_р4_завершены, жен_р4_предв_сл, 'danger',  'Параллельный спринт — R4, женщины') }}
 {% if has_r6 %}
-{{ секция('м', муж_р6_стадии, муж_р6_данные, муж_р6_завершены, 'primary', 'Параллельный спринт — R6, мужчины') }}
-{{ секция('ж', жен_р6_стадии, жен_р6_данные, жен_р6_завершены, 'danger',  'Параллельный спринт — R6, женщины') }}
+{{ секция('м', муж_р6_стадии, муж_р6_данные, муж_р6_завершены, муж_р6_предв_сл, 'primary', 'Параллельный спринт — R6, мужчины') }}
+{{ секция('ж', жен_р6_стадии, жен_р6_данные, жен_р6_завершены, жен_р6_предв_сл, 'danger',  'Параллельный спринт — R6, женщины') }}
 {% endif %}
 
 {% endif %}
