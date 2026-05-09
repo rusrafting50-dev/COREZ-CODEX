@@ -13,32 +13,70 @@
 
 {% block content %}
 
-<div class="text-center mb-3">
-  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+<style>
+  .ps-bracket-wrap   { overflow-x: auto; padding-bottom: 8px; }
+  .ps-stage-col      { min-width: 270px; flex-shrink: 0; }
+  .ps-stage-hdr      { font-size: .75rem; font-weight: 700; text-transform: uppercase;
+                       text-align: center; padding: 3px 6px;
+                       background: #e0e0e0; border: 1px solid #aaa; margin-bottom: 6px; }
+  .ps-arrow          { flex-shrink: 0; align-self: flex-start; padding-top: 48px;
+                       font-size: 1.3rem; color: #999; padding-left: 4px; padding-right: 4px; }
+  /* heat card */
+  .ps-heat           { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem; }
+  .ps-heat-hdr       { display: flex; align-items: center; gap: 6px;
+                       padding: 3px 6px; background: #f2f2f2;
+                       border-bottom: 1px solid #ccc; font-size: .74rem; }
+  .ps-heat-hdr b     { white-space: nowrap; }
+  .ps-heat-hdr .lbl  { color: #777; font-size: .68rem; }
+  .ps-heat-tbl       { width: 100%; border-collapse: collapse; }
+  .ps-heat-tbl tr    { border-top: 1px solid #e8e8e8; }
+  .ps-heat-tbl tr:first-child { border-top: none; }
+  .ps-heat-tbl td    { padding: 2px 4px; vertical-align: middle; }
+  .ps-seed           { width: 22px; text-align: center; color: #888; font-size: .7rem;
+                       white-space: nowrap; }
+  .ps-bib            { width: 24px; text-align: center; font-weight: 600;
+                       color: #444; font-size: .72rem; white-space: nowrap; }
+  .ps-name           { min-width: 100px; }
+  .ps-name .org      { font-size: .66rem; color: #888; line-height: 1.1; }
+  .ps-res            { width: 62px; text-align: right; font-family: monospace;
+                       font-size: .72rem; white-space: nowrap; }
+  /* state colours */
+  .ps-winner         { background: #d4edda; }
+  .ps-loser          { background: #f8f9fa; color: #888; }
+  /* placeholder */
+  .ps-heat-ph        { border: 1px dashed #bbb; margin-bottom: 6px;
+                       font-size: .78rem; opacity: .8; }
+  .ps-ph-hdr         { padding: 3px 6px; background: #fafafa;
+                       border-bottom: 1px dashed #ccc; font-size: .74rem;
+                       color: #999; font-weight: 700; }
+  .ps-ph-italic      { font-style: italic; color: #999; font-size: .72rem; }
+  /* BYE badge */
+  .ps-bye            { margin-bottom: 4px; padding: 2px 6px; font-size: .72rem;
+                       color: #666; background: #f0f0f0; border: 1px dashed #ccc; }
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 9pt; }
+    @page { margin: 10mm 8mm; size: A4 landscape; }
+    .ps-heat, .ps-heat-ph { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="text-center mb-2 no-print">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
 </div>
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
   <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Заезды →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты</a>
-    <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Печать</a>
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">🖨 Печать</button>
   </div>
 </div>
-<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
 
 {# ── Формирование сетки ── #}
-<div class="card mb-4">
+<div class="card mb-4 no-print">
   <div class="card-header fw-semibold py-2">Формирование сетки</div>
   <div class="card-body py-3">
     <p class="text-muted small mb-3">
@@ -71,139 +109,162 @@
   </div>
 </div>
 
-{# ── Вспомогательный макрос: один слот участника ── #}
-{% macro слот(команда, метка, посев_map, цвет, first) %}
-<div class="d-flex align-items-center {{ 'py-1 border-bottom' if first else 'pt-1' }}"
-     style="min-height:1.6rem">
-  {% if команда %}
-  <span class="badge rounded-pill bg-secondary me-1" style="font-size:.65rem;white-space:nowrap">
-    СП {{ посев_map.get(команда.id, '?') }}
-  </span>
-  <span class="{{ 'fw-semibold' }}">{{ команда.название or '—' }}</span>
-  {% else %}
-  <span class="text-muted fst-italic small">{{ метка }}</span>
-  {% endif %}
-</div>
-{% endmacro %}
-
-{# ── Макрос: одна сетка (пол + класс) ── #}
+{# ────────────────────────────────────────────────────────────────────────────
+   ГЛАВНЫЙ МАКРОС: одна сетка (пол + класс судов)
+   ──────────────────────────────────────────────────────────────────────────── #}
 {% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет) %}
 {% if n >= 2 %}
-<h6 class="fw-semibold mt-4 mb-3 text-{{ цвет }}">{{ заг }}</h6>
+
+<h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }} no-print">{{ заг }}</h6>
+<div class="text-center fw-bold text-uppercase mb-2" style="display:none" id="print-заг-{{ заг | replace(' ','-') }}">
+  {{ заг }}
+</div>
 
 {% set ns = namespace(счётчик=0) %}
-<div class="d-flex gap-3 overflow-auto pb-2">
+<div class="ps-bracket-wrap">
+<div class="d-flex gap-0" style="align-items:flex-start">
+
 {% for стадия in стадии %}
-<div style="min-width:250px">
-  <div class="badge bg-{{ цвет }} mb-2 w-100 text-center py-2" style="font-size:.8rem">
-    {{ НАЗВАНИЯ.get(стадия, стадия) }}
-  </div>
+<div class="ps-stage-col">
+  <div class="ps-stage-hdr">{{ НАЗВАНИЯ.get(стадия, стадия) }}</div>
 
   {% set заезды = брак[стадия] %}
-  {% if not заезды %}
+  {% if заезды %}
 
-  {# ─ Стадия не сформирована ─ #}
-  {% set уч = предв.get(стадия, []) %}
-  {% if уч %}
-    {# Разбиваем участников попарно — одна пара на заезд #}
-    {% for i in range(0, уч|length, 2) %}
-    {% set ns.счётчик = ns.счётчик + 1 %}
-    <div class="card mb-2" style="font-size:.8rem; opacity:.8; border-style:dashed">
-      <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center gap-1"
-           style="font-size:.75rem; background:transparent">
-        <span class="flex-shrink-0 fw-semibold text-muted">Заезд {{ ns.счётчик }}</span>
-        <input type="text"
-               class="form-control form-control-sm font-monospace"
-               style="width:105px;font-size:.73rem"
-               placeholder="00:00:00.00" autocomplete="off" disabled>
-      </div>
-      <div class="card-body py-1 px-2">
-        {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
-        {{ слот(к0, м0, посев_map, цвет, true) }}
-        {% if i+1 < уч|length %}
-        {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
-        {{ слот(к1, м1, посев_map, цвет, false) }}
-        {% endif %}
-      </div>
+    {# ── BYE: автоматический проход ── #}
+    {% for номер, пара in заезды.items() | sort %}
+    {% if номер == 0 %}
+    {% for з in пара %}
+    <div class="ps-bye">
+      <span class="ps-seed" style="display:inline-block">{{ посев_map.get(з.команда_id,'?') }}</span>
+      <span class="ps-bib" style="display:inline-block">{{ з.команда.нагрудный_номер }}</span>
+      <strong>{{ з.команда.название or '—' }}</strong>
+      <em style="font-size:.68rem;color:#aaa"> — авт. проход</em>
     </div>
     {% endfor %}
-  {% else %}
-    {# Первая стадия до формирования сетки #}
-    <div class="card mb-2" style="font-size:.8rem; opacity:.5; border-style:dashed">
-      <div class="card-header py-1 px-2 text-muted" style="font-size:.75rem">Заезд ?</div>
-      <div class="card-body py-1 px-2">
-        <span class="text-muted fst-italic">Ожидается</span>
+    {% endif %}
+    {% endfor %}
+
+    {# ── Реальные заезды ── #}
+    {% for номер, пара in заезды.items() | sort %}
+    {% if номер > 0 %}
+    {% set ns.счётчик = ns.счётчик + 1 %}
+    <div class="ps-heat">
+      <div class="ps-heat-hdr">
+        <b>Заезд {{ ns.счётчик }}</b>
+        <span class="lbl">Старт:</span>
+        <input type="text" name="вс_{{ пара[0].id }}"
+               class="form-control form-control-sm font-monospace время-ввод-пс"
+               style="width:84px;font-size:.68rem;padding:1px 5px"
+               value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
+               placeholder="ЧЧ:ММ:СС" autocomplete="off">
       </div>
+      <table class="ps-heat-tbl">
+        <tbody>
+        {% for з in пара %}
+        <tr class="{{ 'ps-winner' if з.победитель is true else ('ps-loser' if з.победитель is false else '') }}">
+          <td class="ps-seed">{{ посев_map.get(з.команда_id,'?') }}</td>
+          <td class="ps-bib">{{ з.команда.нагрудный_номер }}</td>
+          <td class="ps-name">
+            <div style="font-weight:{{ '600' if з.победитель is true else 'normal' }}">
+              {{ з.команда.название or '—' }}
+            </div>
+            {% if з.команда.субъект %}
+            <div class="org">{{ з.команда.субъект.название | truncate(26) }}</div>
+            {% endif %}
+          </td>
+          <td class="ps-res">
+            {% if з.результат %}
+            <span style="color:{{ '#198754' if з.победитель is true else '#6c757d' }}">
+              {{ format_dur(з.результат) }}
+            </span>
+            {% elif з.статус in ('ДК','НФН','НСТ') %}
+            <span style="color:#dc3545">{{ з.статус }}</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
     </div>
-  {% endif %}
+    {% endif %}
+    {% endfor %}
 
   {% else %}
 
-  {# ─ Стадия сформирована — реальные заезды ─ #}
-  {% for номер, пара in заезды.items() | sort %}
-  {% if номер == 0 %}
-  {# БАЙ — команда проходит напрямую, не отображается #}
-  {% else %}
-  {% set ns.счётчик = ns.счётчик + 1 %}
-  <div class="card mb-2" style="font-size:.8rem">
-    <div class="card-header py-1 px-2 text-muted d-flex justify-content-between align-items-center gap-1"
-         style="font-size:.75rem">
-      <span class="flex-shrink-0 fw-semibold">Заезд {{ ns.счётчик }}</span>
-      <input type="text" name="вс_{{ пара[0].id }}"
-             class="form-control form-control-sm font-monospace время-ввод-пс"
-             style="width:105px;font-size:.73rem"
-             value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
-             placeholder="00:00:00.00" autocomplete="off">
-    </div>
-    <div class="card-body py-1 px-2">
-      {% for з in пара %}
-      <div class="d-flex justify-content-between align-items-center
-                  {{ 'py-1 border-bottom' if loop.first else 'pt-1' }}">
-        <div class="d-flex align-items-center">
-          <span class="badge rounded-pill {{ 'bg-' + цвет if з.победитель else 'bg-secondary' }} me-1"
-                style="font-size:.65rem;white-space:nowrap">
-            СП {{ посев_map.get(з.команда_id, '?') }}
-          </span>
-          <span class="{{ 'fw-semibold' if з.победитель else '' }}">{{ з.команда.название or '—' }}</span>
-        </div>
-        <div class="text-end ms-2" style="min-width:55px">
-          {% if з.результат %}
-          <span class="font-monospace text-{{ цвет if з.победитель else 'muted' }}" style="font-size:.75rem">
-            {{ format_dur(з.результат) }}
-          </span>
-          {% elif з.статус in ('ДК','НФН','НСТ') %}
-          <span class="badge bg-danger" style="font-size:.7rem">{{ з.статус }}</span>
+    {# ── Стадия не сформирована — предварительные участники ── #}
+    {% set уч = предв.get(стадия, []) %}
+    {% if уч %}
+    {% for i in range(0, уч|length, 2) %}
+    {% set ns.счётчик = ns.счётчик + 1 %}
+    <div class="ps-heat-ph">
+      <div class="ps-ph-hdr">Заезд {{ ns.счётчик }}</div>
+      <table class="ps-heat-tbl">
+        <tbody>
+        {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
+        <tr>
+          {% if к0 %}
+          <td class="ps-seed">{{ посев_map.get(к0.id,'?') }}</td>
+          <td class="ps-bib">{{ к0.нагрудный_номер }}</td>
+          <td class="ps-name">
+            <div>{{ к0.название or '—' }}</div>
+            {% if к0.субъект %}
+            <div class="org">{{ к0.субъект.название | truncate(26) }}</div>
+            {% endif %}
+          </td>
+          {% else %}
+          <td colspan="3"><span class="ps-ph-italic">{{ м0 }}</span></td>
           {% endif %}
-          {% if з.победитель is true %}
-          <span class="text-{{ цвет }}" title="Победитель">&#x2714;</span>
+          <td class="ps-res">—</td>
+        </tr>
+        {% if i+1 < уч|length %}
+        {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
+        <tr>
+          {% if к1 %}
+          <td class="ps-seed">{{ посев_map.get(к1.id,'?') }}</td>
+          <td class="ps-bib">{{ к1.нагрудный_номер }}</td>
+          <td class="ps-name">
+            <div>{{ к1.название or '—' }}</div>
+            {% if к1.субъект %}
+            <div class="org">{{ к1.субъект.название | truncate(26) }}</div>
+            {% endif %}
+          </td>
+          {% else %}
+          <td colspan="3"><span class="ps-ph-italic">{{ м1 }}</span></td>
           {% endif %}
-        </div>
-      </div>
-      {% endfor %}
+          <td class="ps-res">—</td>
+        </tr>
+        {% endif %}
+        </tbody>
+      </table>
     </div>
-  </div>
-  {% endif %}
-  {% endfor %}
+    {% endfor %}
+    {% else %}
+    <div class="ps-heat-ph">
+      <div class="ps-ph-hdr" style="text-align:center;font-style:italic">Ожидается</div>
+    </div>
+    {% endif %}
 
   {% endif %}
 </div>
 {% if not loop.last %}
-<div class="d-flex align-items-center text-muted fs-4">&#8594;</div>
+<div class="ps-arrow">&rarr;</div>
 {% endif %}
 {% endfor %}
+
+</div>
 </div>
 
-{% elif n == 0 %}
-{# нет команд — ничего не показываем #}
-{% else %}
-<div class="alert alert-light border mt-2">
-  <span class="text-muted">{{ заг }}: сетка не сформирована.</span>
-  Нажмите кнопку выше для генерации по посеву Спринта.
+{% elif n >= 1 %}
+<div class="alert alert-light border mt-2 no-print" style="font-size:.85rem">
+  {{ заг }}: менее 2 команд — сетка невозможна.
 </div>
 {% endif %}
 {% endmacro %}
 
-{# ── Отображение сеток c формой для времени старта ── #}
+{# ────────────────────────────────────────────────────────────────────────────
+   Форма для сохранения времени старта
+   ──────────────────────────────────────────────────────────────────────────── #}
 <form method="post">
   <input type="hidden" name="action" value="время_старта">
 
@@ -220,11 +281,11 @@
   {% endif %}
 
   {% if n_муж_r4 + n_жен_r4 + n_муж_r6 + n_жен_r6 == 0 %}
-  <div class="alert alert-warning mt-3">
+  <div class="alert alert-warning mt-3 no-print">
     Команды не зарегистрированы или сетка не сформирована.
   </div>
   {% else %}
-  <div class="mt-3">
+  <div class="mt-3 no-print">
     <button type="submit" class="btn btn-success btn-sm px-4">Сохранить время старта</button>
   </div>
   {% endif %}
