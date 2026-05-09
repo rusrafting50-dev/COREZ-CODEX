@@ -198,6 +198,17 @@
     {% set бай_зап = заезды.get(0, []) %}
     {% if бай_зап %}
     {% set ns.счётчик = ns.счётчик + 1 %}
+    {# Найти метку соперника из предыдущей стадии #}
+    {% set нс_оп = namespace(метка='Ожидается') %}
+    {% for j in range(стадии|length) %}
+    {% if стадии[j] == стадия and j > 0 %}
+      {% set пред_ст = стадии[j-1] %}
+      {% set пред_зд = брак.get(пред_ст, {}) %}
+      {% for рн in пред_зд.keys() | reject('equalto', 0) | list | sort %}
+      {% set нс_оп.метка = 'Победитель заезда ' ~ рн ~ ', ' ~ НАЗВАНИЯ.get(пред_ст, пред_ст) %}
+      {% endfor %}
+    {% endif %}
+    {% endfor %}
     <div class="ps-heat">
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}</b>
@@ -212,7 +223,7 @@
       <table class="ps-heat-tbl">
         <tbody>
         {{ строка_участника(бай_зап[0].команда, none, посев_map, none, none, none) }}
-        {{ строка_участника(none, 'Ожидается', посев_map, none, none, none) }}
+        {{ строка_участника(none, нс_оп.метка, посев_map, none, none, none) }}
         </tbody>
       </table>
     </div>

@@ -183,6 +183,17 @@
     {% elif за %}
       {% set бай = за.get(0, []) %}
       {% if бай %}
+      {# Найти метку соперника из предыдущей стадии #}
+      {% set нс_оп = namespace(метка='Ожидается') %}
+      {% for j in range(стадии|length) %}
+      {% if стадии[j] == 'Финал_А' and j > 0 %}
+        {% set пред_ст = стадии[j-1] %}
+        {% set пред_зд = брак.get(пред_ст, {}) %}
+        {% for рн in пред_зд.keys() | reject('equalto', 0) | list | sort %}
+        {% set нс_оп.метка = 'Победитель заезда ' ~ рн ~ ', ' ~ НАЗВАНИЯ.get(пред_ст, пред_ст) %}
+        {% endfor %}
+      {% endif %}
+      {% endfor %}
       {% set ns.hn = ns.hn + 1 %}
       <div class="heat" style="border-color:#555;border-width:2px">
         <div class="heat-hdr fin-a-hdr">
@@ -190,7 +201,7 @@
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(бай[0].время_старта) if бай[0].время_старта else '' }}</span></span>
         </div>
         {{ ряд_команды(бай[0].команда, посев_map) }}
-        <div class="ph-row">Ожидается</div>
+        <div class="ph-row">{{ нс_оп.метка }}</div>
       </div>
       {% endif %}
     {% endif %}
