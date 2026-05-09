@@ -14,51 +14,46 @@
 {% block content %}
 
 <style>
-  .ps-bracket-wrap   { overflow-x: auto; padding-bottom: 8px; }
-  .ps-stage-col      { min-width: 270px; flex-shrink: 0; }
-  .ps-stage-hdr      { font-size: .75rem; font-weight: 700; text-transform: uppercase;
-                       text-align: center; padding: 3px 6px;
-                       background: #e0e0e0; border: 1px solid #aaa; margin-bottom: 6px; }
-  .ps-arrow          { flex-shrink: 0; align-self: flex-start; padding-top: 48px;
-                       font-size: 1.3rem; color: #999; padding-left: 4px; padding-right: 4px; }
-  /* heat card */
-  .ps-heat           { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem; }
-  .ps-heat-hdr       { display: flex; align-items: center; gap: 6px;
-                       padding: 3px 6px; background: #f2f2f2;
-                       border-bottom: 1px solid #ccc; font-size: .74rem; }
-  .ps-heat-hdr b     { white-space: nowrap; }
-  .ps-heat-hdr .lbl  { color: #777; font-size: .68rem; }
-  .ps-heat-tbl       { width: 100%; border-collapse: collapse; }
-  .ps-heat-tbl tr    { border-top: 1px solid #e8e8e8; }
+  .ps-bracket-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .ps-stage-col    { min-width: 270px; flex-shrink: 0; }
+  .ps-stage-hdr    { font-size: .75rem; font-weight: 700; text-transform: uppercase;
+                     text-align: center; padding: 3px 6px;
+                     background: #e0e0e0; border: 1px solid #aaa; margin-bottom: 6px; }
+  .ps-arrow        { flex-shrink: 0; align-self: flex-start; padding-top: 48px;
+                     font-size: 1.3rem; color: #999; padding-left: 4px; padding-right: 4px; }
+  /* единый стиль карточки заезда */
+  .ps-heat         { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem; }
+  .ps-heat-hdr     { display: flex; align-items: center; gap: 6px;
+                     padding: 3px 6px; background: #f2f2f2;
+                     border-bottom: 1px solid #ccc; font-size: .74rem; }
+  .ps-heat-hdr b   { white-space: nowrap; }
+  .ps-heat-hdr .lbl { color: #777; font-size: .68rem; }
+  .ps-heat-tbl     { width: 100%; border-collapse: collapse; }
+  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; }
   .ps-heat-tbl tr:first-child { border-top: none; }
-  .ps-heat-tbl td    { padding: 2px 4px; vertical-align: middle; }
-  .ps-seed           { width: 34px; text-align: center; white-space: nowrap; }
-  .ps-seed-badge     { display: inline-flex; align-items: center; justify-content: center;
-                       min-width: 28px; height: 28px; border-radius: 50%;
-                       background: #dee2e6; border: 1px solid #adb5bd;
-                       font-size: .58rem; font-weight: 700; color: #495057;
-                       white-space: nowrap; padding: 0 2px; line-height: 1; }
-  .ps-bib            { width: 24px; text-align: center; font-weight: 600;
-                       color: #444; font-size: .72rem; white-space: nowrap; }
-  .ps-name           { min-width: 100px; }
-  .ps-name .org      { font-size: .66rem; color: #888; line-height: 1.1; }
-  .ps-res            { width: 62px; text-align: right; font-family: monospace;
-                       font-size: .72rem; white-space: nowrap; }
-  /* state colours */
-  .ps-winner         { background: #d4edda; }
-  .ps-loser          { background: #f8f9fa; color: #888; }
-  /* placeholder */
-  .ps-heat-ph        { border: 1px dashed #bbb; margin-bottom: 6px;
-                       font-size: .78rem; opacity: .8; }
-  .ps-ph-hdr         { padding: 3px 6px; background: #fafafa;
-                       border-bottom: 1px dashed #ccc; font-size: .74rem;
-                       color: #999; font-weight: 700; }
-  .ps-ph-italic      { font-style: italic; color: #999; font-size: .72rem; }
+  .ps-heat-tbl td  { padding: 3px 4px; vertical-align: middle; height: 32px; }
+  /* колонки фиксированной ширины для единообразия */
+  .ps-seed         { width: 36px; text-align: center; white-space: nowrap; }
+  .ps-seed-badge   { display: inline-flex; align-items: center; justify-content: center;
+                     min-width: 28px; height: 28px; border-radius: 50%;
+                     background: #dee2e6; border: 1px solid #adb5bd;
+                     font-size: .58rem; font-weight: 700; color: #495057;
+                     white-space: nowrap; padding: 0 2px; line-height: 1; }
+  .ps-bib          { width: 26px; text-align: center; font-weight: 600;
+                     color: #444; font-size: .72rem; white-space: nowrap; }
+  .ps-name         { min-width: 110px; }
+  .ps-name .org    { font-size: .66rem; color: #888; line-height: 1.1; }
+  .ps-ph-italic    { font-style: italic; color: #999; font-size: .72rem; }
+  .ps-res          { width: 62px; text-align: right; font-family: monospace;
+                     font-size: .72rem; white-space: nowrap; }
+  /* цвет строк */
+  .ps-winner       { background: #d4edda; }
+  .ps-loser        { background: #f8f9fa; color: #888; }
   @media print {
     .no-print { display: none !important; }
     body { font-size: 9pt; }
     @page { margin: 10mm 8mm; size: A4 landscape; }
-    .ps-heat, .ps-heat-ph { page-break-inside: avoid; }
+    .ps-heat { page-break-inside: avoid; }
   }
 </style>
 
@@ -110,16 +105,50 @@
   </div>
 </div>
 
-{# ────────────────────────────────────────────────────────────────────────────
+{# ─────────────────────────────────────────────────────────────────────────────
+   МАКРОС: строка участника (реальный или placeholder)
+   ───────────────────────────────────────────────────────────────────────────── #}
+{% macro строка_участника(команда, метка, посев_map, победитель, результат, статус) %}
+<tr class="{{ 'ps-winner' if победитель is true else ('ps-loser' if победитель is false else '') }}">
+  <td class="ps-seed">
+    {% if команда %}
+    <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(команда.id,'?') }}</span>
+    {% endif %}
+  </td>
+  <td class="ps-bib">
+    {% if команда %}{{ команда.нагрудный_номер }}{% endif %}
+  </td>
+  <td class="ps-name">
+    {% if команда %}
+    <div style="font-weight:{{ '600' if победитель is true else 'normal' }}">
+      {{ команда.название or '—' }}
+    </div>
+    {% if команда.субъект %}
+    <div class="org">{{ команда.субъект.название | truncate(26) }}</div>
+    {% endif %}
+    {% else %}
+    <span class="ps-ph-italic">{{ метка or 'Ожидается' }}</span>
+    {% endif %}
+  </td>
+  <td class="ps-res">
+    {% if результат %}
+    <span style="color:{{ '#198754' if победитель is true else '#6c757d' }}">
+      {{ format_dur(результат) }}
+    </span>
+    {% elif статус in ('ДК','НФН','НСТ') %}
+    <span style="color:#dc3545">{{ статус }}</span>
+    {% else %}—{% endif %}
+  </td>
+</tr>
+{% endmacro %}
+
+{# ─────────────────────────────────────────────────────────────────────────────
    ГЛАВНЫЙ МАКРОС: одна сетка (пол + класс судов)
-   ──────────────────────────────────────────────────────────────────────────── #}
+   ───────────────────────────────────────────────────────────────────────────── #}
 {% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет) %}
 {% if n >= 2 %}
 
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }} no-print">{{ заг }}</h6>
-<div class="text-center fw-bold text-uppercase mb-2" style="display:none" id="print-заг-{{ заг | replace(' ','-') }}">
-  {{ заг }}
-</div>
 
 {% set ns = namespace(счётчик=0) %}
 <div class="ps-bracket-wrap">
@@ -149,29 +178,7 @@
       <table class="ps-heat-tbl">
         <tbody>
         {% for з in пара %}
-        <tr class="{{ 'ps-winner' if з.победитель is true else ('ps-loser' if з.победитель is false else '') }}">
-          <td class="ps-seed">
-            <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(з.команда_id,'?') }}</span>
-          </td>
-          <td class="ps-bib">{{ з.команда.нагрудный_номер }}</td>
-          <td class="ps-name">
-            <div style="font-weight:{{ '600' if з.победитель is true else 'normal' }}">
-              {{ з.команда.название or '—' }}
-            </div>
-            {% if з.команда.субъект %}
-            <div class="org">{{ з.команда.субъект.название | truncate(26) }}</div>
-            {% endif %}
-          </td>
-          <td class="ps-res">
-            {% if з.результат %}
-            <span style="color:{{ '#198754' if з.победитель is true else '#6c757d' }}">
-              {{ format_dur(з.результат) }}
-            </span>
-            {% elif з.статус in ('ДК','НФН','НСТ') %}
-            <span style="color:#dc3545">{{ з.статус }}</span>
-            {% else %}—{% endif %}
-          </td>
-        </tr>
+        {{ строка_участника(з.команда, none, посев_map, з.победитель, з.результат, з.статус) }}
         {% endfor %}
         </tbody>
       </table>
@@ -186,65 +193,36 @@
     {% if уч %}
     {% for i in range(0, уч|length, 2) %}
     {% set ns.счётчик = ns.счётчик + 1 %}
-    <div class="ps-heat-ph">
-      <div class="ps-ph-hdr">Заезд {{ ns.счётчик }}</div>
+    <div class="ps-heat">
+      <div class="ps-heat-hdr">
+        <b>Заезд {{ ns.счётчик }}</b>
+        <span class="lbl">Старт:</span>
+        <input type="text" class="form-control form-control-sm font-monospace"
+               style="width:84px;font-size:.68rem;padding:1px 5px"
+               placeholder="ЧЧ:ММ:СС" autocomplete="off" disabled>
+      </div>
       <table class="ps-heat-tbl">
         <tbody>
         {# Строка 1 #}
         {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
-        <tr>
-          {% if к0 %}
-          <td class="ps-seed">
-            <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(к0.id,'?') }}</span>
-          </td>
-          <td class="ps-bib">{{ к0.нагрудный_номер }}</td>
-          <td class="ps-name">
-            <div>{{ к0.название or '—' }}</div>
-            {% if к0.субъект %}
-            <div class="org">{{ к0.субъект.название | truncate(26) }}</div>
-            {% endif %}
-          </td>
-          {% else %}
-          <td class="ps-seed"></td>
-          <td colspan="2"><span class="ps-ph-italic">{{ м0 or 'Ожидается' }}</span></td>
-          {% endif %}
-          <td class="ps-res">—</td>
-        </tr>
+        {{ строка_участника(к0, м0, посев_map, none, none, none) }}
         {# Строка 2 — всегда показываем #}
         {% if i+1 < уч|length %}
         {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
-        <tr>
-          {% if к1 %}
-          <td class="ps-seed">
-            <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(к1.id,'?') }}</span>
-          </td>
-          <td class="ps-bib">{{ к1.нагрудный_номер }}</td>
-          <td class="ps-name">
-            <div>{{ к1.название or '—' }}</div>
-            {% if к1.субъект %}
-            <div class="org">{{ к1.субъект.название | truncate(26) }}</div>
-            {% endif %}
-          </td>
-          {% else %}
-          <td class="ps-seed"></td>
-          <td colspan="2"><span class="ps-ph-italic">{{ м1 or 'Ожидается' }}</span></td>
-          {% endif %}
-          <td class="ps-res">—</td>
-        </tr>
+        {{ строка_участника(к1, м1, посев_map, none, none, none) }}
         {% else %}
-        <tr>
-          <td class="ps-seed"></td>
-          <td colspan="2"><span class="ps-ph-italic">Ожидается</span></td>
-          <td class="ps-res">—</td>
-        </tr>
+        {{ строка_участника(none, 'Ожидается', посев_map, none, none, none) }}
         {% endif %}
         </tbody>
       </table>
     </div>
     {% endfor %}
     {% else %}
-    <div class="ps-heat-ph">
-      <div class="ps-ph-hdr" style="text-align:center;font-style:italic">Ожидается</div>
+    {# Нет данных вообще — одна пустая карточка-заглушка #}
+    <div class="ps-heat">
+      <div class="ps-heat-hdr">
+        <b>Ожидается</b>
+      </div>
     </div>
     {% endif %}
 
@@ -265,9 +243,7 @@
 {% endif %}
 {% endmacro %}
 
-{# ────────────────────────────────────────────────────────────────────────────
-   Форма для сохранения времени старта
-   ──────────────────────────────────────────────────────────────────────────── #}
+{# ── Форма для сохранения времени старта ── #}
 <form method="post">
   <input type="hidden" name="action" value="время_старта">
 
