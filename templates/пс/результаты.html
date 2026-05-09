@@ -86,11 +86,7 @@
 {{ таблица(жен_р6_итог, 'Параллельный спринт — R6, женщины', 'danger') }}
 {% endif %}
 
-{% if not муж_итог and not жен_итог %}
-<div class="alert alert-info mt-3">
-  Нет результатов. Сформируйте сетку, введите результаты заездов и завершите все стадии.
-</div>
-{% endif %}
+{% if not муж_итог and not жен_итог %}{% endif %}
 
 <div class="d-flex justify-content-between align-items-end mt-3">
   <div class="text-muted small">Пересчёт выполняется автоматически при загрузке страницы. Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>

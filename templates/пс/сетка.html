@@ -87,15 +87,6 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
-{# ── Флеш-сообщения ── #}
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
-
 {# ── Кнопка формирования сетки ── #}
 <div class="mb-4 no-print d-flex justify-content-end">
   <form method="post">
