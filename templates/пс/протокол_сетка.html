@@ -20,8 +20,8 @@
     .sig-row { display: flex; align-items: baseline; margin-bottom: 9pt; }
     .sig-pos { width: 38%; font-size: 10pt; }
     /* bracket */
-    .sec-title { font-size: 9pt; font-weight: bold; text-transform: uppercase;
-                 border-bottom: 1px solid #999; padding-bottom: 2px; margin: 6px 0 5px; }
+    .sec-title { font-size: 9pt; font-weight: bold;
+                 margin: 6px 0 5px; }
     .st-col  { vertical-align: top; padding: 0 3px; min-width: 175px; }
     .st-hdr  { font-size: 7pt; font-weight: bold; text-align: center;
                background: #e0e0e0; border: 1px solid #aaa; padding: 2px 4px; margin-bottom: 3px; }
@@ -91,8 +91,8 @@
     <div>{{ сор.главный_судья or '' }}</div>
   </div>
   <div class="sig-row">
-    <div class="sig-pos">Судья на старте</div>
-    <div></div>
+    <div class="sig-pos">Главный секретарь</div>
+    <div>{{ сор.главный_секретарь or '' }}</div>
   </div>
 </div>
 {% endmacro %}
@@ -214,13 +214,13 @@
 {# ── Вспомогательный макрос ── #}
 {% macro секция_код(код) %}
 {% if код == 'R4-м' and n_муж_r4 >= 2 %}
-  {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, 'Параллельный спринт — R4, мужчины', n_муж_r4) }}
+  {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, 'Параллельный спринт – R4, мужчины', n_муж_r4) }}
 {% elif код == 'R4-ж' and n_жен_r4 >= 2 %}
-  {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, 'Параллельный спринт — R4, женщины', n_жен_r4) }}
+  {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, 'Параллельный спринт – R4, женщины', n_жен_r4) }}
 {% elif код == 'R6-м' and n_муж_r6 >= 2 %}
-  {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, 'Параллельный спринт — R6, мужчины', n_муж_r6) }}
+  {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, 'Параллельный спринт – R6, мужчины', n_муж_r6) }}
 {% elif код == 'R6-ж' and n_жен_r6 >= 2 %}
-  {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, 'Параллельный спринт — R6, женщины', n_жен_r6) }}
+  {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, 'Параллельный спринт – R6, женщины', n_жен_r6) }}
 {% endif %}
 {% endmacro %}
 
