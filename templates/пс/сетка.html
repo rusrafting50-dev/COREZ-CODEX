@@ -14,41 +14,55 @@
 {% block content %}
 
 <style>
+  /* ── layout ── */
   .ps-bracket-wrap { overflow-x: auto; padding-bottom: 8px; }
-  .ps-stage-col    { min-width: 270px; flex-shrink: 0; }
+  .ps-stage-col    { width: 260px; flex-shrink: 0; }
   .ps-stage-hdr    { font-size: .75rem; font-weight: 700; text-transform: uppercase;
-                     text-align: center; padding: 3px 6px;
+                     text-align: center; padding: 4px 6px;
                      background: #e0e0e0; border: 1px solid #aaa; margin-bottom: 6px; }
-  .ps-arrow        { flex-shrink: 0; align-self: flex-start; padding-top: 48px;
+  .ps-arrow        { flex-shrink: 0; align-self: flex-start; padding-top: 54px;
                      font-size: 1.3rem; color: #999; padding-left: 4px; padding-right: 4px; }
-  /* единый стиль карточки заезда */
-  .ps-heat         { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem; }
-  .ps-heat-hdr     { display: flex; align-items: center; gap: 6px;
+  /* ── карточка заезда (единый стиль) ── */
+  .ps-heat         { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem;
+                     width: 260px; box-sizing: border-box; }
+  .ps-heat-hdr     { display: flex; align-items: center; justify-content: space-between;
                      padding: 3px 6px; background: #f2f2f2;
-                     border-bottom: 1px solid #ccc; font-size: .74rem; }
-  .ps-heat-hdr b   { white-space: nowrap; }
-  .ps-heat-hdr .lbl { color: #777; font-size: .68rem; }
-  .ps-heat-tbl     { width: 100%; border-collapse: collapse; }
-  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; }
+                     border-bottom: 1px solid #ccc; font-size: .72rem;
+                     height: 28px; box-sizing: border-box; }
+  .ps-heat-hdr b   { white-space: nowrap; min-width: 56px; }
+  .ps-heat-hdr .lbl { color: #777; font-size: .66rem; white-space: nowrap; margin-right: 3px; }
+  .ps-heat-hdr .time-inp {
+                     width: 82px; font-size: .66rem; padding: 1px 4px;
+                     background: #fff; border: 1px solid #ced4da; border-radius: 3px;
+                     font-family: monospace; }
+  .ps-heat-hdr .time-inp:disabled { background: #fff; color: #aaa; }
+  /* ── строки участников ── */
+  .ps-heat-tbl     { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; height: 38px; }
   .ps-heat-tbl tr:first-child { border-top: none; }
-  .ps-heat-tbl td  { padding: 3px 4px; vertical-align: middle; height: 32px; }
-  /* колонки фиксированной ширины для единообразия */
+  .ps-heat-tbl td  { padding: 2px 4px; vertical-align: middle; overflow: hidden; }
+  /* ── колонки фиксированной ширины ── */
   .ps-seed         { width: 36px; text-align: center; white-space: nowrap; }
   .ps-seed-badge   { display: inline-flex; align-items: center; justify-content: center;
-                     min-width: 28px; height: 28px; border-radius: 50%;
+                     width: 28px; height: 28px; border-radius: 50%;
                      background: #dee2e6; border: 1px solid #adb5bd;
-                     font-size: .58rem; font-weight: 700; color: #495057;
-                     white-space: nowrap; padding: 0 2px; line-height: 1; }
+                     font-size: .57rem; font-weight: 700; color: #495057;
+                     white-space: nowrap; padding: 0; line-height: 1; text-align: center; }
   .ps-bib          { width: 26px; text-align: center; font-weight: 600;
                      color: #444; font-size: .72rem; white-space: nowrap; }
-  .ps-name         { min-width: 110px; }
-  .ps-name .org    { font-size: .66rem; color: #888; line-height: 1.1; }
-  .ps-ph-italic    { font-style: italic; color: #999; font-size: .72rem; }
-  .ps-res          { width: 62px; text-align: right; font-family: monospace;
-                     font-size: .72rem; white-space: nowrap; }
-  /* цвет строк */
+  .ps-name         { width: 126px; }
+  .ps-name-main    { font-size: .75rem; line-height: 1.2;
+                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ps-name-org     { font-size: .62rem; color: #888; line-height: 1.1;
+                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ps-ph-label     { font-style: italic; color: #888; font-size: .70rem;
+                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ps-res          { width: 44px; text-align: right; font-family: monospace;
+                     font-size: .70rem; white-space: nowrap; }
+  /* ── цвет строк ── */
   .ps-winner       { background: #d4edda; }
   .ps-loser        { background: #f8f9fa; color: #888; }
+  /* ── печать ── */
   @media print {
     .no-print { display: none !important; }
     body { font-size: 9pt; }
@@ -57,12 +71,13 @@
   }
 </style>
 
-<div class="text-center mb-2 no-print">
-  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+{# ── Стандартный заголовок (как на странице ДГ) ── #}
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
-<div class="d-flex justify-content-between align-items-center mb-3 no-print">
+<div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
-  <div class="d-flex gap-2 flex-wrap">
+  <div class="d-flex gap-2 flex-wrap no-print">
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Заезды →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
@@ -70,43 +85,34 @@
     <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">🖨 Печать</button>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
-{# ── Формирование сетки ── #}
-<div class="card mb-4 no-print">
-  <div class="card-header fw-semibold py-2">Формирование сетки</div>
-  <div class="card-body py-3">
-    <p class="text-muted small mb-3">
-      Посев выполняется по результатам дистанции <strong>Спринт</strong>.
-      Команды без результата спринта сортируются по нагрудному номеру.
-    </p>
-    <div class="d-flex gap-3 flex-wrap">
-      <form method="post" class="d-inline">
-        <input type="hidden" name="пол" value="м">
-        <button type="submit" class="btn btn-primary btn-sm"
-                onclick="return confirm('Сформировать сетку мужских экипажей? Текущая сетка будет удалена.')">
-          Мужские ({{ n_муж_r4 + n_муж_r6 }} экипажей)
-        </button>
-      </form>
-      <form method="post" class="d-inline">
-        <input type="hidden" name="пол" value="ж">
-        <button type="submit" class="btn btn-danger btn-sm"
-                onclick="return confirm('Сформировать сетку женских экипажей? Текущая сетка будет удалена.')">
-          Женские ({{ n_жен_r4 + n_жен_r6 }} экипажей)
-        </button>
-      </form>
-      <form method="post" class="d-inline ms-3">
-        <input type="hidden" name="пол" value="все">
-        <button type="submit" class="btn btn-warning btn-sm"
-                onclick="return confirm('Пересформировать сетку для ВСЕХ экипажей?\nВсе введённые результаты заездов будут удалены.')">
-          ↺ Пересформировать всю сетку
-        </button>
-      </form>
-    </div>
-  </div>
+{# ── Флеш-сообщения ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for cat, msg in messages %}
+<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endwith %}
+
+{# ── Кнопка формирования сетки ── #}
+<div class="mb-4 no-print">
+  <p class="text-muted small mb-2">
+    Стартовый протокол формируется автоматически по результатам дистанции <strong>Спринт</strong>.
+    Команды без результата спринта сортируются по нагрудному номеру.
+  </p>
+  <form method="post" class="d-inline">
+    <input type="hidden" name="пол" value="все">
+    <button type="submit" class="btn btn-warning btn-sm"
+            onclick="return confirm('Сформировать стартовый протокол для всех экипажей?\nВсе введённые результаты заездов будут удалены.')">
+      ↺ Сформировать стартовый протокол
+    </button>
+  </form>
 </div>
 
 {# ─────────────────────────────────────────────────────────────────────────────
-   МАКРОС: строка участника (реальный или placeholder)
+   МАКРОС: строка участника
    ───────────────────────────────────────────────────────────────────────────── #}
 {% macro строка_участника(команда, метка, посев_map, победитель, результат, статус) %}
 <tr class="{{ 'ps-winner' if победитель is true else ('ps-loser' if победитель is false else '') }}">
@@ -120,14 +126,14 @@
   </td>
   <td class="ps-name">
     {% if команда %}
-    <div style="font-weight:{{ '600' if победитель is true else 'normal' }}">
+    <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
       {{ команда.название or '—' }}
     </div>
     {% if команда.субъект %}
-    <div class="org">{{ команда.субъект.название | truncate(26) }}</div>
+    <div class="ps-name-org">{{ команда.субъект.название }}</div>
     {% endif %}
     {% else %}
-    <span class="ps-ph-italic">{{ метка or 'Ожидается' }}</span>
+    <span class="ps-ph-label">{{ метка or 'Ожидается' }}</span>
     {% endif %}
   </td>
   <td class="ps-res">
@@ -148,7 +154,7 @@
 {% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет) %}
 {% if n >= 2 %}
 
-<h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }} no-print">{{ заг }}</h6>
+<h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 
 {% set ns = namespace(счётчик=0) %}
 <div class="ps-bracket-wrap">
@@ -161,19 +167,20 @@
   {% set заезды = брак[стадия] %}
   {% if заезды %}
 
-    {# ── Реальные заезды (BYE-команды в стадии не показываем) ── #}
+    {# ── Реальные заезды ── #}
     {% for номер, пара in заезды.items() | sort %}
     {% if номер > 0 %}
     {% set ns.счётчик = ns.счётчик + 1 %}
     <div class="ps-heat">
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}</b>
-        <span class="lbl">Старт:</span>
-        <input type="text" name="вс_{{ пара[0].id }}"
-               class="form-control form-control-sm font-monospace время-ввод-пс"
-               style="width:84px;font-size:.68rem;padding:1px 5px"
-               value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
-               placeholder="ЧЧ:ММ:СС" autocomplete="off">
+        <span style="display:flex;align-items:center;gap:3px">
+          <span class="lbl">Время старта:</span>
+          <input type="text" name="вс_{{ пара[0].id }}"
+                 class="time-inp время-ввод-пс"
+                 value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
+                 placeholder="ЧЧ:ММ:СС" autocomplete="off">
+        </span>
       </div>
       <table class="ps-heat-tbl">
         <tbody>
@@ -196,17 +203,16 @@
     <div class="ps-heat">
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}</b>
-        <span class="lbl">Старт:</span>
-        <input type="text" class="form-control form-control-sm font-monospace"
-               style="width:84px;font-size:.68rem;padding:1px 5px"
-               placeholder="ЧЧ:ММ:СС" autocomplete="off" disabled>
+        <span style="display:flex;align-items:center;gap:3px">
+          <span class="lbl">Время старта:</span>
+          <input type="text" class="time-inp"
+                 placeholder="ЧЧ:ММ:СС" autocomplete="off" disabled>
+        </span>
       </div>
       <table class="ps-heat-tbl">
         <tbody>
-        {# Строка 1 #}
         {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
         {{ строка_участника(к0, м0, посев_map, none, none, none) }}
-        {# Строка 2 — всегда показываем #}
         {% if i+1 < уч|length %}
         {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
         {{ строка_участника(к1, м1, посев_map, none, none, none) }}
@@ -218,11 +224,8 @@
     </div>
     {% endfor %}
     {% else %}
-    {# Нет данных вообще — одна пустая карточка-заглушка #}
     <div class="ps-heat">
-      <div class="ps-heat-hdr">
-        <b>Ожидается</b>
-      </div>
+      <div class="ps-heat-hdr"><b>Ожидается</b></div>
     </div>
     {% endif %}
 
