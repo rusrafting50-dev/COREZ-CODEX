@@ -44,6 +44,7 @@
 
 
 {% macro секция(пол, стадии, данные, завершены, предв_сл, цвет, заг) %}
+{% set СЛЕД = {'1/16': '1/8', '1/8': '1/4', '1/4': '1/2', '1/2': 'Финал_А'} %}
 {% if стадии %}
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <form method="post">
@@ -67,26 +68,29 @@
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
-          <th style="width:90px" class="text-center">Номер экипажа</th>
           <th>Команда</th>
-          <th style="min-width:90px">Субъект</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
+          <th style="min-width:90px">Территория</th>
           <th style="width:100px">Время (М:СС.сс)</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
+          <th style="width:90px" class="text-center">Стадия</th>
           <th style="width:120px">Статус</th>
         </tr>
       </thead>
       <tbody>
+      {% set ns = namespace(заезд_н=0) %}
       {% for номер, пара in заезды_этапа.items() | sort %}
       {% if номер > 0 %}
+      {% set ns.заезд_н = ns.заезд_н + 1 %}
       {% for з in пара %}
       {% set цвет_стр = 'table-success' if з.победитель is true else ('table-danger' if з.статус in ('ДК','НФН','НСТ') else ('table-warning' if з.победитель is false else '')) %}
       <tr class="{{ цвет_стр }}">
         {% if loop.first %}
-        <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
+        <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ ns.заезд_н }}</td>
         {% endif %}
-        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td>{{ з.команда.название or '—' }}</td>
+        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
         <td>
           <input type="text" name="вр_{{ з.id }}"
@@ -103,6 +107,19 @@
         <td class="text-center fw-bold font-monospace">
           {% if з.результат %}{{ format_dur(з.результат) }}{% else %}—{% endif %}
           {% if з.победитель is true %}<span class="text-success ms-1">&#x2714;</span>{% endif %}
+        </td>
+        <td class="text-center small">
+          {%- if з.победитель is true -%}
+            {%- if стадия in ('1/16', '1/8', '1/4', '1/2') -%}
+              → {{ НАЗВАНИЯ.get(СЛЕД.get(стадия, ''), стадия) }}
+            {%- elif стадия == 'Финал_А' -%}1 место
+            {%- elif стадия == 'Финал_Б' -%}3 место
+            {%- else -%}—{%- endif -%}
+          {%- elif з.победитель is false -%}
+            {%- if стадия == 'Финал_А' -%}2 место
+            {%- elif стадия == 'Финал_Б' -%}4 место
+            {%- else -%}—{%- endif -%}
+          {%- else -%}—{%- endif -%}
         </td>
         <td>
           <select name="ст_{{ з.id }}" class="form-select form-select-sm">
@@ -133,10 +150,10 @@
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
-          <th style="width:90px" class="text-center">Номер экипажа</th>
           <th>Команда</th>
-          <th style="min-width:90px">Субъект</th>
-          <th colspan="4" class="text-center text-muted small">—</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
+          <th style="min-width:90px">Территория</th>
+          <th colspan="5" class="text-center text-muted small">—</th>
         </tr>
       </thead>
       <tbody>
@@ -148,25 +165,25 @@
       <tr>
         <td class="text-center fw-bold" rowspan="2">{{ (i // 2) + 1 }}</td>
         {% if к0 %}
-        <td class="text-center">{{ к0.нагрудный_номер }}</td>
         <td>{{ к0.название or '—' }}</td>
+        <td class="text-center">{{ к0.нагрудный_номер }}</td>
         <td class="small">{{ к0.субъект.название | truncate(20) if к0.субъект else '—' }}</td>
         {% else %}
-        <td></td>
         <td colspan="2"><em class="text-muted">{{ м0 or 'Ожидается' }}</em></td>
+        <td></td>
         {% endif %}
-        <td colspan="4"></td>
+        <td colspan="5"></td>
       </tr>
       <tr>
         {% if к1 %}
-        <td class="text-center">{{ к1.нагрудный_номер }}</td>
         <td>{{ к1.название or '—' }}</td>
+        <td class="text-center">{{ к1.нагрудный_номер }}</td>
         <td class="small">{{ к1.субъект.название | truncate(20) if к1.субъект else '—' }}</td>
         {% else %}
-        <td></td>
         <td colspan="2"><em class="text-muted">{{ м1 or 'Ожидается' }}</em></td>
+        <td></td>
         {% endif %}
-        <td colspan="4"></td>
+        <td colspan="5"></td>
       </tr>
       {% endfor %}
       </tbody>
