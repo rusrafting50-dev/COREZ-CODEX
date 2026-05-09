@@ -22,9 +22,9 @@
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
-  <div class="d-flex gap-2 flex-wrap">
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин<br>ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
+  <div class="d-flex gap-2 ms-3 flex-shrink-0">
     <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
@@ -46,15 +46,15 @@
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">
       <tr>
-        <th style="width:50px" class="text-center">Место</th>
-        <th style="width:55px" class="text-center">Нагруд.</th>
         <th>Команда</th>
+        <th style="width:90px" class="text-center">Номер экипажа</th>
         <th style="min-width:110px">Субъект</th>
         <th style="width:90px" class="text-center">Стадия</th>
         <th style="width:85px" class="text-center font-monospace">Время</th>
         <th style="width:60px" class="text-center">Штраф</th>
         <th style="width:85px" class="text-center font-monospace fw-bold">Результат</th>
-        <th style="width:55px" class="text-center">Очки</th>
+        <th style="width:50px" class="text-center">Место</th>
+        <th style="width:75px" class="text-center">Очки Многоборье</th>
       </tr>
     </thead>
     <tbody>
@@ -62,9 +62,8 @@
     {% set к = з.команда %}
     {% set место_цвет = 'table-warning' if з.итоговое_место == 1 else ('table-secondary' if з.итоговое_место == 2 else ('table-danger' if з.итоговое_место == 3 else '')) %}
     <tr class="{{ место_цвет }}">
-      <td class="text-center fw-bold fs-6">{{ з.итоговое_место }}</td>
-      <td class="text-center">{{ к.нагрудный_номер }}</td>
       <td>{{ к.название or '—' }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
       <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
       <td class="text-center small">
         <span class="badge bg-{{ цвет }}" style="font-size:.7rem">{{ НАЗВАНИЯ.get(з.стадия, з.стадия) }}</span>
@@ -74,6 +73,7 @@
         {{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}
       </td>
       <td class="text-center fw-bold font-monospace">{{ format_dur(з.результат) }}</td>
+      <td class="text-center fw-bold fs-6">{{ з.итоговое_место }}</td>
       <td class="text-center small">{{ з.очки | int if з.очки else '—' }}</td>
     </tr>
     {% endfor %}
