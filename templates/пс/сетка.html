@@ -16,7 +16,7 @@
 <style>
   /* ── layout ── */
   .ps-bracket-wrap { overflow-x: auto; padding-bottom: 8px; }
-  .ps-stage-col    { width: 260px; flex-shrink: 0; }
+  .ps-stage-col    { width: 302px; flex-shrink: 0; }
   .ps-stage-hdr    { font-size: .75rem; font-weight: 700; text-transform: uppercase;
                      text-align: center; padding: 4px 6px;
                      background: #e0e0e0; border: 1px solid #aaa; margin-bottom: 6px; }
@@ -24,38 +24,40 @@
                      font-size: 1.3rem; color: #999; padding-left: 4px; padding-right: 4px; }
   /* ── карточка заезда (единый стиль) ── */
   .ps-heat         { border: 1px solid #bbb; margin-bottom: 6px; font-size: .78rem;
-                     width: 260px; box-sizing: border-box; }
+                     width: 300px; box-sizing: border-box; }
   .ps-heat-hdr     { display: flex; align-items: center; justify-content: space-between;
                      padding: 3px 6px; background: #f2f2f2;
                      border-bottom: 1px solid #ccc; font-size: .72rem;
                      height: 28px; box-sizing: border-box; }
-  .ps-heat-hdr b   { white-space: nowrap; min-width: 56px; }
+  .ps-heat-hdr b   { white-space: nowrap; min-width: 60px; }
   .ps-heat-hdr .lbl { color: #777; font-size: .66rem; white-space: nowrap; margin-right: 3px; }
   .ps-heat-hdr .time-inp {
                      width: 82px; font-size: .66rem; padding: 1px 4px;
                      background: #fff; border: 1px solid #ced4da; border-radius: 3px;
                      font-family: monospace; }
   .ps-heat-hdr .time-inp:disabled { background: #fff; color: #aaa; }
-  /* ── строки участников ── */
+  /* ── строки участников: фиксированная высота через table + wrapper ── */
   .ps-heat-tbl     { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; }
+  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; height: 46px; }
   .ps-heat-tbl tr:first-child { border-top: none; }
-  .ps-heat-tbl td  { padding: 4px 4px; vertical-align: middle; }
-  /* ── колонки фиксированной ширины ── */
-  .ps-seed         { width: 36px; text-align: center; white-space: nowrap; }
+  .ps-heat-tbl td  { padding: 0 4px; vertical-align: middle; overflow: hidden; }
+  /* ── колонки строго фиксированной ширины ── */
+  .ps-seed         { width: 38px; text-align: center; white-space: nowrap; }
   .ps-seed-badge   { display: inline-flex; align-items: center; justify-content: center;
                      width: 28px; height: 28px; border-radius: 50%;
                      background: #dee2e6; border: 1px solid #adb5bd;
                      font-size: .57rem; font-weight: 700; color: #495057;
-                     padding: 0; line-height: 1; text-align: center; }
-  .ps-bib          { width: 26px; text-align: center; font-weight: 600;
+                     padding: 0; line-height: 1; }
+  .ps-bib          { width: 28px; text-align: center; font-weight: 600;
                      color: #444; font-size: .72rem; white-space: nowrap; }
-  .ps-name         { }
-  .ps-name-main    { font-size: .75rem; line-height: 1.3; }
-  .ps-name-org     { font-size: .62rem; color: #888; line-height: 1.2; }
-  .ps-ph-label     { font-style: italic; color: #888; font-size: .70rem; }
-  .ps-res          { width: 44px; text-align: right; font-family: monospace;
+  .ps-res          { width: 50px; text-align: right; font-family: monospace;
                      font-size: .70rem; white-space: nowrap; }
+  /* ── содержимое ячейки имени: wrapper с фиксированной высотой ── */
+  .ps-name-wrap    { height: 42px; overflow: hidden;
+                     display: flex; flex-direction: column; justify-content: center; }
+  .ps-name-main    { font-size: .75rem; line-height: 1.25; }
+  .ps-name-org     { font-size: .61rem; color: #888; line-height: 1.2; margin-top: 1px; }
+  .ps-ph-label     { font-size: .70rem; font-style: italic; color: #888; line-height: 1.25; }
   /* ── цвет строк ── */
   .ps-winner       { background: #d4edda; }
   .ps-loser        { background: #f8f9fa; color: #888; }
@@ -117,17 +119,19 @@
   <td class="ps-bib">
     {% if команда %}{{ команда.нагрудный_номер }}{% endif %}
   </td>
-  <td class="ps-name">
-    {% if команда %}
-    <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
-      {{ команда.название or '—' }}
+  <td>
+    <div class="ps-name-wrap">
+      {% if команда %}
+      <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
+        {{ команда.название or '—' }}
+      </div>
+      {% if команда.субъект %}
+      <div class="ps-name-org">{{ команда.субъект.название }}</div>
+      {% endif %}
+      {% else %}
+      <div class="ps-ph-label">{{ метка or 'Ожидается' }}</div>
+      {% endif %}
     </div>
-    {% if команда.субъект %}
-    <div class="ps-name-org">{{ команда.субъект.название }}</div>
-    {% endif %}
-    {% else %}
-    <span class="ps-ph-label">{{ метка or 'Ожидается' }}</span>
-    {% endif %}
   </td>
   <td class="ps-res">
     {% if результат %}
