@@ -25,8 +25,7 @@
     .heat-team { padding: 2px 5px; border-bottom: 1px solid #eee; }
     .heat-team:last-child { border-bottom: none; }
     .winner { font-weight: bold; }
-    .result-col { font-family: monospace; text-align: right; min-width: 60px; }
-    .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
+.underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .bracket-col { vertical-align: top; padding: 0 8px; }
     .arrow-col { vertical-align: middle; text-align: center; font-size: 14pt; color: #999; }
   </style>
@@ -70,11 +69,15 @@
       {% for команда, метка in предв.get(стадия, []) %}
       <div class="heat-team">
         {% if команда %}
-        <table style="width:100%;border:0"><tr>
-          <td style="font-size:7pt;width:18px">[{{ посев_map.get(команда.id, '?') }}]</td>
-          <td>{{ команда.название or '—' }}</td>
-          <td class="result-col"></td>
-        </tr></table>
+        <table style="width:100%;border:0">
+          <tr>
+            <td style="font-size:7pt;width:18px">[{{ посев_map.get(команда.id, '?') }}]</td>
+            <td style="font-size:7pt;color:#666">{{ команда.название or '—' }}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding-top:0;padding-bottom:1px">{{ команда.название or '—' }}</td>
+          </tr>
+        </table>
         {% else %}
         <span style="font-style:italic;color:#888">{{ метка }}</span>
         {% endif %}
@@ -105,13 +108,10 @@
         <table style="width:100%;border:0">
           <tr>
             <td style="font-size:7pt;width:18px">[{{ посев_map.get(з.команда_id, '?') }}]</td>
-            <td>{{ з.команда.название or '—' }}</td>
-            <td class="result-col">
-              {% if з.результат %}{{ format_dur(з.результат) }}
-              {% elif з.статус in ('ДК','НФН','НСТ') %}{{ з.статус }}
-              {% endif %}
-              {% if з.победитель is true %}&raquo;{% endif %}
-            </td>
+            <td style="font-size:7pt;color:#666">{{ з.команда.название or '—' }}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding-top:0;padding-bottom:1px">{{ з.команда.название or '—' }}</td>
           </tr>
         </table>
       </div>
