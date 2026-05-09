@@ -45,6 +45,8 @@
 
 {% macro секция(пол, стадии, данные, завершены, предв_сл, цвет, заг) %}
 {% set СЛЕД = {'1/16': '1/8', '1/8': '1/4', '1/4': '1/2', '1/2': 'Финал_А'} %}
+{% set ns = namespace(заезд_н=0) %}
+{% set реальных_12 = данные.get('1/2', {}).keys() | reject('equalto', 0) | list | length %}
 {% if стадии %}
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <form method="post">
@@ -71,7 +73,7 @@
           <th>Команда</th>
           <th style="width:90px" class="text-center">Номер экипажа</th>
           <th style="min-width:90px">Территория</th>
-          <th style="width:100px">Время (М:СС.сс)</th>
+          <th style="width:90px">Время</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
           <th style="width:90px" class="text-center">Стадия, место</th>
@@ -79,7 +81,6 @@
         </tr>
       </thead>
       <tbody>
-      {% set ns = namespace(заезд_н=0) %}
       {% for номер, пара in заезды_этапа.items() | sort %}
       {% if номер > 0 %}
       {% set ns.заезд_н = ns.заезд_н + 1 %}
@@ -116,7 +117,8 @@
             {%- elif стадия == 'Финал_Б' -%}3 место
             {%- else -%}—{%- endif -%}
           {%- elif з.победитель is false -%}
-            {%- if стадия == '1/2' -%}→ Финал Б
+            {%- if стадия == '1/2' and реальных_12 == 1 -%}3 место
+            {%- elif стадия == '1/2' -%}→ Финал Б
             {%- elif стадия == 'Финал_А' -%}2 место
             {%- elif стадия == 'Финал_Б' -%}4 место
             {%- else -%}—{%- endif -%}
@@ -160,11 +162,12 @@
       <tbody>
       {% set уч = предв_сл[стадия] %}
       {% for i in range(0, уч|length, 2) %}
+      {% set ns.заезд_н = ns.заезд_н + 1 %}
       {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
       {% set к1 = уч[i+1][0] if i+1 < уч|length else none %}
       {% set м1 = уч[i+1][1] if i+1 < уч|length else none %}
       <tr>
-        <td class="text-center fw-bold" rowspan="2">{{ (i // 2) + 1 }}</td>
+        <td class="text-center fw-bold" rowspan="2">{{ ns.заезд_н }}</td>
         {% if к0 %}
         <td>{{ к0.название or '—' }}</td>
         <td class="text-center">{{ к0.нагрудный_номер }}</td>
