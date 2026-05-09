@@ -25,12 +25,12 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Стартовый протокол</a>
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Заезды</a>
+       class="btn btn-outline-secondary btn-sm">Результаты заездов</a>
     <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Предв. протокол</a>
-    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm">Итоговый протокол</a>
+       class="btn btn-primary btn-sm">🖨 Протоколы</a>
     <a href="{{ url_for('награждение.диплом_пс', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
        class="btn btn-outline-warning btn-sm">🖨 Дипломы</a>
   </div>
