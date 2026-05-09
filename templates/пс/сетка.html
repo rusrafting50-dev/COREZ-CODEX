@@ -38,25 +38,22 @@
   .ps-heat-hdr .time-inp:disabled { background: #fff; color: #aaa; }
   /* ── строки участников ── */
   .ps-heat-tbl     { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; height: 38px; }
+  .ps-heat-tbl tr  { border-top: 1px solid #e8e8e8; }
   .ps-heat-tbl tr:first-child { border-top: none; }
-  .ps-heat-tbl td  { padding: 2px 4px; vertical-align: middle; overflow: hidden; }
+  .ps-heat-tbl td  { padding: 4px 4px; vertical-align: middle; }
   /* ── колонки фиксированной ширины ── */
   .ps-seed         { width: 36px; text-align: center; white-space: nowrap; }
   .ps-seed-badge   { display: inline-flex; align-items: center; justify-content: center;
                      width: 28px; height: 28px; border-radius: 50%;
                      background: #dee2e6; border: 1px solid #adb5bd;
                      font-size: .57rem; font-weight: 700; color: #495057;
-                     white-space: nowrap; padding: 0; line-height: 1; text-align: center; }
+                     padding: 0; line-height: 1; text-align: center; }
   .ps-bib          { width: 26px; text-align: center; font-weight: 600;
                      color: #444; font-size: .72rem; white-space: nowrap; }
-  .ps-name         { width: 126px; }
-  .ps-name-main    { font-size: .75rem; line-height: 1.2;
-                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .ps-name-org     { font-size: .62rem; color: #888; line-height: 1.1;
-                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .ps-ph-label     { font-style: italic; color: #888; font-size: .70rem;
-                     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ps-name         { }
+  .ps-name-main    { font-size: .75rem; line-height: 1.3; }
+  .ps-name-org     { font-size: .62rem; color: #888; line-height: 1.2; }
+  .ps-ph-label     { font-style: italic; color: #888; font-size: .70rem; }
   .ps-res          { width: 44px; text-align: right; font-family: monospace;
                      font-size: .70rem; white-space: nowrap; }
   /* ── цвет строк ── */
@@ -97,12 +94,8 @@
 {% endwith %}
 
 {# ── Кнопка формирования сетки ── #}
-<div class="mb-4 no-print">
-  <p class="text-muted small mb-2">
-    Стартовый протокол формируется автоматически по результатам дистанции <strong>Спринт</strong>.
-    Команды без результата спринта сортируются по нагрудному номеру.
-  </p>
-  <form method="post" class="d-inline">
+<div class="mb-4 no-print d-flex justify-content-end">
+  <form method="post">
     <input type="hidden" name="пол" value="все">
     <button type="submit" class="btn btn-warning btn-sm"
             onclick="return confirm('Сформировать стартовый протокол для всех экипажей?\nВсе введённые результаты заездов будут удалены.')">
