@@ -48,8 +48,8 @@
     .ph-row  { display: flex; align-items: center; padding: 2px 5px; min-height: 28px;
                border-top: 1px solid #efefef;
                font-size: 6pt; font-style: italic; color: #888; }
-    .fin-a-hdr { background: #d8d8d8; }
-    .fin-b-hdr { background: #ececec; }
+    .fin-a-hdr { background: #f2f2f2; }
+    .fin-b-hdr { background: #f2f2f2; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -155,7 +155,7 @@
     {% if номер > 0 %}
     {% set пара = зб[номер] %}
     {% set ns.hn = ns.hn + 1 %}
-    <div class="heat" style="border-color:#aaa">
+    <div class="heat">
       <div class="heat-hdr fin-b-hdr">
         <b>Финал Б · Заезд {{ ns.hn }}</b>
         <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
@@ -172,7 +172,7 @@
       {% for номер in реальные_а %}
       {% set пара = за[номер] %}
       {% set ns.hn = ns.hn + 1 %}
-      <div class="heat" style="border-color:#555;border-width:2px">
+      <div class="heat">
         <div class="heat-hdr fin-a-hdr">
           <b>Финал А · Заезд {{ ns.hn }}</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
@@ -195,7 +195,7 @@
       {% endif %}
       {% endfor %}
       {% set ns.hn = ns.hn + 1 %}
-      <div class="heat" style="border-color:#555;border-width:2px">
+      <div class="heat">
         <div class="heat-hdr fin-a-hdr">
           <b>Финал А · Заезд {{ ns.hn }}</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(бай[0].время_старта) if бай[0].время_старта else '' }}</span></span>
