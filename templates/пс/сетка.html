@@ -163,7 +163,8 @@
   <div class="ps-stage-hdr">{{ НАЗВАНИЯ.get(стадия, стадия) }}</div>
 
   {% set заезды = брак[стадия] %}
-  {% if заезды %}
+  {% set реальные_номера = заезды.keys() | reject('equalto', 0) | list %}
+  {% if реальные_номера %}
 
     {# ── Реальные заезды ── #}
     {% for номер, пара in заезды.items() | sort %}
@@ -190,6 +191,32 @@
     </div>
     {% endif %}
     {% endfor %}
+
+  {% elif заезды %}
+
+    {# ── Только BYE-заглушка: стадия ещё не сформирована, но время старта уже можно ввести ── #}
+    {% set бай_зап = заезды.get(0, []) %}
+    {% if бай_зап %}
+    {% set ns.счётчик = ns.счётчик + 1 %}
+    <div class="ps-heat">
+      <div class="ps-heat-hdr">
+        <b>Заезд {{ ns.счётчик }}</b>
+        <span style="display:flex;align-items:center;gap:3px">
+          <span class="lbl">Время старта:</span>
+          <input type="text" name="вс_{{ бай_зап[0].id }}"
+                 class="time-inp время-ввод-пс"
+                 value="{{ format_time(бай_зап[0].время_старта) if бай_зап[0].время_старта else '' }}"
+                 placeholder="ЧЧ:ММ:СС" autocomplete="off">
+        </span>
+      </div>
+      <table class="ps-heat-tbl">
+        <tbody>
+        {{ строка_участника(бай_зап[0].команда, none, посев_map, none, none, none) }}
+        {{ строка_участника(none, 'Ожидается', посев_map, none, none, none) }}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
 
   {% else %}
 
