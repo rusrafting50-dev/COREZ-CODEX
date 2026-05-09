@@ -13,11 +13,7 @@
 
 {% block content %}
 
-{% set муж_р4_итог = муж_итог | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set жен_р4_итог = жен_итог | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set муж_р6_итог = муж_итог | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set жен_р6_итог = жен_итог | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set есть_р6 = (муж_р6_итог | length + жен_р6_итог | length) > 0 %}
+{% set есть_р6 = has_r6 and (муж_р6_итог | length + жен_р6_итог | length) > 0 %}
 
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
