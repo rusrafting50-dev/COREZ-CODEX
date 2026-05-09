@@ -153,10 +153,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='пс') }}" class="btn btn-outline-info btn-sm">Дистанция</a>
           <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-info btn-sm text-white">Стартовый протокол</a>
-          <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Заезды</a>
+          <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Результаты заездов</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}" class="btn btn-outline-info btn-sm">Результаты</a>
-          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
-          <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_пс', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
@@ -247,10 +245,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='пс') }}" class="btn btn-outline-info btn-sm">Дистанция</a>
           <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-info btn-sm text-white">Стартовый протокол</a>
-          <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Заезды</a>
+          <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Результаты заездов</a>
           <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-info btn-sm">Результаты</a>
-          <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
-          <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Предв.</a>
           <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_пс', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
