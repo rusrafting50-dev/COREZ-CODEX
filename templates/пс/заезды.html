@@ -74,7 +74,7 @@
           <th style="width:100px">Время (М:СС.сс)</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
-          <th style="width:90px" class="text-center">Стадия</th>
+          <th style="width:90px" class="text-center">Стадия, место</th>
           <th style="width:120px">Статус</th>
         </tr>
       </thead>
@@ -116,7 +116,8 @@
             {%- elif стадия == 'Финал_Б' -%}3 место
             {%- else -%}—{%- endif -%}
           {%- elif з.победитель is false -%}
-            {%- if стадия == 'Финал_А' -%}2 место
+            {%- if стадия == '1/2' -%}→ Финал Б
+            {%- elif стадия == 'Финал_А' -%}2 место
             {%- elif стадия == 'Финал_Б' -%}4 место
             {%- else -%}—{%- endif -%}
           {%- else -%}—{%- endif -%}
