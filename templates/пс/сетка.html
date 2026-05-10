@@ -104,7 +104,8 @@
    МАКРОС: строка участника
    ───────────────────────────────────────────────────────────────────────────── #}
 {% macro строка_участника(команда, метка, посев_map, победитель, результат, статус, доп_инфо=none) %}
-<tr class="{{ 'ps-winner' if победитель is true else ('ps-loser' if победитель is false else '') }}">
+{% set _стар = заголовок == 'Стартовый протокол' %}
+<tr class="{{ 'ps-winner' if (not _стар and победитель is true) else ('ps-loser' if (not _стар and победитель is false) else '') }}">
   <td class="ps-seed">
     {% if команда %}
     <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(команда.id,'?') }}</span>
@@ -116,7 +117,7 @@
   <td>
     <div class="ps-name-wrap">
       {% if команда %}
-      <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
+      <div class="ps-name-main" style="font-weight:{{ '600' if (not _стар and победитель is true) else 'normal' }}">
         {{ команда.название or '—' }}
       </div>
       {% if команда.субъект %}
@@ -128,6 +129,7 @@
     </div>
   </td>
   <td class="ps-res">
+    {% if not _стар %}
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0">
       <div>
         {% if результат %}
@@ -142,6 +144,7 @@
       <div style="font-size:.58rem;color:#555;font-style:italic;white-space:nowrap">{{ доп_инфо }}</div>
       {% endif %}
     </div>
+    {% endif %}
   </td>
 </tr>
 {% endmacro %}
