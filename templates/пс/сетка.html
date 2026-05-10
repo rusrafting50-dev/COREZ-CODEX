@@ -88,6 +88,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">{{ заголовок }}</h5></div>
 
 {# ── Кнопка формирования сетки ── #}
+{% if заголовок != 'Результаты сетка' %}
 <div class="mb-4 no-print d-flex justify-content-end">
   <form method="post">
     <input type="hidden" name="пол" value="все">
@@ -97,6 +98,7 @@
     </button>
   </form>
 </div>
+{% endif %}
 
 {# ─────────────────────────────────────────────────────────────────────────────
    МАКРОС: строка участника
@@ -301,13 +303,14 @@
   <div class="alert alert-warning mt-3 no-print">
     Команды не зарегистрированы или сетка не сформирована.
   </div>
-  {% else %}
+  {% elif заголовок != 'Результаты сетка' %}
   <div class="mt-3 no-print">
     <button type="submit" class="btn btn-success btn-sm px-4">Сохранить время старта</button>
   </div>
   {% endif %}
 </form>
 
+{% if заголовок != 'Результаты сетка' %}
 {# ── Параметры стартового протокола ── #}
 <div class="card border-secondary mb-3 mt-4 no-print">
   <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
@@ -344,6 +347,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 <script>
 document.querySelectorAll('.время-ввод-пс').forEach(inp => {
