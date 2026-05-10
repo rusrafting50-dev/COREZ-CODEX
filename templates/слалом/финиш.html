@@ -53,7 +53,7 @@
         <th rowspan="2" class="align-middle" style="min-width:80px;background:#f0f0f0">Территория</th>
         <th rowspan="2" class="text-center align-middle" style="width:22px;padding:2px 1px;background:#f0f0f0"><span style="writing-mode:vertical-lr;transform:rotate(180deg);display:inline-block">Попытка</span></th>
         <th colspan="4" class="text-center" style="background:#f0f0f0">Старт</th>
-        <th colspan="{{ кол_ворот }}" class="text-center" style="background:#f0f0f0">Прохождение дистанции (штрафные баллы)</th>
+        <th colspan="{{ кол_ворот }}" class="text-center" style="background:#f0f0f0">Прохождение дистанции<br>(штрафные баллы)</th>
         <th colspan="3" class="text-center" style="background:#f0f0f0">Финиш</th>
         <th colspan="3" class="text-center" style="background:#f0f0f0">Результат попытки</th>
         <th rowspan="2" class="text-center align-middle" style="width:80px;background:#f0f0f0">Результат лучшей попытки</th>
@@ -61,7 +61,7 @@
         <th rowspan="2" class="text-center align-middle" style="width:100px;background:#f0f0f0">Статус</th>
       </tr>
       <tr>
-        <th class="text-center" style="width:92px;background:#f0f0f0">Время</th>
+        <th class="text-center" style="width:193px;background:#f0f0f0">Время</th>
         <th class="text-center" style="width:30px;background:#f0f0f0" title="+10 сек">+10с</th>
         <th class="text-center" style="width:32px;background:#f0f0f0" title="+50 сек">+50с</th>
         <th class="text-center" style="width:22px;background:#f0f0f0">ДК</th>
@@ -129,7 +129,7 @@
       {# Ворота попытка 1 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр1.get(в, 0) %}
-      <td class="text-center p-0">
+      <td class="text-center p-0" style="width:36px;max-width:36px;overflow:hidden">
         <select name="г_{{ к.id }}_{{ в }}_1"
                 class="form-select form-select-sm border-0 text-center px-0"
                 style="font-size:.76rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
@@ -205,7 +205,7 @@
       {# Ворота попытка 2 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр2.get(в, 0) %}
-      <td class="text-center p-0">
+      <td class="text-center p-0" style="width:36px;max-width:36px;overflow:hidden">
         <select name="г_{{ к.id }}_{{ в }}_2"
                 class="form-select form-select-sm border-0 text-center px-0"
                 style="font-size:.76rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
