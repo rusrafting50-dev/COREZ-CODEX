@@ -25,7 +25,7 @@
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     th { text-align: center; background: #fff; font-weight: bold; }
-    .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
+    .underline-field { border-bottom: 1px solid #000; display: block; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
     .cat-row td { background: #e8e8e8; font-weight: bold; font-size: 9pt; padding: 4px; text-align: center; }
@@ -113,17 +113,252 @@
 
 <div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
   <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Дата проведения</div>
   </div>
   <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>
 
-{# ── Macro: таблица для одного пола ─────────────────────────────────────────── #}
-{% macro таблица_пола(рез, без, разряды, поп, заг_пол) %}
+{% if not итоговый %}
+{# ════════════════════════════════════════════════════════════════════════════
+   ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ — две строки на команду, столбцы ворот
+   ════════════════════════════════════════════════════════════════════════════ #}
+
+{# Количество фиксированных колонок до ворот: №, Команда, Номер, Спортсмены, Территория, №попытки, Старт = 7 #}
+{# После ворот: Финиш, Штрафное время, Время прохождения, Итоговый = 4 #}
+{# Rowspan-колонки: Лучший, Место, Очки, Разряд = 4 #}
+{% set всего_колонок = 7 + кол_ворот + 4 + 4 %}
+
+{% macro пред_таблица(рез, без, разряды, поп, ш1, ш2, заг_пол) %}
+{% set всего = (рез | length) + (без | length) %}
+{% if всего > 0 %}
+<table style="margin-bottom:6px; font-size:7pt">
+  <colgroup>
+    <col style="width:18px">  {# № #}
+    <col>                     {# Команда — flex #}
+    <col style="width:24px">  {# Номер #}
+    <col>                     {# Спортсмены — flex #}
+    <col>                     {# Территория — flex #}
+    <col style="width:14px">  {# №поп #}
+    <col style="width:28px">  {# Старт #}
+    {% for _ in range(кол_ворот) %}<col style="width:14px">{% endfor %}
+    <col style="width:28px">  {# Финиш #}
+    <col style="width:36px">  {# Штрафное время #}
+    <col style="width:42px">  {# Время прохождения #}
+    <col style="width:46px">  {# Итоговый результат #}
+    <col style="width:46px">  {# Лучший результат #}
+    <col style="width:22px">  {# Место #}
+    <col style="width:30px">  {# Очки #}
+    <col style="width:28px">  {# Разряд #}
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="2">№<br>п/п</th>
+      <th rowspan="2">Команда</th>
+      <th rowspan="2">Нагр.<br>ном.</th>
+      <th rowspan="2">Фамилия, имя, спортивная квалификация участников</th>
+      <th rowspan="2">Территория</th>
+      <th rowspan="2">№<br>поп.</th>
+      <th colspan="{{ кол_ворот + 2 }}" class="text-center">Прохождение дистанции (штрафные баллы)</th>
+      <th colspan="3" class="text-center">Результат попытки</th>
+      <th rowspan="2">Лучший результат</th>
+      <th rowspan="2">Место</th>
+      <th rowspan="2">Очки МНОГОБОРЬЕ</th>
+      <th rowspan="2">Разряд*</th>
+    </tr>
+    <tr>
+      <th>Старт</th>
+      {% for в in range(1, кол_ворот + 1) %}<th>{{ в }}</th>{% endfor %}
+      <th>Финиш</th>
+      <th>Штрафное время</th>
+      <th>Время прохождения</th>
+      <th>Итоговый результат</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="cat-row">
+      <td colspan="{{ всего_колонок }}">{{ заг_пол }}{% if сор.возрастная_группа %} — {{ сор.возрастная_группа }}{% endif %}</td>
+    </tr>
+    {% set ns = namespace(idx=0) %}
+
+    {# ── Команды с местом ── #}
+    {% for р in рез %}
+    {% set к = р.команда %}
+    {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+    {% set р1 = поп.get(к.id, {}).get(1) %}
+    {% set р2 = поп.get(к.id, {}).get(2) %}
+    {% set в1 = ш1.get(к.id, {}) %}
+    {% set в2 = ш2.get(к.id, {}) %}
+    {% set ns.idx = ns.idx + 1 %}
+
+    {# Строка попытки 1 #}
+    <tr>
+      <td class="text-center" rowspan="2">{{ ns.idx }}</td>
+      <td rowspan="2">{{ к.название or '—' }}</td>
+      <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
+      <td rowspan="2" style="font-size:6.5pt">
+        {% if состав %}
+          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.разряд %} ({{ сп.разряд }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}—{% endif %}
+      </td>
+      <td rowspan="2">{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td class="text-center">1</td>
+      {# Старт = сумма штрафов на старте #}
+      <td class="text-center">
+        {% if р1 %}
+          {% set ст = (р1.кол_штраф_с10 or 0) * 10 + (р1.кол_штраф_старт or 0) * 50 %}
+          {{ ст if ст else '' }}
+        {% endif %}
+      </td>
+      {# Ворота #}
+      {% for в in range(1, кол_ворот + 1) %}
+      <td class="text-center">{{ в1.get(в, '') if в1.get(в) else '' }}</td>
+      {% endfor %}
+      {# Финиш = сумма штрафов на финише #}
+      <td class="text-center">
+        {% if р1 %}
+          {% set фш = (р1.кол_штраф_финиш or 0) * 50 %}
+          {{ фш if фш else '' }}
+        {% endif %}
+      </td>
+      {# Результат попытки 1 #}
+      {% if р1 and р1.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.штрафное_время) if р1.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.время_прохождения) if р1.время_прохождения else '—' }}</td>
+      <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р1.результат_попытки) if р1.результат_попытки else '—' }}</td>
+      {% elif р1 and р1.статус_попытки %}
+      <td colspan="3" class="text-center"><strong>{{ р1.статус_попытки }}</strong></td>
+      {% else %}
+      <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
+      {% endif %}
+      {# Rowspan: Лучший, Место, Очки, Разряд #}
+      <td class="text-center fw-bold" style="font-family:monospace" rowspan="2">{{ format_dur(р.лучший_результат) }}</td>
+      <td class="text-center fw-bold" rowspan="2">{{ р.место }}</td>
+      <td class="text-center" rowspan="2">{{ р.очки | int if р.очки else '—' }}</td>
+      <td class="text-center" rowspan="2">{{ разряды.get(к.id, '—') }}</td>
+    </tr>
+
+    {# Строка попытки 2 #}
+    <tr>
+      <td class="text-center">2</td>
+      <td class="text-center">
+        {% if р2 %}
+          {% set ст = (р2.кол_штраф_с10 or 0) * 10 + (р2.кол_штраф_старт or 0) * 50 %}
+          {{ ст if ст else '' }}
+        {% endif %}
+      </td>
+      {% for в in range(1, кол_ворот + 1) %}
+      <td class="text-center">{{ в2.get(в, '') if в2.get(в) else '' }}</td>
+      {% endfor %}
+      <td class="text-center">
+        {% if р2 %}
+          {% set фш = (р2.кол_штраф_финиш or 0) * 50 %}
+          {{ фш if фш else '' }}
+        {% endif %}
+      </td>
+      {% if р2 and р2.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.штрафное_время) if р2.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.время_прохождения) if р2.время_прохождения else '—' }}</td>
+      <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р2.результат_попытки) if р2.результат_попытки else '—' }}</td>
+      {% elif р2 and р2.статус_попытки %}
+      <td colspan="3" class="text-center"><strong>{{ р2.статус_попытки }}</strong></td>
+      {% else %}
+      <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+
+    {# ── Команды без места ── #}
+    {% for р in без %}
+    {% set к = р.команда %}
+    {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+    {% set р1 = поп.get(к.id, {}).get(1) %}
+    {% set р2 = поп.get(к.id, {}).get(2) %}
+    {% set в1 = ш1.get(к.id, {}) %}
+    {% set в2 = ш2.get(к.id, {}) %}
+    {% set ns.idx = ns.idx + 1 %}
+
+    <tr class="no-place">
+      <td class="text-center" rowspan="2">{{ ns.idx }}</td>
+      <td rowspan="2">{{ к.название or '—' }}</td>
+      <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
+      <td rowspan="2" style="font-size:6.5pt">
+        {% if состав %}
+          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.разряд %} ({{ сп.разряд }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}—{% endif %}
+      </td>
+      <td rowspan="2">{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td class="text-center">1</td>
+      <td class="text-center">
+        {% if р1 %}{% set ст = (р1.кол_штраф_с10 or 0) * 10 + (р1.кол_штраф_старт or 0) * 50 %}{{ ст if ст else '' }}{% endif %}
+      </td>
+      {% for в in range(1, кол_ворот + 1) %}
+      <td class="text-center">{{ в1.get(в, '') if в1.get(в) else '' }}</td>
+      {% endfor %}
+      <td class="text-center">
+        {% if р1 %}{% set фш = (р1.кол_штраф_финиш or 0) * 50 %}{{ фш if фш else '' }}{% endif %}
+      </td>
+      {% if р1 and р1.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.штрафное_время) if р1.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.время_прохождения) if р1.время_прохождения else '—' }}</td>
+      <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р1.результат_попытки) if р1.результат_попытки else '—' }}</td>
+      {% elif р1 and р1.статус_попытки %}
+      <td colspan="3" class="text-center"><strong>{{ р1.статус_попытки }}</strong></td>
+      {% else %}
+      <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
+      {% endif %}
+      <td class="text-center" rowspan="2">—</td>
+      <td class="text-center" rowspan="2">—</td>
+      <td class="text-center" rowspan="2">—</td>
+      <td class="text-center" rowspan="2">—</td>
+    </tr>
+    <tr class="no-place">
+      <td class="text-center">2</td>
+      <td class="text-center">
+        {% if р2 %}{% set ст = (р2.кол_штраф_с10 or 0) * 10 + (р2.кол_штраф_старт or 0) * 50 %}{{ ст if ст else '' }}{% endif %}
+      </td>
+      {% for в in range(1, кол_ворот + 1) %}
+      <td class="text-center">{{ в2.get(в, '') if в2.get(в) else '' }}</td>
+      {% endfor %}
+      <td class="text-center">
+        {% if р2 %}{% set фш = (р2.кол_штраф_финиш or 0) * 50 %}{{ фш if фш else '' }}{% endif %}
+      </td>
+      {% if р2 and р2.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.штрафное_время) if р2.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.время_прохождения) if р2.время_прохождения else '—' }}</td>
+      <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р2.результат_попытки) if р2.результат_попытки else '—' }}</td>
+      {% elif р2 and р2.статус_попытки %}
+      <td colspan="3" class="text-center"><strong>{{ р2.статус_попытки }}</strong></td>
+      {% else %}
+      <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+
+    {% if (рез | length) + (без | length) == 0 %}
+    <tr><td colspan="{{ всего_колонок }}" class="text-center" style="padding:6px">Нет данных</td></tr>
+    {% endif %}
+  </tbody>
+</table>
+{% endif %}
+{% endmacro %}
+
+{% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
+<div class="text-center py-4">Нет результатов для отображения</div>
+{% else %}
+{{ пред_таблица(муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2, 'Мужчины') }}
+{{ пред_таблица(жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2, 'Женщины') }}
+{% endif %}
+
+{% else %}
+{# ════════════════════════════════════════════════════════════════════════════
+   ИТОГОВЫЙ ПРОТОКОЛ — одна строка на команду (формат Excel)
+   ════════════════════════════════════════════════════════════════════════════ #}
+
+{% macro итог_таблица(рез, без, разряды, поп, заг_пол) %}
 {% set всего = (рез | length) + (без | length) %}
 {% if всего > 0 %}
 <table style="margin-bottom:6px">
@@ -171,20 +406,18 @@
         {% else %}—{% endif %}
       </td>
       <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-      {# 1-я попытка #}
       {% if р1 and р1.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
       <td class="text-center" style="font-family:monospace">{{ format_dur(р1.время_прохождения) }}</td>
-      <td class="text-center">{{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.штрафное_время) if р1.штрафное_время else '—' }}</td>
       <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р1.результат_попытки) }}</td>
       {% elif р1 and р1.статус_попытки %}
       <td colspan="3" class="text-center"><strong>{{ р1.статус_попытки }}</strong></td>
       {% else %}
       <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
       {% endif %}
-      {# 2-я попытка #}
       {% if р2 and р2.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
       <td class="text-center" style="font-family:monospace">{{ format_dur(р2.время_прохождения) }}</td>
-      <td class="text-center">{{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.штрафное_время) if р2.штрафное_время else '—' }}</td>
       <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р2.результат_попытки) }}</td>
       {% elif р2 and р2.статус_попытки %}
       <td colspan="3" class="text-center"><strong>{{ р2.статус_попытки }}</strong></td>
@@ -213,20 +446,18 @@
         {% else %}—{% endif %}
       </td>
       <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-      {# 1-я попытка #}
       {% if р1 and р1.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
       <td class="text-center" style="font-family:monospace">{{ format_dur(р1.время_прохождения) }}</td>
-      <td class="text-center">{{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р1.штрафное_время) if р1.штрафное_время else '—' }}</td>
       <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р1.результат_попытки) }}</td>
       {% elif р1 and р1.статус_попытки %}
       <td colspan="3" class="text-center"><strong>{{ р1.статус_попытки }}</strong></td>
       {% else %}
       <td class="text-center">—</td><td class="text-center">—</td><td class="text-center">—</td>
       {% endif %}
-      {# 2-я попытка #}
       {% if р2 and р2.статус_попытки not in ('НСТ', 'ДК', 'НФН', 'ПЛВ') %}
       <td class="text-center" style="font-family:monospace">{{ format_dur(р2.время_прохождения) }}</td>
-      <td class="text-center">{{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2.штрафное_время else '—' }}</td>
+      <td class="text-center" style="font-family:monospace">{{ format_dur(р2.штрафное_время) if р2.штрафное_время else '—' }}</td>
       <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р2.результат_попытки) }}</td>
       {% elif р2 and р2.статус_попытки %}
       <td colspan="3" class="text-center"><strong>{{ р2.статус_попытки }}</strong></td>
@@ -250,9 +481,11 @@
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
 <div class="text-center py-4">Нет результатов для отображения</div>
 {% else %}
-{{ таблица_пола(муж_рез, муж_без, муж_разр, муж_поп, 'Мужчины') }}
-{{ таблица_пола(жен_рез, жен_без, жен_разр, жен_поп, 'Женщины') }}
+{{ итог_таблица(муж_рез, муж_без, муж_разр, муж_поп, 'Мужчины') }}
+{{ итог_таблица(жен_рез, жен_без, жен_разр, жен_поп, 'Женщины') }}
 {% endif %}
+
+{% endif %}{# конец if not итоговый #}
 
 <div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
