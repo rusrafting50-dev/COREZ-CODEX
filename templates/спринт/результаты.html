@@ -138,7 +138,7 @@
         <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
         <td class="text-center">{{ разряды.get(р.команда_id, '—') }}</td>
         <td>
-          <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace" style="appearance:none;-webkit-appearance:none;background-image:none;width:60%">
+          <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace" style="appearance:none;-webkit-appearance:none;background-image:none;width:60%;padding-right:.4rem">
             {% for код, метка in СТАТУСЫ %}
             <option value="{{ код }}" {{ 'selected' if р.статус == код }}>{{ метка }}</option>
             {% endfor %}
