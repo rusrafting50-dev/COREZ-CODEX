@@ -575,7 +575,10 @@ class РезультатСлалома(db.Model):
     # Штрафы слалома (количество нарушений каждого типа)
     кол_штраф_5         = db.Column(db.Integer, nullable=False, default=0)   # касание вехи (5 сек)
     кол_штраф_50        = db.Column(db.Integer, nullable=False, default=0)   # неправильный заход (50 сек)
-    штрафное_время      = db.Column(db.Float,   nullable=False, default=0)   # 5*n5 + 50*n50
+    кол_штраф_с10       = db.Column(db.Integer, nullable=False, default=0)   # +10с на старте
+    кол_штраф_старт     = db.Column(db.Integer, nullable=False, default=0)   # +50с на старте
+    кол_штраф_финиш     = db.Column(db.Integer, nullable=False, default=0)   # +50с на финише
+    штрафное_время      = db.Column(db.Float,   nullable=False, default=0)   # суммарный штраф
 
     результат_попытки   = db.Column(db.Float, nullable=True)   # время + штраф данной попытки
     статус_попытки      = db.Column(db.String(5), nullable=False, default=СТАТУС_ФИНИШ)
@@ -1059,6 +1062,15 @@ def применить_миграции():
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_пс VARCHAR(20)"
                 ))
                 conn.commit()
+        # результаты_слалом: штрафы старта и финиша
+        if inspector.has_table('результаты_слалом'):
+            cols_сл = {c['name'] for c in inspector.get_columns('результаты_слалом')}
+            for col in ('кол_штраф_с10', 'кол_штраф_старт', 'кол_штраф_финиш'):
+                if col not in cols_сл:
+                    conn.execute(text(
+                        f'ALTER TABLE результаты_слалом ADD COLUMN {col} INTEGER DEFAULT 0'
+                    ))
+                    conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
