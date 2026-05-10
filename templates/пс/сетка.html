@@ -173,13 +173,11 @@
 
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 
-{% set ns = namespace(счётчик=0, ст_idx=0) %}
+{% set ns = namespace(счётчик=0) %}
 <div class="ps-bracket-wrap">
 <div class="d-flex gap-0" style="align-items:flex-start">
 
 {% for стадия in стадии %}
-{% set _скрыть = заголовок == 'Стартовый протокол' and ns.ст_idx > 0 %}
-{% set ns.ст_idx = ns.ст_idx + 1 %}
 <div class="ps-stage-col">
   <div class="ps-stage-hdr">{{ НАЗВАНИЯ.get(стадия, стадия) }}</div>
 
@@ -205,10 +203,7 @@
       <table class="ps-heat-tbl">
         <tbody>
         {% for з in пара %}
-        {{ строка_участника(
-             none if _скрыть else з.команда,
-             'Ожидается' if _скрыть else none,
-             посев_map, з.победитель, з.результат, з.статус,
+        {{ строка_участника(з.команда, none, посев_map, з.победитель, з.результат, з.статус,
              команда_метки.get(з.команда_id) if заголовок == 'Результаты сетка' else none) }}
         {% endfor %}
         </tbody>
@@ -247,7 +242,7 @@
       </div>
       <table class="ps-heat-tbl">
         <tbody>
-        {{ строка_участника(none if _скрыть else бай_зап[0].команда, 'Ожидается' if _скрыть else none, посев_map, none, none, none) }}
+        {{ строка_участника(бай_зап[0].команда, none, посев_map, none, none, none) }}
         {{ строка_участника(none, нс_оп.метка, посев_map, none, none, none) }}
         </tbody>
       </table>
@@ -273,10 +268,10 @@
       <table class="ps-heat-tbl">
         <tbody>
         {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
-        {{ строка_участника(none if _скрыть else к0, 'Ожидается' if _скрыть else м0, посев_map, none, none, none) }}
+        {{ строка_участника(к0, м0, посев_map, none, none, none) }}
         {% if i+1 < уч|length %}
         {% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
-        {{ строка_участника(none if _скрыть else к1, 'Ожидается' if _скрыть else м1, посев_map, none, none, none) }}
+        {{ строка_участника(к1, м1, посев_map, none, none, none) }}
         {% else %}
         {{ строка_участника(none, 'Ожидается', посев_map, none, none, none) }}
         {% endif %}
