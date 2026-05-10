@@ -26,14 +26,12 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин СЛАЛОМ</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}"
-       class="btn btn-outline-warning btn-sm">Ворота →</a>
+    <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
     <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Результаты попыток →</a>
     <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты →</a>
-    <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
   </div>
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
