@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}ПС: Стартовый протокол — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}ПС: {{ заголовок }} — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,7 +7,7 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Параллельный спринт — Стартовый протокол</li>
+    <li class="breadcrumb-item active">Параллельный спринт — {{ заголовок }}</li>
   </ol>
 {% endblock %}
 
@@ -85,7 +85,7 @@
        class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
   </div>
 </div>
-<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
+<div class="text-center mb-3"><h5 class="mb-0">{{ заголовок }}</h5></div>
 
 {# ── Кнопка формирования сетки ── #}
 <div class="mb-4 no-print d-flex justify-content-end">
