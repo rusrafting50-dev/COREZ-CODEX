@@ -117,12 +117,12 @@
       <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
         {{ команда.название or '—' }}
       </div>
-      {% if команда.субъект %}
-      <div class="ps-name-org">{{ команда.субъект.название }}</div>
-      {% endif %}
-      {% if доп_инфо %}
-      <div style="font-size:.60rem;color:#555;font-style:italic;line-height:1.2;margin-top:1px">{{ доп_инфо }}</div>
-      {% endif %}
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:4px">
+        <div class="ps-name-org">{{ команда.субъект.название if команда.субъект else '' }}</div>
+        {% if доп_инфо %}
+        <div style="font-size:.60rem;color:#555;font-style:italic;white-space:nowrap;flex-shrink:0">{{ доп_инфо }}</div>
+        {% endif %}
+      </div>
       {% else %}
       <div class="ps-ph-label">{{ метка or 'Ожидается' }}</div>
       {% endif %}
