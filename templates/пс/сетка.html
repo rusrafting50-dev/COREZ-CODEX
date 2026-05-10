@@ -79,6 +79,8 @@
   <div class="d-flex gap-2 flex-wrap no-print">
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Результаты заездов →</a>
+    <a href="{{ url_for('пс.результаты_сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Результаты сетка →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты →</a>
     <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
