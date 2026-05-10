@@ -13,17 +13,6 @@
 
 {% block content %}
 
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
-{% set муж_р4_рез = муж_рез | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set жен_р4_рез = жен_рез | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set муж_р6_рез = муж_рез | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set жен_р6_рез = жен_рез | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set муж_р4_без = муж_без | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set жен_р4_без = жен_без | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
-{% set муж_р6_без = муж_без | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set жен_р6_без = жен_без | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
-{% set есть_р6 = (муж_р6_рез | length + жен_р6_рез | length + муж_р6_без | length + жен_р6_без | length) > 0 %}
-
 <div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
@@ -48,26 +37,26 @@
 <div class="text-muted small mb-3">Нет данных</div>
 {% else %}
 <div class="table-responsive mb-2">
-  <table class="table table-sm table-hover align-middle" style="font-size:.85rem">
-    <thead class="table-light">
+  <table class="table table-sm table-hover align-middle" style="font-size:.85rem;color:#000">
+    <thead style="background:#f0f0f0;color:#000">
       <tr>
-        <th rowspan="2" class="align-middle">Команда</th>
-        <th rowspan="2" class="text-center align-middle" style="width:50px">Номер экипажа</th>
-        <th rowspan="2" class="align-middle" style="min-width:100px">Территория</th>
-        <th colspan="3" class="text-center border-start bg-warning bg-opacity-10">Результат 1 попытка</th>
-        <th colspan="3" class="text-center border-start bg-danger bg-opacity-10">Результат 2 попытка</th>
-        <th rowspan="2" class="text-center align-middle" style="width:55px">Очки Многоборье</th>
-        <th rowspan="2" class="text-center align-middle" style="width:40px">Место</th>
-        <th rowspan="2" class="text-center align-middle border-start font-monospace fw-bold" style="width:90px">Результат лучшей попытки</th>
-        <th rowspan="2" class="text-center align-middle" style="width:70px">Выполненный норматив</th>
+        <th rowspan="2" class="align-middle" style="background:#f0f0f0">Команда</th>
+        <th rowspan="2" class="text-center align-middle" style="width:50px;background:#f0f0f0">Номер экипажа</th>
+        <th rowspan="2" class="align-middle" style="min-width:100px;background:#f0f0f0">Территория</th>
+        <th colspan="3" class="text-center border-start" style="background:#f0f0f0">Результат 1 попытка</th>
+        <th colspan="3" class="text-center border-start" style="background:#f0f0f0">Результат 2 попытка</th>
+        <th rowspan="2" class="text-center align-middle" style="width:55px;background:#f0f0f0">Очки Многоборье</th>
+        <th rowspan="2" class="text-center align-middle" style="width:40px;background:#f0f0f0">Место</th>
+        <th rowspan="2" class="text-center align-middle border-start" style="width:90px;background:#f0f0f0">Результат лучшей попытки</th>
+        <th rowspan="2" class="text-center align-middle" style="width:70px;background:#f0f0f0">Выполненный норматив</th>
       </tr>
       <tr>
-        <th class="text-center border-start font-monospace" style="width:70px">Время</th>
-        <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
-        <th class="text-center border-start font-monospace" style="width:70px">Время</th>
-        <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
+        <th class="text-center border-start" style="width:70px;background:#f0f0f0">Время</th>
+        <th class="text-center" style="width:55px;background:#f0f0f0">Штраф</th>
+        <th class="text-center" style="width:70px;background:#f0f0f0">Итоговый</th>
+        <th class="text-center border-start" style="width:70px;background:#f0f0f0">Время</th>
+        <th class="text-center" style="width:55px;background:#f0f0f0">Штраф</th>
+        <th class="text-center" style="width:70px;background:#f0f0f0">Итоговый</th>
       </tr>
     </thead>
     <tbody>
@@ -75,43 +64,42 @@
     {% set к = р.команда %}
     {% set р1 = попытки.get(к.id, {}).get(1) %}
     {% set р2 = попытки.get(к.id, {}).get(2) %}
-    {% set лучш_ном = р.номер_попытки %}
     <tr>
       <td>{{ к.название or '—' }}</td>
       <td class="text-center">{{ к.нагрудный_номер }}</td>
-      <td class="small text-muted">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+      <td>{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
       {# Результат 1 попытка #}
-      <td class="text-center font-monospace small border-start {{ 'fw-bold' if лучш_ном == 1 else 'text-muted' }}">
+      <td class="text-center border-start">
         {{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}
       </td>
-      <td class="text-center small {{ 'text-danger' if р1 and р1.штрафное_время else 'text-muted' }}">
+      <td class="text-center">
         {{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace {{ 'fw-bold' if лучш_ном == 1 else '' }}">
+      <td class="text-center">
         {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
       </td>
       {# Результат 2 попытка #}
-      <td class="text-center font-monospace small border-start {{ 'fw-bold' if лучш_ном == 2 else 'text-muted' }}">
+      <td class="text-center border-start">
         {{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}
       </td>
-      <td class="text-center small {{ 'text-danger' if р2 and р2.штрафное_время else 'text-muted' }}">
+      <td class="text-center">
         {{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace {{ 'fw-bold' if лучш_ном == 2 else '' }}">
+      <td class="text-center">
         {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
       </td>
-      <td class="text-center small">{{ р.очки | int if р.очки else '—' }}</td>
-      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
-      <td class="text-center fw-bold font-monospace border-start">{{ format_dur(р.лучший_результат) }}</td>
-      <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
+      <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
+      <td class="text-center">{{ р.место }}</td>
+      <td class="text-center border-start">{{ format_dur(р.лучший_результат) }}</td>
+      <td class="text-center">{{ разряды.get(к.id, '—') }}</td>
     </tr>
     {% endfor %}
     {% for р in без %}
     {% set к = р.команда %}
-    <tr class="table-secondary">
+    <tr>
       <td>{{ к.название or '—' }}</td>
       <td class="text-center">{{ к.нагрудный_номер }}</td>
-      <td class="small text-muted" colspan="11">
+      <td colspan="11">
         <span class="badge bg-danger">{{ р.статус_попытки }}</span>
       </td>
     </tr>
@@ -122,21 +110,20 @@
 {% endif %}
 {% endmacro %}
 
-{{ таблица_рез(муж_р4_рез, муж_р4_без, муж_разр, муж_поп, 'Слалом — R4, мужчины', 'primary') }}
-{{ таблица_рез(жен_р4_рез, жен_р4_без, жен_разр, жен_поп, 'Слалом — R4, женщины', 'danger') }}
-{% if есть_р6 %}
-{{ таблица_рез(муж_р6_рез, муж_р6_без, муж_разр, муж_поп, 'Слалом — R6, мужчины', 'primary') }}
-{{ таблица_рез(жен_р6_рез, жен_р6_без, жен_разр, жен_поп, 'Слалом — R6, женщины', 'danger') }}
+{{ таблица_рез(муж_р4_рез, муж_р4_без, муж_р4_разр, муж_р4_поп, 'Слалом — R4, мужчины', 'primary') }}
+{{ таблица_рез(жен_р4_рез, жен_р4_без, жен_р4_разр, жен_р4_поп, 'Слалом — R4, женщины', 'danger') }}
+{% if has_r6 %}
+{{ таблица_рез(муж_р6_рез, муж_р6_без, муж_р6_разр, муж_р6_поп, 'Слалом — R6, мужчины', 'primary') }}
+{{ таблица_рез(жен_р6_рез, жен_р6_без, жен_р6_разр, жен_р6_поп, 'Слалом — R6, женщины', 'danger') }}
 {% endif %}
 
-{% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
+{% if not муж_р4_рез and not муж_р4_без and not жен_р4_рез and not жен_р4_без %}
 <div class="alert alert-info mt-3">
   Нет результатов. Введите стартовые и финишные времена, отметьте штрафы на воротах.
 </div>
 {% endif %}
 
-<div class="d-flex justify-content-between align-items-end mt-3">
-  <div class="text-muted small">Пересчёт выполняется при загрузке. Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>
+<div class="d-flex justify-content-end mt-3">
   <form method="post"
         action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='наград-слалом') }}">
     <button type="submit"
