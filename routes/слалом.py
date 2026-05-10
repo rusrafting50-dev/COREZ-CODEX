@@ -4,7 +4,7 @@ from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатСлалома, ШтрафВорот,
                     РезультатПараллельногоСпринта, РезультатМногоборья,
-                    ТаблицаОчков, ТаблицаРазрядов,
+                    ТаблицаОчков, ТаблицаРазрядов, ПараметрыДистанции,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
 from routes.спринт import parse_time, format_time, format_dur
 
@@ -34,6 +34,20 @@ def _ps_место(к):
          .filter(РезультатПараллельногоСпринта.итоговое_место.isnot(None))
          .first())
     return з.итоговое_место if з else None
+
+
+def _кол_ворот_из_дистанции(sor_id, fallback=14):
+    """Получить количество ворот из параметров дистанции (п.6); иначе fallback."""
+    д = (ПараметрыДистанции.query
+         .filter_by(соревнование_id=sor_id, тип='слалом')
+         .order_by(ПараметрыДистанции.порядок)
+         .first())
+    if д and д.кол_ворот:
+        try:
+            return max(1, int(д.кол_ворот))
+        except (ValueError, TypeError):
+            pass
+    return fallback
 
 
 def _по_посеву(sor_id, пол, класс=None):
@@ -262,7 +276,7 @@ def ворота(sor_id, attempt):
 def финиш(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     допустимые = {s for s, _ in СТАТУСЫ_СПИСОК}
-    кол_ворот = сор.кол_ворот_слалом or 14
+    кол_ворот = _кол_ворот_из_дистанции(sor_id, fallback=сор.кол_ворот_слалом or 14)
 
     if request.method == 'POST':
         for пол in ('м', 'ж'):
