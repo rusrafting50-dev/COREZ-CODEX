@@ -45,49 +45,29 @@
 
 {% macro таблица_финиша(команды, цвет, заг) %}
 {% if команды %}
-{# Пропорции колонок в условных единицах #}
-{% set _к  = 90  %}{# Команда #}
-{% set _нэ = 28  %}{# №эк. #}
-{% set _тр = 80  %}{# Территория #}
-{% set _п  = 18  %}{# Попытка #}
-{% set _вс = 75  %}{# Старт Время #}
-{% set _с10= 24  %}{# +10с #}
-{% set _с50= 26  %}{# +50с старт #}
-{% set _дкс= 16  %}{# ДК старт #}
-{% set _вор= 15  %}{# одна воротная колонка #}
-{% set _вф = 75  %}{# Финиш Время #}
-{% set _ф50= 26  %}{# +50с финиш #}
-{% set _дкф= 16  %}{# ДК финиш #}
-{% set _шт = 44  %}{# Штраф #}
-{% set _вр = 52  %}{# Время рез #}
-{% set _ит = 52  %}{# Итоговый #}
-{% set _лч = 62  %}{# Лучший #}
-{% set _мс = 26  %}{# Место #}
-{% set _ст = 68  %}{# Статус #}
-{% set _total = (_к+_нэ+_тр+_п+_вс+_с10+_с50+_дкс+_вор*кол_ворот+_вф+_ф50+_дкф+_шт+_вр+_ит+_лч+_мс+_ст)|float %}
 
 <h6 class="fw-semibold mt-3 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <div class="table-responsive mb-4">
   <table class="table table-sm table-bordered align-middle" style="font-size:.68rem;color:#000;width:100%;table-layout:fixed">
     <colgroup>
-      <col style="width:{{ (_к/_total*100)|round(1) }}%">
-      <col style="width:{{ (_нэ/_total*100)|round(1) }}%">
-      <col style="width:{{ (_тр/_total*100)|round(1) }}%">
-      <col style="width:{{ (_п/_total*100)|round(1) }}%">
-      <col style="width:{{ (_вс/_total*100)|round(1) }}%">
-      <col style="width:{{ (_с10/_total*100)|round(1) }}%">
-      <col style="width:{{ (_с50/_total*100)|round(1) }}%">
-      <col style="width:{{ (_дкс/_total*100)|round(1) }}%">
-      {% for _ in range(кол_ворот) %}<col style="width:{{ (_вор/_total*100)|round(1) }}%">{% endfor %}
-      <col style="width:{{ (_вф/_total*100)|round(1) }}%">
-      <col style="width:{{ (_ф50/_total*100)|round(1) }}%">
-      <col style="width:{{ (_дкф/_total*100)|round(1) }}%">
-      <col style="width:{{ (_шт/_total*100)|round(1) }}%">
-      <col style="width:{{ (_вр/_total*100)|round(1) }}%">
-      <col style="width:{{ (_ит/_total*100)|round(1) }}%">
-      <col style="width:{{ (_лч/_total*100)|round(1) }}%">
-      <col style="width:{{ (_мс/_total*100)|round(1) }}%">
-      <col style="width:{{ (_ст/_total*100)|round(1) }}%">
+      <col style="width:90px">
+      <col style="width:28px">
+      <col style="width:80px">
+      <col style="width:18px">
+      <col style="width:90px">
+      <col style="width:30px">
+      <col style="width:32px">
+      <col style="width:20px">
+      {% for _ in range(кол_ворот) %}<col>{% endfor %}
+      <col style="width:90px">
+      <col style="width:32px">
+      <col style="width:20px">
+      <col style="width:50px">
+      <col style="width:55px">
+      <col style="width:55px">
+      <col style="width:65px">
+      <col style="width:28px">
+      <col style="width:70px">
     </colgroup>
     <thead style="background:#f0f0f0;color:#000">
       <tr>
