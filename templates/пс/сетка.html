@@ -117,25 +117,29 @@
       <div class="ps-name-main" style="font-weight:{{ '600' if победитель is true else 'normal' }}">
         {{ команда.название or '—' }}
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:4px">
-        <div class="ps-name-org">{{ команда.субъект.название if команда.субъект else '' }}</div>
-        {% if доп_инфо %}
-        <div style="font-size:.60rem;color:#555;font-style:italic;white-space:nowrap;flex-shrink:0">{{ доп_инфо }}</div>
-        {% endif %}
-      </div>
+      {% if команда.субъект %}
+      <div class="ps-name-org">{{ команда.субъект.название }}</div>
+      {% endif %}
       {% else %}
       <div class="ps-ph-label">{{ метка or 'Ожидается' }}</div>
       {% endif %}
     </div>
   </td>
   <td class="ps-res">
-    {% if результат %}
-    <span style="color:{{ '#198754' if победитель is true else '#6c757d' }}">
-      {{ format_dur(результат) }}
-    </span>
-    {% elif статус in ('ДК','НФН','НСТ') %}
-    <span style="color:#dc3545">{{ статус }}</span>
-    {% else %}—{% endif %}
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0">
+      <div>
+        {% if результат %}
+        <span style="color:{{ '#198754' if победитель is true else '#6c757d' }}">
+          {{ format_dur(результат) }}
+        </span>
+        {% elif статус in ('ДК','НФН','НСТ') %}
+        <span style="color:#dc3545">{{ статус }}</span>
+        {% else %}—{% endif %}
+      </div>
+      {% if доп_инфо %}
+      <div style="font-size:.58rem;color:#555;font-style:italic;white-space:nowrap">{{ доп_инфо }}</div>
+      {% endif %}
+    </div>
   </td>
 </tr>
 {% endmacro %}
@@ -179,7 +183,7 @@
         <tbody>
         {% for з in пара %}
         {{ строка_участника(з.команда, none, посев_map, з.победитель, з.результат, з.статус,
-             (('Место ' ~ з.итоговое_место) if з.итоговое_место else НАЗВАНИЯ.get(з.стадия, з.стадия)) if заголовок == 'Результаты сетка' else none) }}
+             команда_метки.get(з.команда_id) if заголовок == 'Результаты сетка' else none) }}
         {% endfor %}
         </tbody>
       </table>
