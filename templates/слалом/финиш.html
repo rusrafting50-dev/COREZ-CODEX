@@ -13,7 +13,6 @@
 
 {% block content %}
 
-{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
 {% set муж_р4 = муж | selectattr('класс_судна', 'equalto', 'R4') | list %}
 {% set жен_р4 = жен | selectattr('класс_судна', 'equalto', 'R4') | list %}
 {% set муж_р6 = муж | selectattr('класс_судна', 'equalto', 'R6') | list %}
@@ -47,85 +46,152 @@
 {% endwith %}
 
 <p class="text-muted small mb-2">
-  Штрафы на воротах обновляются автоматически из рабочего протокола.
-  Формат: <code>ЧЧ:ММ:СС.сс</code>
+  Штрафы на воротах и стартовые времена обновляются автоматически.
+  Формат финиша: <code>ЧЧ:ММ:СС.сс</code>
 </p>
+
+<div class="d-flex gap-3 mb-3 small text-muted">
+  <span><span class="badge bg-light border text-dark">0</span> чисто</span>
+  <span><span class="badge bg-warning text-dark">5</span> касание</span>
+  <span><span class="badge bg-danger">50</span> неправильное / пропуск</span>
+</div>
 
 {% macro таблица_финиша(команды, цвет, заг) %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }}</h6>
-<div class="table-responsive mb-3">
-  <table class="table table-sm align-middle" style="font-size:.82rem">
-    <thead class="table-light">
+<h6 class="fw-semibold mt-3 mb-2 text-{{ цвет }}">{{ заг }}</h6>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-bordered align-middle" style="font-size:.78rem;color:#000">
+    <thead style="background:#f0f0f0;color:#000">
       <tr>
-        <th rowspan="2" class="text-center align-middle" style="width:35px">№</th>
-        <th rowspan="2" class="align-middle" style="min-width:110px">Команда</th>
-        <th rowspan="2" class="text-center align-middle" style="width:50px">Номер экипажа</th>
-        <th colspan="4" class="text-center border-start bg-warning bg-opacity-10">Результат 1 попытка</th>
-        <th colspan="4" class="text-center border-start bg-danger bg-opacity-10">Результат 2 попытка</th>
+        <th rowspan="2" class="text-center align-middle" style="width:30px;background:#f0f0f0">№</th>
+        <th rowspan="2" class="text-center align-middle" style="width:50px;background:#f0f0f0">Номер экипажа</th>
+        <th rowspan="2" class="align-middle" style="min-width:120px;background:#f0f0f0">ФИО участников</th>
+        <th rowspan="2" class="align-middle" style="min-width:90px;background:#f0f0f0">Команда</th>
+        <th rowspan="2" class="align-middle" style="min-width:80px;background:#f0f0f0">Территория</th>
+        <th rowspan="2" class="text-center align-middle" style="width:38px;background:#f0f0f0">№ поп.</th>
+        <th colspan="{{ кол_ворот + 2 }}" class="text-center" style="background:#f0f0f0">Прохождение дистанции (штрафные баллы)</th>
+        <th colspan="3" class="text-center" style="background:#f0f0f0">Результат попытки</th>
+        <th rowspan="2" class="text-center align-middle" style="width:80px;background:#f0f0f0">Результат лучшей попытки</th>
+        <th rowspan="2" class="text-center align-middle" style="width:100px;background:#f0f0f0">Статус</th>
       </tr>
       <tr>
-        <th class="text-center border-start" style="width:105px">Время финиша</th>
-        <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
-        <th class="text-center" style="width:105px">Статус</th>
-        <th class="text-center border-start" style="width:105px">Время финиша</th>
-        <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
-        <th class="text-center" style="width:105px">Статус</th>
+        <th class="text-center" style="width:75px;background:#f0f0f0">Старт</th>
+        {% for в in range(1, кол_ворот + 1) %}
+        <th class="text-center" style="width:52px;background:#f0f0f0">{{ в }}</th>
+        {% endfor %}
+        <th class="text-center" style="width:100px;background:#f0f0f0">Финиш</th>
+        <th class="text-center" style="width:60px;background:#f0f0f0">Штрафное время</th>
+        <th class="text-center" style="width:70px;background:#f0f0f0">Время прохождения</th>
+        <th class="text-center" style="width:70px;background:#f0f0f0">Итоговый результат</th>
       </tr>
     </thead>
     <tbody>
+    {% set ns = namespace(idx=0) %}
     {% for к in команды %}
     {% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
     {% set р2 = к.результат_слалом | selectattr('номер_попытки', 'eq', 2) | first | default(none) %}
+    {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+    {% set к_штр1 = штрафы.get(к.id, {}).get(1, {}) %}
+    {% set к_штр2 = штрафы.get(к.id, {}).get(2, {}) %}
     {% set ст1 = р1.статус_попытки if р1 else СТАТУС_ФИНИШ %}
     {% set ст2 = р2.статус_попытки if р2 else СТАТУС_ФИНИШ %}
-    {% set лучш1 = р1 and р1.результат_попытки and р2 and р2.результат_попытки and р1.результат_попытки <= р2.результат_попытки %}
-    {% set лучш2 = р1 and р1.результат_попытки and р2 and р2.результат_попытки and р2.результат_попытки < р1.результат_попытки %}
-    {% set лучш1 = лучш1 or (р1 and р1.результат_попытки and not (р2 and р2.результат_попытки)) %}
-    {% set лучш2 = лучш2 or (р2 and р2.результат_попытки and not (р1 and р1.результат_попытки)) %}
-    <tr class="{{ 'table-danger' if ст1 == 'ДК' and ст2 == 'ДК' else '' }}">
-      <td class="text-center">{{ loop.index }}</td>
-      <td>{{ к.название or '—' }}</td>
-      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
-
-      {# Попытка 1 #}
-      <td class="border-start">
+    {% set рез1 = р1.результат_попытки if р1 else none %}
+    {% set рез2 = р2.результат_попытки if р2 else none %}
+    {% if рез1 and рез2 %}
+      {% set лучш = рез1 if рез1 <= рез2 else рез2 %}
+    {% elif рез1 %}
+      {% set лучш = рез1 %}
+    {% elif рез2 %}
+      {% set лучш = рез2 %}
+    {% else %}
+      {% set лучш = none %}
+    {% endif %}
+    {% set ns.idx = ns.idx + 1 %}
+    {# ── Строка 1 (попытка 1) ── #}
+    <tr>
+      <td class="text-center" rowspan="2">{{ ns.idx }}</td>
+      <td class="text-center fw-semibold" rowspan="2">{{ к.нагрудный_номер }}</td>
+      <td rowspan="2" style="font-size:.72rem">
+        {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
+      </td>
+      <td rowspan="2">{{ к.название or '—' }}</td>
+      <td rowspan="2">{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
+      <td class="text-center">1</td>
+      {# Старт #}
+      <td class="text-center font-monospace" style="font-size:.72rem">
+        {{ format_time(р1.время_старта) if р1 and р1.время_старта else '—' }}
+      </td>
+      {# Ворота попытка 1 #}
+      {% for в in range(1, кол_ворот + 1) %}
+      {% set текущий = к_штр1.get(в, 0) %}
+      <td class="text-center p-0">
+        <select name="г_{{ к.id }}_{{ в }}_1"
+                class="form-select form-select-sm border-0 text-center px-0"
+                style="font-size:.76rem;min-width:48px;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
+                onchange="this.style.background=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'')">
+          <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
+          <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
+          <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
+        </select>
+      </td>
+      {% endfor %}
+      {# Финиш input #}
+      <td class="p-1">
         <input type="text" name="вф1_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р1.время_финиша) if р1 and р1.время_финиша else '' }}"
-               placeholder="00:00:00.00" autocomplete="off">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.76rem">
       </td>
-      <td class="text-center small {{ 'text-danger fw-bold' if р1 and р1.штрафное_время else 'text-muted' }}">
-        {{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}
-      </td>
-      <td class="text-center font-monospace fw-bold">
-        {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
-      </td>
-      <td>
-        <select name="ст1_{{ к.id }}" class="form-select form-select-sm">
+      {# Результат попытки 1 #}
+      <td class="text-center">{{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}</td>
+      <td class="text-center font-monospace">{{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}</td>
+      <td class="text-center font-monospace">{{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}</td>
+      {# Результат лучшей попытки (rowspan=2) #}
+      <td class="text-center font-monospace" rowspan="2">{{ format_dur(лучш) if лучш else '—' }}</td>
+      {# Статус 1 #}
+      <td class="p-1">
+        <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
           {% endfor %}
         </select>
       </td>
-
-      {# Попытка 2 #}
-      <td class="border-start">
+    </tr>
+    {# ── Строка 2 (попытка 2) ── #}
+    <tr>
+      <td class="text-center">2</td>
+      {# Старт #}
+      <td class="text-center font-monospace" style="font-size:.72rem">
+        {{ format_time(р2.время_старта) if р2 and р2.время_старта else '—' }}
+      </td>
+      {# Ворота попытка 2 #}
+      {% for в in range(1, кол_ворот + 1) %}
+      {% set текущий = к_штр2.get(в, 0) %}
+      <td class="text-center p-0">
+        <select name="г_{{ к.id }}_{{ в }}_2"
+                class="form-select form-select-sm border-0 text-center px-0"
+                style="font-size:.76rem;min-width:48px;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
+                onchange="this.style.background=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'')">
+          <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
+          <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
+          <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
+        </select>
+      </td>
+      {% endfor %}
+      {# Финиш input #}
+      <td class="p-1">
         <input type="text" name="вф2_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р2.время_финиша) if р2 and р2.время_финиша else '' }}"
-               placeholder="00:00:00.00" autocomplete="off">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.76rem">
       </td>
-      <td class="text-center small {{ 'text-danger fw-bold' if р2 and р2.штрафное_время else 'text-muted' }}">
-        {{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}
-      </td>
-      <td class="text-center font-monospace fw-bold">
-        {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
-      </td>
-      <td>
-        <select name="ст2_{{ к.id }}" class="form-select form-select-sm">
+      {# Результат попытки 2 #}
+      <td class="text-center">{{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}</td>
+      <td class="text-center font-monospace">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
+      <td class="text-center font-monospace">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
+      {# Статус 2 #}
+      <td class="p-1">
+        <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
           {% endfor %}
