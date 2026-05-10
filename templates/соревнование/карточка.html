@@ -174,9 +174,7 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='слалом') }}" class="btn btn-outline-success btn-sm">Дистанция</a>
           <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="btn btn-success btn-sm">Стартовый протокол</a>
-          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}" class="btn btn-outline-success btn-sm">Ворота 1</a>
-          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=2) }}" class="btn btn-outline-success btn-sm">Ворота 2</a>
-          <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Финиш</a>
+          <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Результаты попыток</a>
           <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Результаты</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_слалом', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
@@ -270,9 +268,7 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='слалом') }}" class="btn btn-outline-success btn-sm">Дистанция</a>
           <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-success btn-sm">Стартовый протокол</a>
-          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=1) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Ворота 1</a>
-          <a href="{{ url_for('слалом.ворота', sor_id=сор.id, attempt=2) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Ворота 2</a>
-          <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Финиш</a>
+          <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Результаты попыток</a>
           <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-success btn-sm">Результаты</a>
           <a href="{{ url_for('слалом.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_слалом', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
