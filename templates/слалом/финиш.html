@@ -66,7 +66,7 @@
         <th class="text-center" style="width:32px;background:#f0f0f0" title="+50 сек">+50с</th>
         <th class="text-center" style="width:22px;background:#f0f0f0">ДК</th>
         {% for в in range(1, кол_ворот + 1) %}
-        <th class="text-center" style="background:#f0f0f0;padding:2px 0"><div style="width:36px;font-size:.7rem;overflow:hidden;text-align:center">{{ в }}</div></th>
+        <th class="text-center" style="background:#f0f0f0;padding:2px 0"><div style="width:18px;font-size:.7rem;overflow:hidden;text-align:center">{{ в }}</div></th>
         {% endfor %}
         <th class="text-center" style="width:92px;background:#f0f0f0">Время</th>
         <th class="text-center" style="width:32px;background:#f0f0f0" title="+50 сек">+50с</th>
@@ -129,10 +129,10 @@
       {# Ворота попытка 1 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр1.get(в, 0) %}
-      <td class="p-0"><div style="width:36px;overflow:hidden">
+      <td class="p-0"><div style="width:18px;overflow:hidden">
         <select name="г_{{ к.id }}_{{ в }}_1"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.76rem;width:36px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
+                style="font-size:.76rem;width:18px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
@@ -205,10 +205,10 @@
       {# Ворота попытка 2 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр2.get(в, 0) %}
-      <td class="p-0"><div style="width:36px;overflow:hidden">
+      <td class="p-0"><div style="width:18px;overflow:hidden">
         <select name="г_{{ к.id }}_{{ в }}_2"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.76rem;width:36px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
+                style="font-size:.76rem;width:18px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
