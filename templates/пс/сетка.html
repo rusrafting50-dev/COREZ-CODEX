@@ -121,7 +121,7 @@
    ───────────────────────────────────────────────────────────────────────────── #}
 {% macro строка_участника(команда, метка, посев_map, победитель, результат, статус, доп_инфо=none) %}
 {% set _стар = заголовок == 'Стартовый протокол' %}
-<tr class="{{ 'ps-winner' if (not _стар and победитель is true) else ('ps-loser' if (not _стар and победитель is false) else '') }}">
+<tr class="{{ 'ps-winner' if (not _стар and победитель is true) else '' }}">
   <td class="ps-seed">
     {% if команда %}
     <span class="ps-seed-badge">СП&nbsp;{{ посев_map.get(команда.id,'?') }}</span>
@@ -149,7 +149,7 @@
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0">
       <div>
         {% if результат %}
-        <span style="color:{{ '#198754' if победитель is true else '#6c757d' }}">
+        <span style="{{ 'color:#198754' if победитель is true else '' }}">
           {{ format_dur(результат) }}
         </span>
         {% elif статус in ('ДК','НФН','НСТ') %}
