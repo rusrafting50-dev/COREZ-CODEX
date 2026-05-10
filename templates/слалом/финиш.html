@@ -167,13 +167,13 @@
       {# Место (rowspan=2) #}
       <td class="text-center" rowspan="2">{{ место_val }}</td>
       {# Статус 1 #}
-      <td class="p-1">
+      <td class="p-1"><div style="width:190px">
         <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
           {% endfor %}
         </select>
-      </td>
+      </div></td>
     </tr>
     {# ── Строка 2 (попытка 2) ── #}
     <tr>
@@ -239,13 +239,13 @@
       <td class="text-center font-monospace">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
       <td class="text-center font-monospace">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
       {# Статус 2 #}
-      <td class="p-1">
+      <td class="p-1"><div style="width:190px">
         <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
           {% endfor %}
         </select>
-      </td>
+      </div></td>
     </tr>
     {% endfor %}
     </tbody>
