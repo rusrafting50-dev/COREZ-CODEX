@@ -87,9 +87,9 @@
   </div>
 </div>
 {% else %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
-  <div class="d-flex gap-2 flex-wrap no-print">
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин<br>ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
+  <div class="d-flex gap-2 ms-3 flex-shrink-0 no-print">
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Результаты заездов →</a>
     <a href="{{ url_for('пс.результаты_сетка', sor_id=сор.id) }}"
