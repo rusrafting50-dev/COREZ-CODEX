@@ -59,19 +59,19 @@
     <thead class="table-light">
       <tr>
         <th rowspan="2" class="text-center align-middle" style="width:35px">№</th>
-        <th rowspan="2" class="text-center align-middle" style="width:50px">Нагруд.</th>
         <th rowspan="2" class="align-middle" style="min-width:110px">Команда</th>
-        <th colspan="4" class="text-center border-start bg-warning bg-opacity-10">Попытка 1</th>
-        <th colspan="4" class="text-center border-start bg-danger bg-opacity-10">Попытка 2</th>
+        <th rowspan="2" class="text-center align-middle" style="width:50px">Номер экипажа</th>
+        <th colspan="4" class="text-center border-start bg-warning bg-opacity-10">Результат 1 попытка</th>
+        <th colspan="4" class="text-center border-start bg-danger bg-opacity-10">Результат 2 попытка</th>
       </tr>
       <tr>
         <th class="text-center border-start" style="width:105px">Время финиша</th>
         <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Результат</th>
+        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
         <th class="text-center" style="width:105px">Статус</th>
         <th class="text-center border-start" style="width:105px">Время финиша</th>
         <th class="text-center" style="width:55px">Штраф</th>
-        <th class="text-center font-monospace" style="width:70px">Результат</th>
+        <th class="text-center font-monospace" style="width:70px">Итоговый</th>
         <th class="text-center" style="width:105px">Статус</th>
       </tr>
     </thead>
@@ -87,8 +87,8 @@
     {% set лучш2 = лучш2 or (р2 and р2.результат_попытки and not (р1 and р1.результат_попытки)) %}
     <tr class="{{ 'table-danger' if ст1 == 'ДК' and ст2 == 'ДК' else '' }}">
       <td class="text-center">{{ loop.index }}</td>
-      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
       <td>{{ к.название or '—' }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
 
       {# Попытка 1 #}
       <td class="border-start">
