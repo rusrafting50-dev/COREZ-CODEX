@@ -109,9 +109,9 @@
       <td class="text-center p-0">
         <select name="г_{{ к.id }}_{{ в }}_1"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.76rem;min-width:48px;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
+                style="font-size:.76rem;min-width:48px;appearance:none;-webkit-appearance:none;cursor:pointer;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
                 onchange="this.style.background=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'')">
-          <option value="0" {{ 'selected' if текущий == 0 }}></option>
+          <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
           <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
         </select>
@@ -154,9 +154,9 @@
       <td class="text-center p-0">
         <select name="г_{{ к.id }}_{{ в }}_2"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.76rem;min-width:48px;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
+                style="font-size:.76rem;min-width:48px;appearance:none;-webkit-appearance:none;cursor:pointer;background:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else '') }}"
                 onchange="this.style.background=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'')">
-          <option value="0" {{ 'selected' if текущий == 0 }}></option>
+          <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
           <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
         </select>
