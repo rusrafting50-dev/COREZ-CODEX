@@ -258,6 +258,7 @@ def ворота(sor_id, attempt):
 def финиш(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     допустимые = {s for s, _ in СТАТУСЫ_СПИСОК}
+    кол_ворот = сор.кол_ворот_слалом or 14
 
     if request.method == 'POST':
         for пол in ('м', 'ж'):
@@ -270,6 +271,23 @@ def финиш(sor_id):
                         ст = СТАТУС_ФИНИШ
                     рез.время_финиша = вф
                     рез.статус_попытки = ст
+                    for в in range(1, кол_ворот + 1):
+                        try:
+                            val = int(request.form.get(f'г_{к.id}_{в}_{попытка}', 0))
+                        except (ValueError, TypeError):
+                            val = 0
+                        if val not in (0, 5, 50):
+                            val = 0
+                        ш = ШтрафВорот.query.filter_by(
+                            команда_id=к.id, соревнование_id=sor_id,
+                            номер_попытки=попытка, номер_ворот=в).first()
+                        if ш:
+                            ш.штраф = val
+                        else:
+                            db.session.add(ШтрафВорот(
+                                команда_id=к.id, соревнование_id=sor_id,
+                                номер_попытки=попытка, номер_ворот=в, штраф=val))
+                    db.session.flush()
                     _пересчитать_попытку(рез, sor_id)
         db.session.commit()
         flash('Протокол финиша сохранён.', 'success')
@@ -277,8 +295,18 @@ def финиш(sor_id):
 
     муж = _по_посеву(sor_id, 'м')
     жен = _по_посеву(sor_id, 'ж')
+    все_ids = {к.id for к in муж + жен}
+    штрафы = {}  # {команда_id: {попытка: {ворот: штраф}}}
+    if все_ids:
+        for попытка in (1, 2):
+            для_поп = (ШтрафВорот.query
+                       .filter_by(соревнование_id=sor_id, номер_попытки=попытка)
+                       .filter(ШтрафВорот.команда_id.in_(все_ids)).all())
+            for ш in для_поп:
+                штрафы.setdefault(ш.команда_id, {}).setdefault(попытка, {})[ш.номер_ворот] = ш.штраф
     return render_template('слалом/финиш.html',
                            сор=сор, муж=муж, жен=жен,
+                           кол_ворот=кол_ворот, штрафы=штрафы,
                            format_time=format_time, format_dur=format_dur,
                            СТАТУСЫ=СТАТУСЫ_СПИСОК, СТАТУС_ФИНИШ=СТАТУС_ФИНИШ)
 
