@@ -45,37 +45,78 @@
 
 {% macro таблица_финиша(команды, цвет, заг) %}
 {% if команды %}
+{# Пропорции колонок в условных единицах #}
+{% set _к  = 90  %}{# Команда #}
+{% set _нэ = 28  %}{# №эк. #}
+{% set _тр = 80  %}{# Территория #}
+{% set _п  = 18  %}{# Попытка #}
+{% set _вс = 75  %}{# Старт Время #}
+{% set _с10= 24  %}{# +10с #}
+{% set _с50= 26  %}{# +50с старт #}
+{% set _дкс= 16  %}{# ДК старт #}
+{% set _вор= 15  %}{# одна воротная колонка #}
+{% set _вф = 75  %}{# Финиш Время #}
+{% set _ф50= 26  %}{# +50с финиш #}
+{% set _дкф= 16  %}{# ДК финиш #}
+{% set _шт = 44  %}{# Штраф #}
+{% set _вр = 52  %}{# Время рез #}
+{% set _ит = 52  %}{# Итоговый #}
+{% set _лч = 62  %}{# Лучший #}
+{% set _мс = 26  %}{# Место #}
+{% set _ст = 68  %}{# Статус #}
+{% set _total = (_к+_нэ+_тр+_п+_вс+_с10+_с50+_дкс+_вор*кол_ворот+_вф+_ф50+_дкф+_шт+_вр+_ит+_лч+_мс+_ст)|float %}
+
 <h6 class="fw-semibold mt-3 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <div class="table-responsive mb-4">
-  <table class="table table-sm table-bordered align-middle" style="font-size:.68rem;color:#000;width:100%">
+  <table class="table table-sm table-bordered align-middle" style="font-size:.68rem;color:#000;width:100%;table-layout:fixed">
+    <colgroup>
+      <col style="width:{{ (_к/_total*100)|round(1) }}%">
+      <col style="width:{{ (_нэ/_total*100)|round(1) }}%">
+      <col style="width:{{ (_тр/_total*100)|round(1) }}%">
+      <col style="width:{{ (_п/_total*100)|round(1) }}%">
+      <col style="width:{{ (_вс/_total*100)|round(1) }}%">
+      <col style="width:{{ (_с10/_total*100)|round(1) }}%">
+      <col style="width:{{ (_с50/_total*100)|round(1) }}%">
+      <col style="width:{{ (_дкс/_total*100)|round(1) }}%">
+      {% for _ in range(кол_ворот) %}<col style="width:{{ (_вор/_total*100)|round(1) }}%">{% endfor %}
+      <col style="width:{{ (_вф/_total*100)|round(1) }}%">
+      <col style="width:{{ (_ф50/_total*100)|round(1) }}%">
+      <col style="width:{{ (_дкф/_total*100)|round(1) }}%">
+      <col style="width:{{ (_шт/_total*100)|round(1) }}%">
+      <col style="width:{{ (_вр/_total*100)|round(1) }}%">
+      <col style="width:{{ (_ит/_total*100)|round(1) }}%">
+      <col style="width:{{ (_лч/_total*100)|round(1) }}%">
+      <col style="width:{{ (_мс/_total*100)|round(1) }}%">
+      <col style="width:{{ (_ст/_total*100)|round(1) }}%">
+    </colgroup>
     <thead style="background:#f0f0f0;color:#000">
       <tr>
-        <th rowspan="2" class="align-middle" style="min-width:65px;background:#f0f0f0">Команда</th>
-        <th rowspan="2" class="text-center align-middle" style="width:28px;background:#f0f0f0">№ эк.</th>
-        <th rowspan="2" class="align-middle" style="min-width:55px;background:#f0f0f0">Территория</th>
-        <th rowspan="2" class="text-center align-middle" style="width:18px;padding:2px 1px;background:#f0f0f0"><span style="writing-mode:vertical-lr;transform:rotate(180deg);display:inline-block">Попытка</span></th>
+        <th rowspan="2" class="align-middle" style="background:#f0f0f0;overflow:hidden">Команда</th>
+        <th rowspan="2" class="text-center align-middle" style="background:#f0f0f0">№ эк.</th>
+        <th rowspan="2" class="align-middle" style="background:#f0f0f0;overflow:hidden">Территория</th>
+        <th rowspan="2" class="text-center align-middle" style="padding:2px 1px;background:#f0f0f0"><span style="writing-mode:vertical-lr;transform:rotate(180deg);display:inline-block">Попытка</span></th>
         <th colspan="4" class="text-center" style="background:#f0f0f0">Старт</th>
         <th colspan="{{ кол_ворот }}" class="text-center" style="background:#f0f0f0">Прохождение дистанции<br>(штрафные баллы)</th>
         <th colspan="3" class="text-center" style="background:#f0f0f0">Финиш</th>
         <th colspan="3" class="text-center" style="background:#f0f0f0">Результат попытки</th>
-        <th rowspan="2" class="text-center align-middle" style="width:62px;background:#f0f0f0">Результат лучшей попытки</th>
-        <th rowspan="2" class="text-center align-middle" style="width:26px;background:#f0f0f0">Место</th>
-        <th rowspan="2" class="text-center align-middle" style="width:200px;background:#f0f0f0">Статус</th>
+        <th rowspan="2" class="text-center align-middle" style="background:#f0f0f0">Результат лучшей попытки</th>
+        <th rowspan="2" class="text-center align-middle" style="background:#f0f0f0">Место</th>
+        <th rowspan="2" class="text-center align-middle" style="background:#f0f0f0">Статус</th>
       </tr>
       <tr>
-        <th class="text-center" style="width:75px;background:#f0f0f0">Время</th>
-        <th class="text-center" style="width:24px;background:#f0f0f0" title="+10 сек">+10с</th>
-        <th class="text-center" style="width:26px;background:#f0f0f0" title="+50 сек">+50с</th>
-        <th class="text-center" style="width:16px;background:#f0f0f0">ДК</th>
+        <th class="text-center" style="background:#f0f0f0">Время</th>
+        <th class="text-center" style="background:#f0f0f0" title="+10 сек">+10с</th>
+        <th class="text-center" style="background:#f0f0f0" title="+50 сек">+50с</th>
+        <th class="text-center" style="background:#f0f0f0">ДК</th>
         {% for в in range(1, кол_ворот + 1) %}
-        <th class="text-center" style="width:15px;background:#f0f0f0;padding:2px 0"><div style="font-size:.65rem;overflow:hidden;text-align:center">{{ в }}</div></th>
+        <th class="text-center" style="background:#f0f0f0;padding:2px 0;font-size:.65rem;overflow:hidden">{{ в }}</th>
         {% endfor %}
-        <th class="text-center" style="width:75px;background:#f0f0f0">Время</th>
-        <th class="text-center" style="width:26px;background:#f0f0f0" title="+50 сек">+50с</th>
-        <th class="text-center" style="width:16px;background:#f0f0f0">ДК</th>
-        <th class="text-center" style="width:44px;background:#f0f0f0">Штраф</th>
-        <th class="text-center" style="width:52px;background:#f0f0f0">Время</th>
-        <th class="text-center" style="width:52px;background:#f0f0f0">Итоговый</th>
+        <th class="text-center" style="background:#f0f0f0">Время</th>
+        <th class="text-center" style="background:#f0f0f0" title="+50 сек">+50с</th>
+        <th class="text-center" style="background:#f0f0f0">ДК</th>
+        <th class="text-center" style="background:#f0f0f0">Штраф</th>
+        <th class="text-center" style="background:#f0f0f0">Время</th>
+        <th class="text-center" style="background:#f0f0f0">Итоговый</th>
       </tr>
     </thead>
     <tbody>
@@ -100,28 +141,28 @@
     {% set место_val = р1.место if (р1 and р1.место) else (р2.место if (р2 and р2.место) else '—') %}
     {# ── Строка 1 (попытка 1) ── #}
     <tr>
-      <td rowspan="2">{{ к.название or '—' }}</td>
+      <td rowspan="2" style="overflow:hidden;word-break:break-word">{{ к.название or '—' }}</td>
       <td class="text-center fw-semibold" rowspan="2">{{ к.нагрудный_номер }}</td>
-      <td rowspan="2">{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
+      <td rowspan="2" style="overflow:hidden;word-break:break-word">{{ к.субъект.название | truncate(18) if к.субъект else '—' }}</td>
       <td class="text-center">1</td>
       {# Старт: Время, +10с, +50с, ДК #}
       <td class="p-0">
         <input type="text" name="вс_{{ к.id }}_1"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}"
-               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:75px;padding:1px 2px">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="с10_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_с10 or 0 if р1 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="ст50_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_старт or 0 if р1 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
         <input type="checkbox" name="дк_ст_{{ к.id }}_1" value="1"
@@ -147,13 +188,13 @@
         <input type="text" name="вф1_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р1.время_финиша) if р1 and р1.время_финиша else '' }}"
-               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:75px;padding:1px 2px">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="ф50_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_финиш or 0 if р1 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
         <input type="checkbox" name="дк_фин_{{ к.id }}_1" value="1"
@@ -169,13 +210,13 @@
       {# Место (rowspan=2) #}
       <td class="text-center" rowspan="2">{{ место_val }}</td>
       {# Статус 1 #}
-      <td class="p-1"><div style="width:100%">
+      <td class="p-1">
         <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
           {% endfor %}
         </select>
-      </div></td>
+      </td>
     </tr>
     {# ── Строка 2 (попытка 2) ── #}
     <tr>
@@ -185,19 +226,19 @@
         <input type="text" name="вс_{{ к.id }}_2"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}"
-               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:75px;padding:1px 2px">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="с10_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_с10 or 0 if р2 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="ст50_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_старт or 0 if р2 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
         <input type="checkbox" name="дк_ст_{{ к.id }}_2" value="1"
@@ -223,13 +264,13 @@
         <input type="text" name="вф2_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р2.время_финиша) if р2 and р2.время_финиша else '' }}"
-               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:75px;padding:1px 2px">
+               placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
         <input type="number" name="ф50_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_финиш or 0 if р2 else 0 }}" min="0" max="9"
-               style="font-size:.68rem;width:26px;padding-left:1px;padding-right:1px">
+               style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
         <input type="checkbox" name="дк_фин_{{ к.id }}_2" value="1"
@@ -241,13 +282,13 @@
       <td class="text-center font-monospace">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
       <td class="text-center font-monospace">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
       {# Статус 2 #}
-      <td class="p-1"><div style="width:100%">
+      <td class="p-1">
         <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
           {% endfor %}
         </select>
-      </div></td>
+      </td>
     </tr>
     {% endfor %}
     </tbody>
