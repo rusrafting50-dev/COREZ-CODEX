@@ -53,7 +53,7 @@
 
 {% macro таблица_финиша(команды, цвет, заг) %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm align-middle" style="font-size:.82rem">
     <thead class="table-light">
@@ -98,11 +98,10 @@
                placeholder="00:00:00.00" autocomplete="off">
       </td>
       <td class="text-center small {{ 'text-danger fw-bold' if р1 and р1.штрафное_время else 'text-muted' }}">
-        {{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1 and р1.штрафное_время else '—' }}
+        {{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace fw-bold {{ 'text-success' if лучш1 else '' }}">
+      <td class="text-center font-monospace fw-bold">
         {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
-        {% if лучш1 %}<span title="Лучшая попытка">★</span>{% endif %}
       </td>
       <td>
         <select name="ст1_{{ к.id }}" class="form-select form-select-sm">
@@ -120,11 +119,10 @@
                placeholder="00:00:00.00" autocomplete="off">
       </td>
       <td class="text-center small {{ 'text-danger fw-bold' if р2 and р2.штрафное_время else 'text-muted' }}">
-        {{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2 and р2.штрафное_время else '—' }}
+        {{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace fw-bold {{ 'text-success' if лучш2 else '' }}">
+      <td class="text-center font-monospace fw-bold">
         {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
-        {% if лучш2 %}<span title="Лучшая попытка">★</span>{% endif %}
       </td>
       <td>
         <select name="ст2_{{ к.id }}" class="form-select form-select-sm">
@@ -145,11 +143,11 @@
 <div class="alert alert-warning">Нет команд.</div>
 {% else %}
 <form method="post">
-{{ таблица_финиша(муж_р4, 'primary', 'Слалом — R4, мужчины' + _вгр) }}
-{{ таблица_финиша(жен_р4, 'danger',  'Слалом — R4, женщины' + _вгр) }}
+{{ таблица_финиша(муж_р4, 'primary', 'Слалом — R4, мужчины') }}
+{{ таблица_финиша(жен_р4, 'danger',  'Слалом — R4, женщины') }}
 {% if есть_р6 %}
-{{ таблица_финиша(муж_р6, 'primary', 'Слалом — R6, мужчины' + _вгр) }}
-{{ таблица_финиша(жен_р6, 'danger',  'Слалом — R6, женщины' + _вгр) }}
+{{ таблица_финиша(муж_р6, 'primary', 'Слалом — R6, мужчины') }}
+{{ таблица_финиша(жен_р6, 'danger',  'Слалом — R6, женщины') }}
 {% endif %}
 <button type="submit" class="btn btn-success px-4">Сохранить протокол финиша</button>
 </form>

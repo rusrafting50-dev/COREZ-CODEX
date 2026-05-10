@@ -43,7 +43,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица_рез(рез, без, разряды, попытки, заг, цвет) %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }} ({{ рез | length + без | length }})</h6>
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not рез and not без %}
 <div class="text-muted small mb-3">Нет данных</div>
 {% else %}
@@ -86,22 +86,20 @@
         {{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}
       </td>
       <td class="text-center small {{ 'text-danger' if р1 and р1.штрафное_время else 'text-muted' }}">
-        {{ '+' ~ (р1.штрафное_время | int) ~ 'с' if р1 and р1.штрафное_время else '—' }}
+        {{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace {{ 'text-success fw-bold' if лучш_ном == 1 else '' }}">
+      <td class="text-center font-monospace {{ 'fw-bold' if лучш_ном == 1 else '' }}">
         {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}
-        {% if лучш_ном == 1 %}<small>★</small>{% endif %}
       </td>
       {# Попытка 2 #}
       <td class="text-center font-monospace small border-start {{ 'fw-bold' if лучш_ном == 2 else 'text-muted' }}">
         {{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}
       </td>
       <td class="text-center small {{ 'text-danger' if р2 and р2.штрафное_время else 'text-muted' }}">
-        {{ '+' ~ (р2.штрафное_время | int) ~ 'с' if р2 and р2.штрафное_время else '—' }}
+        {{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}
       </td>
-      <td class="text-center font-monospace {{ 'text-success fw-bold' if лучш_ном == 2 else '' }}">
+      <td class="text-center font-monospace {{ 'fw-bold' if лучш_ном == 2 else '' }}">
         {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}
-        {% if лучш_ном == 2 %}<small>★</small>{% endif %}
       </td>
       <td class="text-center fw-bold font-monospace border-start">{{ format_dur(р.лучший_результат) }}</td>
       <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
@@ -125,11 +123,11 @@
 {% endif %}
 {% endmacro %}
 
-{{ таблица_рез(муж_р4_рез, муж_р4_без, муж_разр, муж_поп, 'Слалом — R4, мужчины' + _вгр, 'primary') }}
-{{ таблица_рез(жен_р4_рез, жен_р4_без, жен_разр, жен_поп, 'Слалом — R4, женщины' + _вгр, 'danger') }}
+{{ таблица_рез(муж_р4_рез, муж_р4_без, муж_разр, муж_поп, 'Слалом — R4, мужчины', 'primary') }}
+{{ таблица_рез(жен_р4_рез, жен_р4_без, жен_разр, жен_поп, 'Слалом — R4, женщины', 'danger') }}
 {% if есть_р6 %}
-{{ таблица_рез(муж_р6_рез, муж_р6_без, муж_разр, муж_поп, 'Слалом — R6, мужчины' + _вгр, 'primary') }}
-{{ таблица_рез(жен_р6_рез, жен_р6_без, жен_разр, жен_поп, 'Слалом — R6, женщины' + _вгр, 'danger') }}
+{{ таблица_рез(муж_р6_рез, муж_р6_без, муж_разр, муж_поп, 'Слалом — R6, мужчины', 'primary') }}
+{{ таблица_рез(жен_р6_рез, жен_р6_без, жен_разр, жен_поп, 'Слалом — R6, женщины', 'danger') }}
 {% endif %}
 
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
