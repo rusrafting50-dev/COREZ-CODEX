@@ -47,7 +47,7 @@
 {% if команды %}
 <h6 class="fw-semibold mt-3 mb-2 text-{{ цвет }}">{{ заг }}</h6>
 <div class="table-responsive mb-4">
-  <table class="table table-sm table-bordered align-middle" style="font-size:.68rem;color:#000;width:100%">
+  <table class="table table-sm table-bordered align-middle" style="font-size:.68rem;color:#000;width:100%;table-layout:fixed">
     <thead style="background:#f0f0f0;color:#000">
       <tr>
         <th rowspan="2" class="align-middle" style="min-width:65px;background:#f0f0f0">Команда</th>
@@ -68,7 +68,7 @@
         <th class="text-center" style="width:26px;background:#f0f0f0" title="+50 сек">+50с</th>
         <th class="text-center" style="width:16px;background:#f0f0f0">ДК</th>
         {% for в in range(1, кол_ворот + 1) %}
-        <th class="text-center" style="background:#f0f0f0;padding:2px 0"><div style="width:15px;font-size:.65rem;overflow:hidden;text-align:center">{{ в }}</div></th>
+        <th class="text-center" style="width:15px;background:#f0f0f0;padding:2px 0"><div style="font-size:.65rem;overflow:hidden;text-align:center">{{ в }}</div></th>
         {% endfor %}
         <th class="text-center" style="width:75px;background:#f0f0f0">Время</th>
         <th class="text-center" style="width:26px;background:#f0f0f0" title="+50 сек">+50с</th>
@@ -131,16 +131,16 @@
       {# Ворота попытка 1 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр1.get(в, 0) %}
-      <td class="p-0"><div style="width:15px;overflow:hidden">
+      <td class="p-0">
         <select name="г_{{ к.id }}_{{ в }}_1"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.65rem;width:15px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
+                style="font-size:.65rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
           <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
         </select>
-      </div></td>
+      </td>
       {% endfor %}
       {# Финиш: Время, +50с, ДК #}
       <td class="p-0">
@@ -169,7 +169,7 @@
       {# Место (rowspan=2) #}
       <td class="text-center" rowspan="2">{{ место_val }}</td>
       {# Статус 1 #}
-      <td class="p-1"><div style="width:68px">
+      <td class="p-1"><div style="width:100%">
         <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
@@ -207,16 +207,16 @@
       {# Ворота попытка 2 #}
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр2.get(в, 0) %}
-      <td class="p-0"><div style="width:15px;overflow:hidden">
+      <td class="p-0">
         <select name="г_{{ к.id }}_{{ в }}_2"
                 class="form-select form-select-sm border-0 text-center px-0"
-                style="font-size:.65rem;width:15px;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
+                style="font-size:.65rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
           <option value="5"  {{ 'selected' if текущий == 5 }}>5</option>
           <option value="50" {{ 'selected' if текущий == 50 }}>50</option>
         </select>
-      </div></td>
+      </td>
       {% endfor %}
       {# Финиш: Время, +50с, ДК #}
       <td class="p-0">
@@ -241,7 +241,7 @@
       <td class="text-center font-monospace">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
       <td class="text-center font-monospace">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
       {# Статус 2 #}
-      <td class="p-1"><div style="width:68px">
+      <td class="p-1"><div style="width:100%">
         <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
