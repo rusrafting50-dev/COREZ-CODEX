@@ -27,8 +27,8 @@
 <body class="px-3 py-3">
 
 <div class="d-flex justify-content-between mb-3 no-print">
-  <a href="{{ url_for('соревнование.карточка', id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← К карточке соревнования</a>
+  <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm">← Комиссия по допуску</a>
   <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
 </div>
 
