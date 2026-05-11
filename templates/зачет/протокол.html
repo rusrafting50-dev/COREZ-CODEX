@@ -26,13 +26,14 @@
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; text-align: center; font-size: 8pt; background: #fff; }
     th { font-weight: bold; }
     td.text-left { text-align: left; }
-    .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
+    .underline-field { border-bottom: 1px solid #000; display: inline-block; }
     .fw-bold { font-weight: bold; }
     .cat-row td { font-weight: bold; font-size: 9pt; padding: 4px; text-align: center; }
   </style>
 </head>
 <body class="px-3 py-3">
 
+{# ── Навигация (только на экране) ──────────────────────────────────────────── #}
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('зачет.результаты', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Результаты</a>
@@ -64,6 +65,7 @@
   </div>
 </div>
 
+{# ── Шапка документа ───────────────────────────────────────────────────────── #}
 {% if сор.организаторы_блок %}
 <div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
 {% endif %}
@@ -72,23 +74,32 @@
   {{ сор.название }}
 </div>
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
+{% if сор.номер_екп %}
+<div class="text-center" style="font-size:10pt; font-weight:bold; margin-top:4px">
+  ЕКП № {{ сор.номер_екп }}
+</div>
+{% endif %}
+
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; text-transform:uppercase">
   {% if итоговый %}Итоговый протокол{% else %}Предварительный протокол{% endif %}
+</div>
+
+<div class="text-center" style="font-size:11pt; font-weight:bold">
   командного зачёта среди субъектов Российской Федерации
 </div>
 
-<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
-  Спортивная дисциплина Многоборье – {{ класс }}
+<div class="text-center mb-2" style="font-size:10pt; font-weight:bold">
+  Спортивная дисциплина Многоборье – {{ класс }}{% if сор.код_многоборье %}, код ВРВС {{ сор.код_многоборье }}{% endif %}
 </div>
 
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold">
-  <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Дата проведения</div>
+<div class="d-flex justify-content-between mb-2" style="font-size:9pt">
+  <div style="text-align:left">
+    <span class="underline-field" style="min-width:140px">{{ сор.даты_проведения or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}</span><br>
+    <span style="font-size:7.5pt">дата проведения</span>
   </div>
-  <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Место проведения</div>
+  <div style="text-align:right">
+    <span class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}</span><br>
+    <span style="font-size:7.5pt">место проведения</span>
   </div>
 </div>
 
@@ -116,6 +127,7 @@
 {% endif %}
 {% endmacro %}
 
+{# ── Таблица результатов ───────────────────────────────────────────────────── #}
 {% if муж_итог or жен_итог %}
 <table>
   <thead>
@@ -145,35 +157,25 @@
 <div class="text-center text-muted py-4">Нет данных для отображения</div>
 {% endif %}
 
+{# ── Подписи ───────────────────────────────────────────────────────────────── #}
 {% if итоговый %}
-<div class="row mt-4" style="font-size:10pt; font-weight:bold">
-  <div class="col-4">
-    <div>Главный судья</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt; font-weight:normal">подпись / ФИО</div>
-    </div>
+<div style="margin-top:20px; font-size:10pt; font-weight:bold">
+  <div style="display:flex; align-items:baseline; margin-bottom:12px">
+    <div style="width:36%">Главный судья</div>
+    <div class="underline-field" style="min-width:40px; flex:1">{{ '' }}</div>
+    <div style="margin-left:8px">{{ сор.главный_судья or '' }}</div>
   </div>
-  <div class="col-4">
-    <div>Главный секретарь</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_секретарь or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt; font-weight:normal">подпись / ФИО</div>
-    </div>
-  </div>
-  <div class="col-4">
-    <div>Протокол утверждён</div>
-    <div class="mt-2">
-      <div class="underline-field">&nbsp;</div>
-      <div style="font-size:8pt; font-weight:normal">дата</div>
-    </div>
+  <div style="display:flex; align-items:baseline">
+    <div style="width:36%">Главный секретарь</div>
+    <div class="underline-field" style="min-width:40px; flex:1">{{ '' }}</div>
+    <div style="margin-left:8px">{{ сор.главный_секретарь or '' }}</div>
   </div>
 </div>
 {% else %}
-<div class="mt-4" style="font-size:10pt; font-weight:bold">
-  Главный секретарь:
-  <span class="underline-field">{{ сор.главный_секретарь or '&nbsp;' * 25 }}</span>
-  <span style="font-size:8pt; font-weight:normal; margin-left:4px">подпись / ФИО</span>
+<div style="margin-top:16px; font-size:10pt; font-weight:bold">
+  Главный секретарь
+  <span class="underline-field" style="min-width:40px; margin: 0 4px">{{ '' }}</span>
+  {{ сор.главный_секретарь or '' }}
 </div>
 {% endif %}
 
