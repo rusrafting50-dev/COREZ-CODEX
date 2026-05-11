@@ -37,14 +37,12 @@
   <table class="table table-sm table-hover align-middle" style="font-size:.82rem">
     <thead class="table-light">
       <tr>
-        <th rowspan="2" class="text-center" style="width:42px">Место</th>
         <th rowspan="2">Субъект Российской Федерации</th>
         {% for пол, кл in группы %}
         <th colspan="2" class="text-center">{{ ПОЛ_НАЗВ[пол] }} {{ кл }}</th>
         {% endfor %}
         <th colspan="2" class="text-center fw-bold">Итого</th>
-        <th rowspan="2" class="text-center" style="width:52px">Коэф.</th>
-        <th rowspan="2" class="text-center fw-bold" style="width:70px">Итого<br>с коэф.</th>
+        <th rowspan="2" class="text-center fw-bold" style="width:52px">Место</th>
       </tr>
       <tr>
         {% for пол, кл in группы %}
@@ -59,17 +57,15 @@
     {% for з in итог %}
     {% set highlight = 'table-warning' if з.место == 1 else ('table-light' if з.место == 2 else ('bg-warning bg-opacity-10' if з.место == 3 else '')) %}
     <tr class="{{ highlight }}">
-      <td class="text-center fw-bold fs-6">{{ з.место }}</td>
       <td>{{ з.субъект.название }}</td>
       {% for пол, кл in группы %}
       {% set гр = з.группы.get((пол, кл), {'кол': 0, 'баллы': 0.0}) %}
       <td class="text-center small text-muted">{{ гр.кол if гр.кол else '—' }}</td>
-      <td class="text-center small">{{ гр.баллы | int if гр.баллы else '—' }}</td>
+      <td class="text-center small">{{ гр.баллы if гр.баллы else '—' }}</td>
       {% endfor %}
       <td class="text-center small">{{ з.итого_кол }}</td>
-      <td class="text-center fw-bold text-primary">{{ з.итого_баллы | int }}</td>
-      <td class="text-center small text-muted">{{ з.коэффициент }}</td>
-      <td class="text-center fw-bold">{{ з.итого_к | int }}</td>
+      <td class="text-center fw-bold text-primary">{{ з.итого_баллы }}</td>
+      <td class="text-center fw-bold fs-6">{{ з.место }}</td>
     </tr>
     {% endfor %}
     </tbody>

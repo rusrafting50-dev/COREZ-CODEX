@@ -29,6 +29,8 @@
     td.text-left { text-align: left; }
     .underline-field { border-bottom: 1px solid #000; display: inline-block; }
     .fw-bold { font-weight: bold; }
+    .зс-table { width: auto; margin-top: 8px; }
+    .зс-table th, .зс-table td { font-size: 7pt; padding: 1px 3px; width: 32px; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -93,9 +95,7 @@
 {# ── Таблица результатов ───────────────────────────────────────────────────── #}
 {% if итог %}
 
-{# Посчитать общее кол-во колонок для colspan #}
 {% set n_гр = группы | length %}
-{% set n_cols = 3 + n_гр * 2 + 3 %}  {# №, Код, Субъект + группы×2 + итого_кол, итого_балл, место #}
 
 <table>
   <colgroup>
@@ -104,12 +104,10 @@
     <col>                      {# Субъект РФ — занимает остаток #}
     {% for пол, кл in группы %}
     <col style="width:30px">   {# кол экипажей #}
-    <col style="width:42px">   {# баллы #}
+    <col style="width:44px">   {# баллы #}
     {% endfor %}
     <col style="width:30px">   {# итого кол #}
-    <col style="width:48px">   {# итого баллы #}
-    <col style="width:38px">   {# коэффициент #}
-    <col style="width:52px">   {# итого с коэф #}
+    <col style="width:52px">   {# итого баллы #}
     <col style="width:26px">   {# место #}
   </colgroup>
   <thead>
@@ -121,8 +119,6 @@
       <th colspan="2">{{ ПОЛ_НАЗВ[пол] }} {{ кл }}</th>
       {% endfor %}
       <th colspan="2" style="font-weight:bold">ИТОГО</th>
-      <th rowspan="2" style="font-size:6.5pt">Коэф-фи-циент</th>
-      <th rowspan="2" style="font-weight:bold">Итого с коэф.</th>
       <th rowspan="2" style="font-weight:bold">Место</th>
     </tr>
     <tr>
@@ -143,12 +139,10 @@
       {% for пол, кл in группы %}
       {% set гр = з.группы.get((пол, кл), {'кол': 0, 'баллы': 0.0}) %}
       <td>{{ гр.кол if гр.кол else '' }}</td>
-      <td>{{ гр.баллы | int if гр.баллы else '' }}</td>
+      <td>{{ гр.баллы if гр.баллы else '' }}</td>
       {% endfor %}
       <td>{{ з.итого_кол }}</td>
-      <td class="fw-bold">{{ з.итого_баллы | int }}</td>
-      <td style="font-size:7pt">{{ з.коэффициент }}</td>
-      <td class="fw-bold">{{ з.итого_к | int }}</td>
+      <td class="fw-bold">{{ з.итого_баллы }}</td>
       <td class="fw-bold" style="font-size:10pt">{{ з.место }}</td>
     </tr>
     {% endfor %}
@@ -185,6 +179,38 @@
   Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
   {% if not итоговый %} · <em>ПРЕДВАРИТЕЛЬНЫЙ</em>{% endif %}
 </div>
+
+{# ── Таблица ЗС (только в итоговом протоколе) ─────────────────────────────── #}
+{% if итоговый and таблица_зс and таблица_зс.rows %}
+<div style="margin-top:24px; font-size:8pt; font-weight:bold">
+  Таблица очков командного зачёта субъектов (Таблица ЗС)
+</div>
+<div style="font-size:7pt; margin-bottom:4px">
+  Очки за занятое место в дисциплине в зависимости от числа команд в группе
+</div>
+<table class="зс-table" style="width:auto">
+  <thead>
+    <tr>
+      <th style="width:60px; text-align:left">Место \ Команд</th>
+      {% for кол in таблица_зс.cols %}
+      <th>{{ кол }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for м in таблица_зс.rows %}
+    <tr>
+      <td style="text-align:left; font-weight:bold">
+        {% if м == таблица_зс.rows | last and м >= 4 %}{{ м }}+{% else %}{{ м }}{% endif %}
+      </td>
+      {% for кол in таблица_зс.cols %}
+      <td>{{ таблица_зс.data.get((м, кол), '') }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
