@@ -126,6 +126,20 @@ def _зачёт_все(sor_id):
     return итог, группы
 
 
+def _таблица_зс():
+    """Таблица ЗС: строки=кол.субъектов (убывающий), столбцы=места 1,2,3,'4 и ниже'."""
+    все = КоэффициентыСубъектов.query.all()
+    if not все:
+        return None
+    кол_nums = sorted({r.кол_субъектов for r in все}, reverse=True)
+    место_nums = sorted({r.место for r in все})
+    data = {(r.кол_субъектов, r.место): r.коэффициент for r in все}
+    row_labels = {к: ('13 и более' if к >= 13 else ('3 и менее' if к <= 3 else str(к))) for к in кол_nums}
+    col_labels = {м: ('4 и ниже' if м >= 4 else str(м)) for м in место_nums}
+    return {'rows': кол_nums, 'row_labels': row_labels,
+            'cols': место_nums, 'col_labels': col_labels, 'data': data}
+
+
 def _зачёт_группа(sor_id, пол, класс=None):
     """Зачёт для одной группы (пол, класс) — оставлен для маршрута диплома."""
     субъекты = Субъект.query.filter_by(соревнование_id=sor_id).all()
@@ -155,42 +169,6 @@ def _зачёт_группа(sor_id, пол, класс=None):
     return итог
 
 
-def _таблица_зс():
-    """Данные таблицы ЗС для отображения в итоговом протоколе.
-    Строки: места 1, 2, 3, '4 и ниже'. Столбцы: '3 и менее', 4..12, '13 и более'.
-    """
-    все = КоэффициентыСубъектов.query.order_by(
-        КоэффициентыСубъектов.место, КоэффициентыСубъектов.кол_субъектов
-    ).all()
-    if not все:
-        return None
-
-    кол_nums = sorted({r.кол_субъектов for r in все})  # числовые ключи
-    место_nums = sorted({r.место for r in все})
-    data = {(r.место, r.кол_субъектов): r.коэффициент for r in все}
-
-    # Метки столбцов
-    col_labels = {}
-    for к in кол_nums:
-        if к <= 3:
-            col_labels[к] = '3 и менее'
-        elif к >= 13:
-            col_labels[к] = '13 и более'
-        else:
-            col_labels[к] = str(к)
-
-    # Метки строк
-    row_labels = {}
-    for м in место_nums:
-        row_labels[м] = '4 и ниже' if м >= 4 else str(м)
-
-    return {
-        'cols': кол_nums,
-        'col_labels': col_labels,
-        'rows': место_nums,
-        'row_labels': row_labels,
-        'data': data,
-    }
 
 
 @bp_зачет.route('/<int:sor_id>/результаты')

@@ -75,13 +75,13 @@
 </div>
 
 <div class="d-flex justify-content-between mb-3" style="font-size:9pt">
-  <div>
-    <span class="underline-field" style="min-width:140px">{{ сор.даты_проведения or '' }}</span><br>
-    <span style="font-size:7.5pt">дата проведения</span>
+  <div style="text-align:center">
+    <div style="border-bottom:1px solid #000; min-width:180px; display:inline-block; text-align:center; padding:0 6px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:7.5pt">дата проведения</div>
   </div>
-  <div style="text-align:right">
-    <span class="underline-field" style="min-width:200px">{{ сор.место_проведения or '' }}</span><br>
-    <span style="font-size:7.5pt">место проведения</span>
+  <div style="text-align:center">
+    <div style="border-bottom:1px solid #000; min-width:240px; display:inline-block; text-align:center; padding:0 6px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:7.5pt">место проведения</div>
   </div>
 </div>
 
@@ -162,27 +162,25 @@
 
 {# ── Таблица ЗС (только в итоговом протоколе) ─────────────────────────────── #}
 {% if итоговый and таблица_зс and таблица_зс.rows %}
-<div style="margin-top:24px; font-size:8pt; font-weight:bold">
-  Количество субъектов Российской Федерации
-</div>
-<div style="font-size:7pt; margin-bottom:4px; font-weight:bold">
-  Количество баллов за каждую дисциплину за занятое место
-</div>
-<table class="зс-table" style="width:auto">
+<table class="зс-table" style="width:auto; margin-top:24px">
   <thead>
     <tr>
-      <th style="width:80px; text-align:left; font-size:6.5pt">Место \ Субъектов</th>
-      {% for кол in таблица_зс.cols %}
-      <th>{{ таблица_зс.col_labels[кол] }}</th>
+      <th rowspan="2" style="width:90px; text-align:center">Количество субъектов<br>Российской Федерации</th>
+      <th colspan="{{ таблица_зс.cols|length }}" style="text-align:center">Количество баллов за каждую дисциплину за занятое место</th>
+    </tr>
+    <tr>
+      {% for м in таблица_зс.cols %}
+      <th style="width:38px">{{ таблица_зс.col_labels[м] }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
-    {% for м in таблица_зс.rows %}
+    {% for кол in таблица_зс.rows %}
     <tr>
-      <td style="text-align:left; font-weight:bold">{{ таблица_зс.row_labels[м] }}</td>
-      {% for кол in таблица_зс.cols %}
-      <td>{{ таблица_зс.data.get((м, кол), '') }}</td>
+      <td style="text-align:center; font-weight:bold">{{ таблица_зс.row_labels[кол] }}</td>
+      {% for м in таблица_зс.cols %}
+      {% set v = таблица_зс.data.get((кол, м)) %}
+      <td>{% if v is not none %}{% if v == v|int %}{{ v|int }}{% else %}{{ "%.1f"|format(v)|replace(".", ",") }}{% endif %}{% endif %}</td>
       {% endfor %}
     </tr>
     {% endfor %}
