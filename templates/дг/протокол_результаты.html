@@ -180,11 +180,11 @@
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center">{{ format_dur(сор.лимит_время_муж) if сор.лимит_время_муж else '—' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
     {% else %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
@@ -273,11 +273,11 @@
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center">{{ format_dur(сор.лимит_время_жен) if сор.лимит_время_жен else '—' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
     {% else %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
