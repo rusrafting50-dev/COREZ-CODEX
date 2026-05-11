@@ -10,7 +10,7 @@
     .head-grid { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
     .head-grid td { padding: 2px 0; font-size: 10.5pt; vertical-align: bottom; }
     .head-grid .lbl { white-space: nowrap; padding-right: 6px; }
-    .head-grid .val { border-bottom: 1px solid #000; width: 100%; }
+    .head-grid .val { border-bottom: 1px solid #000; }
     .head-grid .val strong { font-size: 10.5pt; }
 
     .head-two { display: flex; gap: 0; margin-bottom: 4px; }
@@ -45,7 +45,7 @@
     <td class="val"><strong>{{ з.наименование_команды or '' }}</strong></td>
     <td style="width:24px"></td>
     <td class="lbl" style="white-space:nowrap">Класс судов</td>
-    <td class="val" style="width:560px"><strong>{{ сор.класс_судна.replace('+', ', ') if сор.класс_судна else '' }}</strong></td>
+    <td class="val" style="width:42%"><strong>{{ сор.класс_судна.replace('+', ', ') if сор.класс_судна else '' }}</strong></td>
   </tr>
   <tr>
     <td class="lbl">Субъект</td>
