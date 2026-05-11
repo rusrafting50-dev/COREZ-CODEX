@@ -89,11 +89,12 @@
     <td colspan="8">Мужчины{% if возр_м %} — {{ возр_м }}{% endif %}</td>
   </tr>
   {% for к in муж %}
+  {% set к_num = loop.index %}
   {% set спортсмены = к.спортсмены | sort(attribute='id') %}
   {% for сп in спортсмены %}
   <tr>
     {% if loop.first %}
-    <td class="num" rowspan="{{ спортсмены | length }}">{{ loop.parent.index }}</td>
+    <td class="num" rowspan="{{ спортсмены | length }}">{{ к_num }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
@@ -116,11 +117,12 @@
     <td colspan="8">Женщины{% if возр_ж %} — {{ возр_ж }}{% endif %}</td>
   </tr>
   {% for к in жен %}
+  {% set к_num = loop.index %}
   {% set спортсмены = к.спортсмены | sort(attribute='id') %}
   {% for сп in спортсмены %}
   <tr>
     {% if loop.first %}
-    <td class="num" rowspan="{{ спортсмены | length }}">{{ loop.parent.index }}</td>
+    <td class="num" rowspan="{{ спортсмены | length }}">{{ к_num }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
     <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
