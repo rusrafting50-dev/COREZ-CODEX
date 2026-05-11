@@ -183,26 +183,24 @@
 {# ── Таблица ЗС (только в итоговом протоколе) ─────────────────────────────── #}
 {% if итоговый and таблица_зс and таблица_зс.rows %}
 <div style="margin-top:24px; font-size:8pt; font-weight:bold">
-  Таблица очков командного зачёта субъектов (Таблица ЗС)
+  Количество субъектов Российской Федерации
 </div>
-<div style="font-size:7pt; margin-bottom:4px">
-  Очки за занятое место в дисциплине в зависимости от числа команд в группе
+<div style="font-size:7pt; margin-bottom:4px; font-weight:bold">
+  Количество баллов за каждую дисциплину за занятое место
 </div>
 <table class="зс-table" style="width:auto">
   <thead>
     <tr>
-      <th style="width:60px; text-align:left">Место \ Команд</th>
+      <th style="width:80px; text-align:left; font-size:6.5pt">Место \ Субъектов</th>
       {% for кол in таблица_зс.cols %}
-      <th>{{ кол }}</th>
+      <th>{{ таблица_зс.col_labels[кол] }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
     {% for м in таблица_зс.rows %}
     <tr>
-      <td style="text-align:left; font-weight:bold">
-        {% if м == таблица_зс.rows | last and м >= 4 %}{{ м }}+{% else %}{{ м }}{% endif %}
-      </td>
+      <td style="text-align:left; font-weight:bold">{{ таблица_зс.row_labels[м] }}</td>
       {% for кол in таблица_зс.cols %}
       <td>{{ таблица_зс.data.get((м, кол), '') }}</td>
       {% endfor %}
