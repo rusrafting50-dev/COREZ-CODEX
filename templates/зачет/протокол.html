@@ -24,7 +24,7 @@
     {% endif %}
     table { border-collapse: collapse; width: 100%; table-layout: fixed; }
     th, td { border: 1px solid #333; padding: 2px 3px; vertical-align: middle;
-             text-align: center; font-size: 8pt; background: #fff; }
+             text-align: center; font-size: 10pt; background: #fff; }
     th { font-weight: bold; }
     td.text-left { text-align: left; }
     .underline-field { border-bottom: 1px solid #000; display: inline-block; }
@@ -100,7 +100,7 @@
     {% endfor %}
     <col style="width:58px">   {# итого кол #}
     <col style="width:55px">   {# итого баллы #}
-    <col style="width:30px">   {# место #}
+    <col style="width:50px">   {# место #}
   </colgroup>
   <thead>
     <tr>
@@ -110,7 +110,7 @@
       <th colspan="2">{{ ПОЛ_НАЗВ[пол] }} {{ кл }}</th>
       {% endfor %}
       <th colspan="2" style="font-weight:bold">ИТОГО</th>
-      <th rowspan="2" style="font-weight:bold">Место</th>
+      <th rowspan="2" style="font-weight:bold; white-space:nowrap">Место</th>
     </tr>
     <tr>
       {% for пол, кл in группы %}
