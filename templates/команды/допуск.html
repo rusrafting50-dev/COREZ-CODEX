@@ -33,7 +33,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Комиссия по допуску</h5>
   <div class="d-flex gap-2">
-    <a href="{{ url_for('документы.выписка_допуска', sor_id=сор.id) }}"
+    <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">🖨 Протокол комиссии по допуску</a>
     <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Новая заявка</a>

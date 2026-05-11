@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Протокол комиссии по допуску {{ класс }} — {{ сор.название | truncate(50) }}</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 15mm 10mm 15mm 15mm; }
+    @media print {
+      .no-print { display: none !important; }
+      @page { size: A4 landscape; margin: 10mm 8mm 10mm 12mm; }
+      body { font-size: 9pt; }
+      tr { page-break-inside: avoid; }
+    }
+    h2 { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase;
+         margin: 4px 0; letter-spacing: 0.5px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; font-size: 9pt; }
+    th { background: #f0f0f0; font-weight: bold; text-align: center; }
+    td.num { text-align: center; }
+    td.center { text-align: center; }
+    .section-row td { background: #e0e0e0; font-weight: bold; text-align: center;
+                      font-size: 10pt; padding: 3px 4px; }
+    .underline-field { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
+  </style>
+</head>
+<body>
+
+{# ── Навигация (только на экране) ── #}
+<div class="no-print" style="display:flex; justify-content:space-between; align-items:center;
+     margin-bottom:12px; font-family:system-ui,sans-serif; gap:8px;">
+  <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
+     style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
+            color:#6c757d; text-decoration:none; background:transparent;">← Комиссия по допуску</a>
+  <div style="display:flex; gap:6px;">
+    {% for кл in классы %}
+    <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id, класс=кл) }}"
+       style="font-size:.875rem; border-radius:.25rem; padding:.25rem .5rem; text-decoration:none;
+              {% if кл == класс %}border:1px solid #6c757d; background:#6c757d; color:#fff;
+              {% else %}border:1px solid #6c757d; color:#6c757d; background:transparent;{% endif %}">
+      {{ кл }}
+    </a>
+    {% endfor %}
+  </div>
+  <button onclick="window.print()"
+          style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
+                 background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
+</div>
+
+{# ── Шапка ── #}
+{% if сор.организаторы_блок %}
+<div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
+{% endif %}
+
+<div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
+
+<h2>Протокол комиссии по допуску — {{ класс }}</h2>
+
+<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
+  <div>
+    <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">дата проведения</div>
+  </div>
+  <div style="text-align:center">
+    <span class="underline-field" style="text-align:center; padding:0 4px; min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">место проведения</div>
+  </div>
+</div>
+
+{# ── Таблица ── #}
+<table>
+  <thead>
+    <tr>
+      <th style="width:28px">№<br>п/п</th>
+      <th style="width:130px">Команда</th>
+      <th style="width:110px">Территория</th>
+      <th style="width:140px">Тренер/<br>Представитель</th>
+      <th>Состав команды</th>
+      <th style="width:82px">Дата<br>рождения</th>
+      <th style="width:72px">Разряд,<br>звание</th>
+      <th style="width:60px">Нагрудный<br>номер</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  {# ── Мужчины ── #}
+  {% if муж %}
+  {% set возр_м = муж[0].возрастная_группа or '' %}
+  <tr class="section-row">
+    <td colspan="8">Мужчины{% if возр_м %} — {{ возр_м }}{% endif %}</td>
+  </tr>
+  {% for к in муж %}
+  {% set спортсмены = к.спортсмены | sort(attribute='id') %}
+  {% for сп in спортсмены %}
+  <tr>
+    {% if loop.first %}
+    <td class="num" rowspan="{{ спортсмены | length }}">{{ loop.parent.index }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
+    {% endif %}
+    <td>{{ сп.фамилия_имя_отчество }}</td>
+    <td class="center">{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
+    <td class="center">{{ сп.разряд or '' }}</td>
+    {% if loop.first %}
+    <td class="center" rowspan="{{ спортсмены | length }}">{{ к.нагрудный_номер }}</td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  {% endfor %}
+  {% endif %}
+
+  {# ── Женщины ── #}
+  {% if жен %}
+  {% set возр_ж = жен[0].возрастная_группа or '' %}
+  <tr class="section-row">
+    <td colspan="8">Женщины{% if возр_ж %} — {{ возр_ж }}{% endif %}</td>
+  </tr>
+  {% for к in жен %}
+  {% set спортсмены = к.спортсмены | sort(attribute='id') %}
+  {% for сп in спортсмены %}
+  <tr>
+    {% if loop.first %}
+    <td class="num" rowspan="{{ спортсмены | length }}">{{ loop.parent.index }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
+    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
+    {% endif %}
+    <td>{{ сп.фамилия_имя_отчество }}</td>
+    <td class="center">{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
+    <td class="center">{{ сп.разряд or '' }}</td>
+    {% if loop.first %}
+    <td class="center" rowspan="{{ спортсмены | length }}">{{ к.нагрудный_номер }}</td>
+    {% endif %}
+  </tr>
+  {% endfor %}
+  {% endfor %}
+  {% endif %}
+
+  </tbody>
+</table>
+
+{# ── Подписи ── #}
+<div style="margin-top:20px; font-size:10pt">
+  <div style="display:flex; align-items:baseline; margin-bottom:12px">
+    <div style="width:42%">Председатель комиссии по допуску</div>
+    <span class="underline-field" style="min-width:50px; flex:0 0 60px"></span>
+    <div style="margin-left:8px">
+      {% if председатель %}{{ председатель.фамилия_имя_отчество }}
+      {% if председатель.квалификация %}, {{ председатель.квалификация }}{% endif %}
+      {% if председатель.субъект_рф %}, {{ председатель.субъект_рф }}{% endif %}
+      {% endif %}
+    </div>
+  </div>
+  <div style="display:flex; align-items:baseline">
+    <div style="width:42%">Главный судья соревнований</div>
+    <span class="underline-field" style="min-width:50px; flex:0 0 60px"></span>
+    <div style="margin-left:8px">{{ сор.главный_судья or '' }}</div>
+  </div>
+</div>
+
+</body>
+</html>
