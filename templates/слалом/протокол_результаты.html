@@ -271,7 +271,7 @@
       <th rowspan="2">Номер экипажа</th>
       <th rowspan="2">Фамилия, имя, отчество участников</th>
       <th rowspan="2">Территория</th>
-      <th rowspan="2" style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;padding:2px;border:1px solid #333">Попытка</th>
+      <th rowspan="2" style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed">Попытка</div></th>
       <th colspan="{{ кол_ворот + 2 }}" class="text-center">Прохождение дистанции (штрафные баллы)</th>
       <th colspan="3" class="text-center">Результат попытки</th>
       <th rowspan="2">Лучший результат</th>
@@ -280,9 +280,9 @@
       <th rowspan="2">Выполненный норматив*</th>
     </tr>
     <tr>
-      <th style="writing-mode:vertical-rl;transform:rotate(180deg);padding:2px;border:1px solid #333">Старт</th>
+      <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
       {% for в in range(1, кол_ворот + 1) %}<th>{{ в }}</th>{% endfor %}
-      <th style="writing-mode:vertical-rl;transform:rotate(180deg);padding:2px;border:1px solid #333">Финиш</th>
+      <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Финиш</div></th>
       <th>Штрафное время</th>
       <th>Время прохождения</th>
       <th>Итоговый результат</th>
