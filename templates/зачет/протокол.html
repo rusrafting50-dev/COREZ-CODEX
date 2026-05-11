@@ -95,12 +95,12 @@
     <col style="width:22px">   {# № п/п #}
     <col>                      {# Субъект РФ — занимает остаток #}
     {% for пол, кл in группы %}
-    <col style="width:30px">   {# кол экипажей #}
-    <col style="width:44px">   {# баллы #}
+    <col style="width:58px">   {# кол экипажей #}
+    <col style="width:48px">   {# баллы #}
     {% endfor %}
-    <col style="width:30px">   {# итого кол #}
-    <col style="width:52px">   {# итого баллы #}
-    <col style="width:26px">   {# место #}
+    <col style="width:58px">   {# итого кол #}
+    <col style="width:55px">   {# итого баллы #}
+    <col style="width:30px">   {# место #}
   </colgroup>
   <thead>
     <tr>
@@ -114,10 +114,10 @@
     </tr>
     <tr>
       {% for пол, кл in группы %}
-      <th style="font-size:6.5pt">Количество экипажей</th>
+      <th style="font-size:6.5pt">Количество<br>экипажей</th>
       <th>Баллы</th>
       {% endfor %}
-      <th style="font-size:6.5pt">Количество экипажей</th>
+      <th style="font-size:6.5pt">Количество<br>экипажей</th>
       <th style="font-weight:bold">Баллы</th>
     </tr>
   </thead>
