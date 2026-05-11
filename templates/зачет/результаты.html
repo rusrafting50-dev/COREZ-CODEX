@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Зачёт субъектов — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}Командный зачёт субъектов — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,7 +7,7 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Зачёт субъектов</li>
+    <li class="breadcrumb-item active">Командный зачёт</li>
   </ol>
 {% endblock %}
 
@@ -19,14 +19,20 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Командный зачет среди субъектов Российской Федерации</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Предв. протокол</a>
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm">Итоговый протокол</a>
+    {% if has_r6 %}
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, класс='R4') }}"
+       class="btn btn-primary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, класс='R6') }}"
+       class="btn btn-outline-primary btn-sm">🖨 Итоговые протоколы R6</a>
+    {% else %}
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, класс='R4') }}"
+       class="btn btn-primary btn-sm">🖨 Итоговые протоколы</a>
+    {% endif %}
     <a href="{{ url_for('награждение.диплом_зачет', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
        class="btn btn-outline-warning btn-sm">🖨 Дипломы</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 <div class="alert alert-info py-2 small mb-3">
   Суммируются очки всех экипажей субъекта по всем дистанциям.
@@ -34,10 +40,8 @@
   Коэффициент = 1.0 (кол. субъектов не задано).{% endif %}
 </div>
 
-{% for пол, назв, кл, итог in таблицы %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ 'primary' if пол == 'м' else 'danger' }}">
-  {{ назв }} · {{ кл }} ({{ итог | length }} субъектов)
-</h6>
+{% macro таблица_зачет(итог, заг, цвет) %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }} ({{ итог | length }} субъектов)</h6>
 {% if not итог %}
 <div class="text-muted small mb-3">Нет данных.</div>
 {% else %}
@@ -47,12 +51,12 @@
       <tr>
         <th class="text-center" style="width:45px">Место</th>
         <th>Субъект РФ</th>
-        <th class="text-center" style="width:45px">Экип.</th>
-        <th class="text-center" style="width:60px">Спринт</th>
-        <th class="text-center" style="width:60px">ПС</th>
-        <th class="text-center" style="width:60px">Слалом</th>
-        <th class="text-center" style="width:60px">Дл. гонка</th>
-        <th class="text-center" style="width:60px">Многобор.</th>
+        <th class="text-center" style="width:50px">Кол-во экипажей</th>
+        <th class="text-center" style="width:65px">Спринт</th>
+        <th class="text-center" style="width:65px">Пар. спринт</th>
+        <th class="text-center" style="width:65px">Слалом</th>
+        <th class="text-center" style="width:65px">Дл. гонка</th>
+        <th class="text-center" style="width:65px">Многоборье</th>
         <th class="text-center fw-bold" style="width:70px">Сумма</th>
         <th class="text-center" style="width:55px">Коэф.</th>
         <th class="text-center fw-bold" style="width:75px">Итого</th>
@@ -78,7 +82,23 @@
   </table>
 </div>
 {% endif %}
+{% endmacro %}
+
+{% set муж_р4 = таблицы | selectattr('0', 'equalto', 'м') | selectattr('2', 'equalto', 'R4') | list %}
+{% set жен_р4 = таблицы | selectattr('0', 'equalto', 'ж') | selectattr('2', 'equalto', 'R4') | list %}
+{% set муж_р6 = таблицы | selectattr('0', 'equalto', 'м') | selectattr('2', 'equalto', 'R6') | list %}
+{% set жен_р6 = таблицы | selectattr('0', 'equalto', 'ж') | selectattr('2', 'equalto', 'R6') | list %}
+
+{% for пол, назв, кл, итог in таблицы %}
+  {% if пол == 'м' and кл == 'R4' %}{{ таблица_зачет(итог, 'Мужские экипажи · R4', 'primary') }}{% endif %}
+  {% if пол == 'ж' and кл == 'R4' %}{{ таблица_зачет(итог, 'Женские экипажи · R4', 'danger') }}{% endif %}
 {% endfor %}
+{% if has_r6 %}
+{% for пол, назв, кл, итог in таблицы %}
+  {% if пол == 'м' and кл == 'R6' %}{{ таблица_зачет(итог, 'Мужские экипажи · R6', 'primary') }}{% endif %}
+  {% if пол == 'ж' and кл == 'R6' %}{{ таблица_зачет(итог, 'Женские экипажи · R6', 'danger') }}{% endif %}
+{% endfor %}
+{% endif %}
 
 <div class="d-flex justify-content-between align-items-end mt-3">
   <div class="text-muted small">Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>
