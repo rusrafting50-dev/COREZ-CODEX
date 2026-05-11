@@ -40,18 +40,11 @@
   <a href="{{ url_for('зачет.результаты', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
-    {% if итоговый %}
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, портрет=(1 if портрет else 0)) }}"
-       class="btn btn-outline-secondary btn-sm">Предварительный</a>
-    {% else %}
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0)) }}"
-       class="btn btn-outline-primary btn-sm">Итоговый</a>
-    {% endif %}
     {% if портрет %}
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=(1 if итоговый else 0)) }}"
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
        class="btn btn-outline-secondary btn-sm">Альбом</a>
     {% else %}
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=(1 if итоговый else 0), портрет=1) }}"
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, портрет=1) }}"
        class="btn btn-outline-secondary btn-sm">Портрет</a>
     {% endif %}
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
@@ -74,7 +67,7 @@
 {% endif %}
 
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-transform:uppercase">
-  {% if итоговый %}Итоговый протокол{% else %}Предварительный протокол{% endif %}
+  Протокол
 </div>
 
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold">
