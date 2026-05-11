@@ -123,7 +123,7 @@
         </td>
         <td class="text-center font-monospace cell-время">{{ format_dur(р.время_прохождения) }}</td>
         <td class="text-center font-monospace cell-штраф {{ 'text-danger' if р.штрафное_время else '' }}">
-          {{ format_dur(р.штрафное_время) if р.штрафное_время else '—' }}
+          {{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}
         </td>
         <td class="text-center font-monospace cell-результат">
           {% if р.статус == 'ПМ' %}<span class="text-muted">ПМ</span>
@@ -266,10 +266,10 @@ function пересчитатьСтроку(row) {
     if (cellВремя) cellВремя.textContent = formatDur(splitTime);
     if (cellШтраф) {
         if (penTotal > 0) {
-            cellШтраф.textContent = '+' + penTotal + 'с';
+            cellШтраф.textContent = formatDur(penTotal);
             cellШтраф.classList.add('text-danger');
         } else {
-            cellШтраф.textContent = '—';
+            cellШтраф.textContent = '0:00.00';
             cellШтраф.classList.remove('text-danger');
         }
     }
