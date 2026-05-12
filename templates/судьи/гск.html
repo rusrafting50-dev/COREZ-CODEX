@@ -46,14 +46,14 @@
 </div>
 
 {# ── Дата и место ── #}
-<div style="display:flex; gap:32px; align-items:flex-end; font-size:10pt; font-weight:bold; margin-top:8px; margin-bottom:16px">
-  <div style="text-align:center">
-    <div class="underline-field" style="min-width:140px; text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Дата проведения</div>
+<div style="display:flex; justify-content:space-between; font-size:10pt; margin-top:8px; margin-bottom:8pt">
+  <div style="display:inline-block; text-align:center">
+    <div class="underline-field" style="display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center">Дата проведения</div>
   </div>
-  <div style="text-align:right">
-    <div class="underline-field" style="min-width:200px; text-align:right; padding:0 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Место проведения</div>
+  <div style="display:inline-block; text-align:center">
+    <div class="underline-field" style="display:block; min-width:160px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center">Место проведения</div>
   </div>
 </div>
 
