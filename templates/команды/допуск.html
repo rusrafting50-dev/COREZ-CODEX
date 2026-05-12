@@ -203,6 +203,7 @@
         <select name="вывод_допуска" class="form-select form-select-sm" style="width:auto">
           <option value="Попарно" {% if (сор.вывод_допуска or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
           <option value="Раздельно" {% if сор.вывод_допуска == 'Раздельно' %}selected{% endif %}>Раздельно</option>
+          <option value="Вместе" {% if сор.вывод_допуска == 'Вместе' %}selected{% endif %}>Все вместе</option>
         </select>
         <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
       </div>
