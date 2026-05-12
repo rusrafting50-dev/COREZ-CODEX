@@ -33,23 +33,20 @@
   <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
      style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
             color:#6c757d; text-decoration:none; background:transparent;">← Комиссия по допуску</a>
-  {% if вывод == 'Попарно' %}
-  <div style="display:flex; gap:6px;">
-    {% for кл in классы %}
-    <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id, класс=кл) }}"
-       style="font-size:.875rem; border-radius:.25rem; padding:.25rem .5rem; text-decoration:none;
-              {% if кл == класс %}border:1px solid #6c757d; background:#6c757d; color:#fff;
-              {% else %}border:1px solid #6c757d; color:#6c757d; background:transparent;{% endif %}">
-      {{ кл }}
-    </a>
-    {% endfor %}
+  <div style="display:flex; gap:6px; align-items:center;">
+    {% if вывод == 'Попарно' %}
+      {% for кл in классы %}
+        {% if кл != класс %}
+        <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id, класс=кл) }}"
+           style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
+                  color:#6c757d; text-decoration:none; background:transparent;">Класс судов {{ кл }}</a>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    <button onclick="window.print()"
+            style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
+                   background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
   </div>
-  {% else %}
-  <div></div>
-  {% endif %}
-  <button onclick="window.print()"
-          style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
-                 background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
 </div>
 
 {# ── Макрос: шапка документа ── #}
