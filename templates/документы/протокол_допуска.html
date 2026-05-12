@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Протокол комиссии по допуску {{ заголовок_класс }} — {{ сор.название | truncate(50) }}</title>
+  <title>Протокол комиссии по допуску — {{ сор.название | truncate(50) }}</title>
   <style>
     body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 15mm 10mm 15mm 15mm; }
     @media print {
@@ -10,6 +10,8 @@
       @page { size: A4 landscape; margin: 10mm 8mm 10mm 12mm; }
       body { font-size: 9pt; }
       tr { page-break-inside: avoid; }
+      .раздел-блок { page-break-before: always; }
+      .раздел-блок:first-child { page-break-before: auto; }
     }
     h2 { text-align: center; font-size: 12pt; font-weight: bold;
          margin: 4px 0; letter-spacing: 0.5px; }
@@ -20,6 +22,7 @@
     td.center { text-align: center; }
     .section-row td { font-weight: bold; text-align: center; font-size: 10pt; padding: 3px 4px; }
     .underline-field { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
+    .раздел-блок { margin-top: 24px; }
   </style>
 </head>
 <body>
@@ -30,7 +33,7 @@
   <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}"
      style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
             color:#6c757d; text-decoration:none; background:transparent;">← Комиссия по допуску</a>
-  {% if вывод != 'Вместе' %}
+  {% if вывод == 'Попарно' %}
   <div style="display:flex; gap:6px;">
     {% for кл in классы %}
     <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id, класс=кл) }}"
@@ -49,15 +52,11 @@
                  background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
 </div>
 
-{# ── Шапка ── #}
+{# ── Шапка документа ── #}
 {% if сор.организаторы_блок %}
 <div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
 {% endif %}
-
 <div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
-
-<h2 style="text-transform:none">Протокол комиссии по допуску</h2>
-<h2>КЛАСС СУДОВ — {{ заголовок_класс }}</h2>
 
 <div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
   <div>
@@ -70,50 +69,53 @@
   </div>
 </div>
 
-{# ── Таблица ── #}
-<table>
-  <thead>
-    <tr>
-      <th style="width:28px">№<br>п/п</th>
-      <th style="width:130px">Команда</th>
-      <th style="width:110px">Территория</th>
-      <th style="width:140px">Тренер/<br>Представитель</th>
-      <th>Состав команды</th>
-      <th style="width:82px">Дата<br>рождения</th>
-      <th style="width:72px">Разряд,<br>звание</th>
-      <th style="width:60px">Нагрудный<br>номер</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for секция in секции %}
-  <tr class="section-row">
-    <td colspan="8">{{ секция.заголовок }}{% if вывод == 'Вместе' %} — {{ секция.класс }}{% endif %}</td>
-  </tr>
-  {% for к in секция.команды %}
-  {% set к_num = loop.index %}
-  {% set спортсмены = к.спортсмены | sort(attribute='id') %}
-  {% for сп in спортсмены %}
-  <tr>
-    {% if loop.first %}
-    <td class="num" rowspan="{{ спортсмены | length }}">{{ к_num }}</td>
-    <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
-    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
-    <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
-    {% endif %}
-    <td>{{ сп.фамилия_имя_отчество }}</td>
-    <td class="center">{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
-    <td class="center">{{ сп.разряд or '' }}</td>
-    {% if loop.first %}
-    <td class="center" rowspan="{{ спортсмены | length }}">{{ к.нагрудный_номер }}</td>
-    {% endif %}
-  </tr>
-  {% endfor %}
-  {% endfor %}
-  {% endfor %}
-  </tbody>
-</table>
+{# ── Макрос: строки таблицы для одной секции ── #}
+{% macro строки_секции(секция, show_section_row, вывод) %}
+{% if show_section_row %}
+<tr class="section-row">
+  <td colspan="8">{{ секция.заголовок }}{% if вывод == 'Вместе' %} — {{ секция.класс }}{% endif %}</td>
+</tr>
+{% endif %}
+{% for к in секция.команды %}
+{% set к_num = loop.index %}
+{% set спортсмены = к.спортсмены | sort(attribute='id') %}
+{% for сп in спортсмены %}
+<tr>
+  {% if loop.first %}
+  <td class="num" rowspan="{{ спортсмены | length }}">{{ к_num }}</td>
+  <td rowspan="{{ спортсмены | length }}">{{ к.название or '' }}</td>
+  <td rowspan="{{ спортсмены | length }}">{{ к.субъект.название if к.субъект else '' }}</td>
+  <td rowspan="{{ спортсмены | length }}">{{ к.субъект.представитель if к.субъект else '' }}</td>
+  {% endif %}
+  <td>{{ сп.фамилия_имя_отчество }}</td>
+  <td class="center">{{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '' }}</td>
+  <td class="center">{{ сп.разряд or '' }}</td>
+  {% if loop.first %}
+  <td class="center" rowspan="{{ спортсмены | length }}">{{ к.нагрудный_номер }}</td>
+  {% endif %}
+</tr>
+{% endfor %}
+{% endfor %}
+{% endmacro %}
 
-{# ── Подписи ── #}
+{# ── Макрос: шапка таблицы ── #}
+{% macro thead_таблицы() %}
+<thead>
+  <tr>
+    <th style="width:28px">№<br>п/п</th>
+    <th style="width:130px">Команда</th>
+    <th style="width:110px">Территория</th>
+    <th style="width:140px">Тренер/<br>Представитель</th>
+    <th>Состав команды</th>
+    <th style="width:82px">Дата<br>рождения</th>
+    <th style="width:72px">Разряд,<br>звание</th>
+    <th style="width:60px">Нагрудный<br>номер</th>
+  </tr>
+</thead>
+{% endmacro %}
+
+{# ── Макрос: подписи ── #}
+{% macro подписи() %}
 <div style="margin-top:20px; font-size:10pt; font-weight:bold">
   <div style="display:flex; align-items:baseline; margin-bottom:12px">
     <div style="width:42%">Председатель комиссии по допуску</div>
@@ -129,6 +131,48 @@
     <div>{{ сор.главный_судья or '' }}</div>
   </div>
 </div>
+{% endmacro %}
+
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{# Режим «Раздельно»: каждая секция — отдельный блок с заголовком и таблицей #}
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{% if вывод == 'Раздельно' %}
+
+{% for секция in секции %}
+<div class="раздел-блок">
+  <h2 style="text-transform:none">Протокол комиссии по допуску</h2>
+  <h2>КЛАСС СУДОВ — {{ секция.класс }}</h2>
+  <table>
+    {{ thead_таблицы() }}
+    <tbody>
+      <tr class="section-row"><td colspan="8">{{ секция.заголовок }}</td></tr>
+      {{ строки_секции(секция, false, вывод) }}
+    </tbody>
+  </table>
+  {{ подписи() }}
+</div>
+{% endfor %}
+
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{# Режим «Попарно» / «Все вместе»: одна таблица                              #}
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{% else %}
+
+<h2 style="text-transform:none">Протокол комиссии по допуску</h2>
+<h2>КЛАСС СУДОВ — {{ заголовок_класс }}</h2>
+
+<table>
+  {{ thead_таблицы() }}
+  <tbody>
+  {% for секция in секции %}
+    {{ строки_секции(секция, true, вывод) }}
+  {% endfor %}
+  </tbody>
+</table>
+
+{{ подписи() }}
+
+{% endif %}
 
 </body>
 </html>
