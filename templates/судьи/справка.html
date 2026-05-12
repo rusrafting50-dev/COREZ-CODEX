@@ -27,7 +27,7 @@
 {# ── Навигация ── #}
 <div class="d-flex justify-content-between align-items-center mb-3 no-print">
   <a href="{{ url_for('судьи.список', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← Назад к списку</a>
+     class="btn btn-outline-secondary btn-sm">← Судейская коллегия</a>
   <div class="d-flex gap-2">
     <a href="{{ url_for('судьи.гск',       sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Состав ГСК</a>
     <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Список судей</a>
