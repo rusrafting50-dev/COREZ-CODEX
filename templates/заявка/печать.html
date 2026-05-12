@@ -118,52 +118,18 @@
   </tbody>
 </table>
 
-<table style="width:100%; margin-top:28px; border-collapse:collapse;">
-  <tr>
-    <td style="width:50%; font-size:10.5pt; vertical-align:bottom;">
-      {{ з.орг_наименование or 'Руководитель организации' }}
-    </td>
-    <td style="width:50%; font-size:10.5pt; vertical-align:bottom; padding-left:20px;">
-      Тренер-представитель команды
-    </td>
-  </tr>
-  <tr>
-    <td style="padding-top:20px; vertical-align:bottom;">
-      <table style="width:100%; border-collapse:collapse;">
-        <tr>
-          <td style="border-bottom:1px solid #000; width:80px; text-align:center;">/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</td>
-          <td style="width:10px"></td>
-          <td style="border-bottom:1px solid #000;">{{ з.орг_фио_руководителя or '' }}</td>
-        </tr>
-        <tr>
-          <td style="font-size:8pt; color:#444; text-align:center;">подпись</td>
-          <td></td>
-          <td style="font-size:8pt; color:#444;">Ф.И.О.</td>
-        </tr>
-      </table>
-    </td>
-    <td style="padding-top:20px; padding-left:20px; vertical-align:bottom;">
-      <table style="width:100%; border-collapse:collapse;">
-        <tr>
-          <td style="border-bottom:1px solid #000; width:80px; text-align:center;">/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</td>
-          <td style="width:10px"></td>
-          <td style="border-bottom:1px solid #000;">{{ з.тренер_фио or '' }}</td>
-        </tr>
-        <tr>
-          <td style="font-size:8pt; color:#444; text-align:center;">подпись</td>
-          <td></td>
-          <td style="font-size:8pt; color:#444;">Ф.И.О.</td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td style="padding-top:8px; font-size:10.5pt;">М.П.</td>
-    <td style="padding-top:8px; font-size:10.5pt; padding-left:20px;">
-      {{ сегодня.strftime('%d %B %Y') }} г.
-    </td>
-  </tr>
-</table>
+{% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
+<div style="display:flex; align-items:baseline; gap:8px; margin-top:28px; font-size:10.5pt;">
+  <span>{{ з.орг_должность_руководителя or '' }}</span>
+  <span style="border-bottom:1px solid #000; flex:0 0 80px; display:inline-block;"></span>
+  <span>
+    {%- set ч = з.орг_фио_руководителя.split() if з.орг_фио_руководителя else [] -%}
+    {{ ч[0] ~ ' ' ~ ч[1][0] ~ '. ' ~ ч[2][0] ~ '.' if ч|length >= 3 else (з.орг_фио_руководителя or '') }}
+  </span>
+</div>
+<div style="margin-top:8px; font-size:10.5pt;">
+  {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} г.
+</div>
 
 </body>
 </html>

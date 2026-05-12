@@ -57,6 +57,12 @@
                  value="{{ з.орг_фио_руководителя if з else '' }}">
         </div>
         <div class="col-md-4">
+          <label class="form-label">Должность руководителя</label>
+          <input type="text" name="орг_должность_руководителя" class="form-control form-control-sm"
+                 placeholder="Директор"
+                 value="{{ з.орг_должность_руководителя if з else '' }}">
+        </div>
+        <div class="col-md-4">
           <label class="form-label">Телефон</label>
           <input type="text" name="орг_телефон" class="form-control form-control-sm"
                  placeholder="+7 (900) 000-00-00"

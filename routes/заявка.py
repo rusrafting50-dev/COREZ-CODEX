@@ -32,10 +32,11 @@ def новая(sor_id):
             соревнование_id      = sor_id,
             субъект_рф           = request.form.get('субъект_рф', '').strip(),
             наименование_команды = request.form.get('наименование_команды', '').strip(),
-            орг_наименование     = request.form.get('орг_наименование', '').strip(),
-            орг_фио_руководителя = request.form.get('орг_фио_руководителя', '').strip(),
-            орг_телефон          = request.form.get('орг_телефон', '').strip(),
-            орг_email            = request.form.get('орг_email', '').strip(),
+            орг_наименование           = request.form.get('орг_наименование', '').strip(),
+            орг_фио_руководителя       = request.form.get('орг_фио_руководителя', '').strip(),
+            орг_должность_руководителя = request.form.get('орг_должность_руководителя', '').strip(),
+            орг_телефон                = request.form.get('орг_телефон', '').strip(),
+            орг_email                  = request.form.get('орг_email', '').strip(),
             тренер_фио           = request.form.get('тренер_фио', '').strip(),
             тренер_телефон       = request.form.get('тренер_телефон', '').strip(),
             тренер_email         = request.form.get('тренер_email', '').strip(),
@@ -57,10 +58,11 @@ def редактировать(sor_id, z_id):
     if request.method == 'POST':
         з.субъект_рф           = request.form.get('субъект_рф', '').strip()
         з.наименование_команды = request.form.get('наименование_команды', '').strip()
-        з.орг_наименование     = request.form.get('орг_наименование', '').strip()
-        з.орг_фио_руководителя = request.form.get('орг_фио_руководителя', '').strip()
-        з.орг_телефон          = request.form.get('орг_телефон', '').strip()
-        з.орг_email            = request.form.get('орг_email', '').strip()
+        з.орг_наименование           = request.form.get('орг_наименование', '').strip()
+        з.орг_фио_руководителя       = request.form.get('орг_фио_руководителя', '').strip()
+        з.орг_должность_руководителя = request.form.get('орг_должность_руководителя', '').strip()
+        з.орг_телефон                = request.form.get('орг_телефон', '').strip()
+        з.орг_email                  = request.form.get('орг_email', '').strip()
         з.тренер_фио           = request.form.get('тренер_фио', '').strip()
         з.тренер_телефон       = request.form.get('тренер_телефон', '').strip()
         з.тренер_email         = request.form.get('тренер_email', '').strip()

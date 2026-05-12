@@ -852,10 +852,11 @@ class ПредварительнаяЗаявка(db.Model):
     субъект_рф            = db.Column(db.String(200), nullable=True)
     наименование_команды  = db.Column(db.String(200), nullable=True)
     # Организация
-    орг_наименование      = db.Column(db.String(300), nullable=True)
-    орг_фио_руководителя  = db.Column(db.String(200), nullable=True)
-    орг_телефон           = db.Column(db.String(50),  nullable=True)
-    орг_email             = db.Column(db.String(100), nullable=True)
+    орг_наименование           = db.Column(db.String(300), nullable=True)
+    орг_фио_руководителя       = db.Column(db.String(200), nullable=True)
+    орг_должность_руководителя = db.Column(db.String(200), nullable=True)
+    орг_телефон                = db.Column(db.String(50),  nullable=True)
+    орг_email                  = db.Column(db.String(100), nullable=True)
     # Тренер-представитель
     тренер_фио            = db.Column(db.String(200), nullable=True)
     тренер_телефон        = db.Column(db.String(50),  nullable=True)
@@ -1125,6 +1126,14 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_допуска VARCHAR(20)"
+                ))
+                conn.commit()
+        # предварительные_заявки: должность руководителя
+        if inspector.has_table('предварительные_заявки'):
+            cols_з = {c['name'] for c in inspector.get_columns('предварительные_заявки')}
+            if 'орг_должность_руководителя' not in cols_з:
+                conn.execute(text(
+                    'ALTER TABLE предварительные_заявки ADD COLUMN орг_должность_руководителя VARCHAR(200)'
                 ))
                 conn.commit()
         # результаты_слалом: штрафы старта и финиша
