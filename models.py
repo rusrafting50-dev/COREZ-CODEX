@@ -220,6 +220,7 @@ class Соревнование(db.Model):
     судьи               = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
     тех_проверки        = db.relationship('ТехПроверка', back_populates='соревнование', cascade='all, delete-orphan')
     тех_состав_комиссии = db.relationship('ТехСоставКомиссии', back_populates='соревнование', uselist=False)
+    состав_комиссии_допуска = db.relationship('СоставКомиссииДопуска', back_populates='соревнование', uselist=False)
     параметры_дистанций = db.relationship('ПараметрыДистанции', back_populates='соревнование',
                                           cascade='all, delete-orphan',
                                           order_by='ПараметрыДистанции.порядок')
@@ -425,6 +426,28 @@ class ТехСоставКомиссии(db.Model):
     член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
 
     соревнование = db.relationship('Соревнование', back_populates='тех_состав_комиссии')
+
+
+class СоставКомиссииДопуска(db.Model):
+    """Состав комиссии по допуску на соревновании (одна запись на соревнование)."""
+    __tablename__ = 'состав_комиссии_допуска'
+
+    id                       = db.Column(db.Integer, primary_key=True)
+    соревнование_id          = db.Column(db.Integer, db.ForeignKey('соревнования.id'), unique=True, nullable=False)
+    председатель_фио           = db.Column(db.String(200), nullable=True)
+    председатель_должность     = db.Column(db.String(200), nullable=True)
+    председатель_квалификация  = db.Column(db.String(100), nullable=True)
+    председатель_субъект_рф    = db.Column(db.String(200), nullable=True)
+    член_1_фио                 = db.Column(db.String(200), nullable=True)
+    член_1_должность           = db.Column(db.String(200), nullable=True)
+    член_1_квалификация        = db.Column(db.String(100), nullable=True)
+    член_1_субъект_рф          = db.Column(db.String(200), nullable=True)
+    член_2_фио                 = db.Column(db.String(200), nullable=True)
+    член_2_должность           = db.Column(db.String(200), nullable=True)
+    член_2_квалификация        = db.Column(db.String(100), nullable=True)
+    член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='состав_комиссии_допуска')
 
 
 class ПараметрыДистанции(db.Model):
