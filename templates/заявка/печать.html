@@ -121,7 +121,7 @@
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
 <div style="display:flex; align-items:baseline; gap:8px; margin-top:28px; font-size:10.5pt;">
   <span>{{ з.орг_должность_руководителя or '' }}{% if з.орг_наименование %} {{ з.орг_наименование }}{% endif %}</span>
-  <span style="border-bottom:1px solid #000; flex:0 0 80px; display:inline-block;"></span>
+  <span style="flex:0 0 120px; display:inline-block;"></span>
   <span>
     {%- set ч = з.орг_фио_руководителя.split() if з.орг_фио_руководителя else [] -%}
     {{ ч[0] ~ ' ' ~ ч[1][0] ~ '. ' ~ ч[2][0] ~ '.' if ч|length >= 3 else (з.орг_фио_руководителя or '') }}
