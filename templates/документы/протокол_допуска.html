@@ -52,12 +52,12 @@
                  background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
 </div>
 
-{# ── Шапка документа ── #}
+{# ── Макрос: шапка документа ── #}
+{% macro шапка_документа() %}
 {% if сор.организаторы_блок %}
 <div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
 {% endif %}
 <div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
-
 <div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
   <div>
     <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
@@ -68,6 +68,12 @@
     <div style="font-size:7.5pt; text-align:center">место проведения</div>
   </div>
 </div>
+{% endmacro %}
+
+{# ── Шапка документа (один раз — для Попарно/Вместе, и первый блок Раздельно) ── #}
+{% if вывод != 'Раздельно' %}
+{{ шапка_документа() }}
+{% endif %}
 
 {# ── Макрос: строки таблицы для одной секции ── #}
 {% macro строки_секции(секция, show_section_row, вывод) %}
@@ -140,6 +146,7 @@
 
 {% for секция in секции %}
 <div class="раздел-блок">
+  {{ шапка_документа() }}
   <h2 style="text-transform:none">Протокол комиссии по допуску</h2>
   <h2>КЛАСС СУДОВ — {{ секция.класс }}</h2>
   <table>
