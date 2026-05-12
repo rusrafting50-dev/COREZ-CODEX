@@ -51,8 +51,8 @@
     <div class="underline-field" style="min-width:140px; text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Дата проведения</div>
   </div>
-  <div style="text-align:center">
-    <div class="underline-field" style="min-width:200px; text-align:center; padding:0 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
+  <div style="text-align:right">
+    <div class="underline-field" style="min-width:200px; text-align:right; padding:0 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>
@@ -72,7 +72,7 @@
       {%- endif -%}
     {%- endif -%}
   </div>
-  <div style="margin-top:8px">
+  <div style="margin-top:8px; text-align:right">
     {% if сор.проводящая_орг_руководитель %}
       {% set фио = сор.проводящая_орг_руководитель.split() %}
       {% if фио|length >= 3 %}{{ фио[1][0] }}. {{ фио[2][0] }}. {{ фио[0] }}
