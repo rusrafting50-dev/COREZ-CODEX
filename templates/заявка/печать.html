@@ -82,9 +82,9 @@
     <span class="field-lbl">Проводимых в</span>
     <span class="field-val">{{ сор.место_проведения or '&nbsp;' }}</span>
   </div>
-  <div class="field-item" style="flex:1">
+  <div class="field-item" style="flex:0 0 auto">
     <span class="field-lbl">в период</span>
-    <span class="field-val">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <span class="field-val" style="white-space:nowrap; min-width:160px;">{{ сор.даты_проведения or '&nbsp;' }}</span>
   </div>
 </div>
 
