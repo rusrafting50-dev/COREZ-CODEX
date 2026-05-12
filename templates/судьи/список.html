@@ -11,21 +11,7 @@
   </ol>
 {% endblock %}
 
-{% macro кнопка_готовности(поле, section) %}
-<form method="post"
-      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
-      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
-  <button type="submit"
-          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
-          style="min-width:120px;font-size:.95rem">
-    {{ '✓ Готово' if поле else 'В работе' }}
-  </button>
-</form>
-{% endmacro %}
-
 {% block content %}
-
-{{ кнопка_готовности(сор.готов_судьи, 'judges') }}
 
 {# ── Заголовок ── #}
 <div class="text-center mb-3">
@@ -116,4 +102,16 @@
   </a>
 </div>
 {% endif %}
+
+<div class="d-flex justify-content-end mt-3">
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='judges') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if сор.готов_судьи else 'btn-outline-secondary bg-white' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if сор.готов_судьи else 'В работе' }}
+    </button>
+  </form>
+</div>
+
 {% endblock %}
