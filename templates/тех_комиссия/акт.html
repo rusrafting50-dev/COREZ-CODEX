@@ -4,234 +4,166 @@
   <meta charset="UTF-8">
   <title>Акт ТК {{ класс }} — {{ сор.название | truncate(60) }}</title>
   <style>
-    @page { size: A4 landscape; margin: 18mm 14mm 18mm 20mm; }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: "Times New Roman", serif;
-      font-size: 12pt;
-      color: #000;
-      line-height: 1.35;
-    }
-    @media screen {
-      body { background: #e8e8e8; padding: 20px; }
-      .page { background: #fff; max-width: 263mm; margin: 0 auto; padding: 18mm 14mm 18mm 20mm; }
-    }
+    body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 15mm 10mm 15mm 15mm; }
     @media print {
-      body { background: none; }
-      .page { padding: 0; }
       .no-print { display: none !important; }
+      @page { size: A4 landscape; margin: 10mm 8mm 10mm 12mm; }
+      body { font-size: 9pt; }
       table { page-break-inside: auto; }
-      tr     { page-break-inside: avoid; }
+      tr { page-break-inside: avoid; }
     }
-
-    /* ── Screen controls ── */
-    .no-print { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .btn {
-      display: inline-block; padding: 4px 14px;
-      border: 1px solid #888; border-radius: 3px; background: #f0f0f0;
-      cursor: pointer; font-family: sans-serif; font-size: 10pt;
-      text-decoration: none; color: #000;
-    }
-    .btn-primary { background: #0d6efd; color: #fff; border-color: #0d6efd; }
-
-    /* ── Document header ── */
-    .org       { text-align: center; font-size: 11pt; margin-bottom: 3pt; }
-    .comp-name { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 4pt; }
-    .comp-meta {
-      display: flex; justify-content: space-between;
-      font-size: 8pt; margin-bottom: 10pt;
-    }
-    .act-title {
-      text-align: center; font-size: 12pt; font-weight: bold;
-      line-height: 1.5; margin: 10pt 0 8pt;
-    }
-    .commission-text {
-      font-size: 12pt; margin-bottom: 8pt; text-align: justify;
-    }
-
-    /* ── Main table ── */
-    table {
-      width: 100%; border-collapse: collapse; table-layout: fixed;
-      font-size: 9pt; margin-bottom: 14pt;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 2pt 3pt;
-      vertical-align: middle;
-      text-align: center;
-      overflow: hidden;
-      word-break: break-word;
-    }
-    thead th { background: #f0f0f0; font-size: 9pt; line-height: 1.3; }
-    td.tl    { text-align: left; }
-
-    /* ── Signature block ── */
-    .signatures { margin-top: 14pt; }
-    .sig-row {
-      display: flex;
-      margin-bottom: 10pt;
-      font-size: 11pt;
-    }
-    .sig-role { flex: 0 0 60%; } /* role always takes left 60% */
-    .sig-name { flex: 0 0 40%; } /* name always starts at 60% from page edge */
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt; margin-bottom: 14pt; }
+    th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; text-align: center; font-weight: bold; overflow: hidden; word-break: break-word; }
+    th { font-weight: bold; text-align: center; }
+    td.tl { text-align: left; }
+    h2 { text-align: center; font-size: 12pt; font-weight: bold; margin: 4px 0; letter-spacing: 0.5px; }
+    .underline-field { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
   </style>
 </head>
 <body>
-<div class="page">
 
-  <div class="no-print">
-    <a href="{{ url_for('тех.список', sor_id=сор.id) }}" class="btn">← Техническая комиссия</a>
-    <button class="btn btn-primary" onclick="window.print()">Печать</button>
-  </div>
-
-  {# ── Шапка ── #}
-  {% if сор.организаторы_блок %}
-  <div class="org">
-    {% for строка in сор.организаторы_блок.split('\n') if строка.strip() %}
-      {{ строка }}<br>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <div class="comp-name">{{ сор.название }}</div>
-
-  <div class="comp-meta">
-    <span>{{ сор.даты_проведения or '' }}</span>
-    <span>{{ сор.место_проведения or '' }}</span>
-  </div>
-
-  {# ── Заголовок акта ── #}
-  <div class="act-title">
-    АКТ<br>
-    РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ{% if класс %}<br>({{ класс }}){% endif %}
-  </div>
-
-  {# ── Состав комиссии и вводный текст ── #}
-  <p class="commission-text">
-    Техническая комиссия в составе:
-    {%- if ск %}
-      {%- if ск.председатель_фио %} {{ ск.председатель_фио }}{% if ск.председатель_должность %}&nbsp;–&nbsp;{{ ск.председатель_должность }},{% endif %}{% endif %}
-      {%- if ск.член_1_фио %} {{ ск.член_1_фио }}{% if ск.член_1_должность %}&nbsp;–&nbsp;{{ ск.член_1_должность }},{% endif %}{% endif %}
-      {%- if ск.член_2_фио %} {{ ск.член_2_фио }}{% if ск.член_2_должность %}&nbsp;–&nbsp;{{ ск.член_2_должность }},{% endif %}{% endif %}
-    {%- endif %}
-    проверила&nbsp;и&nbsp;промаркировала представленные суда, а&nbsp;также снаряжение&nbsp;—
-    каски, спасательные жилеты на&nbsp;соответствие требованиям правил по&nbsp;виду
-    спорта &laquo;рафтинг&raquo;.
-  </p>
-
-  {# ── Основная таблица ── #}
-  {#
-     Ширины столбцов:
-       № дел        4%
-       Команда     11% ┐
-       Территория   9% ├ cols 2-4 = 30%
-       Представитель10% ┘
-       Вид (без изм.)5%
-       Марка Рафт  10% ┐
-       Кол  Рафт    5% │
-       Марка Каски 10% │ Марка-столбцы одинаковые (10%)
-       Кол  Каски   5% │ Кол-столбцы одинаковые  (5%)
-       Марка Спасж 10% │
-       Кол  Спасж   5% │
-       Марка Весла 10% ┘
-       Кол  Весла   5%
-  #}
-  <table>
-    <colgroup>
-      <col style="width:4%">
-      <col style="width:11%">
-      <col style="width:9%">
-      <col style="width:10%">
-      <col style="width:5%">
-      <col style="width:10%">
-      <col style="width:5%">
-      <col style="width:10%">
-      <col style="width:5%">
-      <col style="width:10%">
-      <col style="width:5%">
-      <col style="width:10%">
-      <col style="width:5%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th rowspan="2">№<br>дел</th>
-        <th rowspan="2">Команда</th>
-        <th rowspan="2">Территория</th>
-        <th rowspan="2">Представитель</th>
-        <th colspan="3">Рафты</th>
-        <th colspan="2">Каски</th>
-        <th colspan="2">Спасжилеты</th>
-        <th colspan="2">Весла</th>
-      </tr>
-      <tr>
-        <th>Вид</th>
-        <th>Марка</th>
-        <th>Кол-во</th>
-        <th>Марка</th>
-        <th>Кол-во</th>
-        <th>Марка</th>
-        <th>Кол-во</th>
-        <th>Марка</th>
-        <th>Кол-во</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for п in проверки %}
-    {% set рафты = [] %}
-    {% set каски = [] %}
-    {% set спасжилеты = [] %}
-    {% set весла = [] %}
-    {% for с in п.снаряжение %}
-      {% if 'Рафт' in с.наименование %}{% if рафты.append(с) %}{% endif %}
-      {% elif с.наименование == 'Каска' %}{% if каски.append(с) %}{% endif %}
-      {% elif с.наименование == 'Спасжилет' %}{% if спасжилеты.append(с) %}{% endif %}
-      {% elif с.наименование == 'Весло' %}{% if весла.append(с) %}{% endif %}
-      {% endif %}
-    {% endfor %}
-    <tr>
-      <td>{{ loop.index }}</td>
-      <td class="tl">{{ п.наименование_команды or '—' }}</td>
-      <td class="tl">{{ п.субъект_рф or '—' }}</td>
-      <td class="tl">{{ п.тренер_фио or '—' }}</td>
-      <td>{% if рафты %}{{ рафты[0].наименование }}{% else %}—{% endif %}</td>
-      <td>{% if рафты %}{{ рафты[0].марка or '—' }}{% else %}—{% endif %}</td>
-      <td>{% if рафты %}{{ рафты[0].количество or 1 }}{% else %}—{% endif %}</td>
-      <td>{% if каски %}{{ каски[0].марка or '—' }}{% else %}—{% endif %}</td>
-      <td>{% if каски %}{{ каски[0].количество or 1 }}{% else %}—{% endif %}</td>
-      <td>{% if спасжилеты %}{{ спасжилеты[0].марка or '—' }}{% else %}—{% endif %}</td>
-      <td>{% if спасжилеты %}{{ спасжилеты[0].количество or 1 }}{% else %}—{% endif %}</td>
-      <td>{% if весла %}{{ весла[0].марка or '—' }}{% else %}—{% endif %}</td>
-      <td>{% if весла %}{{ весла[0].количество or 1 }}{% else %}—{% endif %}</td>
-    </tr>
-    {% else %}
-    <tr>
-      <td colspan="13" style="text-align:center; color:#888; padding:8pt">
-        Нет данных о технических проверках
-      </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-
-  {# ── Подписи ── #}
-  {% if ск %}
-  <div class="signatures">
-    {% set подписанты = [
-      (ск.председатель_должность, ск.председатель_фио),
-      (ск.член_1_должность,       ск.член_1_фио),
-      (ск.член_2_должность,       ск.член_2_фио),
-    ] %}
-    {% for должность, фио in подписанты %}
-    {% if фио or должность %}
-    <div class="sig-row">
-      <span class="sig-role">{{ должность or '' }}</span>
-      <span class="sig-name">{{ фио or '' }}</span>
-    </div>
-    {% endif %}
-    {% endfor %}
-  </div>
-  {% endif %}
-
+{# ── Навигация (только на экране) ── #}
+<div class="no-print" style="display:flex; justify-content:space-between; align-items:center;
+     margin-bottom:12px; font-family:system-ui,sans-serif; gap:8px;">
+  <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+     style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
+            color:#6c757d; text-decoration:none; background:transparent;">← Техническая комиссия</a>
+  <button onclick="window.print()"
+          style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
+                 background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
 </div>
+
+{# ── Шапка ── #}
+{% if сор.организаторы_блок %}
+<div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
+{% endif %}
+
+<div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
+
+<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
+  <div>
+    <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">дата проведения</div>
+  </div>
+  <div style="text-align:center">
+    <span class="underline-field" style="text-align:center; padding:0 4px; min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">место проведения</div>
+  </div>
+</div>
+
+{# ── Заголовок акта ── #}
+<h2 style="text-transform:none; margin-top:10pt">АКТ</h2>
+<h2>РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ{% if класс %} ({{ класс }}){% endif %}</h2>
+
+{# ── Состав комиссии ── #}
+<p style="font-size:11pt; font-weight:bold; margin:8pt 0; text-align:justify">
+  Техническая комиссия в составе:
+  {%- if ск %}
+    {%- if ск.председатель_фио %} {{ ск.председатель_фио }}{% if ск.председатель_должность %}&nbsp;–&nbsp;{{ ск.председатель_должность }},{% endif %}{% endif %}
+    {%- if ск.член_1_фио %} {{ ск.член_1_фио }}{% if ск.член_1_должность %}&nbsp;–&nbsp;{{ ск.член_1_должность }},{% endif %}{% endif %}
+    {%- if ск.член_2_фио %} {{ ск.член_2_фио }}{% if ск.член_2_должность %}&nbsp;–&nbsp;{{ ск.член_2_должность }},{% endif %}{% endif %}
+  {%- endif %}
+  проверила&nbsp;и&nbsp;промаркировала представленные суда, а&nbsp;также снаряжение&nbsp;—
+  каски, спасательные жилеты на&nbsp;соответствие требованиям правил по&nbsp;виду
+  спорта &laquo;рафтинг&raquo;.
+</p>
+
+{# ── Основная таблица ── #}
+<table>
+  <colgroup>
+    <col style="width:4%">
+    <col style="width:11%">
+    <col style="width:9%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="2">№<br>дел</th>
+      <th rowspan="2">Команда</th>
+      <th rowspan="2">Территория</th>
+      <th rowspan="2">Представитель</th>
+      <th colspan="3">Рафты</th>
+      <th colspan="2">Каски</th>
+      <th colspan="2">Спасжилеты</th>
+      <th colspan="2">Весла</th>
+    </tr>
+    <tr>
+      <th>Вид</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for п in проверки %}
+  {% set рафты = [] %}
+  {% set каски = [] %}
+  {% set спасжилеты = [] %}
+  {% set весла = [] %}
+  {% for с in п.снаряжение %}
+    {% if 'Рафт' in с.наименование %}{% if рафты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Каска' %}{% if каски.append(с) %}{% endif %}
+    {% elif с.наименование == 'Спасжилет' %}{% if спасжилеты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Весло' %}{% if весла.append(с) %}{% endif %}
+    {% endif %}
+  {% endfor %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td class="tl">{{ п.наименование_команды or '—' }}</td>
+    <td class="tl">{{ п.субъект_рф or '—' }}</td>
+    <td class="tl">{{ п.тренер_фио or '—' }}</td>
+    <td>{% if рафты %}{{ рафты[0].наименование }}{% else %}—{% endif %}</td>
+    <td>{% if рафты %}{{ рафты[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if рафты %}{{ рафты[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if каски %}{{ каски[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if каски %}{{ каски[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if спасжилеты %}{{ спасжилеты[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if спасжилеты %}{{ спасжилеты[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if весла %}{{ весла[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if весла %}{{ весла[0].количество or 1 }}{% else %}—{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr>
+    <td colspan="13" style="text-align:center; color:#888; padding:8pt">
+      Нет данных о технических проверках
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{# ── Подписи ── #}
+{% if ск %}
+<div style="margin-top:14pt; font-size:11pt; font-weight:bold">
+  {% set подписанты = [
+    (ск.председатель_должность, ск.председатель_фио),
+    (ск.член_1_должность,       ск.член_1_фио),
+    (ск.член_2_должность,       ск.член_2_фио),
+  ] %}
+  {% for должность, фио in подписанты %}
+  {% if фио or должность %}
+  <div style="display:flex; align-items:baseline; margin-bottom:10pt">
+    <div style="width:42%">{{ должность or '' }}</div>
+    <div>{{ фио or '' }}</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
 </body>
 </html>
