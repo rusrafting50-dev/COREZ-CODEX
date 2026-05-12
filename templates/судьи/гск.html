@@ -45,42 +45,40 @@
   {% if сор.номер_екп %}<br><span style="font-size:10pt">ЕКП № {{ сор.номер_екп }}</span>{% endif %}
 </div>
 
-{# ── Дата/место + УТВЕРЖДАЮ ── #}
-<div class="d-flex justify-content-between align-items-start mb-3" style="font-size:10pt; font-weight:bold; margin-top:8px">
-
-  {# Дата и место — левая часть (3/5) #}
-  <div style="flex:3; display:flex; gap:32px; align-items:flex-end">
-    <div style="text-align:center">
-      <div class="underline-field" style="min-width:140px; text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
-      <div style="font-size:8pt">Дата проведения</div>
-    </div>
-    <div style="text-align:center">
-      <div class="underline-field" style="min-width:200px; text-align:center; padding:0 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
-      <div style="font-size:8pt">Место проведения</div>
-    </div>
+{# ── Дата и место ── #}
+<div style="display:flex; gap:32px; align-items:flex-end; font-size:10pt; font-weight:bold; margin-top:8px; margin-bottom:16px">
+  <div style="text-align:center">
+    <div class="underline-field" style="min-width:140px; text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Дата проведения</div>
   </div>
+  <div style="text-align:center">
+    <div class="underline-field" style="min-width:200px; text-align:center; padding:0 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Место проведения</div>
+  </div>
+</div>
 
-  {# Блок УТВЕРЖДАЮ — правая часть (2/5) #}
-  <div style="flex:2; padding-left:20px; text-align:center">
-    <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:6px">УТВЕРЖДАЮ</div>
-    <div style="font-size:10pt; line-height:1.5">
-      {% if сор.проводящая_орг_должность %}{{ сор.проводящая_орг_должность }}{% endif %}
-      {% if сор.проводящая_орг_название %}
-        <br>
-        {% if '«' in сор.проводящая_орг_название %}
-          {% set части = сор.проводящая_орг_название.split('«', 1) %}
-          {{ части[0] }}<br>«{{ части[1] }}
-        {% else %}
-          {{ сор.проводящая_орг_название }}
-        {% endif %}
+{# ── Блок УТВЕРЖДАЮ — под датой/местом, прижат вправо ── #}
+<div style="width:40%; margin-left:auto; text-align:center; font-size:10pt; margin-bottom:16px">
+  <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:6px">УТВЕРЖДАЮ</div>
+  <div style="line-height:1.5">
+    {% if сор.проводящая_орг_должность %}{{ сор.проводящая_орг_должность }}{% endif %}
+    {% if сор.проводящая_орг_название %}
+      <br>
+      {% if '«' in сор.проводящая_орг_название %}
+        {% set части = сор.проводящая_орг_название.split('«', 1) %}
+        {{ части[0] }}<br>«{{ части[1] }}
+      {% else %}
+        {{ сор.проводящая_орг_название }}
       {% endif %}
-    </div>
-    <div style="font-size:10pt; margin-top:8px">
-      {{ сор.проводящая_орг_руководитель or '&nbsp;' }}
-    </div>
-    <div style="font-size:8pt; margin-top:2px">дата</div>
+    {% endif %}
   </div>
-
+  <div style="margin-top:8px">
+    {% if сор.проводящая_орг_руководитель %}
+      {% set фио = сор.проводящая_орг_руководитель.split() %}
+      {% if фио|length >= 3 %}{{ фио[1][0] }}. {{ фио[2][0] }}. {{ фио[0] }}
+      {% else %}{{ сор.проводящая_орг_руководитель }}{% endif %}
+    {% endif %}
+  </div>
 </div>
 
 {# ── Заголовок документа ── #}
