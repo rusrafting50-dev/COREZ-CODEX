@@ -57,30 +57,6 @@
   </div>
 </div>
 
-{# ── Блок УТВЕРЖДАЮ ── #}
-<div style="width:40%; margin-left:auto; text-align:center; font-size:10pt; margin-bottom:16px">
-  <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:6px">УТВЕРЖДАЮ</div>
-  <div style="line-height:1.5">
-    {%- if сор.проводящая_орг_должность -%}{{ сор.проводящая_орг_должность }}{%- endif -%}
-    {%- if сор.проводящая_орг_название -%}
-      <br>
-      {%- if '«' in сор.проводящая_орг_название -%}
-        {%- set части = сор.проводящая_орг_название.split('«', 1) -%}
-        {{ части[0] | trim }}<br>«{{ части[1] | trim }}
-      {%- else -%}
-        {{ сор.проводящая_орг_название }}
-      {%- endif -%}
-    {%- endif -%}
-  </div>
-  <div style="margin-top:8px; text-align:right">
-    {% if сор.проводящая_орг_руководитель %}
-      {% set фио = сор.проводящая_орг_руководитель.split() %}
-      {% if фио|length >= 3 %}{{ фио[1][0] }}. {{ фио[2][0] }}. {{ фио[0] }}
-      {% else %}{{ сор.проводящая_орг_руководитель }}{% endif %}
-    {% endif %}
-  </div>
-</div>
-
 {# ── Заголовок документа ── #}
 <div class="text-center mb-3" style="font-size:13pt; font-weight:bold; text-transform:uppercase; letter-spacing:1px">
   СПРАВКА
