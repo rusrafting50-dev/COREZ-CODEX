@@ -14,7 +14,7 @@
     h2 { text-align: center; font-size: 12pt; font-weight: bold; text-transform: uppercase;
          margin: 4px 0; letter-spacing: 0.5px; }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; font-size: 9pt; }
+    th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; font-size: 9pt; font-weight: bold; }
     th { background: #f0f0f0; font-weight: bold; text-align: center; }
     td.num { text-align: center; }
     td.center { text-align: center; }
@@ -53,7 +53,8 @@
 
 <div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
 
-<h2>Протокол комиссии по допуску — {{ класс }}</h2>
+<h2 style="text-transform:none">Протокол комиссии по допуску</h2>
+<h2>КЛАСС СУДОВ — {{ класс }}</h2>
 
 <div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
   <div>
@@ -86,7 +87,7 @@
   {% if муж %}
   {% set возр_м = муж[0].возрастная_группа or '' %}
   <tr class="section-row">
-    <td colspan="8">Мужчины{% if возр_м %} — {{ возр_м }}{% endif %}</td>
+    <td colspan="8">Мужчины</td>
   </tr>
   {% for к in муж %}
   {% set к_num = loop.index %}
@@ -114,7 +115,7 @@
   {% if жен %}
   {% set возр_ж = жен[0].возрастная_группа or '' %}
   <tr class="section-row">
-    <td colspan="8">Женщины{% if возр_ж %} — {{ возр_ж }}{% endif %}</td>
+    <td colspan="8">Женщины</td>
   </tr>
   {% for к in жен %}
   {% set к_num = loop.index %}
@@ -142,11 +143,10 @@
 </table>
 
 {# ── Подписи ── #}
-<div style="margin-top:20px; font-size:10pt">
+<div style="margin-top:20px; font-size:10pt; font-weight:bold">
   <div style="display:flex; align-items:baseline; margin-bottom:12px">
     <div style="width:42%">Председатель комиссии по допуску</div>
-    <span class="underline-field" style="min-width:50px; flex:0 0 60px"></span>
-    <div style="margin-left:8px">
+    <div>
       {% if председатель %}{{ председатель.фамилия_имя_отчество }}
       {% if председатель.квалификация %}, {{ председатель.квалификация }}{% endif %}
       {% if председатель.субъект_рф %}, {{ председатель.субъект_рф }}{% endif %}
@@ -155,8 +155,7 @@
   </div>
   <div style="display:flex; align-items:baseline">
     <div style="width:42%">Главный судья соревнований</div>
-    <span class="underline-field" style="min-width:50px; flex:0 0 60px"></span>
-    <div style="margin-left:8px">{{ сор.главный_судья or '' }}</div>
+    <div>{{ сор.главный_судья or '' }}</div>
   </div>
 </div>
 
