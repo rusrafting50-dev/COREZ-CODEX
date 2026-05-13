@@ -215,7 +215,7 @@
   <p><strong>14. Медальный зачёт (перечислить территории согласно занятым местам)</strong></p>
   <table class="no-bg-header">
     <tr>
-      <th rowspan="2" style="width:2rem">№ п/п</th>
+      <th rowspan="2" style="width:2rem">№<br>п/п</th>
       <th rowspan="2" style="width:30%">Команда</th>
       <th rowspan="2">Территория</th>
       <th colspan="3">Количество завоеванных медалей</th>
@@ -226,8 +226,8 @@
     {% for м in медали %}
     <tr>
       <td class="center">{{ loop.index }}</td>
-      <td>{{ м['к'].название or '—' }}</td>
-      <td>{{ м['к'].субъект.название if м['к'].субъект else '—' }}</td>
+      <td>{{ м['название'] }}</td>
+      <td>{{ м['субъект'].название if м['субъект'] else '—' }}</td>
       <td class="center bold">{{ м['золото'] if м['золото'] else '0' }}</td>
       <td class="center bold">{{ м['серебро'] if м['серебро'] else '0' }}</td>
       <td class="center bold">{{ м['бронза'] if м['бронза'] else '0' }}</td>
