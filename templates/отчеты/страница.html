@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Отчёты о соревнованиях — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">Отчёты о соревнованиях</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-2">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Отчёты о соревнованиях</h5>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('отчеты.отчет_фрр', sor_id=сор.id) }}"
+       class="btn btn-outline-dark btn-sm">🖨 Отчёт ФРР</a>
+    <a href="{{ url_for('отчеты.отчет_фцпср', sor_id=сор.id) }}"
+       class="btn btn-outline-dark btn-sm">🖨 Отчёт ФГБУ ФЦПСР</a>
+    <a href="{{ url_for('отчеты.отчет_липецк', sor_id=сор.id) }}"
+       class="btn btn-outline-dark btn-sm">🖨 Отчёт УМФКС Липецк</a>
+  </div>
+</div>
+
+<form method="post">
+
+  {% macro поле_текст(лейбл, имя, значение, rows=3) %}
+  <div class="mb-3">
+    <label class="form-label fw-semibold">{{ лейбл }}</label>
+    <textarea name="{{ имя }}" class="form-control form-control-sm" rows="{{ rows }}">{{ значение or '' }}</textarea>
+  </div>
+  {% endmacro %}
+
+  {% macro поле_строка(лейбл, имя, значение, placeholder='') %}
+  <div class="mb-3">
+    <label class="form-label fw-semibold">{{ лейбл }}</label>
+    <input type="text" name="{{ имя }}" class="form-control form-control-sm"
+           placeholder="{{ placeholder }}" value="{{ значение or '' }}">
+  </div>
+  {% endmacro %}
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold bg-primary text-white py-2">
+      Данные для отчётов
+    </div>
+    <div class="card-body">
+
+      {{ поле_текст('3. Наименование объекта спорта (в соответствии с приказом Минспорта России)',
+                    'отч_объект_спорта', сор.отч_объект_спорта, rows=3) }}
+
+      {{ поле_текст('11. Работа комиссии по допуску (своевременность подачи заявок, наличие документов и т.д.)',
+                    'отч_работа_комиссии', сор.отч_работа_комиссии, rows=4) }}
+
+      {{ поле_текст('12. Технические совещания (время, место, явка представителей, основные вопросы, решения)',
+                    'отч_тех_совещания', сор.отч_тех_совещания, rows=3) }}
+
+      {{ поле_текст('13. Открытие соревнований и награждения (присутствие спортсменов, официальные лица и т.д.)',
+                    'отч_открытие', сор.отч_открытие, rows=3) }}
+
+      {{ поле_текст('14. Информационное обеспечение соревнований (табло, радио, своевременность протоколов и результатов)',
+                    'отч_информационное', сор.отч_информационное, rows=3) }}
+
+      {{ поле_строка('15. Количество зрителей',
+                     'отч_зрители', сор.отч_зрители, placeholder='Например: 500 человек') }}
+
+      {{ поле_текст('16. Общая оценка качества проведения соревнований (соблюдение расписания, объективность судейства)',
+                    'отч_оценка_качества', сор.отч_оценка_качества, rows=3) }}
+
+      {{ поле_текст('17. Медицинское обеспечение соревнований (сведения о травмах и несчастных случаях)',
+                    'отч_медицинское', сор.отч_медицинское, rows=3) }}
+
+      {{ поле_текст('18. Общая оценка соблюдения мер по обеспечению безопасности',
+                    'отч_безопасность', сор.отч_безопасность, rows=2) }}
+
+      {{ поле_текст('19. Общие замечания и предложения по подготовке и проведению соревнования',
+                    'отч_замечания', сор.отч_замечания, rows=3) }}
+
+      {{ поле_текст('20. Общая характеристика организации и проведения соревнований',
+                    'отч_характеристика', сор.отч_характеристика, rows=3) }}
+
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 align-items-center">
+    <button type="submit" class="btn btn-primary px-4">Сохранить</button>
+    <a href="{{ url_for('соревнование.карточка', id=сор.id) }}"
+       class="btn btn-outline-secondary">Отмена</a>
+  </div>
+
+</form>
+
+<div class="d-flex justify-content-end mt-3">
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='reports') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if сор.готов_отчеты else 'btn-outline-secondary bg-white' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if сор.готов_отчеты else 'В работе' }}
+    </button>
+  </form>
+</div>
+
+{% endblock %}

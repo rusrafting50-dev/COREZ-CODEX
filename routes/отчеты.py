@@ -1,6 +1,6 @@
-# routes/отчеты.py — отчётные формы ФРР и ФЦПСР
+# routes/отчеты.py — отчётные формы ФРР, ФЦПСР и УМФКС Липецк
 from datetime import date
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (Соревнование, Команда, Спортсмен, Судья,
                     РезультатСпринт, РезультатПараллельногоСпринта,
                     РезультатСлалома, РезультатДлиннойГонки, РезультатМногоборья,
@@ -74,3 +74,47 @@ def фцпср(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     ст = _стат(sor_id)
     return render_template('отчеты/фцпср.html', **ст, сегодня=date.today())
+
+
+# ── Новая страница «Отчёты о соревнованиях» ────────────────────────────────
+
+_ОТЧ_ПОЛЯ = [
+    'отч_объект_спорта', 'отч_работа_комиссии', 'отч_тех_совещания',
+    'отч_открытие', 'отч_информационное', 'отч_зрители',
+    'отч_оценка_качества', 'отч_медицинское', 'отч_безопасность',
+    'отч_замечания', 'отч_характеристика',
+]
+
+
+@bp_отчеты.route('/<int:sor_id>/страница', methods=['GET', 'POST'])
+def страница(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    if request.method == 'POST':
+        for поле in _ОТЧ_ПОЛЯ:
+            setattr(сор, поле, request.form.get(поле, '').strip() or None)
+        from models import db
+        db.session.commit()
+        flash('Данные отчётов сохранены.', 'success')
+        return redirect(url_for('отчеты.страница', sor_id=sor_id))
+    return render_template('отчеты/страница.html', сор=сор)
+
+
+@bp_отчеты.route('/<int:sor_id>/отчет-фрр')
+def отчет_фрр(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    ст = _стат(sor_id)
+    return render_template('отчеты/фрр_полный.html', **ст, сегодня=date.today())
+
+
+@bp_отчеты.route('/<int:sor_id>/отчет-фцпср')
+def отчет_фцпср(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    ст = _стат(sor_id)
+    return render_template('отчеты/фцпср_печать.html', **ст, сегодня=date.today())
+
+
+@bp_отчеты.route('/<int:sor_id>/отчет-липецк')
+def отчет_липецк(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    ст = _стат(sor_id)
+    return render_template('отчеты/липецк.html', **ст, сегодня=date.today())
