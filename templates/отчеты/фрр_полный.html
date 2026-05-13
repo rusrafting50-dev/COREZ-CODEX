@@ -105,17 +105,15 @@
       <th style="width:55px">Мужчины</th>
       <th style="width:55px">Женщины</th>
     </tr>
-    {% for к in команды | sort(attribute='название') %}
-    {% set муж_к = к.спортсмены | selectattr('пол','eq','м') | list | length %}
-    {% set жен_к = к.спортсмены | selectattr('пол','eq','ж') | list | length %}
+    {% for г in состав_команд %}
     <tr>
       <td class="center">{{ loop.index }}</td>
-      <td>{{ к.название or '—' }}</td>
-      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-      <td class="center">{{ муж_к if муж_к else '—' }}</td>
-      <td class="center">{{ жен_к if жен_к else '—' }}</td>
+      <td>{{ г.название }}</td>
+      <td>{{ г.субъект.название if г.субъект else '—' }}</td>
+      <td class="center">{{ г.муж if г.муж else '—' }}</td>
+      <td class="center">{{ г.жен if г.жен else '—' }}</td>
       <td class="center">—</td>
-      <td class="center">{{ к.спортсмены | length }}</td>
+      <td class="center">{{ г.всего }}</td>
     </tr>
     {% endfor %}
   </table>
@@ -127,25 +125,16 @@
   <p style="margin-left:20px">ДЮСШ — {{ школы['ДЮСШ'] }}, &nbsp;&nbsp;СДЮСШОР — {{ школы['СДЮСШОР'] }}, &nbsp;&nbsp;СШ — {{ школы['СШ'] }}, &nbsp;&nbsp;СШОР — {{ школы['СШОР'] }}, &nbsp;&nbsp;ЦСП — {{ школы['ЦСП'] }}, &nbsp;&nbsp;УОР — {{ школы['УОР'] }}, &nbsp;&nbsp;другие организации — {{ школы['другие'] }}</p>
 </div>
 
-{# ── 9. Квалификация спортсменов ─────────────────────────────────────────── #}
-{% set мсмк = спортсмены | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мс   = спортсмены | selectattr('разряд','eq','МС')   | list | length %}
-{% set кмс  = спортсмены | selectattr('разряд','eq','КМС')  | list | length %}
-{% set р1   = спортсмены | selectattr('разряд','eq','I')    | list | length %}
-{% set р2   = спортсмены | selectattr('разряд','eq','II')   | list | length %}
-{% set р3   = спортсмены | selectattr('разряд','eq','III')  | list | length %}
-{% set мсмк_м = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мсмк_ж = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мс_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','МС')   | list | length %}
-{% set мс_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','МС')   | list | length %}
-{% set кмс_м  = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','КМС')  | list | length %}
-{% set кмс_ж  = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','КМС')  | list | length %}
-{% set р1_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','I')    | list | length %}
-{% set р1_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','I')    | list | length %}
-{% set р2_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','II')   | list | length %}
-{% set р2_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','II')   | list | length %}
-{% set р3_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','III')  | list | length %}
-{% set р3_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','III')  | list | length %}
+{# ── 10. Квалификация спортсменов (уникальные, с учётом возрастных групп) ─── #}
+{%- macro кв(кол, ранг) -%}
+  {%- set n = квал_уник[кол][ранг] -%}{{ n if n else '—' }}
+{%- endmacro -%}
+{%- macro квс(ранг) -%}
+  {%- set n = квал_уник['мужчины'][ранг] + квал_уник['женщины'][ранг]
+              + квал_уник['юниоры'][ранг] + квал_уник['юниорки'][ранг]
+              + квал_уник['юноши'][ранг]  + квал_уник['девушки'][ранг] -%}
+  {{ n if n else '—' }}
+{%- endmacro -%}
 <div class="section">
   <p><strong>10. Уровень подготовки (спортивная квалификация) спортсменов</strong></p>
   <table>
@@ -162,73 +151,40 @@
       <th>Юноши</th>
       <th>Девушки</th>
     </tr>
+    {% for ряд, ранг in [('МСМК','МСМК'),('МС','МС'),('КМС','КМС'),('I р.','I'),('II р.','II'),('III р.','III'),('I юн.','Iю'),('II юн.','IIю'),('III юн.','IIIю')] %}
     <tr>
-      <td>МСМК</td>
-      <td class="center">{{ мсмк_м }}</td><td class="center">{{ мсмк_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ мсмк }}</td>
+      <td>{{ ряд }}</td>
+      <td class="center">{{ кв('мужчины',  ранг) }}</td>
+      <td class="center">{{ кв('женщины',  ранг) }}</td>
+      <td class="center">{{ кв('юниоры',   ранг) }}</td>
+      <td class="center">{{ кв('юниорки',  ранг) }}</td>
+      <td class="center">{{ кв('юноши',    ранг) }}</td>
+      <td class="center">{{ кв('девушки',  ранг) }}</td>
+      <td class="center bold">{{ квс(ранг) }}</td>
     </tr>
-    <tr>
-      <td>МС</td>
-      <td class="center">{{ мс_м }}</td><td class="center">{{ мс_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ мс }}</td>
-    </tr>
-    <tr>
-      <td>КМС</td>
-      <td class="center">{{ кмс_м }}</td><td class="center">{{ кмс_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ кмс }}</td>
-    </tr>
-    <tr>
-      <td>I р.</td>
-      <td class="center">{{ р1_м }}</td><td class="center">{{ р1_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ р1 }}</td>
-    </tr>
-    <tr>
-      <td>II р.</td>
-      <td class="center">{{ р2_м }}</td><td class="center">{{ р2_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ р2 }}</td>
-    </tr>
-    <tr>
-      <td>III р.</td>
-      <td class="center">{{ р3_м }}</td><td class="center">{{ р3_ж }}</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">{{ р3 }}</td>
-    </tr>
-    <tr>
-      <td>I юн.</td>
-      <td class="center">—</td><td class="center">—</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">—</td>
-    </tr>
-    <tr>
-      <td>II юн.</td>
-      <td class="center">—</td><td class="center">—</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">—</td>
-    </tr>
-    <tr>
-      <td>III юн.</td>
-      <td class="center">—</td><td class="center">—</td>
-      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
-      <td class="center bold">—</td>
-    </tr>
+    {% endfor %}
   </table>
 </div>
 
-{# ── 10. Выполнение нормативов ───────────────────────────────────────────── #}
+{# ── 11. Выполнение нормативов (из итоговых протоколов) ─────────────────── #}
 <div class="section">
   <p><strong>11. Выполнение нормативов (количество показанных результатов):</strong></p>
-  <p style="margin-left:20px">МС — {{ разряды_мс }} чел.,&nbsp;&nbsp; КМС — {{ разряды_кмс }} чел.,&nbsp;&nbsp; I разряд — {{ разряды_1 }} чел.,&nbsp;&nbsp; II разряд — —,&nbsp;&nbsp; III разряд — —</p>
+  <p style="margin-left:20px">МСМК — {{ выполнение_разряды['МСМК'] or '—' }},&nbsp;&nbsp;
+     МС — {{ выполнение_разряды['МС'] or '—' }} чел.,&nbsp;&nbsp;
+     КМС — {{ выполнение_разряды['КМС'] or '—' }} чел.,&nbsp;&nbsp;
+     I разряд — {{ выполнение_разряды['I'] or '—' }} чел.,&nbsp;&nbsp;
+     II разряд — {{ выполнение_разряды['II'] or '—' }},&nbsp;&nbsp;
+     III разряд — {{ выполнение_разряды['III'] or '—' }}</p>
 </div>
 
-{# ── 11. Подтверждение нормативов ───────────────────────────────────────── #}
+{# ── 12. Подтверждение нормативов (из итоговых протоколов) ─────────────── #}
 <div class="section">
   <p><strong>12. Подтверждение нормативов (количество показанных результатов):</strong></p>
-  <p style="margin-left:20px">МС — —,&nbsp;&nbsp; КМС — —,&nbsp;&nbsp; I разряд — —,&nbsp;&nbsp; II разряд — —,&nbsp;&nbsp; III разряд — —</p>
+  <p style="margin-left:20px">МС — {{ подтверждение_разряды['МС'] or '—' }} чел.,&nbsp;&nbsp;
+     КМС — {{ подтверждение_разряды['КМС'] or '—' }} чел.,&nbsp;&nbsp;
+     I разряд — {{ подтверждение_разряды['I'] or '—' }} чел.,&nbsp;&nbsp;
+     II разряд — {{ подтверждение_разряды['II'] or '—' }},&nbsp;&nbsp;
+     III разряд — {{ подтверждение_разряды['III'] or '—' }}</p>
 </div>
 
 {# ── 11. Результаты соревнований ─────────────────────────────────────────── #}
