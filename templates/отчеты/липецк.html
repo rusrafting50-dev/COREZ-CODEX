@@ -184,47 +184,29 @@
 {# ── 13. Результаты ──────────────────────────────────────────────────────── #}
 <div class="section">
   <p><strong>13. Результаты соревнований (победители и призёры по упражнениям с указанием принадлежности к команде)</strong></p>
-  {% if дисциплины %}
+  {% for д in дисциплины_отчёт %}
+  <p style="margin-top:8px">Спортивная дисциплина &laquo;{{ д['вид'] }} — {{ д['класс'] }}&raquo;, {{ д['пол'] }}</p>
   <table>
-    {% for д in дисциплины %}
     <tr>
-      <th style="width:45px">Занятое место</th>
-      <th colspan="3">{{ д['вид'] }}-{{ д['класс'] }}, мужчины</th>
-      <th colspan="3">{{ д['вид'] }}-{{ д['класс'] }}, женщины</th>
+      <th style="width:40px">Место</th>
+      <th style="width:20%">Команда</th>
+      <th style="width:20%">Субъект Российской Федерации</th>
+      <th>Фамилия, имя, отчество участников</th>
+      <th style="width:18%">Принадлежность к организации</th>
     </tr>
-    <tr>
-      <th></th>
-      <th>Команда</th><th>Субъект Российской Федерации</th><th>Принадлежность к организации</th>
-      <th>Команда</th><th>Субъект Российской Федерации</th><th>Принадлежность к организации</th>
-    </tr>
-    {% for место in [1, 2, 3] %}
-    {% set муж_к = namespace(val=none) %}
-    {% set жен_к = namespace(val=none) %}
-    {% for м, к in д['муж'] %}{% if м == место %}{% set муж_к.val = к %}{% endif %}{% endfor %}
-    {% for м, к in д['жен'] %}{% if м == место %}{% set жен_к.val = к %}{% endif %}{% endfor %}
+    {% for место, к in д['топ'] %}
     <tr>
       <td class="center bold">{{ место }}</td>
-      {% if муж_к.val %}
-        <td>{{ муж_к.val.название or '—' }}</td>
-        <td>{{ муж_к.val.субъект.название if муж_к.val.субъект else '—' }}</td>
-        <td class="center">—</td>
-      {% else %}
-        <td>—</td><td>—</td><td>—</td>
-      {% endif %}
-      {% if жен_к.val %}
-        <td>{{ жен_к.val.название or '—' }}</td>
-        <td>{{ жен_к.val.субъект.название if жен_к.val.субъект else '—' }}</td>
-        <td class="center">—</td>
-      {% else %}
-        <td>—</td><td>—</td><td>—</td>
-      {% endif %}
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td>{{ к.спортсмены | map(attribute='фамилия_имя_отчество') | join(', ') }}</td>
+      <td>{{ к.принадлежность_к_орг or '—' }}</td>
     </tr>
-    {% endfor %}
     {% endfor %}
   </table>
   {% else %}
   <p style="color:#888">Результаты не внесены.</p>
-  {% endif %}
+  {% endfor %}
 </div>
 
 {# ── 14–22. Текстовые разделы ────────────────────────────────────────────── #}
@@ -281,15 +263,22 @@
 </p>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
-<div class="sig">
-  <div class="sig-col">
-    <span>Главный судья</span>
-    <span style="margin-left:40px">{{ сор.главный_судья or '' }}</span>
+{% macro подпись(должность, фио) %}
+<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+  <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
+  <div style="flex:0 0 100px;text-align:center">
+    <div style="border-bottom:1px solid #000">&nbsp;</div>
+    <div style="font-size:8pt">(подпись)</div>
   </div>
-  <div class="sig-col">
-    <span>Главный секретарь</span>
-    <span style="margin-left:30px">{{ сор.главный_секретарь or '' }}</span>
+  <div style="flex:1;text-align:center">
+    <div><span style="border-bottom:1px solid #000;display:inline-block;min-width:150px">{{ фио }}</span></div>
+    <div style="font-size:8pt">(расшифровка подписи)</div>
   </div>
+</div>
+{% endmacro %}
+<div style="margin-top:28px">
+  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
+  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
 </div>
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
