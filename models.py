@@ -192,6 +192,7 @@ class Соревнование(db.Model):
     вывод_допуска               = db.Column(db.String(20),  nullable=True)
 
     # Отчёты о соревнованиях
+    отч_номер_сметы      = db.Column(db.String(100), nullable=True)
     отч_объект_спорта    = db.Column(db.Text, nullable=True)
     отч_работа_комиссии  = db.Column(db.Text, nullable=True)
     отч_тех_совещания    = db.Column(db.Text, nullable=True)
@@ -1167,6 +1168,7 @@ def применить_миграции():
             ('отч_безопасность',    'TEXT'),
             ('отч_замечания',       'TEXT'),
             ('отч_характеристика',  'TEXT'),
+            ('отч_номер_сметы',     'VARCHAR(100)'),
         ]:
             if col not in cols_сор3:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
