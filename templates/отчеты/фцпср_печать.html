@@ -209,29 +209,20 @@
 </p>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
+{% macro подпись(должность, фио) %}
+<div style="margin-bottom:18px">
+  <div style="display:flex;align-items:baseline;gap:12px">
+    <span style="white-space:nowrap">{{ должность }}</span>
+    <span class="sig-line" style="flex:0 0 90px">&nbsp;</span>
+    <span style="font-size:8pt;white-space:nowrap">(подпись)</span>
+    <span style="border-bottom:1px solid #000;flex:1">{{ фио }}</span>
+    <span style="font-size:8pt;white-space:nowrap">(расшифровка подписи)</span>
+  </div>
+</div>
+{% endmacro %}
 <div style="margin-top:28px">
-  <div style="margin-bottom:20px">
-    <div>Главный судья соревнований</div>
-    <div style="margin-top:16px;display:flex;justify-content:space-between;width:60%">
-      <span class="sig-line">&nbsp;</span>
-      <span style="margin-left:10px">{{ сор.главный_судья or '' }}</span>
-    </div>
-    <div class="caption" style="width:60%">
-      <span>(подпись)</span>
-      <span>(расшифровка подписи)</span>
-    </div>
-  </div>
-  <div>
-    <div>Главный секретарь соревнований</div>
-    <div style="margin-top:16px;display:flex;justify-content:space-between;width:60%">
-      <span class="sig-line">&nbsp;</span>
-      <span style="margin-left:10px">{{ сор.главный_секретарь or '' }}</span>
-    </div>
-    <div class="caption" style="width:60%">
-      <span>(подпись)</span>
-      <span>(расшифровка подписи)</span>
-    </div>
-  </div>
+  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
+  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
 </div>
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
