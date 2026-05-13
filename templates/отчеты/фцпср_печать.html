@@ -5,23 +5,22 @@
   <title>Отчёт ФГБУ ФЦПСР — {{ сор.название | truncate(60) }}</title>
   <style>
     body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 20mm 15mm; }
-    @media print { body { margin: 0; } }
     h1 { font-size: 13pt; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 2px; }
-    p  { margin: 3px 0; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
-    table td, table th { border: 1px solid #333; padding: 3px 5px; }
-    table th { font-weight: normal; text-align: center; background: #f0f0f0; }
-    table td, table th { font-weight: normal; }
+    p  { margin: 2px 0; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 4px; font-size: 9pt; }
+    table td, table th { border: 1px solid #333; padding: 2px 4px; font-weight: normal; }
+    table th { text-align: center; background: #f0f0f0; }
     .center { text-align: center; }
     .bold { font-weight: bold; }
-    .sig { display: table; width: 100%; margin-top: 28px; border-collapse: separate; border-spacing: 20px 0; }
-    .sig-col { display: table-cell; width: 50%; vertical-align: top; }
     .sig-line { border-bottom: 1px solid #000; display: inline-block; min-width: 100px; }
-    .caption { font-size: 8pt; color: #555; display: flex; justify-content: space-between; }
-    .section { margin-top: 12px; }
+    .section { margin-top: 6px; }
     @media print {
-      body { margin: 15mm 12mm; }
-      @page { size: A4 portrait; margin: 6mm 12mm; }
+      body { font-size: 9pt; margin: 0; }
+      h1 { font-size: 11pt; }
+      p { margin: 1px 0; }
+      .section { margin-top: 4px; }
+      table { font-size: 8pt; margin-bottom: 2px; }
+      @page { size: A4 portrait; margin: 5mm 10mm; }
       .no-print { display: none !important; }
     }
   </style>
@@ -194,14 +193,14 @@
 </div>
 
 {# ── Приложения ──────────────────────────────────────────────────────────── #}
-<p style="margin-top:14px">Приложения к данному отчёту:</p>
-<ol style="font-size:11pt;margin:4px 0 0 20px">
+<p style="margin-top:6px">Приложения к данному отчёту:</p>
+<ol style="margin:2px 0 0 20px">
   <li>Копия расписания соревнований (по часам и дням).</li>
   <li>Копия протоколов (результаты) соревнований, подписанные главным судьёй и главным секретарём.</li>
   <li>Итоговый протокол (по установленной форме).</li>
 </ol>
 
-<p style="margin-top:10px;font-size:10pt">
+<p style="margin-top:4px;font-size:9pt">
   <strong>Примечание:</strong> данный отчёт главной судейской коллегии представляется в ФГБУ ФЦПСР в двух экземплярах
   (приложение к отчёту — в одном экземпляре по электронной почте) в течение двух недель по адресу: 105064, Москва,
   ул.&nbsp;Казакова д.&nbsp;18, стр.&nbsp;8, каб.&nbsp;32 (отдел проведения первенств России и иных соревнований) тел.: 8(499)941-13-21,
@@ -211,7 +210,7 @@
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
 {# Ширина колонки должности фиксирована — чтобы ФИО обеих строк начинались на одном уровне #}
 {% macro подпись(должность, фио) %}
-<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:8px">
   <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
   <div style="flex:0 0 100px;text-align:center">
     <div style="border-bottom:1px solid #000">&nbsp;</div>
@@ -223,7 +222,7 @@
   </div>
 </div>
 {% endmacro %}
-<div style="margin-top:28px">
+<div style="margin-top:8px">
   {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
   {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
 </div>
