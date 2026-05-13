@@ -42,11 +42,14 @@
 <div style="text-align:center;font-size:11pt">
   О проведении {{ сор.название }}
 </div>
-<div style="text-align:center;font-size:10pt;margin-top:2px">
-  среди {{ сор.возрастная_группа or 'мужчин и женщин' }}
-  {% if сор.класс_судна %}({{ сор.класс_судна }}){% endif %}{% if сор.код_соревнований %}&nbsp;&nbsp;№ СМ: {{ сор.код_соревнований }} в ЕКП.{% endif %}
+<div style="text-align:center;font-size:11pt;margin-top:4px">
+  {% set _вгр = сор.возрастная_группа or '' %}
+  среди {% if not _вгр or _вгр | lower in ('мужчины, женщины', 'мужчины и женщины') %}мужчин и женщин{% else %}{{ _вгр | lower }}{% endif %}
+  {% if сор.номер_екп or сор.отч_номер_сметы %}
+  (СМ №&nbsp;{{ сор.номер_екп or '—' }}&nbsp;в ЕКП{% if сор.отч_номер_сметы %}, смета №&nbsp;{{ сор.отч_номер_сметы }}{% endif %})
+  {% endif %}
 </div>
-<div style="text-align:center;font-size:10pt;margin-top:2px">Вид спорта: РАФТИНГ</div>
+<div style="text-align:center;font-size:11pt;margin-top:2px">Вид спорта: РАФТИНГ</div>
 
 {# ── 1–3 ────────────────────────────────────────────────────────────────── #}
 <div class="section">
