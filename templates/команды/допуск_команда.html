@@ -134,6 +134,7 @@
             <tr>
               <th class="text-center" style="width:2.5rem">№<br>п/п</th>
               <th style="min-width:200px">Фамилия, имя, отчество</th>
+              <th style="width:56px" class="text-center">Пол</th>
               <th style="width:115px">Дата рождения</th>
               <th style="min-width:130px;white-space:nowrap">Спортивная квалификация</th>
               <th style="min-width:160px">№ приказа о присвоении спортивной квалификации</th>
@@ -150,6 +151,12 @@
             <td>
               <input type="text" name="фио[]" class="form-control form-control-sm border-0 px-1"
                      value="{{ с.фамилия_имя_отчество }}" placeholder="Фамилия Имя Отчество">
+            </td>
+            <td>
+              <select name="пол[]" class="form-select form-select-sm border-0 px-1">
+                <option value="м" {{ 'selected' if с.пол == 'м' }}>м</option>
+                <option value="ж" {{ 'selected' if с.пол == 'ж' }}>ж</option>
+              </select>
             </td>
             <td>
               <input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
@@ -287,6 +294,16 @@ function добавитьСтроку() {
   tdФИО.appendChild(inpФИО);
   tr.appendChild(tdФИО);
 
+  const tdПол = document.createElement('td');
+  const selПол = document.createElement('select');
+  selПол.name = 'пол[]';
+  selПол.className = 'form-select form-select-sm border-0 px-1';
+  [['м','м'],['ж','ж']].forEach(([v,t]) => {
+    const o = document.createElement('option'); o.value = v; o.textContent = t; selПол.appendChild(o);
+  });
+  tdПол.appendChild(selПол);
+  tr.appendChild(tdПол);
+
   const tdДата = document.createElement('td');
   const inpДата = document.createElement('input');
   inpДата.type = 'date'; inpДата.name = 'дата_рождения[]';
@@ -401,6 +418,8 @@ function выбратьСпортсмена(с) {
   const lastRow = tbody.lastElementChild;
   const fioInp = lastRow.querySelector('input[name="фио[]"]');
   if (fioInp) fioInp.value = с.фио || '';
+  const polSel = lastRow.querySelector('select[name="пол[]"]');
+  if (polSel && с.пол) polSel.value = с.пол;
   const dateInp = lastRow.querySelector('input[name="дата_рождения[]"]');
   if (dateInp && с.дата_рождения) dateInp.value = с.дата_рождения;
   const razrSel = lastRow.querySelector('select[name="разряд[]"]');
