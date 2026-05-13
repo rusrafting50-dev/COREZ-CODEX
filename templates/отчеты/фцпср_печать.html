@@ -9,11 +9,12 @@
     p  { margin: 3px 0; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
     table td, table th { border: 1px solid #333; padding: 3px 5px; }
-    table th { font-weight: bold; text-align: center; background: #f0f0f0; }
+    table th { font-weight: normal; text-align: center; background: #f0f0f0; }
+    table td, table th { font-weight: normal; }
     .center { text-align: center; }
     .bold { font-weight: bold; }
-    .sig { display: flex; justify-content: space-between; margin-top: 28px; }
-    .sig-col { width: 45%; }
+    .sig { display: table; width: 100%; margin-top: 28px; border-collapse: separate; border-spacing: 20px 0; }
+    .sig-col { display: table-cell; width: 50%; vertical-align: top; }
     .sig-line { border-bottom: 1px solid #000; display: inline-block; min-width: 100px; }
     .caption { font-size: 8pt; color: #555; display: flex; justify-content: space-between; }
     .section { margin-top: 12px; }
@@ -65,8 +66,7 @@
 <div class="section">
   <p><strong>1. Сроки проведения:</strong> {{ сор.даты_проведения or '—' }}</p>
   <p><strong>2. Место проведения (субъект РФ, город):</strong> {{ сор.место_проведения or '—' }}</p>
-  <p><strong>3. Наименование объекта спорта</strong> (в соответствии с приказом Минспорта России №754 от 04.10.2021г.):</p>
-  <p style="margin-left:20px">{{ сор.отч_объект_спорта or '—' }}</p>
+  <p><strong>3. Наименование объекта спорта</strong> (в соответствии с приказом Минспорта России №754 от 04.10.2021г.): {{ сор.отч_объект_спорта or '—' }}</p>
 </div>
 
 {# ── 4. Участники ────────────────────────────────────────────────────────── #}
@@ -183,7 +183,7 @@
 {# ── 7. Принадлежность к спортивной школе ────────────────────────────────── #}
 <div class="section">
   <p><strong>7. Принадлежность к спортивной школе:</strong></p>
-  <p style="margin-left:20px">ДЮСШ —,&nbsp;&nbsp; СДЮСШОР —,&nbsp;&nbsp; СШ —,&nbsp;&nbsp; СШОР —,&nbsp;&nbsp; ЦСП —,&nbsp;&nbsp; УОР —,&nbsp;&nbsp; другие организации —.</p>
+  <p style="margin-left:20px">ДЮСШ — {{ школы.ДЮСШ }},&nbsp;&nbsp; СДЮСШОР — {{ школы.СДЮСШОР }},&nbsp;&nbsp; СШ — {{ школы.СШ }},&nbsp;&nbsp; СШОР — {{ школы.СШОР }},&nbsp;&nbsp; ЦСП — {{ школы.ЦСП }},&nbsp;&nbsp; УОР — {{ школы.УОР }},&nbsp;&nbsp; другие организации — {{ школы.другие }}.</p>
 </div>
 
 {# ── 8. Общая характеристика ──────────────────────────────────────────────── #}
@@ -194,7 +194,7 @@
 
 {# ── Приложения ──────────────────────────────────────────────────────────── #}
 <p style="margin-top:14px">Приложения к данному отчёту:</p>
-<ol style="font-size:10pt;margin:4px 0 0 20px">
+<ol style="font-size:11pt;margin:4px 0 0 20px">
   <li>Копия расписания соревнований (по часам и дням).</li>
   <li>Копия протоколов (результаты) соревнований, подписанные главным судьёй и главным секретарём.</li>
   <li>Итоговый протокол (по установленной форме).</li>
