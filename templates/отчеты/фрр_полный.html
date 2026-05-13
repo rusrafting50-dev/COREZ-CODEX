@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчёт ГСК — {{ сор.название | truncate(60) }}</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 20mm 15mm; }
+    h1 { font-size: 13pt; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 4px; }
+    h2 { font-size: 11pt; font-weight: bold; text-align: center; margin: 0 0 16px; }
+    h3 { font-size: 11pt; font-weight: bold; margin: 16px 0 6px; }
+    p  { margin: 4px 0; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 8px; font-size: 10pt; }
+    table td, table th { border: 1px solid #333; padding: 3px 5px; }
+    table th { font-weight: bold; text-align: center; background: #f0f0f0; }
+    .lbl { width: 60%; }
+    .val { font-weight: bold; }
+    .sig { display: flex; justify-content: space-between; margin-top: 28px; }
+    .sig-col { width: 45%; }
+    .sig-line { border-bottom: 1px solid #000; display: inline-block; min-width: 160px; }
+    .caption { font-size: 8pt; color: #555; }
+    .section { margin-top: 14px; }
+    .narrative { margin: 4px 0 10px; padding-left: 4px; }
+    @media print {
+      body { margin: 15mm 12mm; }
+      @page { size: A4 portrait; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="display:flex;justify-content:space-between;margin-bottom:16px;font-family:system-ui">
+  <a href="{{ url_for('отчеты.страница', sor_id=сор.id) }}"
+     style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">← Отчёты</a>
+  <button onclick="window.print()"
+          style="font-size:.875rem;border:1px solid #0d6efd;border-radius:.25rem;padding:.25rem .5rem;background:#0d6efd;color:#fff;cursor:pointer">Печать</button>
+</div>
+
+<div style="text-align:center;font-size:10pt">ФЕДЕРАЦИЯ РАФТИНГА РОССИИ</div>
+{% if сор.организаторы_блок %}
+<div style="text-align:center;font-size:10pt">{{ сор.организаторы_блок }}</div>
+{% endif %}
+
+<h1>ОТЧЁТ ГЛАВНОЙ СУДЕЙСКОЙ КОЛЛЕГИИ</h1>
+<h2>о проведении {{ сор.название }}</h2>
+
+{# 1 #}
+<div class="section">
+  <h3>1. Сроки проведения</h3>
+  <p>{{ сор.даты_проведения or '—' }}</p>
+</div>
+
+{# 2 #}
+<div class="section">
+  <h3>2. Место проведения</h3>
+  <p>{{ сор.место_проведения or '—' }}</p>
+</div>
+
+{# 3 #}
+<div class="section">
+  <h3>3. Наименование объекта спорта</h3>
+  <p class="narrative">{{ сор.отч_объект_спорта or '—' }}</p>
+</div>
+
+{# 4 #}
+<div class="section">
+  <h3>4. Участники соревнований</h3>
+  <table>
+    <tr><td class="lbl">Всего участников соревнований</td>
+        <td class="val">{{ кол_спортсменов + кол_судей }} чел. из {{ кол_субъектов }} субъектов Российской Федерации</td></tr>
+    <tr><td>Спортсменов</td>
+        <td class="val">{{ кол_спортсменов }} чел., в т.ч. мужчин {{ кол_муж * (сор.класс_судна | replace('R4','4') | replace('R6','6') | int) if false else '' }}{{ спортсмены | selectattr('команда.пол','eq','м') | list | length }} муж., {{ спортсмены | selectattr('команда.пол','eq','ж') | list | length }} жен.</td></tr>
+    <tr><td>Количество субъектов Российской Федерации</td>
+        <td class="val">{{ кол_субъектов }}</td></tr>
+    <tr><td>Количество экипажей (всего / мужчины / женщины)</td>
+        <td class="val">{{ кол_экипажей }} / {{ кол_муж }} / {{ кол_жен }}</td></tr>
+    <tr><td>Количество судей</td>
+        <td class="val">{{ кол_судей }}</td></tr>
+  </table>
+</div>
+
+{# 5. Судьи по категориям #}
+{% set вк  = судьи | selectattr('квалификация','in',['СС-ВК','ССВК','ВК']) | list | length %}
+{% set с1к = судьи | selectattr('квалификация','in',['СС-1К','СС1К','1К']) | list | length %}
+{% set с2к = судьи | selectattr('квалификация','in',['СС-2К','СС2К','2К']) | list | length %}
+{% set с3к = судьи | selectattr('квалификация','in',['СС-3К','СС3К','3К']) | list | length %}
+<div class="section">
+  <h3>5. Судейские категории</h3>
+  <table>
+    <tr>
+      <th>ВК</th><th>1К</th><th>2К</th><th>3К</th><th>Прочие</th><th>Всего</th>
+    </tr>
+    <tr>
+      <td style="text-align:center">{{ вк }}</td>
+      <td style="text-align:center">{{ с1к }}</td>
+      <td style="text-align:center">{{ с2к }}</td>
+      <td style="text-align:center">{{ с3к }}</td>
+      <td style="text-align:center">{{ кол_судей - вк - с1к - с2к - с3к }}</td>
+      <td style="text-align:center;font-weight:bold">{{ кол_судей }}</td>
+    </tr>
+  </table>
+</div>
+
+{# 6. Состав команд #}
+<div class="section">
+  <h3>6. Состав участвующих команд</h3>
+  <table>
+    <tr>
+      <th style="width:2rem">№</th>
+      <th>Команда</th>
+      <th>Субъект РФ</th>
+      <th style="width:60px;text-align:center">Спортсмены, муж.</th>
+      <th style="width:60px;text-align:center">Спортсмены, жен.</th>
+      <th style="width:50px;text-align:center">Всего</th>
+    </tr>
+    {% for к in команды | sort(attribute='название') %}
+    <tr>
+      <td style="text-align:center">{{ loop.index }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td style="text-align:center">{{ к.спортсмены | selectattr('пол','eq','м') | list | length if к.пол == 'м' else '—' }}</td>
+      <td style="text-align:center">{{ к.спортсмены | selectattr('пол','eq','ж') | list | length if к.пол == 'ж' else '—' }}</td>
+      <td style="text-align:center">{{ к.спортсмены | length }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{# 7. Спортивная квалификация #}
+{% set мсмк = спортсмены | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мс   = спортсмены | selectattr('разряд','eq','МС')   | list | length %}
+{% set кмс  = спортсмены | selectattr('разряд','eq','КМС')  | list | length %}
+{% set р1   = спортсмены | selectattr('разряд','eq','I')    | list | length %}
+{% set р2   = спортсмены | selectattr('разряд','eq','II')   | list | length %}
+{% set р3   = спортсмены | selectattr('разряд','eq','III')  | list | length %}
+<div class="section">
+  <h3>7. Уровень подготовки (спортивная квалификация) спортсменов</h3>
+  <table>
+    <tr><th>МСМК</th><th>МС</th><th>КМС</th><th>I р.</th><th>II р.</th><th>III р.</th><th>б/р</th></tr>
+    <tr>
+      <td style="text-align:center">{{ мсмк }}</td>
+      <td style="text-align:center">{{ мс }}</td>
+      <td style="text-align:center">{{ кмс }}</td>
+      <td style="text-align:center">{{ р1 }}</td>
+      <td style="text-align:center">{{ р2 }}</td>
+      <td style="text-align:center">{{ р3 }}</td>
+      <td style="text-align:center">{{ кол_спортсменов - мсмк - мс - кмс - р1 - р2 - р3 }}</td>
+    </tr>
+  </table>
+</div>
+
+{# 8. Выполнение нормативов #}
+<div class="section">
+  <h3>8. Присвоение / выполнение нормативов</h3>
+  <p>МС/МСМК — {{ разряды_мс }} чел., КМС — {{ разряды_кмс }} чел., I разряд — {{ разряды_1 }} чел.</p>
+</div>
+
+{# 9. Призёры #}
+<div class="section">
+  <h3>9. Результаты соревнований (призёры многоборья)</h3>
+  <table>
+    <tr>
+      <th style="width:40px">Место</th>
+      <th>Команда</th>
+      <th>Субъект РФ</th>
+      <th style="width:80px">Очки</th>
+    </tr>
+    <tr><td colspan="4" style="background:#f4f4f4;font-weight:bold">Мужские экипажи</td></tr>
+    {% for к in топ_муж %}
+    <tr>
+      <td style="text-align:center">{{ к.результат_многоборья.место }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td style="text-align:center">{{ к.результат_многоборья.сумма_очков | int }}</td>
+    </tr>
+    {% endfor %}
+    {% if not топ_муж %}<tr><td colspan="4" style="text-align:center;color:#888">—</td></tr>{% endif %}
+    <tr><td colspan="4" style="background:#f4f4f4;font-weight:bold">Женские экипажи</td></tr>
+    {% for к in топ_жен %}
+    <tr>
+      <td style="text-align:center">{{ к.результат_многоборья.место }}</td>
+      <td>{{ к.название or '—' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td style="text-align:center">{{ к.результат_многоборья.сумма_очков | int }}</td>
+    </tr>
+    {% endfor %}
+    {% if not топ_жен %}<tr><td colspan="4" style="text-align:center;color:#888">—</td></tr>{% endif %}
+  </table>
+</div>
+
+{# 10. Судейская коллегия #}
+<div class="section">
+  <h3>10. Судейская коллегия</h3>
+  <table>
+    <tr><th>Фамилия И.О.</th><th>Квалификация</th><th>Должность</th><th>Субъект РФ</th></tr>
+    {% for с in судьи %}
+    <tr>
+      <td>{{ с.фамилия_имя_отчество }}</td>
+      <td style="text-align:center">{{ с.квалификация or '—' }}</td>
+      <td>{{ с.должность or '—' }}</td>
+      <td>{{ с.субъект_рф or '—' }}</td>
+    </tr>
+    {% endfor %}
+    {% if not судьи %}<tr><td colspan="4" style="text-align:center;color:#888">Судьи не внесены</td></tr>{% endif %}
+  </table>
+</div>
+
+{# 11-20. Текстовые разделы #}
+{% set разделы = [
+  ('11. Работа комиссии по допуску', сор.отч_работа_комиссии),
+  ('12. Технические совещания', сор.отч_тех_совещания),
+  ('13. Открытие соревнований и награждения', сор.отч_открытие),
+  ('14. Информационное обеспечение соревнований', сор.отч_информационное),
+  ('15. Количество зрителей', сор.отч_зрители),
+  ('16. Общая оценка качества проведения соревнований', сор.отч_оценка_качества),
+  ('17. Медицинское обеспечение соревнований', сор.отч_медицинское),
+  ('18. Оценка соблюдения мер безопасности', сор.отч_безопасность),
+  ('19. Общие замечания и предложения', сор.отч_замечания),
+  ('20. Общая характеристика организации и проведения', сор.отч_характеристика),
+] %}
+{% for заголовок, текст in разделы %}
+<div class="section">
+  <h3>{{ заголовок }}</h3>
+  <p class="narrative">{{ текст or '—' }}</p>
+</div>
+{% endfor %}
+
+<p style="margin-top:16px">Приложения к данному отчёту:</p>
+<ol style="font-size:10pt;margin:4px 0 0 20px">
+  <li>Копия расписания соревнований (по часам и дням).</li>
+  <li>Сводный протокол комиссии по допуску.</li>
+  <li>Справка о составе и квалификации судейской коллегии.</li>
+  <li>Справка о количестве субъектов Российской Федерации.</li>
+  <li>Протоколы совещаний ГСК с представителями команд.</li>
+  <li>Акты сдачи-приёмки дистанций, в том числе схемы дистанций.</li>
+  <li>Копия протоколов (результаты) соревнований.</li>
+</ol>
+
+<div class="sig">
+  <div class="sig-col">
+    <div>Главный судья соревнований</div>
+    <div style="margin-top:20px">
+      <span class="sig-line">{{ сор.главный_судья or '' }}</span>
+    </div>
+    <div class="caption">подпись / расшифровка подписи</div>
+  </div>
+  <div class="sig-col">
+    <div>Главный секретарь соревнований</div>
+    <div style="margin-top:20px">
+      <span class="sig-line">{{ сор.главный_секретарь or '' }}</span>
+    </div>
+    <div class="caption">подпись / расшифровка подписи</div>
+  </div>
+</div>
+
+{% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
+<div style="margin-top:20px;font-size:10pt">
+  {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} г.
+</div>
+
+</body>
+</html>

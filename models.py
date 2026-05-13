@@ -110,6 +110,7 @@ class Соревнование(db.Model):
     готов_наград_дг     = db.Column(db.Boolean, nullable=False, default=False)
     готов_наград_мб     = db.Column(db.Boolean, nullable=False, default=False)
     готов_наград_зачет  = db.Column(db.Boolean, nullable=False, default=False)
+    готов_отчеты        = db.Column(db.Boolean, nullable=False, default=False)
 
     # Организаторы (4 строки)
     организатор_1               = db.Column(db.String(300), nullable=True)
@@ -189,6 +190,19 @@ class Соревнование(db.Model):
 
     последовательность_допуска  = db.Column(db.String(100), nullable=True)
     вывод_допуска               = db.Column(db.String(20),  nullable=True)
+
+    # Отчёты о соревнованиях
+    отч_объект_спорта    = db.Column(db.Text, nullable=True)
+    отч_работа_комиссии  = db.Column(db.Text, nullable=True)
+    отч_тех_совещания    = db.Column(db.Text, nullable=True)
+    отч_открытие         = db.Column(db.Text, nullable=True)
+    отч_информационное   = db.Column(db.Text, nullable=True)
+    отч_зрители          = db.Column(db.String(200), nullable=True)
+    отч_оценка_качества  = db.Column(db.Text, nullable=True)
+    отч_медицинское      = db.Column(db.Text, nullable=True)
+    отч_безопасность     = db.Column(db.Text, nullable=True)
+    отч_замечания        = db.Column(db.Text, nullable=True)
+    отч_характеристика   = db.Column(db.Text, nullable=True)
 
     # Финансы
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
@@ -1135,6 +1149,27 @@ def применить_миграции():
                 conn.execute(text(
                     'ALTER TABLE предварительные_заявки ADD COLUMN орг_должность_руководителя VARCHAR(200)'
                 ))
+                conn.commit()
+        # соревнования: готовность и текстовые поля отчётов
+        cols_сор3 = {c['name'] for c in inspector.get_columns('соревнования')}
+        if 'готов_отчеты' not in cols_сор3:
+            conn.execute(text("ALTER TABLE соревнования ADD COLUMN готов_отчеты BOOLEAN NOT NULL DEFAULT 0"))
+            conn.commit()
+        for col, ddl in [
+            ('отч_объект_спорта',   'TEXT'),
+            ('отч_работа_комиссии', 'TEXT'),
+            ('отч_тех_совещания',   'TEXT'),
+            ('отч_открытие',        'TEXT'),
+            ('отч_информационное',  'TEXT'),
+            ('отч_зрители',         'VARCHAR(200)'),
+            ('отч_оценка_качества', 'TEXT'),
+            ('отч_медицинское',     'TEXT'),
+            ('отч_безопасность',    'TEXT'),
+            ('отч_замечания',       'TEXT'),
+            ('отч_характеристика',  'TEXT'),
+        ]:
+            if col not in cols_сор3:
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
                 conn.commit()
         # результаты_слалом: штрафы старта и финиша
         if inspector.has_table('результаты_слалом'):

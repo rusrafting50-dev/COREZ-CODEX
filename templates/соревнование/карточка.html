@@ -107,6 +107,16 @@
       </div>
     </a>
   </div>
+  <div class="col">
+    <a href="{{ url_for('отчеты.страница', sor_id=сор.id) }}" class="text-decoration-none">
+      <div class="card border-dark h-100 text-center">
+        <div class="card-body py-2 px-1">
+          <div class="small text-dark fw-semibold mt-2">Отчёты</div>
+          <div class="mt-1">{{ значок(сор.готов_отчеты) }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
 </div>
 
 {# ── Переменные классов судов ── #}
@@ -368,36 +378,4 @@
 
 </div>
 
-<h6 class="text-muted mt-4 mb-2 no-print fw-semibold">
-  <span class="badge bg-secondary me-1">3</span> ОТЧЕТЫ О СОРЕВНОВАНИЯХ
-</h6>
-<div class="row g-2 no-print">
-
-  {# Отчёт ФРР #}
-  <div class="col-12 col-md-6">
-    <div class="card border-dark h-100">
-      <div class="card-header py-1 px-2 bg-dark bg-opacity-10">
-        <span class="fw-bold small"><span class="badge bg-dark me-1">ФРР</span>Отчёт ФРР</span>
-      </div>
-      <div class="card-body py-2 px-2">
-        <a href="{{ url_for('отчеты.фрр', sor_id=сор.id) }}"
-           class="btn btn-dark btn-sm">Сформировать и распечатать</a>
-      </div>
-    </div>
-  </div>
-
-  {# Отчёт ФЦПСР #}
-  <div class="col-12 col-md-6">
-    <div class="card border-dark h-100">
-      <div class="card-header py-1 px-2 bg-dark bg-opacity-10">
-        <span class="fw-bold small"><span class="badge bg-dark me-1">ФЦПСР</span>Отчёт ФЦПСР</span>
-      </div>
-      <div class="card-body py-2 px-2">
-        <a href="{{ url_for('отчеты.фцпср', sor_id=сор.id) }}"
-           class="btn btn-dark btn-sm">Сформировать и распечатать</a>
-      </div>
-    </div>
-  </div>
-
-</div>
 {% endblock %}
