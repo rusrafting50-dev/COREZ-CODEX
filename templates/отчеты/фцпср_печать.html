@@ -71,8 +71,8 @@
 </div>
 
 {# ── 4. Участники ────────────────────────────────────────────────────────── #}
-{% set кол_муж_сп = спортсмены | selectattr('команда.пол','eq','м') | list | length %}
-{% set кол_жен_сп = спортсмены | selectattr('команда.пол','eq','ж') | list | length %}
+{% set кол_муж_сп = уник_спортсмены | selectattr('команда.пол','eq','м') | list | length %}
+{% set кол_жен_сп = уник_спортсмены | selectattr('команда.пол','eq','ж') | list | length %}
 <div class="section">
   <p><strong>4. Всего участников соревнований</strong> <strong>{{ кол_спортсменов + кол_судей }}</strong>, из <strong>{{ кол_субъектов }}</strong> субъектов Российской Федерации</p>
   <p style="margin-left:20px">Спортсменов <strong>{{ кол_спортсменов }}</strong> чел., в том числе <strong>{{ кол_муж_сп }}</strong> муж., <strong>{{ кол_жен_сп }}</strong> жен.</p>
@@ -90,24 +90,24 @@
 </div>
 
 {# ── 6. Спортивная квалификация ──────────────────────────────────────────── #}
-{% set мсмк = спортсмены | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мс   = спортсмены | selectattr('разряд','eq','МС')   | list | length %}
-{% set кмс  = спортсмены | selectattr('разряд','eq','КМС')  | list | length %}
-{% set р1   = спортсмены | selectattr('разряд','eq','I')    | list | length %}
-{% set р2   = спортсмены | selectattr('разряд','eq','II')   | list | length %}
-{% set р3   = спортсмены | selectattr('разряд','eq','III')  | list | length %}
-{% set мсмк_м = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мсмк_ж = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','in',['МСМК']) | list | length %}
-{% set мс_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','МС')   | list | length %}
-{% set мс_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','МС')   | list | length %}
-{% set кмс_м  = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','КМС')  | list | length %}
-{% set кмс_ж  = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','КМС')  | list | length %}
-{% set р1_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','I')    | list | length %}
-{% set р1_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','I')    | list | length %}
-{% set р2_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','II')   | list | length %}
-{% set р2_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','II')   | list | length %}
-{% set р3_м   = спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','III')  | list | length %}
-{% set р3_ж   = спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','III')  | list | length %}
+{% set мсмк = уник_спортсмены | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мс   = уник_спортсмены | selectattr('разряд','eq','МС')   | list | length %}
+{% set кмс  = уник_спортсмены | selectattr('разряд','eq','КМС')  | list | length %}
+{% set р1   = уник_спортсмены | selectattr('разряд','eq','I')    | list | length %}
+{% set р2   = уник_спортсмены | selectattr('разряд','eq','II')   | list | length %}
+{% set р3   = уник_спортсмены | selectattr('разряд','eq','III')  | list | length %}
+{% set мсмк_м = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мсмк_ж = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мс_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','МС')   | list | length %}
+{% set мс_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','МС')   | list | length %}
+{% set кмс_м  = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','КМС')  | list | length %}
+{% set кмс_ж  = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','КМС')  | list | length %}
+{% set р1_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','I')    | list | length %}
+{% set р1_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','I')    | list | length %}
+{% set р2_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','II')   | list | length %}
+{% set р2_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','II')   | list | length %}
+{% set р3_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','III')  | list | length %}
+{% set р3_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','III')  | list | length %}
 <div class="section">
   <p><strong>6. Спортивная квалификация</strong></p>
   <table>
