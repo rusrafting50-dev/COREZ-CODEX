@@ -85,7 +85,7 @@
 {% set с2к = судьи | selectattr('квалификация','in',['СС-2К','СС2К','2К']) | list | length %}
 {% set с3к = судьи | selectattr('квалификация','in',['СС-3К','СС3К','3К']) | list | length %}
 <div class="section">
-  <p><strong>5. Количество судей (всего)</strong> <strong>{{ кол_судей }}</strong> чел., в том числе иногородних судей — чел.&nbsp;&nbsp;&nbsp;Уровень подготовки судей по судейским категориям:</p>
+  <p><strong>5. Количество судей (всего)</strong> <strong>{{ кол_судей }}</strong> чел., в том числе иногородних судей — <strong>{{ иногородних }}</strong> чел.&nbsp;&nbsp;&nbsp;Уровень подготовки судей по судейским категориям:</p>
   <p style="margin-left:20px">ВК <strong>{{ вк }}</strong> чел.,&nbsp;&nbsp; 1К <strong>{{ с1к }}</strong> чел.,&nbsp;&nbsp; 2К <strong>{{ с2к }}</strong> чел.,&nbsp;&nbsp; 3К <strong>{{ с3к }}</strong> чел.</p>
 </div>
 
