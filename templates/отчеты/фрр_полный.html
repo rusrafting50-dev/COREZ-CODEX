@@ -14,10 +14,7 @@
     .center { text-align: center; }
     .bold { font-weight: bold; }
     .lbl { width: 55%; }
-    .sig { display: flex; justify-content: space-between; margin-top: 28px; }
-    .sig-col { width: 45%; }
-    .sig-line { border-bottom: 1px solid #000; display: inline-block; min-width: 160px; }
-    .caption { font-size: 8pt; color: #555; }
+    .no-bg-header th { background: white !important; }
     .section { margin-top: 12px; }
     @media print {
       body { margin: 15mm 12mm; }
@@ -187,13 +184,11 @@
      III разряд — {{ подтверждение_разряды['III'] or '—' }}</p>
 </div>
 
-{# ── 11. Результаты соревнований ─────────────────────────────────────────── #}
+{# ── 13. Результаты соревнований (по классу → полу → дисциплине) ─────────── #}
 <div class="section">
   <p><strong>13. Результаты соревнований:</strong></p>
-  {% for д in дисциплины %}
-    {% for пол_список, пол_назв in [(д['муж'], 'мужчины'), (д['жен'], 'женщины')] %}
-      {% if пол_список %}
-  <p style="margin-top:8px">Спортивная дисциплина &laquo;{{ д['вид'] }} — {{ д['класс'] }}&raquo;, {{ пол_назв }}</p>
+  {% for д in дисциплины_отчёт %}
+  <p style="margin-top:8px">Спортивная дисциплина &laquo;{{ д['вид'] }} — {{ д['класс'] }}&raquo;, {{ д['пол'] }}</p>
   <table>
     <tr>
       <th style="width:40px">Место</th>
@@ -201,7 +196,7 @@
       <th style="width:25%">Территория</th>
       <th>Фамилия, имя, отчество участников</th>
     </tr>
-    {% for место, к in пол_список %}
+    {% for место, к in д['топ'] %}
     <tr>
       <td class="center bold">{{ место }}</td>
       <td>{{ к.название or '—' }}</td>
@@ -210,26 +205,22 @@
     </tr>
     {% endfor %}
   </table>
-      {% endif %}
-    {% endfor %}
-  {% endfor %}
-  {% if not дисциплины %}
+  {% else %}
   <p style="color:#888">Результаты не внесены.</p>
-  {% endif %}
+  {% endfor %}
 </div>
 
-{# ── 12. Медальный зачёт ─────────────────────────────────────────────────── #}
+{# ── 14. Медальный зачёт ─────────────────────────────────────────────────── #}
 <div class="section">
   <p><strong>14. Медальный зачёт (перечислить территории согласно занятым местам)</strong></p>
-  <table>
+  <table class="no-bg-header">
     <tr>
-      <th style="width:2rem">№</th>
-      <th style="width:30%">Команда</th>
-      <th>Территория</th>
+      <th rowspan="2" style="width:2rem">№ п/п</th>
+      <th rowspan="2" style="width:30%">Команда</th>
+      <th rowspan="2">Территория</th>
       <th colspan="3">Количество завоеванных медалей</th>
     </tr>
     <tr>
-      <th></th><th></th><th></th>
       <th>Золото</th><th>Серебро</th><th>Бронза</th>
     </tr>
     {% for м in медали %}
@@ -297,7 +288,7 @@
 
 {# ── Приложения ──────────────────────────────────────────────────────────── #}
 <p style="margin-top:16px">Приложения к данному отчёту:</p>
-<ol style="font-size:10pt;margin:4px 0 0 20px">
+<ol style="margin:4px 0 0 20px">
   <li>Копия расписания соревнований (по часам и дням).</li>
   <li>Сводный протокол комиссии по допуску.</li>
   <li>Справка о составе и квалификации судейской коллегии.</li>
@@ -308,29 +299,22 @@
 </ol>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
-<div class="sig">
-  <div class="sig-col">
-    <div>Главный судья соревнований</div>
-    <div style="margin-top:20px;display:flex;justify-content:space-between">
-      <span class="sig-line" style="min-width:100px">&nbsp;</span>
-      <span style="margin-left:10px">{{ сор.главный_судья or '' }}</span>
-    </div>
-    <div class="caption" style="display:flex;justify-content:space-between">
-      <span>(подпись)</span>
-      <span>(расшифровка подписи)</span>
-    </div>
+{% macro подпись(должность, фио) %}
+<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+  <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
+  <div style="flex:0 0 100px;text-align:center">
+    <div style="border-bottom:1px solid #000">&nbsp;</div>
+    <div style="font-size:8pt">(подпись)</div>
   </div>
-  <div class="sig-col">
-    <div>Главный секретарь соревнований</div>
-    <div style="margin-top:20px;display:flex;justify-content:space-between">
-      <span class="sig-line" style="min-width:100px">&nbsp;</span>
-      <span style="margin-left:10px">{{ сор.главный_секретарь or '' }}</span>
-    </div>
-    <div class="caption" style="display:flex;justify-content:space-between">
-      <span>(подпись)</span>
-      <span>(расшифровка подписи)</span>
-    </div>
+  <div style="flex:1;text-align:center">
+    <div><span style="border-bottom:1px solid #000;display:inline-block;min-width:150px">{{ фио }}</span></div>
+    <div style="font-size:8pt">(расшифровка подписи)</div>
   </div>
+</div>
+{% endmacro %}
+<div style="margin-top:28px">
+  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
+  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
 </div>
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
