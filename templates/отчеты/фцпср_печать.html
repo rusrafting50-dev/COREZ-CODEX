@@ -5,6 +5,7 @@
   <title>Отчёт ФГБУ ФЦПСР — {{ сор.название | truncate(60) }}</title>
   <style>
     body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 20mm 15mm; }
+    @media print { body { margin: 0; } }
     h1 { font-size: 13pt; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 2px; }
     p  { margin: 3px 0; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
@@ -20,7 +21,7 @@
     .section { margin-top: 12px; }
     @media print {
       body { margin: 15mm 12mm; }
-      @page { size: A4 portrait; }
+      @page { size: A4 portrait; margin: 6mm 12mm; }
       .no-print { display: none !important; }
     }
   </style>
