@@ -184,4 +184,5 @@ def отчет_фцпср(sor_id):
 def отчет_липецк(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     ст = _стат(sor_id)
-    return render_template('отчеты/липецк.html', **ст, сегодня=date.today())
+    дисциплины = _дисциплины_фрр(ст['муж'], ст['жен'], сор)
+    return render_template('отчеты/липецк.html', **ст, дисциплины=дисциплины, сегодня=date.today())
