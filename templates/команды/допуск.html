@@ -20,7 +20,7 @@
   <h5 class="mb-0">Комиссия по допуску</h5>
   <div class="d-flex gap-2">
     <a href="{{ url_for('команды.состав_комиссии', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Состав комиссии</a>
+       class="btn btn-outline-primary btn-sm">← Состав комиссии</a>
     <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол комиссии по допуску</a>
     <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}"
