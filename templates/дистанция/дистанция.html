@@ -38,9 +38,9 @@
        class="btn btn-outline-primary btn-sm">Результаты →</a>
     {% elif тип == 'пс' %}
     <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-info btn-sm">Стартовый протокол</a>
+       class="btn btn-outline-info btn-sm">Стартовый протокол →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-info btn-sm">Результаты</a>
+       class="btn btn-outline-info btn-sm">Результаты →</a>
     {% elif тип == 'слалом' %}
     <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Стартовый протокол</a>
