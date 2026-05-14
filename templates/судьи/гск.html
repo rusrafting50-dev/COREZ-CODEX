@@ -29,8 +29,8 @@
   <a href="{{ url_for('судьи.список', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Судейская коллегия</a>
   <div class="d-flex gap-2">
-    <a href="{{ url_for('судьи.справка',   sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Справка о составе</a>
-    <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Список судей</a>
+    <a href="{{ url_for('судьи.справка',   sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Справка о составе</a>
+    <a href="{{ url_for('судьи.минспорта', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">🖨 Список судей</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
