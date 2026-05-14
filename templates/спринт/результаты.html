@@ -30,7 +30,7 @@
   <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+       class="btn btn-outline-primary btn-sm">← Стартовый протокол</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
     <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
