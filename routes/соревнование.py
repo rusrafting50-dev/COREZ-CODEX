@@ -320,10 +320,14 @@ def организаторы(id):
         сор.организатор_2 = request.form.get('организатор_2', '').strip()
         сор.организатор_3 = request.form.get('организатор_3', '').strip()
         сор.организатор_4 = request.form.get('организатор_4', '').strip()
+        _применить_доп_поля(сор, request.form)
+        _применить_виды(сор, request.form)
         db.session.commit()
-        flash('Организаторы сохранены.', 'success')
+        flash('Регламент сохранён.', 'success')
         return redirect(url_for('соревнование.карточка', id=id))
-    return render_template('соревнование/организаторы.html', сор=сор)
+    return render_template('соревнование/организаторы.html', сор=сор,
+                           виды=_получить_виды(сор),
+                           программа=_получить_программу(сор))
 
 
 @bp_соревнование.route('/<int:id>/удалить', methods=['POST'])
