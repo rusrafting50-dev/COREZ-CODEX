@@ -215,6 +215,7 @@ class Соревнование(db.Model):
     инфраструктура_описание     = db.Column(db.Text, nullable=True)
     проезд_общественный         = db.Column(db.Text, nullable=True)
     проезд_собственный          = db.Column(db.Text, nullable=True)
+    награждение_описание        = db.Column(db.Text, nullable=True)
 
     создано                     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -980,6 +981,7 @@ def применить_миграции():
             ('инфраструктура_описание',     'TEXT'),
             ('проезд_общественный',         'TEXT'),
             ('проезд_собственный',          'TEXT'),
+            ('награждение_описание',        'TEXT'),
             ('виды_список',                  'TEXT'),
             ('последовательность_r4',        'VARCHAR(300)'),
             ('последовательность_r6',        'VARCHAR(300)'),
