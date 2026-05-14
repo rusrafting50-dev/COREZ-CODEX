@@ -16,14 +16,23 @@
 <div class="text-center mb-2">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
-<h5 class="mb-3">Регламент соревнования</h5>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Регламент соревнования</h5>
+</div>
 
 <form method="post">
 
-  {# ── Организаторы ── #}
   <div class="card mb-3">
-    <div class="card-header fw-semibold bg-primary text-white py-2">Организаторы</div>
+    <div class="card-header fw-semibold bg-primary text-white py-2">
+      Данные для регламента
+    </div>
     <div class="card-body">
+
+      {# ── 1. Организаторы ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">1</span> Организаторы
+      </h6>
       {% for лейбл, поле, значение in [
         ('Организатор 1', 'организатор_1', сор.организатор_1),
         ('Организатор 2', 'организатор_2', сор.организатор_2),
@@ -37,22 +46,20 @@
                value="{{ значение or '' }}">
       </div>
       {% endfor %}
-    </div>
-  </div>
 
-  {# ── 1. Проводящая организация ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">1</span> Проводящая организация соревнований
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
+
+      {# ── 2. Проводящая организация ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">2</span> Проводящая организация соревнований
+      </h6>
       <div class="mb-3">
         <label class="form-label fw-semibold">Наименование организации</label>
         <input type="text" name="проводящая_орг_название" class="form-control"
                placeholder="Федерация рафтинга России"
                value="{{ сор.проводящая_орг_название or '' }}">
       </div>
-      <div class="row g-3">
+      <div class="row g-3 mb-0">
         <div class="col-md-4">
           <label class="form-label fw-semibold">Руководитель организации (ФИО)</label>
           <input type="text" name="проводящая_орг_руководитель" class="form-control"
@@ -78,17 +85,15 @@
                  value="{{ сор.проводящая_орг_email or '' }}">
         </div>
       </div>
-    </div>
-  </div>
 
-  {# ── 2. Программа соревнований ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">2</span> Программа соревнований
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
 
-      <h6 class="fw-semibold text-muted mb-2">Виды программы</h6>
+      {# ── 3. Программа соревнований ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">3</span> Программа соревнований
+      </h6>
+
+      <p class="text-muted small mb-2">Виды программы</p>
 
       {% set _пол_возраст_опции = [
         'Мужчины', 'Женщины',
@@ -160,13 +165,11 @@
           </tbody>
         </table>
       </div>
-      <button type="button" class="btn btn-outline-primary btn-sm" id="btnДобавитьВид">
+      <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="btnДобавитьВид">
         + Добавить вид программы
       </button>
 
-      <hr class="my-3">
-
-      <h6 class="fw-semibold text-muted mb-2">Расписание мероприятий</h6>
+      <p class="text-muted small mb-2">Расписание мероприятий</p>
 
       <datalist id="datalistМероприятия">
         <option value="Комиссия по допуску">
@@ -220,15 +223,12 @@
         + Добавить мероприятие
       </button>
 
-    </div>
-  </div>
+      <hr class="my-3">
 
-  {# ── 3. Заявочный взнос ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">3</span> Заявочный взнос
-    </div>
-    <div class="card-body">
+      {# ── 4. Заявочный взнос ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">4</span> Заявочный взнос
+      </h6>
       <div class="row g-3 mb-3">
         <div class="col-md-5">
           <label class="form-label fw-semibold">Размер заявочного взноса</label>
@@ -249,38 +249,32 @@
                     placeholder="Пожертвование на уставную деятельность...">{{ сор.назначение_платежа or '' }}</textarea>
         </div>
       </div>
-    </div>
-  </div>
 
-  {# ── 4. Размещение и проживание ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">4</span> Размещение и проживание участников
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
+
+      {# ── 5. Размещение и проживание ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">5</span> Размещение и проживание участников
+      </h6>
       <label class="form-label fw-semibold">Варианты проживания и питания участников</label>
       <textarea name="проживание_описание" class="form-control" rows="4"
                 placeholder="Гостиница «Название», стоимость: ... руб./сут.&#10;База отдыха «Название», стоимость: ... руб./сут.&#10;Кемпинг, стоимость: ... руб./сут.">{{ сор.проживание_описание or '' }}</textarea>
-    </div>
-  </div>
 
-  {# ── 5. Магазины, мобильная связь, стоянка ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">5</span> Магазины, мобильная связь, стоянка
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
+
+      {# ── 6. Магазины, мобильная связь, стоянка ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">6</span> Магазины, мобильная связь, стоянка
+      </h6>
       <textarea name="инфраструктура_описание" class="form-control" rows="4"
                 placeholder="Магазины: ...&#10;Мобильная связь: операторы ..., качество покрытия ...&#10;Стоянка автомобилей: ...">{{ сор.инфраструктура_описание or '' }}</textarea>
-    </div>
-  </div>
 
-  {# ── 6. Варианты проезда ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">6</span> Варианты проезда
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
+
+      {# ── 7. Варианты проезда ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">7</span> Варианты проезда
+      </h6>
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold">Общественным транспортом</label>
@@ -293,15 +287,13 @@
                     placeholder="Трасса М-10, съезд на ..., GPS координаты: ...">{{ сор.проезд_собственный or '' }}</textarea>
         </div>
       </div>
-    </div>
-  </div>
 
-  {# ── 7. Награждение ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">
-      <span class="badge bg-secondary me-1">7</span> Награждение
-    </div>
-    <div class="card-body">
+      <hr class="my-3">
+
+      {# ── 8. Награждение ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">8</span> Награждение
+      </h6>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Информация о награждении</label>
@@ -311,7 +303,7 @@
 
       <hr class="my-3">
 
-      <h6 class="fw-semibold text-muted mb-3">Параметры дипломов</h6>
+      <p class="text-muted small mb-2">Параметры дипломов</p>
 
       <div class="row g-3 mb-3">
         <div class="col-md-4">
@@ -370,11 +362,12 @@
     </div>
   </div>
 
-  <div class="d-flex gap-2 align-items-center mb-3">
+  <div class="d-flex gap-2 align-items-center">
     <button type="submit" class="btn btn-primary px-4">Сохранить</button>
     <a href="{{ url_for('соревнование.карточка', id=сор.id) }}"
        class="btn btn-outline-secondary">Отмена</a>
   </div>
+
 </form>
 
 <div class="d-flex justify-content-end mt-3">
