@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Регламент соревнований — {{ сор.название | truncate(50) }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 11pt;
+      color: #000;
+    }
+    @page { size: A4 portrait; margin: 20mm 15mm 20mm 25mm; }
+    @media print {
+      .no-print { display: none !important; }
+      .page-break { page-break-after: always; }
+    }
+    .регламент-страница {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 20mm;
+      padding: 0;
+    }
+    p { margin-bottom: 4pt; text-indent: 0; }
+    .indent { text-indent: 10mm; }
+    .section-heading {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10pt;
+      margin-bottom: 6pt;
+    }
+    .utv-table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; }
+    .utv-table td { padding: 2pt 4pt; vertical-align: top; text-align: center; width: 50%; }
+    .reg-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: bold;
+      letter-spacing: 3pt;
+      margin-bottom: 4pt;
+    }
+    .reg-subtitle { text-align: center; margin-bottom: 4pt; }
+    .prog-table, .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6pt;
+      font-size: 10pt;
+    }
+    .prog-table th, .prog-table td,
+    .schedule-table th, .schedule-table td {
+      border: 1px solid #000;
+      padding: 2pt 4pt;
+      vertical-align: top;
+    }
+    .prog-table th, .schedule-table th {
+      font-weight: bold;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    .реквизиты { white-space: pre-line; }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="display:flex; justify-content:space-between; padding:10px; background:#f8f8f8; margin-bottom:12px">
+  <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}"
+     style="font-family:sans-serif; font-size:10pt; color:#333; text-decoration:none;
+            border:1px solid #999; border-radius:4px; padding:4px 10px">← Назад</a>
+  <button onclick="window.print()"
+          style="font-family:sans-serif; font-size:10pt; border:1px solid #0d6efd;
+                 border-radius:4px; padding:4px 14px; background:#0d6efd; color:#fff; cursor:pointer">
+    Печать
+  </button>
+</div>
+
+<div class="регламент-страница">
+
+  {# ── 1. Шапка «УТВЕРЖДАЮ» ── #}
+  <table class="utv-table">
+    <tr>
+      <td>
+        <p>«УТВЕРЖДАЮ»</p>
+        <p>{{ сор.организатор_1 or '' }}</p>
+        <p>__________________</p>
+        <p>«___» _____________202__ г.</p>
+      </td>
+      <td>
+        <p>«УТВЕРЖДАЮ»</p>
+        <p>{{ сор.проводящая_орг_должность or '' }}</p>
+        <p>{{ сор.проводящая_орг_название or '' }}</p>
+        <p>__________________{{ сор.проводящая_орг_руководитель or '' }}</p>
+        <p>«___» _____________202__ г.</p>
+      </td>
+    </tr>
+  </table>
+
+  {# ── 2. Заголовок ── #}
+  <div style="margin-top:8pt;">
+    <p class="reg-title">РЕГЛАМЕНТ</p>
+    <p class="reg-subtitle">проведения спортивных соревнований</p>
+    {% if сор.название %}
+    <p class="reg-subtitle">{{ сор.название | lower }}</p>
+    {% endif %}
+    {% if сор.возрастная_группа %}
+    <p class="reg-subtitle">{{ сор.возрастная_группа | lower }}</p>
+    {% endif %}
+    {% if сор.номер_екп %}
+    <p class="reg-subtitle">(С/М в ЕКП № {{ сор.номер_екп }})</p>
+    {% endif %}
+  </div>
+
+  {# ── Section 1. Общая информация ── #}
+  <p class="section-heading">1. Общая информация</p>
+  <p>1.1. Соревнования по рафтингу проводятся в соответствии с:</p>
+  <p class="indent">– с Единым календарным планом{% if сор.номер_екп %}, С/М в ЕКП № {{ сор.номер_екп }}{% endif %};</p>
+  <p class="indent">– с «Положением о спортивных соревнованиях по рафтингу»;</p>
+  <p class="indent">– с правилами вида спорта «рафтинг»;</p>
+  <p class="indent">– с настоящим регламентом.</p>
+  <p class="indent">1.2. Соревнования проводятся {{ сор.даты_проведения or '___' }} {{ сор.место_проведения or '___' }}. Варианты проезда указаны в приложении 1 к настоящему регламенту.</p>
+
+  {# ── Section 2. Организаторы соревнований ── #}
+  <p class="section-heading">2. Организаторы соревнований</p>
+  <p>2.1. Организаторами спортивных соревнований являются:</p>
+  {% for орг in [сор.организатор_1, сор.организатор_2, сор.организатор_3, сор.организатор_4] %}
+  {% if орг %}
+  <p class="indent">– {{ орг }};</p>
+  {% endif %}
+  {% endfor %}
+
+  {# ── Section 3. Организация, проводящая соревнования ── #}
+  <p class="section-heading">3. Организация, проводящая соревнования</p>
+  <p class="indent">3.1. Организацией, проводящей спортивные соревнования, является <strong>{{ сор.проводящая_орг_название or '___' }}</strong> (далее — Проводящая организация).</p>
+  <p class="indent">3.2. Непосредственное проведение спортивных соревнований возлагается на судейскую коллегию соревнований, утвержденную Проводящей организацией.</p>
+  <p class="indent">3.3. Протоколы спортивных соревнований и другие документы судейской коллегии оформляются за подписью главного судьи и главного секретаря и заверяются печатью Проводящей организации.</p>
+  <p class="indent">Главный судья соревнований: <strong>{{ сор.главный_судья or '___' }}</strong>, телефон: {{ сор.главный_судья_телефон or '___' }}.</p>
+
+  {# ── Section 4. Программа соревнований ── #}
+  <p class="section-heading">4. Программа соревнований</p>
+  {% if виды %}
+  <table class="prog-table">
+    <thead>
+      <tr>
+        <th>Класс судна</th>
+        <th>Пол, возраст</th>
+        <th>Последовательность</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for вид in виды %}
+      <tr>
+        <td>{{ вид.дисциплина or '' }}</td>
+        <td>{{ вид.пол_возраст or '' }}</td>
+        <td>
+          {%- set посл = (вид.последовательность or '').split(',') | map('trim') | list -%}
+          1. Спринт
+          {%- for п in посл if п %}, {{ loop.index + 1 }}. {{ п }}{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <p style="margin-bottom:4pt;"><strong>Расписание мероприятий:</strong></p>
+  {% if программа %}
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Наименование</th>
+        <th>Дата</th>
+        <th>Время</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for пункт in программа %}
+      <tr>
+        <td>{{ пункт.наименование or '' }}</td>
+        <td>{{ пункт.дата or '' }}</td>
+        <td>{{ пункт.время or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {# ── Section 5. Условия участия и заявочный взнос ── #}
+  <p class="section-heading">5. Условия участия и заявочный взнос</p>
+  <p class="indent">5.1. К соревнованиям допускаются команды субъектов Российской Федерации, оплатившие заявочный взнос.</p>
+  <p class="indent">5.2. {{ сор.заявочный_взнос or '___' }}</p>
+  <p class="indent">5.3. Оплата производится по следующим реквизитам:</p>
+  {% if сор.реквизиты_оплаты %}
+  <p class="indent реквизиты">{{ сор.реквизиты_оплаты }}</p>
+  {% endif %}
+  {% if сор.назначение_платежа %}
+  <p class="indent">Назначение платежа: {{ сор.назначение_платежа }}</p>
+  {% endif %}
+
+  {# ── Section 6. Размещение и проживание участников ── #}
+  <p class="section-heading">6. Размещение и проживание участников</p>
+  {% if сор.проживание_описание %}
+  <p class="indent реквизиты">{{ сор.проживание_описание }}</p>
+  {% endif %}
+
+  {# ── Section 7. Магазины, мобильная связь, стоянка (только если есть) ── #}
+  {% if сор.инфраструктура_описание %}
+  <p class="section-heading">7. Магазины, мобильная связь, стоянка</p>
+  <p class="indent реквизиты">{{ сор.инфраструктура_описание }}</p>
+  {% endif %}
+
+  {# ── Section 8. Награждение (только если есть) ── #}
+  {% if сор.награждение_описание %}
+  <p class="section-heading">8. Награждение</p>
+  <p class="indent реквизиты">{{ сор.награждение_описание }}</p>
+  {% endif %}
+
+  {# ── Section 9. Контакты организаторов ── #}
+  <p class="section-heading">9. Контакты организаторов</p>
+  <p class="indent">Вопросы по подаче заявок и условиям проведения соревнований: <strong>{{ сор.главный_судья or '___' }}</strong>, телефон: {{ сор.главный_судья_телефон or '___' }}.</p>
+  <p class="indent">Электронная почта: {{ сор.проводящая_орг_email or '___' }}.</p>
+
+  {# ── Приложение 1 ── #}
+  <div class="page-break"></div>
+
+  <p style="margin-bottom:6pt;"><strong>Приложение 1</strong> к Регламенту проведения спортивных соревнований {{ сор.название | lower if сор.название else '' }}</p>
+  <p class="section-heading">Варианты проезда к месту проведения соревнований</p>
+  <p>1. Общественным транспортом:</p>
+  <p class="indent реквизиты">{{ сор.проезд_общественный or '___' }}</p>
+  <p>2. Собственным автомобильным транспортом:</p>
+  <p class="indent реквизиты">{{ сор.проезд_собственный or '___' }}</p>
+
+</div>
+
+</body>
+</html>
