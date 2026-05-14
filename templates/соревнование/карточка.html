@@ -13,7 +13,6 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('соревнование.редактировать', id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">Редактировать</a>
-    <button onclick="window.print()" class="btn btn-outline-dark btn-sm no-print">Регламент соревнований</button>
   </div>
 </div>
 
@@ -61,7 +60,7 @@
     <a href="{{ url_for('соревнование.организаторы', id=сор.id) }}" class="text-decoration-none">
       <div class="card border-dark h-100 text-center">
         <div class="card-body py-2 px-1">
-          <div class="small text-dark fw-semibold mt-2">Организаторы</div>
+          <div class="small text-dark fw-semibold mt-2">Регламент</div>
           <div class="mt-1">{{ значок(сор.готов_организаторы) }}</div>
         </div>
       </div>
