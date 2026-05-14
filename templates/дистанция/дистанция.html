@@ -42,7 +42,7 @@
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
        class="btn btn-outline-info btn-sm">Результаты →</a>
     {% elif тип == 'слалом' %}
-    <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
+    <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Стартовый протокол →</a>
     <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты попыток →</a>
