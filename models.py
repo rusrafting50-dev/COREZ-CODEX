@@ -278,7 +278,7 @@ class Команда(db.Model):
     соревнование_id     = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
     субъект_id          = db.Column(db.Integer, db.ForeignKey('субъекты.id'),     nullable=True)
 
-    нагрудный_номер     = db.Column(db.Integer, nullable=False)   # уникальный в рамках соревнования
+    нагрудный_номер     = db.Column(db.Integer, nullable=False)   # уникальный внутри вида программы (класс+пол)
     название            = db.Column(db.String(150), nullable=True)  # название клуба/команды
     класс_судна         = db.Column(db.String(5),   nullable=False, default='R4')  # R4 / R6
     пол                 = db.Column(db.String(5),   nullable=False, default='м')   # м / ж
@@ -311,7 +311,7 @@ class Команда(db.Model):
     результат_многоборья    = db.relationship('РезультатМногоборья',    back_populates='команда', uselist=False, cascade='all, delete-orphan')
 
     __table_args__ = (
-        db.UniqueConstraint('соревнование_id', 'нагрудный_номер', name='uq_сор_номер'),
+        db.UniqueConstraint('соревнование_id', 'класс_судна', 'пол', 'нагрудный_номер', name='uq_сор_номер'),
     )
 
     def __repr__(self):
@@ -1184,6 +1184,54 @@ def применить_миграции():
                         f'ALTER TABLE результаты_слалом ADD COLUMN {col} INTEGER DEFAULT 0'
                     ))
                     conn.commit()
+        # команды: заменить UNIQUE(соревнование_id, нагрудный_номер)
+        #          на     UNIQUE(соревнование_id, класс_судна, пол, нагрудный_номер)
+        uq_indexes = {idx['name'] for idx in inspector.get_unique_constraints('команды')}
+        if 'uq_сор_номер' in uq_indexes:
+            # Проверяем, что старый constraint ещё двухколоночный
+            old_cols = next(
+                (idx['column_names'] for idx in inspector.get_unique_constraints('команды')
+                 if idx['name'] == 'uq_сор_номер'),
+                []
+            )
+            if 'класс_судна' not in old_cols:
+                with db.engine.connect() as conn2:
+                    conn2.execute(text('PRAGMA foreign_keys = OFF'))
+                    conn2.execute(text('''
+                        CREATE TABLE команды_new (
+                            id INTEGER NOT NULL PRIMARY KEY,
+                            соревнование_id INTEGER NOT NULL REFERENCES соревнования(id),
+                            субъект_id INTEGER REFERENCES субъекты(id),
+                            нагрудный_номер INTEGER NOT NULL,
+                            название VARCHAR(150),
+                            класс_судна VARCHAR(5) NOT NULL DEFAULT "R4",
+                            пол VARCHAR(5) NOT NULL DEFAULT "м",
+                            возрастная_группа VARCHAR(20),
+                            участие_спринт BOOLEAN NOT NULL DEFAULT 1,
+                            участие_пс BOOLEAN NOT NULL DEFAULT 1,
+                            участие_слалом BOOLEAN NOT NULL DEFAULT 1,
+                            участие_дг BOOLEAN NOT NULL DEFAULT 1,
+                            участие_многоборье BOOLEAN NOT NULL DEFAULT 1,
+                            принадлежность_к_орг VARCHAR(100),
+                            оплата_взноса VARCHAR(50) DEFAULT "Ожидает оплаты",
+                            стартовый_номер_спринт INTEGER,
+                            время_старта_спринт_план VARCHAR(20),
+                            UNIQUE (соревнование_id, класс_судна, пол, нагрудный_номер)
+                        )
+                    '''))
+                    conn2.execute(text('''
+                        INSERT INTO команды_new SELECT
+                            id, соревнование_id, субъект_id, нагрудный_номер, название,
+                            класс_судна, пол, возрастная_группа,
+                            участие_спринт, участие_пс, участие_слалом, участие_дг, участие_многоборье,
+                            принадлежность_к_орг, оплата_взноса,
+                            стартовый_номер_спринт, время_старта_спринт_план
+                        FROM команды
+                    '''))
+                    conn2.execute(text('DROP TABLE команды'))
+                    conn2.execute(text('ALTER TABLE команды_new RENAME TO команды'))
+                    conn2.execute(text('PRAGMA foreign_keys = ON'))
+                    conn2.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
