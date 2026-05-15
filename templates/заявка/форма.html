@@ -253,7 +253,7 @@ const шаблон = `
 
 function добавитьСтроку() {
   const tbody = document.getElementById('tbodySportsmen');
-  tbody.insertAdjacentHTML('beforeend', шаблон);
+  tbody.insertAdjacentHTML('afterbegin', шаблон);
   обновитьНомера();
 }
 
@@ -332,19 +332,19 @@ function выбратьСпортсмена(с) {
   поискСпортИтоги.style.display = 'none';
 
   const tbody = document.getElementById('tbodySportsmen');
-  tbody.insertAdjacentHTML('beforeend', шаблон);
+  tbody.insertAdjacentHTML('afterbegin', шаблон);
   обновитьНомера();
 
-  const lastRow = tbody.lastElementChild;
-  const fioInp = lastRow.querySelector('input[name="фио[]"]');
+  const firstRow = tbody.firstElementChild;
+  const fioInp = firstRow.querySelector('input[name="фио[]"]');
   if (fioInp) fioInp.value = с.фио || '';
-  const polSel = lastRow.querySelector('select[name="пол[]"]');
+  const polSel = firstRow.querySelector('select[name="пол[]"]');
   if (polSel && с.пол) polSel.value = с.пол;
-  const dateInp = lastRow.querySelector('input[name="дата_рождения[]"]');
+  const dateInp = firstRow.querySelector('input[name="дата_рождения[]"]');
   if (dateInp && с.дата_рождения) dateInp.value = с.дата_рождения;
-  const kvalSel = lastRow.querySelector('select[name="квалификация[]"]');
+  const kvalSel = firstRow.querySelector('select[name="квалификация[]"]');
   if (kvalSel && с.разряд) kvalSel.value = с.разряд;
-  пересчитатьГруппуСтроки(lastRow);
+  пересчитатьГруппуСтроки(firstRow);
 }
 </script>
 {% endblock %}
