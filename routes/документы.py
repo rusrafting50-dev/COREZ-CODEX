@@ -140,15 +140,45 @@ def жеребьёвка_сохранить(sor_id):
                 pass
 
     # Нагрудные номера
+    новые_номера: dict[int, int] = {}  # kid -> новый номер
     for key, val in request.form.items():
         if key.startswith('номер_'):
             try:
                 kid = int(key[len('номер_'):])
                 к = Команда.query.get(kid)
                 if к and к.соревнование_id == sor_id and val.strip():
-                    к.нагрудный_номер = int(val)
+                    новые_номера[kid] = int(val)
             except (ValueError, TypeError):
                 pass
+
+    # Проверяем уникальность: дубли внутри формы
+    счётчик: dict[int, list[int]] = {}
+    for kid, номер in новые_номера.items():
+        счётчик.setdefault(номер, []).append(kid)
+    дубли_формы = {н: kids for н, kids in счётчик.items() if len(kids) > 1}
+
+    # Проверяем конфликт с командами, которые НЕ обновляются этой формой
+    занятые = {
+        к.нагрудный_номер: к.id
+        for к in Команда.query.filter_by(соревнование_id=sor_id).all()
+        if к.нагрудный_номер is not None and к.id not in новые_номера
+    }
+    конфликты = {н: kid for kid, н in новые_номера.items() if н in занятые}
+
+    if дубли_формы or конфликты:
+        db.session.rollback()
+        части = []
+        for н, kids in дубли_формы.items():
+            части.append(f'номер {н} повторяется в форме ({len(kids)} команды)')
+        for н in конфликты:
+            части.append(f'номер {н} уже занят другой командой')
+        flash('Не удалось сохранить: ' + '; '.join(части) + '.', 'danger')
+        return redirect(url_for('документы.жеребьёвка', sor_id=sor_id))
+
+    for kid, номер in новые_номера.items():
+        к = Команда.query.get(kid)
+        if к:
+            к.нагрудный_номер = номер
 
     # Стартовый протокол спринта: время старта, штрафы, ДК
     дк_ids = set()
