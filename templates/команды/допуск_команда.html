@@ -378,6 +378,8 @@ if (document.getElementById('tbodySportsmen') &&
 // ── Поиск спортсмена в базе ──────────────────────────────────────────────
 const поискСпортВвод  = document.getElementById('поискСпортФИО');
 const поискСпортИтоги = document.getElementById('поискСпортРезультаты');
+const SOR_ID     = {{ сор.id }};
+const КОМАНДА_ID = {{ команда.id if команда else 'null' }};
 
 if (поискСпортВвод) {
   let таймерСпорт;
@@ -393,21 +395,33 @@ if (поискСпортВвод) {
 }
 
 function загрузитьСпортсменов(q) {
-  fetch(`/спортсмены/поиск?q=${encodeURIComponent(q)}`)
-    .then(r => r.json())
-    .then(данные => {
-      if (!данные.length) { поискСпортИтоги.style.display = 'none'; return; }
-      поискСпортИтоги.innerHTML = данные.map(с => `
-        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
-             onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
-          <div class="fw-semibold">${с.фио}</div>
-          <div class="text-muted small">
-            ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
-            ${с.дата_рождения ? с.дата_рождения : ''}
-          </div>
-        </div>`).join('');
-      поискСпортИтоги.style.display = 'block';
-    });
+  const qLow = q.toLowerCase();
+  const запросБаза = fetch(`/спортсмены/поиск?q=${encodeURIComponent(q)}`).then(r => r.json());
+  const запросЗаявка = (КОМАНДА_ID
+    ? fetch(`/команды/${SOR_ID}/подсказки-спортсменов?команда_id=${КОМАНДА_ID}`)
+    : fetch(`/команды/${SOR_ID}/подсказки-спортсменов`)
+  ).then(r => r.json()).then(данные =>
+    данные
+      .filter(с => с.фио.toLowerCase().includes(qLow))
+      .map(с => ({ фио: с.фио, пол: с.пол, дата_рождения: с.дата_рождения, разряд: с.квалификация || '' }))
+  );
+
+  Promise.all([запросБаза, запросЗаявка]).then(([изБазы, изЗаявки]) => {
+    const seen = new Set(изБазы.map(с => с.фио.toLowerCase()));
+    const доп  = изЗаявки.filter(с => !seen.has(с.фио.toLowerCase()));
+    const все   = [...изБазы, ...доп];
+    if (!все.length) { поискСпортИтоги.style.display = 'none'; return; }
+    поискСпортИтоги.innerHTML = все.map(с => `
+      <div class="px-3 py-2 border-bottom" style="cursor:pointer"
+           onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
+        <div class="fw-semibold">${с.фио}</div>
+        <div class="text-muted small">
+          ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
+          ${с.дата_рождения ? с.дата_рождения : ''}
+        </div>
+      </div>`).join('');
+    поискСпортИтоги.style.display = 'block';
+  });
 }
 
 function выбратьСпортсмена(с) {
