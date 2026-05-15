@@ -234,6 +234,20 @@
 const РАЗРЯДЫ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
 const ДИСТ    = [['спринт','СП'],['пс','ПС'],['слалом','СЛ'],['дг','ДГ']];
 
+// Авто-заполнение тренера при выборе субъекта
+const СУБЪЕКТЫ_ТРЕНЕРЫ = {
+  {% for с in субъекты %}{% if с.представитель %}"{{ с.id }}": {{ с.представитель | tojson }},{% endif %}{% endfor %}
+};
+(function() {
+  const selСубъект = document.querySelector('select[name="субъект_id"]');
+  const inpТренер  = document.querySelector('input[name="тренер_представитель"]');
+  if (!selСубъект || !inpТренер) return;
+  selСубъект.addEventListener('change', function() {
+    const тренер = СУБЪЕКТЫ_ТРЕНЕРЫ[this.value] || '';
+    if (тренер) inpТренер.value = тренер;
+  });
+})();
+
 function buildSelect(name, opts, selected='') {
   const sel = document.createElement('select');
   sel.name = name;
