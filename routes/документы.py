@@ -139,17 +139,20 @@ def жеребьёвка_сохранить(sor_id):
             except (ValueError, TypeError):
                 pass
 
-    # Нагрудные номера
+    # Нагрудные номера — собираем из формы
     новые_номера: dict[int, int] = {}  # kid -> новый номер
-    for key, val in request.form.items():
-        if key.startswith('номер_'):
-            try:
-                kid = int(key[len('номер_'):])
-                к = Команда.query.get(kid)
-                if к and к.соревнование_id == sor_id and val.strip():
-                    новые_номера[kid] = int(val)
-            except (ValueError, TypeError):
-                pass
+    все_команды_карта: dict[int, object] = {}
+    with db.session.no_autoflush:
+        for key, val in request.form.items():
+            if key.startswith('номер_'):
+                try:
+                    kid = int(key[len('номер_'):])
+                    к = Команда.query.get(kid)
+                    if к and к.соревнование_id == sor_id and val.strip():
+                        новые_номера[kid] = int(val)
+                        все_команды_карта[kid] = к
+                except (ValueError, TypeError):
+                    pass
 
     # Проверяем уникальность: дубли внутри формы
     счётчик: dict[int, list[int]] = {}
@@ -175,10 +178,15 @@ def жеребьёвка_сохранить(sor_id):
         flash('Не удалось сохранить: ' + '; '.join(части) + '.', 'danger')
         return redirect(url_for('документы.жеребьёвка', sor_id=sor_id))
 
-    for kid, номер in новые_номера.items():
-        к = Команда.query.get(kid)
-        if к:
-            к.нагрудный_номер = номер
+    # Двухфазное обновление: сначала обнуляем, потом назначаем новые.
+    # Это исключает UNIQUE-конфликт при перестановке номеров между командами.
+    with db.session.no_autoflush:
+        for к in все_команды_карта.values():
+            к.нагрудный_номер = None
+    db.session.flush()
+    with db.session.no_autoflush:
+        for kid, номер in новые_номера.items():
+            все_команды_карта[kid].нагрудный_номер = номер
 
     # Стартовый протокол спринта: время старта, штрафы, ДК
     дк_ids = set()
