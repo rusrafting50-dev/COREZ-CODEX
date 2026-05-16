@@ -68,10 +68,10 @@
     {% set р = к.результат_спринт %}
     {% set ст = р.статус if р else 'ФИН' %}
     <tr {% if ст == 'ДК' %}class="dk-row"{% elif ст in ('НФН', 'НСТ') %}style="background:#fff8dc"{% endif %}>
-      <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '—' }}</strong></td>
+      <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '–' }}</strong></td>
       <td class="text-center">{{ к.нагрудный_номер }}</td>
-      <td>{{ к.название or '—' }}</td>
-      <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+      <td>{{ к.название or '–' }}</td>
+      <td>{{ к.субъект.название if к.субъект else '–' }}</td>
       <td class="text-center" style="font-family:monospace;font-size:8.5pt">
         {{ format_time(р.время_старта) if р and р.время_старта else '' }}
       </td>

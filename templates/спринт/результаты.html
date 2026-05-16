@@ -214,6 +214,25 @@ document.querySelectorAll('.дк-чек').forEach(cb => {
     });
 });
 
+// ── НСТ: блокировка и сброс строки ───────────────────────────────────────
+
+function применитьНСТ(row, isНСТ) {
+    const дкЧек = row.querySelector('.дк-чек');
+    const дк = дкЧек && дкЧек.checked;
+    row.querySelectorAll('[name^="вс_"], [name^="вф_"], [name^="с10_"], [name^="с50_"], [name^="ф50_"]').forEach(el => {
+        el.disabled = isНСТ || дк;
+        if (isНСТ) el.value = el.type === 'text' ? '' : '0';
+    });
+    пересчитатьСтроку(row);
+}
+
+document.querySelectorAll('[name^="ст_"]').forEach(sel => {
+    sel.addEventListener('change', function () {
+        применитьНСТ(this.closest('tr'), this.value === 'НСТ');
+    });
+    if (sel.value === 'НСТ') применитьНСТ(sel.closest('tr'), true);
+});
+
 // ── Клиентский пересчёт Время / Штраф / Результат ────────────────────────
 
 function parseTimeSecs(val) {
