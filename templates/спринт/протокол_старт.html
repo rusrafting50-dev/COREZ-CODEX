@@ -86,7 +86,7 @@
   <td>{{ к.название or '—' }}</td>
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '—' }}</strong></td>
-  <td class="text-center" style="font-family:monospace">{{ format_time(р.время_старта) if р and р.время_старта else '' }}</td>
+  <td class="text-center" style="font-family:monospace">{{ к.время_старта_спринт_план or '' }}</td>
 </tr>
 {% endfor %}
 {% endif %}

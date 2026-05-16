@@ -83,7 +83,7 @@
         <td class="text-center num-старт">{{ к.стартовый_номер_спринт or loop.index }}</td>
         <td class="text-center">
           <input type="text" name="вс_{{ к.id }}"
-                 value="{{ format_time(р.время_старта) if р else '' }}"
+                 value="{{ к.время_старта_спринт_план or '' }}"
                  placeholder="00:00:00.00"
                  class="form-control form-control-sm text-center время-ввод font-monospace"
                  style="width:105px;margin:auto" autocomplete="off">

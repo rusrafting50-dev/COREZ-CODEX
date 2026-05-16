@@ -203,7 +203,9 @@ def жеребьёвка_сохранить(sor_id):
     for kid, номер in новые_номера.items():
         все_команды_карта[kid].нагрудный_номер = номер
 
-    # Стартовый протокол спринта: время старта, штрафы, ДК
+    # Плановое время старта — сохраняем прямо на команде (время_старта_спринт_план),
+    # чтобы оно было доступно без записи результата.
+    # Также пишем в рез.время_старта для совместимости с расчётом результатов.
     дк_ids = set()
     for key in request.form:
         if key.startswith('дк_') and key[3:].isdigit():
@@ -216,12 +218,15 @@ def жеребьёвка_сохранить(sor_id):
         in_form = f'вс_{kid}' in request.form or is_дк
         if not in_form:
             continue
+        if not is_дк:
+            parsed = _parse_time(request.form.get(f'вс_{kid}', ''))
+            к.время_старта_спринт_план = _format_time(parsed) if parsed is not None else None
         рез = _получить_или_создать_рез(к, sor_id)
         рез.стартовый_номер = к.стартовый_номер_спринт
         if is_дк:
             рез.статус = СТАТУС_ДК
         else:
-            рез.время_старта = _parse_time(request.form.get(f'вс_{kid}', ''))
+            рез.время_старта = parsed
             if f'с10_{kid}' in request.form:
                 рез.штраф_с10 = _int0(request.form.get(f'с10_{kid}'))
             if f'с50_{kid}' in request.form:
