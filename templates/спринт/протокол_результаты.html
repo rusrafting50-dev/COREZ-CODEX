@@ -212,9 +212,9 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '–' }}</td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
-    {% if р.статус == 'НСТ' %}
+    {% if р.статус in ('НСТ', 'НФН') %}
       {% if итоговый %}
-    <td class="text-center">Не старт.</td>
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
     <td class="text-center">–</td>
     <td class="text-center">–</td>
       {% else %}
@@ -222,12 +222,12 @@
     <td class="text-center">–</td>
     <td class="text-center">–</td>
     <td class="text-center">–</td>
-    <td class="text-center">Не старт.</td>
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
     <td class="text-center">–</td>
       {% endif %}
     {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% endif %}
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% endif %}
     </td>
     {% endif %}
     <td class="text-center">–</td>
@@ -296,9 +296,9 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '–' }}</td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
-    {% if р.статус == 'НСТ' %}
+    {% if р.статус in ('НСТ', 'НФН') %}
       {% if итоговый %}
-    <td class="text-center">Не старт.</td>
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
     <td class="text-center">–</td>
     <td class="text-center">–</td>
       {% else %}
@@ -306,12 +306,12 @@
     <td class="text-center">–</td>
     <td class="text-center">–</td>
     <td class="text-center">–</td>
-    <td class="text-center">Не старт.</td>
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
     <td class="text-center">–</td>
       {% endif %}
     {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% endif %}
+      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% endif %}
     </td>
     {% endif %}
     <td class="text-center">–</td>
