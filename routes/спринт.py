@@ -180,17 +180,24 @@ def результаты(sor_id):
             for к in _по_старту(sor_id, пол):
                 рез = _получить_или_создать(к, sor_id)
                 рез.стартовый_номер = к.стартовый_номер_спринт
-                рез.время_старта = parse_time(request.form.get(f'вс_{к.id}', ''))
-                рез.штраф_с10 = _int0(request.form.get(f'с10_{к.id}'))
-                рез.штраф_с50 = _int0(request.form.get(f'с50_{к.id}'))
-                рез.время_финиша = parse_time(request.form.get(f'вф_{к.id}', ''))
-                рез.штраф_ф50 = _int0(request.form.get(f'ф50_{к.id}'))
                 if request.form.get(f'дк_{к.id}'):
                     рез.статус = СТАТУС_ДК
                 else:
                     ст = request.form.get(f'ст_{к.id}', СТАТУС_ФИНИШ)
                     if ст in допустимые:
                         рез.статус = ст
+                if рез.статус == СТАТУС_ДНС:
+                    рез.время_старта = None
+                    рез.штраф_с10 = 0
+                    рез.штраф_с50 = 0
+                    рез.время_финиша = None
+                    рез.штраф_ф50 = 0
+                else:
+                    рез.время_старта = parse_time(request.form.get(f'вс_{к.id}', ''))
+                    рез.штраф_с10 = _int0(request.form.get(f'с10_{к.id}'))
+                    рез.штраф_с50 = _int0(request.form.get(f'с50_{к.id}'))
+                    рез.время_финиша = parse_time(request.form.get(f'вф_{к.id}', ''))
+                    рез.штраф_ф50 = _int0(request.form.get(f'ф50_{к.id}'))
         db.session.commit()
         flash('Данные сохранены.', 'success')
         return redirect(url_for('спринт.результаты', sor_id=sor_id))
