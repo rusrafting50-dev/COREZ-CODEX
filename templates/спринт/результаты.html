@@ -124,8 +124,8 @@
         </td>
         <td class="text-center">
           {% if в_рез %}
-            {% if р.статус == 'ПМ' %}<span class="text-muted">{{ ns.ранг }}</span>
-            {% else %}{{ ns.ранг }}{% endif %}
+            {% if р.статус in ('ПМ', 'ПЛВ') %}<span class="text-muted">{{ р.место }}</span>
+            {% else %}{{ р.место or ns.ранг }}{% endif %}
           {% else %}—{% endif %}
         </td>
         <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
