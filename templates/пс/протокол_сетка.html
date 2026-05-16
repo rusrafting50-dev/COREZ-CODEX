@@ -158,7 +158,7 @@
     {% set ns.hn = ns.hn + 1 %}
     <div class="heat">
       <div class="heat-hdr fin-b-hdr">
-        <b>Финал Б · Заезд {{ ns.hn }}</b>
+        <b>Заезд {{ ns.hn }}, Финал Б</b>
         <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
       </div>
       {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
@@ -166,7 +166,7 @@
     {% endif %}
     {% endfor %}
 
-    {# Финал А — реальные заезды или BYE-заглушка #}
+    {# Финал А — реальные заезды или заглушка с победителями ½ финала #}
     {% set за = брак.get('Финал_А', {}) %}
     {% set реальные_а = за.keys() | reject('equalto', 0) | list | sort %}
     {% if реальные_а %}
@@ -175,36 +175,42 @@
       {% set ns.hn = ns.hn + 1 %}
       <div class="heat">
         <div class="heat-hdr fin-a-hdr">
-          <b>Финал А · Заезд {{ ns.hn }}</b>
+          <b>Заезд {{ ns.hn }}, Финал А</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
         </div>
         {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
       </div>
       {% endfor %}
-    {% elif за %}
-      {% set бай = за.get(0, []) %}
-      {% if бай %}
-      {# Найти метку соперника из предыдущей стадии #}
-      {% set нс_оп = namespace(метка='Ожидается') %}
-      {% for j in range(стадии|length) %}
-      {% if стадии[j] == 'Финал_А' and j > 0 %}
-        {% set пред_ст = стадии[j-1] %}
-        {% set пред_зд = брак.get(пред_ст, {}) %}
-        {% for рн in пред_зд.keys() | reject('equalto', 0) | list | sort %}
-        {% set нс_оп.метка = 'Победитель заезда ' ~ loop.index ~ ', ' ~ НАЗВАНИЯ.get(пред_ст, пред_ст) %}
-        {% endfor %}
-      {% endif %}
+    {% else %}
+      {# Заглушка: по одной строке на каждый заезд ½ финала #}
+      {% set полу_зд = брак.get('1/2', {}) %}
+      {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
+      {% set нс_до_полу = namespace(val=0) %}
+      {% for ст in пред %}
+        {% if ст != '1/2' %}
+          {% for номер in брак.get(ст, {}).keys() | reject('equalto', 0) | list %}
+            {% set нс_до_полу.val = нс_до_полу.val + 1 %}
+          {% endfor %}
+        {% endif %}
       {% endfor %}
+      {% set бай = за.get(0, []) %}
       {% set ns.hn = ns.hn + 1 %}
       <div class="heat">
         <div class="heat-hdr fin-a-hdr">
-          <b>Финал А · Заезд {{ ns.hn }}</b>
-          <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(бай[0].время_старта) if бай[0].время_старта else '' }}</span></span>
+          <b>Заезд {{ ns.hn }}, Финал А</b>
+          {% if бай and бай[0].время_старта %}
+          <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(бай[0].время_старта) }}</span></span>
+          {% endif %}
         </div>
-        {{ ряд_команды(бай[0].команда, посев_map) }}
-        <div class="ph-row">{{ нс_оп.метка }}</div>
+        {% if полу_заезды %}
+          {% for рн in полу_заезды %}
+          <div class="ph-row">Победитель заезда № {{ нс_до_полу.val + рн }}, ½ финала</div>
+          {% endfor %}
+        {% else %}
+          <div class="ph-row">Ожидается</div>
+          <div class="ph-row">Ожидается</div>
+        {% endif %}
       </div>
-      {% endif %}
     {% endif %}
 
   </td>
