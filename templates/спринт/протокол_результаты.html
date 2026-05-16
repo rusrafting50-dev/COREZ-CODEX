@@ -179,25 +179,27 @@
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_ст == 0 %}—{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
-    <td class="text-center">—</td>
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_фн == 0 %}—{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     {% else %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
-    <td class="text-center">{{ р.место or '-' }}</td>
-    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
-    <td class="text-center">{{ муж_разр.get(р.команда_id, '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}Посл. м.{% elif р.статус == 'ПЛВ' %}Прев. ЛВ{% else %}{{ format_dur(р.результат) | replace('—', '–') }}{% endif %}</td>
+    <td class="text-center">{{ р.место or '–' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '–' }}</td>
+    <td class="text-center">{{ муж_разр.get(р.команда_id, '–') }}</td>
   </tr>
   {% endfor %}
   {% for р in муж_без %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
+  {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
+  {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">
@@ -215,24 +217,37 @@
     {% if р.статус in ('НСТ', 'НФН') %}
       {% if итоговый %}
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
-    <td class="text-center">—</td>
-    <td class="text-center">—</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
       {% else %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
-    <td class="text-center">—</td>
+    <td class="text-center">–</td>
+      {% endif %}
+    {% elif р.статус == 'ДК' %}
+      {% if итоговый %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">ДК</td>
       {% endif %}
     {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% endif %}
+      <strong>{{ р.статус }}</strong>
     </td>
     {% endif %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% if not муж_рез and not муж_без %}
@@ -263,25 +278,27 @@
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_ст == 0 %}—{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
-    <td class="text-center">—</td>
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ДК' or шт_фн == 0 %}—{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     {% else %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
-    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}ПМ{% else %}{{ format_dur(р.результат) | replace('—', '-') }}{% endif %}</td>
-    <td class="text-center">{{ р.место or '-' }}</td>
-    <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
-    <td class="text-center">{{ жен_разр.get(р.команда_id, '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}Посл. м.{% elif р.статус == 'ПЛВ' %}Прев. ЛВ{% else %}{{ format_dur(р.результат) | replace('—', '–') }}{% endif %}</td>
+    <td class="text-center">{{ р.место or '–' }}</td>
+    <td class="text-center">{{ р.очки | int if р.очки else '–' }}</td>
+    <td class="text-center">{{ жен_разр.get(р.команда_id, '–') }}</td>
   </tr>
   {% endfor %}
   {% for р in жен_без %}
   {% set к = р.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set ns.idx = ns.idx + 1 %}
+  {% set шт_ст = (р.штраф_с10 or 0) * 10 + (р.штраф_с50 or 0) * 50 %}
+  {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
     <td style="font-size:7.5pt">
@@ -299,24 +316,37 @@
     {% if р.статус in ('НСТ', 'НФН') %}
       {% if итоговый %}
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
-    <td class="text-center">—</td>
-    <td class="text-center">—</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
       {% else %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
-    <td class="text-center">—</td>
+    <td class="text-center">–</td>
+      {% endif %}
+    {% elif р.статус == 'ДК' %}
+      {% if итоговый %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
+    <td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">ДК</td>
       {% endif %}
     {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% endif %}
+      <strong>{{ р.статус }}</strong>
     </td>
     {% endif %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% if not жен_рез and not жен_без %}

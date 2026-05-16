@@ -118,7 +118,8 @@
           {{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}
         </td>
         <td class="text-center font-monospace cell-результат">
-          {% if р.статус == 'ПМ' %}<span class="text-muted">ПМ</span>
+          {% if р.статус == 'ПМ' %}<span class="text-muted">Посл. м.</span>
+          {% elif р.статус == 'ПЛВ' %}<span class="text-muted">Прев. ЛВ</span>
           {% else %}{{ format_dur(р.результат) }}{% endif %}
         </td>
         <td class="text-center">
