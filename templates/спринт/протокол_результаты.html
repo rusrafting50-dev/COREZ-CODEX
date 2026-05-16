@@ -212,9 +212,18 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    {% if р.статус == 'НСТ' and not итоговый %}
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">Не старт.</td>
+    <td class="text-center">—</td>
+    {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
       <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
+    {% endif %}
     <td class="text-center">-</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
@@ -281,9 +290,18 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
+    {% if р.статус == 'НСТ' and not итоговый %}
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">-</td>
+    <td class="text-center">Не старт.</td>
+    <td class="text-center">—</td>
+    {% else %}
     <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
       <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
     </td>
+    {% endif %}
     <td class="text-center">-</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
