@@ -120,10 +120,10 @@
         </td>
         <td>
           <select name="ст_{{ з.id }}" class="form-select form-select-sm">
-            <option value="ФИН" {{ 'selected' if з.статус == СТАТУС_ФИНИШ }}>Финиш</option>
+            <option value="ФИН" {{ 'selected' if з.статус == СТАТУС_ФИНИШ }}>Фин.</option>
             <option value="ДК"  {{ 'selected' if з.статус == СТАТУС_ДК }}>ДК</option>
-            <option value="НФН" {{ 'selected' if з.статус == 'НФН' }}>НФН</option>
-            <option value="НСТ" {{ 'selected' if з.статус == 'НСТ' }}>НСТ</option>
+            <option value="НФН" {{ 'selected' if з.статус == 'НФН' }}>Не фин.</option>
+            <option value="НСТ" {{ 'selected' if з.статус == 'НСТ' }}>Не старт.</option>
           </select>
         </td>
       </tr>
