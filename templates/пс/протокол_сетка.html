@@ -21,7 +21,7 @@
     .sig-pos { width: 38%; font-size: 10pt; }
     /* bracket */
     .sec-title { font-size: 9pt; font-weight: bold;
-                 margin: 6px 0 5px; }
+                 margin: 6px 0 5px; text-align: center; }
     .st-col  { vertical-align: top; padding: 0 3px; width: 175px; min-width: 175px; }
     .st-hdr  { font-size: 7pt; font-weight: bold; text-align: center;
                background: #e0e0e0; border: 1px solid #aaa; padding: 2px 4px; margin-bottom: 3px; }
@@ -119,7 +119,7 @@
 {% set пред = стадии | reject('equalto', 'Финал_А') | reject('equalto', 'Финал_Б') | list %}
 
 <div class="sec-title">{{ заг }}</div>
-<table style="border-collapse:collapse"><tr>
+<table style="border-collapse:collapse;margin:0 auto"><tr>
 
   {# ── Предварительные стадии ── #}
   {% for ст in пред %}
@@ -191,26 +191,33 @@
       {% for номер in реальные_а %}
       {% set пара = за[номер] %}
       {% set ns.hn = ns.hn + 1 %}
+      {% set _финал_сыгран = пара | selectattr('результат') | list | length > 0 %}
       <div class="heat">
         <div class="heat-hdr fin-a-hdr">
           <b>Заезд {{ ns.hn }}, Финал А</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
         </div>
-        {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
+        {% if not _финал_сыгран and n > 3 %}
+          {# Финал А не сыгран — показать победителей ½ финала как заглушки #}
+          {% set полу_зд = брак.get('1/2', {}) %}
+          {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
+          {% if полу_заезды %}
+            {% for рн in полу_заезды %}
+            <div class="ph-row">Победитель заезда № {{ рн }}, ½ финала</div>
+            {% endfor %}
+          {% else %}
+            <div class="ph-row">Ожидается</div>
+            <div class="ph-row">Ожидается</div>
+          {% endif %}
+        {% else %}
+          {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
+        {% endif %}
       </div>
       {% endfor %}
     {% else %}
       {# Заглушка: по одной строке на каждый заезд ½ финала #}
       {% set полу_зд = брак.get('1/2', {}) %}
       {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
-      {% set нс_до_полу = namespace(val=0) %}
-      {% for ст in пред %}
-        {% if ст != '1/2' %}
-          {% for номер in брак.get(ст, {}).keys() | reject('equalto', 0) | list %}
-            {% set нс_до_полу.val = нс_до_полу.val + 1 %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
       {% set бай = за.get(0, []) %}
       {% set ns.hn = ns.hn + 1 %}
       <div class="heat">
@@ -222,7 +229,7 @@
         </div>
         {% if полу_заезды %}
           {% for рн in полу_заезды %}
-          <div class="ph-row">Победитель заезда № {{ нс_до_полу.val + рн }}, ½ финала</div>
+          <div class="ph-row">Победитель заезда № {{ рн }}, ½ финала</div>
           {% endfor %}
         {% else %}
           <div class="ph-row">Ожидается</div>
