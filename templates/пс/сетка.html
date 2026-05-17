@@ -440,7 +440,7 @@
           {% set полу_заезды_а = полу_зд_а.keys() | reject('equalto', 0) | list | sort %}
           {% if полу_заезды_а %}
             {% for рн in полу_заезды_а %}
-            {{ строка_участника(none, 'Победитель заезда №' ~ рн ~ ', ½ финала', посев_map, none, none, none) }}
+            {{ строка_участника(none, 'Победитель заезда ' ~ loop.index ~ ', ½ финала', посев_map, none, none, none) }}
             {% endfor %}
           {% else %}
             {{ строка_участника(none, 'Победитель, ½ финала', посев_map, none, none, none) }}
@@ -479,21 +479,13 @@
           {% set уч_а = предв.get('Финал_А', []) %}
           {% set полу_зд = брак.get('1/2', {}) %}
           {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
-          {% set нс_до_полу = namespace(val=0) %}
-          {% for ст in стадии_осн %}
-            {% if ст != '1/2' %}
-              {% for рн in брак.get(ст, {}).keys() | reject('equalto', 0) | list %}
-                {% set нс_до_полу.val = нс_до_полу.val + 1 %}
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
           {% if уч_а %}
             {% for команда, метка in уч_а %}
             {{ строка_участника(команда or none, метка, посев_map, none, none, none) }}
             {% endfor %}
           {% elif полу_заезды %}
             {% for рн in полу_заезды %}
-            {{ строка_участника(none, 'Победитель заезда №' ~ (нс_до_полу.val + рн) ~ ', ½ финала', посев_map, none, none, none) }}
+            {{ строка_участника(none, 'Победитель заезда ' ~ loop.index ~ ', ½ финала', посев_map, none, none, none) }}
             {% endfor %}
           {% else %}
           {{ строка_участника(none, 'Победитель, ½ финала', посев_map, none, none, none) }}
@@ -513,14 +505,6 @@
     {% set уч_а = предв.get('Финал_А', []) %}
     {% set полу_зд = брак.get('1/2', {}) %}
     {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
-    {% set нс_до_полу = namespace(val=0) %}
-    {% for ст in стадии_осн %}
-      {% if ст != '1/2' %}
-        {% for рн in брак.get(ст, {}).keys() | reject('equalto', 0) | list %}
-          {% set нс_до_полу.val = нс_до_полу.val + 1 %}
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
     {% set ns.счётчик = ns.счётчик + 1 %}
     {% set time_rec_а = time_records.get('Финал_А') %}
     <div class="ps-heat">
@@ -546,7 +530,7 @@
           {% endfor %}
         {% elif полу_заезды %}
           {% for рн in полу_заезды %}
-          {{ строка_участника(none, 'Победитель заезда №' ~ (нс_до_полу.val + рн) ~ ', ½ финала', посев_map, none, none, none) }}
+          {{ строка_участника(none, 'Победитель заезда ' ~ loop.index ~ ', ½ финала', посев_map, none, none, none) }}
           {% endfor %}
         {% else %}
           {{ строка_участника(none, 'Победитель, ½ финала', посев_map, none, none, none) }}
