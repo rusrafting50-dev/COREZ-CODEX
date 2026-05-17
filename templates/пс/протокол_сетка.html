@@ -127,8 +127,9 @@
   <td class="st-col">
     <div class="st-hdr">{{ НАЗВАНИЯ.get(ст, ст) }}</div>
     {% set зд = брак.get(ст, {}) %}
-    {% for номер in зд.keys() | sort %}
-    {% if номер > 0 %}
+    {% set реальные_зд = зд.keys() | reject('equalto', 0) | list %}
+    {% if реальные_зд %}
+    {% for номер in реальные_зд | sort %}
     {% set пара = зд[номер] %}
     {% set ns.hn = ns.hn + 1 %}
     <div class="heat">
@@ -138,8 +139,23 @@
       </div>
       {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
     </div>
-    {% endif %}
     {% endfor %}
+    {% else %}
+    {% set уч = предв.get(ст, []) %}
+    {% for i in range(0, уч|length, 2) %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat">
+      <div class="heat-hdr"><b>Заезд {{ ns.hn }}</b></div>
+      {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
+      {% if к0 %}{{ ряд_команды(к0, посев_map) }}
+      {% else %}<div class="ph-row">{{ м0 or 'Ожидается' }}</div>{% endif %}
+      {% if i+1 < уч|length %}{% set к1 = уч[i+1][0] %}{% set м1 = уч[i+1][1] %}
+      {% if к1 %}{{ ряд_команды(к1, посев_map) }}
+      {% else %}<div class="ph-row">{{ м1 or 'Ожидается' }}</div>{% endif %}
+      {% else %}<div class="ph-row">Ожидается</div>{% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
   </td>
   {% endfor %}
 
@@ -198,43 +214,33 @@
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
         </div>
         {% if not _финал_сыгран and n > 3 %}
-          {# Финал А не сыгран — показать победителей ½ финала как заглушки #}
-          {% set полу_зд = брак.get('1/2', {}) %}
-          {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
-          {% if полу_заезды %}
-            {% for рн in полу_заезды %}
-            <div class="ph-row">Победитель заезда № {{ рн }}, ½ финала</div>
-            {% endfor %}
+          {% set уч_а = предв.get('Финал_А', []) %}
+          {% for команда, метка in уч_а %}
+            {% if команда %}{{ ряд_команды(команда, посев_map) }}
+            {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
           {% else %}
             <div class="ph-row">Ожидается</div>
             <div class="ph-row">Ожидается</div>
-          {% endif %}
+          {% endfor %}
         {% else %}
           {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
         {% endif %}
       </div>
       {% endfor %}
     {% else %}
-      {# Заглушка: по одной строке на каждый заезд ½ финала #}
-      {% set полу_зд = брак.get('1/2', {}) %}
-      {% set полу_заезды = полу_зд.keys() | reject('equalto', 0) | list | sort %}
-      {% set бай = за.get(0, []) %}
+      {% set уч_а = предв.get('Финал_А', []) %}
       {% set ns.hn = ns.hn + 1 %}
       <div class="heat">
         <div class="heat-hdr fin-a-hdr">
           <b>Заезд {{ ns.hn }}, Финал А</b>
-          {% if бай and бай[0].время_старта %}
-          <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(бай[0].время_старта) }}</span></span>
-          {% endif %}
         </div>
-        {% if полу_заезды %}
-          {% for рн in полу_заезды %}
-          <div class="ph-row">Победитель заезда № {{ рн }}, ½ финала</div>
-          {% endfor %}
+        {% for команда, метка in уч_а %}
+          {% if команда %}{{ ряд_команды(команда, посев_map) }}
+          {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
         {% else %}
           <div class="ph-row">Ожидается</div>
           <div class="ph-row">Ожидается</div>
-        {% endif %}
+        {% endfor %}
       </div>
     {% endif %}
 
