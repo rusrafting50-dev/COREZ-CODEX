@@ -569,6 +569,7 @@ def _начальный_брак(sor_id, пол, класс=None):
 
     предв = {}
     time_records = {}  # стадия -> запись БД для поля времени старта
+    нужен_commit = False
 
     for i, ст in enumerate(стадии):
         if i == 0:
@@ -576,6 +577,22 @@ def _начальный_брак(sor_id, пол, класс=None):
 
         # Ищем запись для поля времени: сначала BYE (номер=0), затем любую
         stage_recs = [з for з in все if з.стадия == ст]
+
+        # Финальная стадия без записей — создаём заглушку «на лету»
+        if not stage_recs and ст in ('Финал_А', 'Финал_Б'):
+            посев_idx = 0 if ст == 'Финал_А' else -1
+            заглушка = РезультатПараллельногоСпринта(
+                команда_id=посев[посев_idx].id,
+                соревнование_id=sor_id,
+                стадия=ст,
+                номер_заезда=0,
+                дорожка='заглушка',
+            )
+            db.session.add(заглушка)
+            db.session.flush()
+            stage_recs = [заглушка]
+            нужен_commit = True
+
         time_rec = next((з for з in stage_recs if з.номер_заезда == 0), None)
         if time_rec is None and stage_recs:
             time_rec = stage_recs[0]
@@ -600,6 +617,9 @@ def _начальный_брак(sor_id, пол, класс=None):
                 уч.append((None, f'Победитель заезда {j}, {назв_пред}'))
 
         предв[ст] = уч
+
+    if нужен_commit:
+        db.session.commit()
 
     return брак, стадии, посев_map, предв, time_records
 
