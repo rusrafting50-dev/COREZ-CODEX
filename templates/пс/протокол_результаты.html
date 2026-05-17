@@ -121,6 +121,9 @@
   </div>
 </div>
 
+{# Вспомогательный макрос: результат с учётом статуса ДК/НФН/НСТ #}
+{% macro рез(з) %}{% if з %}{% if з.статус == 'ДК' %}ДК{% elif з.статус == 'НФН' %}Не фин.{% elif з.статус == 'НСТ' %}Не старт.{% else %}{{ format_dur(з.результат) }}{% endif %}{% else %}—{% endif %}{% endmacro %}
+
 {# ── Macro: таблица результатов мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_итог, жен_итог, муж_ст, жен_ст) %}
 {% set ncol = 8 if итоговый else 15 %}
@@ -186,15 +189,15 @@
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
-    <td class="text-center" style="font-family:monospace">{% if з_12 %}{{ format_dur(з_12.результат) }}{% else %}—{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">
-      {% if з_фа %}{{ format_dur(з_фа.результат) }}{% elif з_фб %}{{ format_dur(з_фб.результат) }}{% else %}—{% endif %}
+      {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}—{% endif %}
     </td>
     <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
-    <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(з.результат) }}</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
     {% endif %}
-    <td class="text-center fw-bold">{{ з.итоговое_место }}</td>
+    <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
     <td class="text-center">-</td>
   </tr>
@@ -233,15 +236,15 @@
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
-    <td class="text-center" style="font-family:monospace">{% if з_12 %}{{ format_dur(з_12.результат) }}{% else %}—{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">
-      {% if з_фа %}{{ format_dur(з_фа.результат) }}{% elif з_фб %}{{ format_dur(з_фб.результат) }}{% else %}—{% endif %}
+      {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}—{% endif %}
     </td>
     <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
-    <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(з.результат) }}</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
     {% endif %}
-    <td class="text-center fw-bold">{{ з.итоговое_место }}</td>
+    <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
     <td class="text-center">-</td>
   </tr>

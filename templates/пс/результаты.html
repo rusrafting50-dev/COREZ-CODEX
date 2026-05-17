@@ -70,8 +70,13 @@
       <td class="text-center small {{ 'text-danger' if з.штрафное_время else '' }}">
         {{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}
       </td>
-      <td class="text-center fw-bold font-monospace">{{ format_dur(з.результат) }}</td>
-      <td class="text-center fw-bold fs-6">{{ з.итоговое_место }}</td>
+      <td class="text-center fw-bold font-monospace">
+        {% if з.статус == 'ДК' %}ДК
+        {% elif з.статус == 'НФН' %}Не фин.
+        {% elif з.статус == 'НСТ' %}Не старт.
+        {% else %}{{ format_dur(з.результат) }}{% endif %}
+      </td>
+      <td class="text-center fw-bold fs-6">{{ з.итоговое_место or '—' }}</td>
       <td class="text-center small">{{ з.очки | int if з.очки else '—' }}</td>
     </tr>
     {% endfor %}

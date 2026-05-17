@@ -152,11 +152,15 @@
         <span style="{{ 'color:#198754' if победитель is true else '' }}">
           {{ format_dur(результат) }}
         </span>
-        {% elif статус in ('ДК','НФН','НСТ') %}
-        <span style="color:#dc3545">{{ статус }}</span>
+        {% elif статус == 'ДК' %}
+        <span style="color:#dc3545">ДК</span>
+        {% elif статус == 'НФН' %}
+        <span style="color:#dc3545">Не фин.</span>
+        {% elif статус == 'НСТ' %}
+        <span style="color:#dc3545">Не старт.</span>
         {% else %}—{% endif %}
       </div>
-      {% if доп_инфо %}
+      {% if доп_инфо and статус != 'ДК' %}
       <div style="font-size:.58rem;color:#555;font-style:italic;white-space:nowrap">{{ доп_инфо }}</div>
       {% endif %}
     </div>
