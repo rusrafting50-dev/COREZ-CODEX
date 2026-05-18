@@ -453,16 +453,34 @@ def _формировать_начало(sor_id, пол, класс=None):
         return False
 
     ids = _ids_пола(sor_id, пол, класс)
-    РезультатПараллельногоСпринта.query \
-        .filter_by(соревнование_id=sor_id) \
-        .filter(РезультатПараллельногоСпринта.команда_id.in_(ids)) \
-        .delete(synchronize_session='fetch')
 
     if n not in ТАБЛИЦА_СОСТАВ:
+        РезультатПараллельногоСпринта.query \
+            .filter_by(соревнование_id=sor_id) \
+            .filter(РезультатПараллельногоСпринта.команда_id.in_(ids)) \
+            .delete(synchronize_session='fetch')
         return False
 
     состав = ТАБЛИЦА_СОСТАВ[n]
     стадии_т = ТАБЛИЦА_СТАДИИ[n]
+
+    # Сохранить время старта из заглушек начальных заездов перед удалением
+    saved_times = {}  # lh → время_старта
+    for lh, comp in состав.items():
+        if 'П' in comp:
+            continue
+        ст = стадии_т[lh]
+        загл = (РезультатПараллельногоСпринта.query
+                .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
+                .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
+                .first())
+        if загл and загл.время_старта:
+            saved_times[lh] = загл.время_старта
+
+    РезультатПараллельногоСпринта.query \
+        .filter_by(соревнование_id=sor_id) \
+        .filter(РезультатПараллельногоСпринта.команда_id.in_(ids)) \
+        .delete(synchronize_session='fetch')
 
     # Создать начальные заезды (прямые посевные пары: нет «П» в составе)
     for lh in sorted(состав.keys()):
@@ -473,6 +491,18 @@ def _формировать_начало(sor_id, пол, класс=None):
         parts = comp.split('-')
         s1, s2 = int(parts[0]), int(parts[1])
         _добавить_заезды(sor_id, ст, [(seeded[s1 - 1], seeded[s2 - 1])], пол)
+        # Восстановить сохранённое время старта в только что созданных записях
+        if lh in saved_times:
+            db.session.flush()
+            все_ст = (РезультатПараллельногоСпринта.query
+                      .filter_by(соревнование_id=sor_id, стадия=ст)
+                      .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
+                      .all())
+            max_rn = max((r.номер_заезда for r in все_ст if r.номер_заезда > 0), default=None)
+            if max_rn:
+                for r in все_ст:
+                    if r.номер_заезда == max_rn:
+                        r.время_старта = saved_times[lh]
 
     # Заглушки для финалов (для ввода времени старта заранее)
     for ст_ф, пи in [('Финал_А', 0), ('Финал_Б', -1)]:
@@ -866,11 +896,12 @@ def _начальный_брак(sor_id, пол, класс=None):
             pending_уч[lh] = лок_уч
         предв[ст] = уч
 
-    # Создать заглушки для ожидаемых промежуточных заездов (для ввода времени старта)
-    for ст, pending_lhs in pending_by_stage.items():
+    # Создать заглушки для ожидаемых промежуточных и начальных заездов (для ввода времени старта)
+    для_заглушек = list(pending_by_stage.items()) + list(initial_by_stage.items())
+    for ст, lhs in для_заглушек:
         if ст in финальные:
             continue
-        for lh in pending_lhs:
+        for lh in lhs:
             exists = (РезультатПараллельногоСпринта.query
                       .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
                       .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
@@ -905,9 +936,13 @@ def _начальный_брак(sor_id, пол, класс=None):
                         .first())
             heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': time_rec})
         for lh in initial_by_stage.get(ст, []):
+            time_rec = (РезультатПараллельногоСпринта.query
+                        .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
+                        .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
+                        .first())
             parts = состав_т[lh].split('-')
             уч_пара = [(посев[int(parts[0]) - 1], None), (посев[int(parts[1]) - 1], None)]
-            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': уч_пара, 'time_rec': None})
+            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': уч_пара, 'time_rec': time_rec})
         heats_in_stage.sort(key=lambda x: x['local'])
         if heats_in_stage:
             stage_heats[ст] = heats_in_stage
