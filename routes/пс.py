@@ -452,18 +452,7 @@ def _формировать_начало(sor_id, пол, класс=None):
         .delete(synchronize_session='fetch')
 
     if n not in ТАБЛИЦА_СОСТАВ:
-        # n > 32: запасная логика
-        first_stage = _первая_стадия(n)
-        _добавить_заезды(sor_id, first_stage, _сформировать_пары(seeded), пол)
-        стадии_все = _ожидаемые_стадии(n)
-        for ст_ф, пи in [('Финал_А', 0), ('Финал_Б', -1)]:
-            if ст_ф in стадии_все:
-                db.session.add(РезультатПараллельногоСпринта(
-                    команда_id=seeded[пи].id, соревнование_id=sor_id,
-                    стадия=ст_ф, номер_заезда=0, дорожка='заглушка',
-                ))
-        db.session.commit()
-        return True
+        return False
 
     состав = ТАБЛИЦА_СОСТАВ[n]
     стадии_т = ТАБЛИЦА_СТАДИИ[n]
@@ -534,61 +523,10 @@ def _перейти_к_следующей(sor_id, пол, стадия, клас
     победители, проигравшие = _победители_стадии(sor_id, пол, стадия, класс)
     db.session.commit()
 
-    # Попытка через таблицу Excel
     посев = _посев(sor_id, пол, класс)
     n = len(посев)
     if n in ТАБЛИЦА_СОСТАВ:
-        ok = _создать_возможные_заезды(sor_id, пол, класс)
-        if ok:
-            return True
-        # Если маппинг не построился (старые данные) — запасная логика ниже
-
-    # Запасная логика (старые данные или n > 32)
-    if стадия == '1/2':
-        ids = _ids_пола(sor_id, пол, класс)
-
-        def _сохранить_вр(ст_ф):
-            rec = (РезультатПараллельногоСпринта.query
-                   .filter_by(соревнование_id=sor_id, стадия=ст_ф, номер_заезда=0)
-                   .filter(РезультатПараллельногоСпринта.команда_id.in_(ids)).first())
-            return rec.время_старта if rec else None
-
-        def _удалить_загл(ст_ф):
-            (РезультатПараллельногоСпринта.query
-             .filter_by(соревнование_id=sor_id, стадия=ст_ф)
-             .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
-             .delete(synchronize_session='fetch'))
-
-        def _вернуть_вр(ст_ф, время):
-            if not время:
-                return
-            db.session.flush()
-            for rec in (РезультатПараллельногоСпринта.query
-                        .filter_by(соревнование_id=sor_id, стадия=ст_ф)
-                        .filter(РезультатПараллельногоСпринта.команда_id.in_(ids)).all()):
-                rec.время_старта = время
-
-        saved_fa = _сохранить_вр('Финал_А')
-        saved_fb = _сохранить_вр('Финал_Б')
-        _удалить_загл('Финал_А')
-        _удалить_загл('Финал_Б')
-        if len(победители) >= 2:
-            _добавить_заезды(sor_id, 'Финал_А',
-                             [(победители[0].команда, победители[1].команда)], пол)
-        elif len(победители) == 1:
-            _добавить_заезды(sor_id, 'Финал_А', [(победители[0].команда, None)], пол)
-        _вернуть_вр('Финал_А', saved_fa)
-        if len(проигравшие) >= 2:
-            _добавить_заезды(sor_id, 'Финал_Б',
-                             [(проигравшие[0].команда, проигравшие[1].команда)], пол)
-            _вернуть_вр('Финал_Б', saved_fb)
-    elif стадия in СЛЕДУЮЩАЯ:
-        следующая = СЛЕДУЮЩАЯ[стадия]
-        if not победители:
-            return False
-        пары = _сформировать_пары(победители)
-        _добавить_заезды(sor_id, следующая,
-                         [(з.команда, (зп.команда if зп else None)) for з, зп in пары], пол)
+        _создать_возможные_заезды(sor_id, пол, класс)
 
     db.session.commit()
     return True
@@ -698,15 +636,10 @@ def _рассчитать_итоговые(sor_id, пол, класс=None):
 
 def _ожидаемые_стадии(n):
     """Все стадии турнира для n команд (в порядке ПОРЯДОК_СТАДИЙ)."""
-    if n < 2:
+    if n < 2 or n not in ТАБЛИЦА_СТАДИИ:
         return []
-    if n in ТАБЛИЦА_СТАДИИ:
-        использованные = set(ТАБЛИЦА_СТАДИИ[n].values())
-        return [ст for ст in ПОРЯДОК_СТАДИЙ if ст in использованные]
-    # n > 32: старая логика
-    первая = _первая_стадия(n)
-    idx = ПОРЯДОК_СТАДИЙ.index(первая)
-    return ПОРЯДОК_СТАДИЙ[idx:]
+    использованные = set(ТАБЛИЦА_СТАДИИ[n].values())
+    return [ст for ст in ПОРЯДОК_СТАДИЙ if ст in использованные]
 
 
 def _брак_данные(sor_id, пол, класс=None):
@@ -715,99 +648,79 @@ def _брак_данные(sor_id, пол, класс=None):
     n = len(посев)
     посев_map = {к.id: i + 1 for i, к in enumerate(посев)}
 
-    if n < 2:
-        return {}, [], посев_map, {}
+    if n < 2 or n not in ТАБЛИЦА_СОСТАВ:
+        return {}, [], посев_map, {}, {}
 
     стадии = _ожидаемые_стадии(n)
     все = _все_записи_пола(sor_id, пол, класс)
     брак = {ст: {} for ст in стадии}
     предв = {}
+    stage_heats: dict = {}
+    состав_т = ТАБЛИЦА_СОСТАВ[n]
+    стадии_т = ТАБЛИЦА_СТАДИИ[n]
+    финальные = {'Финал_А', 'Финал_Б'}
 
     if not все:
-        # Сетка не сформирована — показываем начальные пары
-        if n in ТАБЛИЦА_СОСТАВ:
-            состав_т = ТАБЛИЦА_СОСТАВ[n]
-            стадии_т = ТАБЛИЦА_СТАДИИ[n]
-            first_ст = стадии[0]
-            уч = []
-            for lh in sorted(состав_т.keys()):
-                if стадии_т[lh] != first_ст or 'П' in состав_т[lh]:
-                    continue
-                parts = состав_т[lh].split('-')
-                уч.append((посев[int(parts[0]) - 1], None))
-                уч.append((посев[int(parts[1]) - 1], None))
-            предв[first_ст] = уч
-        else:
-            first_ст = стадии[0]
-            пары_raw = _сформировать_пары(list(посев))
-            уч = []
-            for л, п in пары_raw:
-                if п is not None:
-                    уч.append((л, None))
-                    уч.append((п, None))
-            предв[first_ст] = уч
-        return брак, стадии, посев_map, предв
+        first_ст = стадии[0]
+        уч = []
+        for lh in sorted(состав_т.keys()):
+            if стадии_т[lh] != first_ст or 'П' in состав_т[lh]:
+                continue
+            parts = состав_т[lh].split('-')
+            уч.append((посев[int(parts[0]) - 1], None))
+            уч.append((посев[int(parts[1]) - 1], None))
+        предв[first_ст] = уч
+        return брак, стадии, посев_map, предв, {}
 
     стадии_бд = {з.стадия for з in все}
     for ст in стадии:
         if ст in стадии_бд:
             брак[ст] = _в_заезды([з for з in все if з.стадия == ст])
 
-    # Предварительные участники для ещё не сформированных заездов
-    if n in ТАБЛИЦА_СОСТАВ:
-        состав_т = ТАБЛИЦА_СОСТАВ[n]
-        стадии_т = ТАБЛИЦА_СТАДИИ[n]
-        позиции = _позиции_в_стадиях(n)
-        по_db = _в_заезды(все)
-        db_to_local, local_to_db = _построить_mapping(n, посев, все)
-        existing_locals = set(local_to_db.keys())
-        # Собрать pending заезды по стадии
-        pending_by_stage: dict = {}
-        for lh in sorted(состав_т.keys()):
-            if lh in existing_locals or 'П' not in состав_т[lh]:
-                continue
-            ст = стадии_т[lh]
-            pending_by_stage.setdefault(ст, []).append(lh)
-        for ст, pending_lhs in pending_by_stage.items():
-            уч = []
-            for lh in pending_lhs:
-                comp = состав_т[lh]
-                parts = comp.split('-')
-                for part in parts:
-                    team, label = _разрешить_часть_для_предв(
-                        part, посев, local_to_db, по_db, стадии_т, позиции)
-                    уч.append((team, label))
-            предв[ст] = уч
-    else:
-        # Запасная логика для n > 32
-        for i, стадия in enumerate(стадии):
-            if брак.get(стадия) or i == 0:
-                continue
-            пред = стадии[i - 1]
-            if стадия == 'Финал_А' and пред == 'Финал_Б' and i >= 2:
-                пред = стадии[i - 2]
-            пред_данные = брак.get(пред, {})
-            реальных = sorted(к for к in пред_данные if к != 0)
-            назв_пред = НАЗВАНИЯ.get(пред, пред)
-            уч = []
-            if стадия == 'Финал_Б':
-                for j, номер in enumerate(реальных, 1):
-                    пара = пред_данные[номер]
-                    проигр = next((з for з in пара if з.победитель is False), None)
-                    уч.append((проигр.команда if проигр else None,
-                                None if проигр else f'Проигравший заезда {j}, {назв_пред}'))
-            else:
-                for з in пред_данные.get(0, []):
-                    if з.дорожка != 'заглушка':
-                        уч.append((з.команда, None))
-                for j, номер in enumerate(реальных, 1):
-                    пара = пред_данные[номер]
-                    побед = next((з for з in пара if з.победитель is True), None)
-                    уч.append((побед.команда if побед else None,
-                                None if побед else f'Победитель заезда {j}, {назв_пред}'))
-            предв[стадия] = уч
+    позиции = _позиции_в_стадиях(n)
+    по_db = _в_заезды(все)
+    db_to_local, local_to_db = _построить_mapping(n, посев, все)
+    existing_locals = set(local_to_db.keys())
 
-    return брак, стадии, посев_map, предв
+    pending_by_stage: dict = {}
+    for lh in sorted(состав_т.keys()):
+        if lh in existing_locals or 'П' not in состав_т[lh]:
+            continue
+        ст = стадии_т[lh]
+        pending_by_stage.setdefault(ст, []).append(lh)
+
+    pending_уч: dict = {}
+    for ст, pending_lhs in pending_by_stage.items():
+        уч = []
+        for lh in pending_lhs:
+            comp = состав_т[lh]
+            parts = comp.split('-')
+            лок_уч = []
+            for part in parts:
+                team, label = _разрешить_часть_для_предв(
+                    part, посев, local_to_db, по_db, стадии_т, позиции)
+                уч.append((team, label))
+                лок_уч.append((team, label))
+            pending_уч[lh] = лок_уч
+        предв[ст] = уч
+
+    for ст in стадии:
+        if ст in финальные:
+            continue
+        heats_in_stage = []
+        for db_num, records in брак.get(ст, {}).items():
+            if db_num == 0:
+                continue
+            lh = db_to_local.get(db_num)
+            if lh is not None:
+                heats_in_stage.append({'local': lh, 'тип': 'real', 'db': db_num, 'записи': records})
+        for lh in pending_by_stage.get(ст, []):
+            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': None})
+        heats_in_stage.sort(key=lambda x: x['local'])
+        if heats_in_stage:
+            stage_heats[ст] = heats_in_stage
+
+    return брак, стадии, посев_map, предв, stage_heats
 
 
 def _метки_записей(sor_id, пол, класс=None):
@@ -842,140 +755,107 @@ def _метки_записей(sor_id, пол, класс=None):
 # ── Маршруты ──────────────────────────────────────────────────────────────────
 
 def _начальный_брак(sor_id, пол, класс=None):
-    """Брак для стартового протокола. Возвращает (брак, стадии, посев_map, предв, time_records)."""
+    """Брак для стартового протокола. Возвращает (брак, стадии, посев_map, предв, time_records, stage_heats)."""
     посев = _посев(sor_id, пол, класс)
     n = len(посев)
     посев_map = {к.id: i + 1 for i, к in enumerate(посев)}
 
-    if n < 2:
-        return {}, [], посев_map, {}, {}
+    if n < 2 or n not in ТАБЛИЦА_СОСТАВ:
+        return {}, [], посев_map, {}, {}, {}
 
     стадии = _ожидаемые_стадии(n)
     все = _все_записи_пола(sor_id, пол, класс)
     брак = {ст: {} for ст in стадии}
     предв = {}
     time_records: dict = {}
+    stage_heats: dict = {}
     нужен_commit = False
+    состав_т = ТАБЛИЦА_СОСТАВ[n]
+    стадии_т = ТАБЛИЦА_СТАДИИ[n]
+    финальные = {'Финал_А', 'Финал_Б'}
 
     if not все:
-        # Сетка не сформирована
-        if n in ТАБЛИЦА_СОСТАВ:
-            состав_т = ТАБЛИЦА_СОСТАВ[n]
-            стадии_т = ТАБЛИЦА_СТАДИИ[n]
-            first_ст = стадии[0]
-            уч = []
-            for lh in sorted(состав_т.keys()):
-                if стадии_т[lh] != first_ст or 'П' in состав_т[lh]:
-                    continue
-                parts = состав_т[lh].split('-')
-                уч.append((посев[int(parts[0]) - 1], None))
-                уч.append((посев[int(parts[1]) - 1], None))
-            предв[first_ст] = уч
-        else:
-            first_ст = стадии[0]
-            пары_raw = _сформировать_пары(list(посев))
-            уч = []
-            for л, п in пары_raw:
-                if п is not None:
-                    уч.append((л, None))
-                    уч.append((п, None))
-            предв[first_ст] = уч
-        return брак, стадии, посев_map, предв, {}
+        first_ст = стадии[0]
+        уч = []
+        for lh in sorted(состав_т.keys()):
+            if стадии_т[lh] != first_ст or 'П' in состав_т[lh]:
+                continue
+            parts = состав_т[lh].split('-')
+            уч.append((посев[int(parts[0]) - 1], None))
+            уч.append((посев[int(parts[1]) - 1], None))
+        предв[first_ст] = уч
+        return брак, стадии, посев_map, предв, {}, {}
 
-    # Заполнить брак для всех стадий где есть записи
     стадии_бд = {з.стадия for з in все}
     for ст in стадии:
         if ст in стадии_бд:
             брак[ст] = _в_заезды([з for з in все if з.стадия == ст])
 
-    if n in ТАБЛИЦА_СОСТАВ:
-        состав_т = ТАБЛИЦА_СОСТАВ[n]
-        стадии_т = ТАБЛИЦА_СТАДИИ[n]
-        позиции = _позиции_в_стадиях(n)
-        по_db = _в_заезды(все)
-        db_to_local, local_to_db = _построить_mapping(n, посев, все)
-        existing_locals = set(local_to_db.keys())
+    позиции = _позиции_в_стадиях(n)
+    по_db = _в_заезды(все)
+    db_to_local, local_to_db = _построить_mapping(n, посев, все)
+    existing_locals = set(local_to_db.keys())
 
-        for ст in стадии[1:]:
-            stage_recs = [з for з in все if з.стадия == ст]
-            # Создать заглушку «на лету» если стадия финальная и записей нет
-            if not stage_recs and ст in ('Финал_А', 'Финал_Б'):
-                пи = 0 if ст == 'Финал_А' else -1
-                заглушка = РезультатПараллельногоСпринта(
-                    команда_id=посев[пи].id, соревнование_id=sor_id,
-                    стадия=ст, номер_заезда=0, дорожка='заглушка',
-                )
-                db.session.add(заглушка)
-                db.session.flush()
-                stage_recs = [заглушка]
-                нужен_commit = True
-            time_rec = next((з for з in stage_recs if з.номер_заезда == 0), None)
-            if time_rec is None and stage_recs:
-                time_rec = stage_recs[0]
-            if time_rec:
-                time_records[ст] = time_rec
+    for ст in стадии[1:]:
+        stage_recs = [з for з in все if з.стадия == ст]
+        if not stage_recs and ст in финальные:
+            пи = 0 if ст == 'Финал_А' else -1
+            заглушка = РезультатПараллельногоСпринта(
+                команда_id=посев[пи].id, соревнование_id=sor_id,
+                стадия=ст, номер_заезда=0, дорожка='заглушка',
+            )
+            db.session.add(заглушка)
+            db.session.flush()
+            stage_recs = [заглушка]
+            нужен_commit = True
+        time_rec = next((з for з in stage_recs if з.номер_заезда == 0), None)
+        if time_rec is None and stage_recs:
+            time_rec = stage_recs[0]
+        if time_rec:
+            time_records[ст] = time_rec
 
-        # Предварительные участники для pending заездов
-        pending_by_stage: dict = {}
-        for lh in sorted(состав_т.keys()):
-            if lh in existing_locals or 'П' not in состав_т[lh]:
+    pending_by_stage: dict = {}
+    for lh in sorted(состав_т.keys()):
+        if lh in existing_locals or 'П' not in состав_т[lh]:
+            continue
+        ст = стадии_т[lh]
+        pending_by_stage.setdefault(ст, []).append(lh)
+
+    pending_уч: dict = {}
+    for ст, pending_lhs in pending_by_stage.items():
+        уч = []
+        for lh in pending_lhs:
+            comp = состав_т[lh]
+            parts = comp.split('-')
+            лок_уч = []
+            for part in parts:
+                team, label = _разрешить_часть_для_предв(
+                    part, посев, local_to_db, по_db, стадии_т, позиции)
+                уч.append((team, label))
+                лок_уч.append((team, label))
+            pending_уч[lh] = лок_уч
+        предв[ст] = уч
+
+    for ст in стадии:
+        if ст in финальные:
+            continue
+        heats_in_stage = []
+        for db_num, records in брак.get(ст, {}).items():
+            if db_num == 0:
                 continue
-            ст = стадии_т[lh]
-            pending_by_stage.setdefault(ст, []).append(lh)
-        for ст, pending_lhs in pending_by_stage.items():
-            уч = []
-            for lh in pending_lhs:
-                comp = состав_т[lh]
-                parts = comp.split('-')
-                for part in parts:
-                    team, label = _разрешить_часть_для_предв(
-                        part, посев, local_to_db, по_db, стадии_т, позиции)
-                    уч.append((team, label))
-            предв[ст] = уч
-    else:
-        # Запасная логика для n > 32
-        пары_initial = _сформировать_пары(list(посев))
-        byes = [л for л, п in пары_initial if п is None]
-        for i, ст in enumerate(стадии):
-            if i == 0:
-                continue
-            stage_recs = [з for з in все if з.стадия == ст]
-            if not stage_recs and ст in ('Финал_А', 'Финал_Б'):
-                пи = 0 if ст == 'Финал_А' else -1
-                заглушка = РезультатПараллельногоСпринта(
-                    команда_id=посев[пи].id, соревнование_id=sor_id,
-                    стадия=ст, номер_заезда=0, дорожка='заглушка',
-                )
-                db.session.add(заглушка)
-                db.session.flush()
-                stage_recs = [заглушка]
-                нужен_commit = True
-            time_rec = next((з for з in stage_recs if з.номер_заезда == 0), None)
-            if time_rec is None and stage_recs:
-                time_rec = stage_recs[0]
-            if time_rec:
-                time_records[ст] = time_rec
-            пред_ст = стадии[i - 1]
-            if ст == 'Финал_А' and пред_ст == 'Финал_Б' and i >= 2:
-                пред_ст = стадии[i - 2]
-            пред_данные = брак.get(пред_ст, {})
-            реальных = sorted(р for р in пред_данные if р != 0)
-            назв_пред = НАЗВАНИЯ.get(пред_ст, пред_ст)
-            уч = []
-            if ст == 'Финал_Б':
-                for j, _ in enumerate(реальных, 1):
-                    уч.append((None, f'Проигравший заезда {j}, {назв_пред}'))
-            else:
-                for к in (byes if i == 1 else []):
-                    уч.append((к, None))
-                for j, _ in enumerate(реальных, 1):
-                    уч.append((None, f'Победитель заезда {j}, {назв_пред}'))
-            предв[ст] = уч
+            lh = db_to_local.get(db_num)
+            if lh is not None:
+                heats_in_stage.append({'local': lh, 'тип': 'real', 'db': db_num, 'записи': records})
+        for lh in pending_by_stage.get(ст, []):
+            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': None})
+        heats_in_stage.sort(key=lambda x: x['local'])
+        if heats_in_stage:
+            stage_heats[ст] = heats_in_stage
 
     if нужен_commit:
         db.session.commit()
 
-    return брак, стадии, посев_map, предв, time_records
+    return брак, стадии, посев_map, предв, time_records, stage_heats
 
 
 def _стартовый_контекст(sor_id, сор):
@@ -984,18 +864,19 @@ def _стартовый_контекст(sor_id, сор):
     _есть_r4 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R4').count() > 0
     _кл_r4 = 'R4' if _есть_r4 else None
 
-    муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4, муж_time_r4 = _начальный_брак(sor_id, 'м', _кл_r4)
-    жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4, жен_time_r4 = _начальный_брак(sor_id, 'ж', _кл_r4)
+    муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4, муж_time_r4, муж_sh_r4 = _начальный_брак(sor_id, 'м', _кл_r4)
+    жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4, жен_time_r4, жен_sh_r4 = _начальный_брак(sor_id, 'ж', _кл_r4)
     n_муж_r4 = len(_посев(sor_id, 'м', _кл_r4))
     n_жен_r4 = len(_посев(sor_id, 'ж', _кл_r4))
 
     муж_брак_r6 = муж_стадии_r6 = муж_посев_r6 = муж_предв_r6 = {}
     жен_брак_r6 = жен_стадии_r6 = жен_посев_r6 = жен_предв_r6 = {}
     муж_time_r6 = жен_time_r6 = {}
+    муж_sh_r6 = жен_sh_r6 = {}
     n_муж_r6 = n_жен_r6 = 0
     if has_r6:
-        муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6, муж_time_r6 = _начальный_брак(sor_id, 'м', 'R6')
-        жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6, жен_time_r6 = _начальный_брак(sor_id, 'ж', 'R6')
+        муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6, муж_time_r6, муж_sh_r6 = _начальный_брак(sor_id, 'м', 'R6')
+        жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6, жен_time_r6, жен_sh_r6 = _начальный_брак(sor_id, 'ж', 'R6')
         n_муж_r6 = len(_посев(sor_id, 'м', 'R6'))
         n_жен_r6 = len(_посев(sor_id, 'ж', 'R6'))
 
@@ -1011,17 +892,17 @@ def _стартовый_контекст(sor_id, сор):
         сор=сор, has_r6=has_r6, запись_метки={},
         муж_брак_r4=муж_брак_r4, муж_стадии_r4=муж_стадии_r4,
         муж_посев_r4=муж_посев_r4, муж_предв_r4=муж_предв_r4,
-        муж_time_r4=муж_time_r4,
+        муж_time_r4=муж_time_r4, муж_sh_r4=муж_sh_r4,
         жен_брак_r4=жен_брак_r4, жен_стадии_r4=жен_стадии_r4,
         жен_посев_r4=жен_посев_r4, жен_предв_r4=жен_предв_r4,
-        жен_time_r4=жен_time_r4,
+        жен_time_r4=жен_time_r4, жен_sh_r4=жен_sh_r4,
         n_муж_r4=n_муж_r4, n_жен_r4=n_жен_r4,
         муж_брак_r6=муж_брак_r6, муж_стадии_r6=муж_стадии_r6,
         муж_посев_r6=муж_посев_r6, муж_предв_r6=муж_предв_r6,
-        муж_time_r6=муж_time_r6,
+        муж_time_r6=муж_time_r6, муж_sh_r6=муж_sh_r6,
         жен_брак_r6=жен_брак_r6, жен_стадии_r6=жен_стадии_r6,
         жен_посев_r6=жен_посев_r6, жен_предв_r6=жен_предв_r6,
-        жен_time_r6=жен_time_r6,
+        жен_time_r6=жен_time_r6, жен_sh_r6=жен_sh_r6,
         n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
         виды_все=виды_все, текущий_порядок=текущий_порядок,
         НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time,
@@ -1034,17 +915,18 @@ def _сетка_контекст(sor_id, сор):
     _есть_r4 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R4').count() > 0
     _кл_r4 = 'R4' if _есть_r4 else None
 
-    муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4 = _брак_данные(sor_id, 'м', _кл_r4)
-    жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4 = _брак_данные(sor_id, 'ж', _кл_r4)
+    муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4, муж_sh_r4 = _брак_данные(sor_id, 'м', _кл_r4)
+    жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4, жен_sh_r4 = _брак_данные(sor_id, 'ж', _кл_r4)
     n_муж_r4 = len(_посев(sor_id, 'м', _кл_r4))
     n_жен_r4 = len(_посев(sor_id, 'ж', _кл_r4))
 
     муж_брак_r6 = муж_стадии_r6 = муж_посев_r6 = муж_предв_r6 = {}
     жен_брак_r6 = жен_стадии_r6 = жен_посев_r6 = жен_предв_r6 = {}
+    муж_sh_r6 = жен_sh_r6 = {}
     n_муж_r6 = n_жен_r6 = 0
     if has_r6:
-        муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6 = _брак_данные(sor_id, 'м', 'R6')
-        жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6 = _брак_данные(sor_id, 'ж', 'R6')
+        муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6, муж_sh_r6 = _брак_данные(sor_id, 'м', 'R6')
+        жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6, жен_sh_r6 = _брак_данные(sor_id, 'ж', 'R6')
         n_муж_r6 = len(_посев(sor_id, 'м', 'R6'))
         n_жен_r6 = len(_посев(sor_id, 'ж', 'R6'))
 
@@ -1060,17 +942,17 @@ def _сетка_контекст(sor_id, сор):
         сор=сор, has_r6=has_r6, запись_метки={},
         муж_брак_r4=муж_брак_r4, муж_стадии_r4=муж_стадии_r4,
         муж_посев_r4=муж_посев_r4, муж_предв_r4=муж_предв_r4,
-        муж_time_r4={},
+        муж_time_r4={}, муж_sh_r4=муж_sh_r4,
         жен_брак_r4=жен_брак_r4, жен_стадии_r4=жен_стадии_r4,
         жен_посев_r4=жен_посев_r4, жен_предв_r4=жен_предв_r4,
-        жен_time_r4={},
+        жен_time_r4={}, жен_sh_r4=жен_sh_r4,
         n_муж_r4=n_муж_r4, n_жен_r4=n_жен_r4,
         муж_брак_r6=муж_брак_r6, муж_стадии_r6=муж_стадии_r6,
         муж_посев_r6=муж_посев_r6, муж_предв_r6=муж_предв_r6,
-        муж_time_r6={},
+        муж_time_r6={}, муж_sh_r6=муж_sh_r6,
         жен_брак_r6=жен_брак_r6, жен_стадии_r6=жен_стадии_r6,
         жен_посев_r6=жен_посев_r6, жен_предв_r6=жен_предв_r6,
-        жен_time_r6={},
+        жен_time_r6={}, жен_sh_r6=жен_sh_r6,
         n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
         виды_все=виды_все, текущий_порядок=текущий_порядок,
         НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time,
@@ -1202,28 +1084,7 @@ def заезды(sor_id):
                         _победители_стадии(sor_id, пол_г, стадия, класс)
                 db.session.commit()
                 # Затем создать все возможные новые заезды
-                посев_n = len(_посев(sor_id, пол_г, класс))
-                if посев_n in ТАБЛИЦА_СОСТАВ:
-                    _создать_возможные_заезды(sor_id, пол_г, класс)
-                else:
-                    # Запасная логика для n > 32
-                    for стадия in ПОРЯДОК_СТАДИЙ:
-                        записи_ст = _записи_стадии(sor_id, пол_г, стадия, класс)
-                        if not записи_ст:
-                            continue
-                        реальные = [з for з in записи_ст if з.дорожка != 'бай']
-                        if not реальные:
-                            continue
-                        if not all(з.результат is not None or
-                                   з.статус in (СТАТУС_ДК, СТАТУС_ДНФ, СТАТУС_ДНС)
-                                   for з in реальные):
-                            continue
-                        следующая = 'Финал_А' if стадия == '1/2' else СЛЕДУЮЩАЯ.get(стадия)
-                        if следующая:
-                            след_реальные = [з for з in _записи_стадии(sor_id, пол_г, следующая, класс)
-                                             if з.номер_заезда > 0]
-                            if not след_реальные:
-                                _перейти_к_следующей(sor_id, пол_г, стадия, класс)
+                _создать_возможные_заезды(sor_id, пол_г, класс)
         db.session.commit()
         flash('Результаты заездов сохранены.', 'success')
         return redirect(url_for('пс.заезды', sor_id=sor_id))

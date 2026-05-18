@@ -172,7 +172,7 @@
 {# ─────────────────────────────────────────────────────────────────────────────
    ГЛАВНЫЙ МАКРОС: одна сетка (пол + класс судов)
    ───────────────────────────────────────────────────────────────────────────── #}
-{% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет, time_records={}) %}
+{% macro сетка_пол(брак, стадии, посев_map, предв, заг, n, цвет, time_records={}, stage_heats={}) %}
 {% if n >= 2 %}
 
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
@@ -190,78 +190,52 @@
 <div class="ps-stage-col">
   <div class="ps-stage-hdr">{{ НАЗВАНИЯ.get(стадия, стадия) }}</div>
 
-  {% set заезды = брак[стадия] %}
-  {% set реальные_номера = заезды.keys() | reject('equalto', 0) | list %}
-  {% if реальные_номера %}
+  {% if стадия in stage_heats %}
 
-    {# ── Реальные заезды ── #}
-    {% for номер, пара in заезды.items() | sort %}
-    {% if номер > 0 %}
-    {% set ns.счётчик = ns.счётчик + 1 %}
+    {# ── Объединённый вид: реальные и ожидаемые заезды в порядке Excel ── #}
+    {% for item in stage_heats[стадия] %}
+    {% set ns.счётчик = item.local %}
     <div class="ps-heat">
       <div class="ps-heat-hdr">
-        <b>Заезд {{ ns.счётчик }}</b>
+        <b>Заезд {{ item.local }}</b>
         <span style="display:flex;align-items:center;gap:3px">
           <span class="lbl">Время старта:</span>
-          <input type="text" name="вс_{{ пара[0].id }}"
+          {% if item.тип == 'real' %}
+          <input type="text" name="вс_{{ item.записи[0].id }}"
                  class="time-inp время-ввод-пс"
-                 value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
+                 value="{{ format_time(item.записи[0].время_старта) if item.записи[0].время_старта else '' }}"
                  placeholder="ЧЧ:ММ:СС" autocomplete="off"
                  {{ 'disabled' if _рез_сетка }}>
+          {% elif item.time_rec and not _рез_сетка %}
+          <input type="text" name="вс_{{ item.time_rec.id }}"
+                 class="time-inp время-ввод-пс"
+                 value="{{ format_time(item.time_rec.время_старта) if item.time_rec.время_старта else '' }}"
+                 placeholder="ЧЧ:ММ:СС" autocomplete="off">
+          {% else %}
+          <input type="text" class="time-inp" placeholder="ЧЧ:ММ:СС" autocomplete="off" disabled>
+          {% endif %}
         </span>
       </div>
       <table class="ps-heat-tbl">
         <tbody>
-        {% for з in пара %}
-        {{ строка_участника(з.команда, none, посев_map, з.победитель, з.результат, з.статус,
-             запись_метки.get(з.id) if _рез_сетка else none) }}
-        {% endfor %}
+        {% if item.тип == 'real' %}
+          {% for з in item.записи %}
+          {{ строка_участника(з.команда, none, посев_map, з.победитель, з.результат, з.статус,
+               запись_метки.get(з.id) if _рез_сетка else none) }}
+          {% endfor %}
+        {% else %}
+          {% for команда, метка in item.уч %}
+          {{ строка_участника(команда, метка, посев_map, none, none, none) }}
+          {% endfor %}
+        {% endif %}
         </tbody>
       </table>
     </div>
-    {% endif %}
     {% endfor %}
-
-  {% elif заезды %}
-
-    {# ── Только BYE-заглушка ── #}
-    {% set бай_зап = заезды.get(0, []) %}
-    {% if бай_зап %}
-    {% set ns.счётчик = ns.счётчик + 1 %}
-    {% set нс_оп = namespace(метка='Ожидается') %}
-    {% for j in range(стадии|length) %}
-    {% if стадии[j] == стадия and j > 0 %}
-      {% set пред_ст = стадии[j-1] %}
-      {% set пред_зд = брак.get(пред_ст, {}) %}
-      {% for рн in пред_зд.keys() | reject('equalto', 0) | list | sort %}
-      {% set нс_оп.метка = 'Победитель заезда ' ~ loop.index ~ ', ' ~ НАЗВАНИЯ.get(пред_ст, пред_ст) %}
-      {% endfor %}
-    {% endif %}
-    {% endfor %}
-    <div class="ps-heat">
-      <div class="ps-heat-hdr">
-        <b>Заезд {{ ns.счётчик }}</b>
-        <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Время старта:</span>
-          <input type="text" name="вс_{{ бай_зап[0].id }}"
-                 class="time-inp время-ввод-пс"
-                 value="{{ format_time(бай_зап[0].время_старта) if бай_зап[0].время_старта else '' }}"
-                 placeholder="ЧЧ:ММ:СС" autocomplete="off"
-                 {{ 'disabled' if _рез_сетка }}>
-        </span>
-      </div>
-      <table class="ps-heat-tbl">
-        <tbody>
-        {{ строка_участника(бай_зап[0].команда, none, посев_map, none, none, none) }}
-        {{ строка_участника(none, нс_оп.метка, посев_map, none, none, none) }}
-        </tbody>
-      </table>
-    </div>
-    {% endif %}
 
   {% else %}
 
-    {# ── Стадия не сформирована — предварительные участники ── #}
+    {# ── Предварительные участники (сетка не сформирована) ── #}
     {% set уч = предв.get(стадия, []) %}
     {% if уч %}
     {% for i in range(0, уч|length, 2) %}
@@ -548,15 +522,19 @@
   <input type="hidden" name="action" value="время_старта">
 
   {{ сетка_пол(муж_брак_r4, муж_стадии_r4, муж_посев_r4, муж_предв_r4,
-               'Параллельный спринт — R4, мужчины', n_муж_r4, 'primary', муж_time_r4) }}
+               'Параллельный спринт — R4, мужчины', n_муж_r4, 'primary', муж_time_r4,
+               stage_heats=муж_sh_r4) }}
   {{ сетка_пол(жен_брак_r4, жен_стадии_r4, жен_посев_r4, жен_предв_r4,
-               'Параллельный спринт — R4, женщины', n_жен_r4, 'danger', жен_time_r4) }}
+               'Параллельный спринт — R4, женщины', n_жен_r4, 'danger', жен_time_r4,
+               stage_heats=жен_sh_r4) }}
 
   {% if has_r6 %}
   {{ сетка_пол(муж_брак_r6, муж_стадии_r6, муж_посев_r6, муж_предв_r6,
-               'Параллельный спринт — R6, мужчины', n_муж_r6, 'primary', муж_time_r6) }}
+               'Параллельный спринт — R6, мужчины', n_муж_r6, 'primary', муж_time_r6,
+               stage_heats=муж_sh_r6) }}
   {{ сетка_пол(жен_брак_r6, жен_стадии_r6, жен_посев_r6, жен_предв_r6,
-               'Параллельный спринт — R6, женщины', n_жен_r6, 'danger', жен_time_r6) }}
+               'Параллельный спринт — R6, женщины', n_жен_r6, 'danger', жен_time_r6,
+               stage_heats=жен_sh_r6) }}
   {% endif %}
 
   {% if n_муж_r4 + n_жен_r4 + n_муж_r6 + n_жен_r6 == 0 %}
