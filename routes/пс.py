@@ -297,6 +297,26 @@ def _построить_mapping(n, посев, все):
                     changed = True
                     break
 
+    # Проход 3: позиционный фолбэк для заездов, которые не удалось сопоставить по составу.
+    # Внутри каждой стадии начальные заезды (без 'П') всегда создаются раньше производных,
+    # поэтому имеют меньшие номера в БД. Это позволяет восстановить соответствие по позиции.
+    стадии_т = ТАБЛИЦА_СТАДИИ.get(n, {})
+    по_стадии_несопост: dict = {}  # стадия → sorted list of unmapped positive db_nums
+    for з in все:
+        if з.дорожка in ('заглушка', 'бай') or з.номер_заезда <= 0:
+            continue
+        if з.номер_заезда not in db_to_local:
+            по_стадии_несопост.setdefault(з.стадия, set()).add(з.номер_заезда)
+    for стадия, несопост_db in по_стадии_несопост.items():
+        нач_lhs = sorted(lh for lh, comp in состав.items()
+                         if стадии_т.get(lh) == стадия and lh not in local_to_db and 'П' not in comp)
+        пр_lhs = sorted(lh for lh, comp in состав.items()
+                        if стадии_т.get(lh) == стадия and lh not in local_to_db and 'П' in comp)
+        remaining_lhs = нач_lhs + пр_lhs
+        for db_num, lh in zip(sorted(несопост_db), remaining_lhs):
+            db_to_local[db_num] = lh
+            local_to_db[lh] = db_num
+
     return db_to_local, local_to_db
 
 
