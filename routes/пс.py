@@ -696,6 +696,15 @@ def _брак_данные(sor_id, пол, класс=None):
         ст = стадии_т[lh]
         pending_by_stage.setdefault(ст, []).append(lh)
 
+    # Начальные заезды (прямые посевные пары без 'П'), ещё не созданные в БД
+    initial_by_stage: dict = {}
+    for lh in sorted(состав_т.keys()):
+        if lh in existing_locals or 'П' in состав_т[lh]:
+            continue
+        ст = стадии_т[lh]
+        if ст not in финальные:
+            initial_by_stage.setdefault(ст, []).append(lh)
+
     pending_уч: dict = {}
     for ст, pending_lhs in pending_by_stage.items():
         уч = []
@@ -723,6 +732,10 @@ def _брак_данные(sor_id, пол, класс=None):
                 heats_in_stage.append({'local': lh, 'тип': 'real', 'db': db_num, 'записи': records})
         for lh in pending_by_stage.get(ст, []):
             heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': None})
+        for lh in initial_by_stage.get(ст, []):
+            parts = состав_т[lh].split('-')
+            уч_пара = [(посев[int(parts[0]) - 1], None), (посев[int(parts[1]) - 1], None)]
+            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': уч_пара, 'time_rec': None})
         heats_in_stage.sort(key=lambda x: x['local'])
         if heats_in_stage:
             stage_heats[ст] = heats_in_stage
@@ -829,6 +842,15 @@ def _начальный_брак(sor_id, пол, класс=None):
         ст = стадии_т[lh]
         pending_by_stage.setdefault(ст, []).append(lh)
 
+    # Начальные заезды (прямые посевные пары без 'П'), ещё не созданные в БД
+    initial_by_stage: dict = {}
+    for lh in sorted(состав_т.keys()):
+        if lh in existing_locals or 'П' in состав_т[lh]:
+            continue
+        ст = стадии_т[lh]
+        if ст not in финальные:
+            initial_by_stage.setdefault(ст, []).append(lh)
+
     pending_уч: dict = {}
     for ст, pending_lhs in pending_by_stage.items():
         уч = []
@@ -882,6 +904,10 @@ def _начальный_брак(sor_id, пол, класс=None):
                         .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
                         .first())
             heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': time_rec})
+        for lh in initial_by_stage.get(ст, []):
+            parts = состав_т[lh].split('-')
+            уч_пара = [(посев[int(parts[0]) - 1], None), (посев[int(parts[1]) - 1], None)]
+            heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': уч_пара, 'time_rec': None})
         heats_in_stage.sort(key=lambda x: x['local'])
         if heats_in_stage:
             stage_heats[ст] = heats_in_stage
