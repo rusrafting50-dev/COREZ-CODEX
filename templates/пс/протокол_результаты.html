@@ -126,7 +126,7 @@
 
 {# ── Macro: таблица результатов мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_итог, жен_итог, муж_ст, жен_ст) %}
-{% set ncol = 8 if итоговый else 15 %}
+{% set ncol = 8 if итоговый else 17 %}
 {% if муж_итог or жен_итог %}
 <table>
   <thead>
@@ -138,6 +138,7 @@
       <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:80px">Территория</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
+      <th colspan="2" class="text-center">¼ финала</th>
       <th colspan="2" class="text-center">½ финала</th>
       <th colspan="2" class="text-center">Финалы</th>
       <th colspan="2" class="text-center">Итоговый результат</th>
@@ -148,6 +149,8 @@
     </tr>
     {% if not итоговый %}
     <tr>
+      <th style="width:42px">Заезд №</th>
+      <th style="width:68px">Результат</th>
       <th style="width:42px">Заезд №</th>
       <th style="width:68px">Результат</th>
       <th style="width:36px">Финал</th>
@@ -167,6 +170,7 @@
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set рез_сп = к.результат_спринт %}
   {% if not итоговый %}
+  {% set з_14 = муж_ст.get(к.id, {}).get('1/4') %}
   {% set з_12 = муж_ст.get(к.id, {}).get('1/2') %}
   {% set з_фа = муж_ст.get(к.id, {}).get('Финал_А') %}
   {% set з_фб = муж_ст.get(к.id, {}).get('Финал_Б') %}
@@ -188,6 +192,8 @@
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
+    <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}—{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
@@ -214,6 +220,7 @@
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set рез_сп = к.результат_спринт %}
   {% if not итоговый %}
+  {% set з_14 = жен_ст.get(к.id, {}).get('1/4') %}
   {% set з_12 = жен_ст.get(к.id, {}).get('1/2') %}
   {% set з_фа = жен_ст.get(к.id, {}).get('Финал_А') %}
   {% set з_фб = жен_ст.get(к.id, {}).get('Финал_Б') %}
@@ -235,6 +242,8 @@
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
+    <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}—{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
