@@ -90,6 +90,9 @@
 
 {# ── Macro: объединённая таблица мужчины + женщины ───────────────────────── #}
 {% macro таблица_рез(муж_рез, жен_рез, муж_разр, жен_разр) %}
+{% set _муж_норм = (муж_рез | length) >= 6 %}
+{% set _жен_норм = (жен_рез | length) >= 6 %}
+{% set _снос = ((муж_рез | length) > 0 and not _муж_норм) or ((жен_рез | length) > 0 and not _жен_норм) %}
 {% if муж_рез or жен_рез %}
 <table>
   <thead>
@@ -102,7 +105,7 @@
       <th colspan="8">Набранные очки за занятые места в спортивных дисциплинах:</th>
       <th rowspan="3" style="width:55px">Результат</th>
       <th rowspan="3" style="width:38px">Место</th>
-      <th rowspan="3" style="width:55px">Выполненный норматив*</th>
+      <th rowspan="3" style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
     </tr>
     <tr>
       <th colspan="2">СПРИНТ</th>
@@ -155,7 +158,7 @@
       <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td class="fw-bold">{{ р.сумма_очков | int }}</td>
       <td class="fw-bold">{{ р.место }}</td>
-      <td>{{ муж_разр.get(к.id, '—') }}</td>
+      <td>{{ муж_разр.get(к.id, '—') if _муж_норм else '—' }}</td>
     </tr>
     {% else %}
     <tr><td colspan="16" style="text-align:center; padding:4px">Нет данных</td></tr>
@@ -193,17 +196,19 @@
       <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td class="fw-bold">{{ р.сумма_очков | int }}</td>
       <td class="fw-bold">{{ р.место }}</td>
-      <td>{{ жен_разр.get(к.id, '—') }}</td>
+      <td>{{ жен_разр.get(к.id, '—') if _жен_норм else '—' }}</td>
     </tr>
     {% else %}
     <tr><td colspan="16" style="text-align:center; padding:4px">Нет данных</td></tr>
     {% endfor %}
   </tbody>
 </table>
+{% if _снос %}
 <div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
+{% endif %}
 {% endif %}
 {% endmacro %}
 

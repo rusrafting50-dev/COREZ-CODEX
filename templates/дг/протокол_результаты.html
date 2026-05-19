@@ -113,6 +113,9 @@
 
 {# ── Macro: объединённая таблица мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_рез, муж_пм, муж_без, жен_рез, жен_пм, жен_без, муж_разр, жен_разр) %}
+{% set _муж_норм = ((муж_рез | length) + (муж_пм | length) + (муж_без | length)) >= 6 %}
+{% set _жен_норм = ((жен_рез | length) + (жен_пм | length) + (жен_без | length)) >= 6 %}
+{% set _снос = (((муж_рез | length) + (муж_пм | length) + (муж_без | length)) > 0 and not _муж_норм) or (((жен_рез | length) + (жен_пм | length) + (жен_без | length)) > 0 and not _жен_норм) %}
 {% if муж_рез or муж_пм or муж_без or жен_рез or жен_пм or жен_без %}
 <table>
   <thead>
@@ -128,7 +131,7 @@
     <th style="width:70px">Результат</th>
     <th style="width:38px">Место</th>
     <th style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-    <th style="width:55px">Выполненный норматив*</th>
+    <th style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
   </tr>
   {% else %}
   <tr>
@@ -141,7 +144,7 @@
     <th colspan="3">Результат</th>
     <th rowspan="2" style="width:38px">Место</th>
     <th rowspan="2" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-    <th rowspan="2" style="width:55px">Выполненный норматив*</th>
+    <th rowspan="2" style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
   </tr>
   <tr>
     <th style="width:55px">Старт</th>
@@ -189,7 +192,7 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
-    <td class="text-center">{{ муж_разр.get(к.id, '-') }}</td>
+    <td class="text-center">{{ муж_разр.get(к.id, '-') if _муж_норм else '—' }}</td>
   </tr>
   {% endfor %}
   {% for р in муж_пм %}
@@ -282,7 +285,7 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('—', '-') }}</td>
     <td class="text-center">{{ р.место or '-' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '-' }}</td>
-    <td class="text-center">{{ жен_разр.get(к.id, '-') }}</td>
+    <td class="text-center">{{ жен_разр.get(к.id, '-') if _жен_норм else '—' }}</td>
   </tr>
   {% endfor %}
   {% for р in жен_пм %}
@@ -343,10 +346,12 @@
 
   </tbody>
 </table>
+{% if _снос %}
 <div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
+{% endif %}
 {% endif %}
 {% endmacro %}
 

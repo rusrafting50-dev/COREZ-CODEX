@@ -122,6 +122,9 @@
   </div>
 </div>
 
+{% set _муж_кол = (муж_рез | length) + (муж_без | length) %}
+{% set _жен_кол = (жен_рез | length) + (жен_без | length) %}
+{% set есть_сноска = (_муж_кол > 0 and _муж_кол < 6) or (_жен_кол > 0 and _жен_кол < 6) %}
 {% if not итоговый %}
 {# ════════════════════════════════════════════════════════════════════════════
    ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ — две строки на команду, столбцы ворот
@@ -132,6 +135,7 @@
 
 {# Строки для одного пола (без <table> и <thead>) #}
 {% macro пред_строки(рез, без, разряды, поп, ш1, ш2, заг_пол) %}
+{% set _норм_флаг = ((рез | length) + (без | length)) >= 6 %}
 {% if рез or без %}
 <tr class="cat-row"><td colspan="{{ всего_колонок }}">{{ заг_пол }}</td></tr>
 {% set ns = namespace(idx=0) %}
@@ -169,7 +173,7 @@
   <td class="text-center fw-bold" style="font-family:monospace" rowspan="2">{{ format_dur(р.лучший_результат) }}</td>
   <td class="text-center fw-bold" rowspan="2">{{ р.место }}</td>
   <td class="text-center" rowspan="2">{{ р.очки | int if р.очки else '—' }}</td>
-  <td class="text-center" rowspan="2">{{ разряды.get(к.id, '—') }}</td>
+  <td class="text-center" rowspan="2">{{ разряды.get(к.id, '—') if _норм_флаг else '—' }}</td>
 </tr>
 <tr>
   <td class="text-center">2</td>
@@ -277,7 +281,7 @@
       <th rowspan="2">Лучший результат</th>
       <th rowspan="2">Место</th>
       <th rowspan="2">Очки МНОГОБОРЬЕ</th>
-      <th rowspan="2">Выполненный норматив*</th>
+      <th rowspan="2">Выполненный норматив{% if есть_сноска %}*{% endif %}</th>
     </tr>
     <tr>
       <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
@@ -302,6 +306,7 @@
 
 {# Вспомогательный макрос: строки для одного пола #}
 {% macro итог_строки(рез, без, разряды, поп, заг_пол) %}
+{% set _норм_флаг = ((рез | length) + (без | length)) >= 6 %}
 {% if рез or без %}
 <tr class="cat-row"><td colspan="15">{{ заг_пол }}</td></tr>
 {% set ns = namespace(idx=0) %}
@@ -340,7 +345,7 @@
   <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(р.лучший_результат) }}</td>
   <td class="text-center fw-bold">{{ р.место }}</td>
   <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
-  <td class="text-center">{{ разряды.get(к.id, '—') }}</td>
+  <td class="text-center">{{ разряды.get(к.id, '—') if _норм_флаг else '—' }}</td>
 </tr>
 {% endfor %}
 {% for р in без %}
@@ -400,7 +405,7 @@
       <th rowspan="2" style="width:62px">Лучшая попытка</th>
       <th rowspan="2" style="width:32px">Место</th>
       <th rowspan="2" style="width:44px">Очки в<br>спортивной<br>дисциплине<br>МНОГОБОРЬЕ</th>
-      <th rowspan="2" style="width:44px">Выполнение разряда*</th>
+      <th rowspan="2" style="width:44px">Выполнение разряда{% if есть_сноска %}*{% endif %}</th>
     </tr>
     <tr>
       <th style="width:56px">Время</th>
@@ -420,10 +425,12 @@
 
 {% endif %}{# конец if not итоговый #}
 
+{% if есть_сноска %}
 <div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
+{% endif %}
 
 <div class="mt-4" style="font-size:10pt; font-weight:bold">
   <div style="display:flex; align-items:baseline; margin-bottom:10px">

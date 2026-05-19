@@ -127,6 +127,9 @@
 {# ── Macro: таблица результатов мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_итог, жен_итог, муж_ст, жен_ст) %}
 {% set ncol = 8 if итоговый else 17 %}
+{% set _муж_норм = (муж_итог | length) >= 6 %}
+{% set _жен_норм = (жен_итог | length) >= 6 %}
+{% set _снос = ((муж_итог | length) > 0 and not _муж_норм) or ((жен_итог | length) > 0 and not _жен_норм) %}
 {% if муж_итог or жен_итог %}
 <table>
   <thead>
@@ -145,7 +148,7 @@
       {% endif %}
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:36px">Место</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:55px">Выполненный норматив*</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
     </tr>
     {% if not итоговый %}
     <tr>
@@ -205,7 +208,7 @@
     {% endif %}
     <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
-    <td class="text-center">{{ муж_разр.get(з.команда_id, '—') }}</td>
+    <td class="text-center">{{ муж_разр.get(з.команда_id, '—') if _муж_норм else '—' }}</td>
   </tr>
   {% endfor %}
   {% if not муж_итог %}
@@ -255,7 +258,7 @@
     {% endif %}
     <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
-    <td class="text-center">{{ жен_разр.get(з.команда_id, '—') }}</td>
+    <td class="text-center">{{ жен_разр.get(з.команда_id, '—') if _жен_норм else '—' }}</td>
   </tr>
   {% endfor %}
   {% if not жен_итог %}
@@ -264,10 +267,12 @@
 
   </tbody>
 </table>
+{% if _снос %}
 <div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
+{% endif %}
 {% endif %}
 {% endmacro %}
 
