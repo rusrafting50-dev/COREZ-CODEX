@@ -3,6 +3,7 @@ from datetime import date
 from flask import Blueprint, render_template, request
 from models import (db, Соревнование, Команда, РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов)
+from нормативы import получить_норматив
 
 bp_многоборье = Blueprint('многоборье', __name__)
 
@@ -55,9 +56,7 @@ def _рассчитать(sor_id, пол, класс=None):
         рм.место = место
         оч = ТаблицаОчков.query.filter_by(дистанция='МНОГОБОРЬЕ', место=место).first()
         рм.очки_многоборье = оч.очки if оч else 0
-        if код:
-            р = ТаблицаРазрядов.query.filter_by(тип='М', место=место, статус_код=код).first()
-            разряды[к.id] = р.разряд if р and р.разряд and р.разряд != '-' else '—'
+        разряды[к.id] = получить_норматив(код, сор.возрастная_группа if сор else None, 'М', место)
 
     db.session.commit()
     return [рм for _, _, рм in entries], разряды

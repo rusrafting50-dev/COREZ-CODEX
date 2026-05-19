@@ -205,7 +205,7 @@
     {% endif %}
     <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
-    <td class="text-center">-</td>
+    <td class="text-center">{{ муж_разр.get(з.команда_id, '—') }}</td>
   </tr>
   {% endfor %}
   {% if not муж_итог %}
@@ -255,7 +255,7 @@
     {% endif %}
     <td class="text-center fw-bold">{{ з.итоговое_место or '—' }}</td>
     <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
-    <td class="text-center">-</td>
+    <td class="text-center">{{ жен_разр.get(з.команда_id, '—') }}</td>
   </tr>
   {% endfor %}
   {% if not жен_итог %}
