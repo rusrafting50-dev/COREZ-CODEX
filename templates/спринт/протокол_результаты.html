@@ -15,6 +15,8 @@
       @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      .col-фио-итог { width: 176px; }
+      .col-фио-пред { width: 252px; }
     }
     {% if портрет %}
     @media print {
@@ -122,7 +124,7 @@
   {% if итоговый %}
   <tr>
     <th style="width:28px">№<br>п/п</th>
-    <th style="min-width:88px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
+    <th class="col-фио-итог" style="min-width:88px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
     <th style="width:48px">Номер экипажа</th>
     <th style="width:201px">Команда</th>
     <th style="min-width:90px">Территория</th>
@@ -136,7 +138,7 @@
   {% else %}
   <tr>
     <th rowspan="2" style="width:28px">№<br>п/п</th>
-    <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
+    <th rowspan="2" class="col-фио-пред" style="min-width:126px">Фамилия, имя, отчество участников</th>
     <th rowspan="2" style="width:48px">Номер экипажа</th>
     <th rowspan="2" style="width:134px">Команда</th>
     <th rowspan="2" style="min-width:90px">Территория</th>
@@ -169,7 +171,7 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td style="font-size:7.5pt">
+    <td class="{{ 'col-фио-итог' if итоговый else 'col-фио-пред' }}" style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
@@ -205,7 +207,7 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td style="font-size:7.5pt">
+    <td class="{{ 'col-фио-итог' if итоговый else 'col-фио-пред' }}" style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
@@ -268,7 +270,7 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td style="font-size:7.5pt">
+    <td class="{{ 'col-фио-итог' if итоговый else 'col-фио-пред' }}" style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
@@ -304,7 +306,7 @@
   {% set шт_фн = (р.штраф_ф50 or 0) * 50 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
-    <td style="font-size:7.5pt">
+    <td class="{{ 'col-фио-итог' if итоговый else 'col-фио-пред' }}" style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
