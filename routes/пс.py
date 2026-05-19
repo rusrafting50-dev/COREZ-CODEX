@@ -898,12 +898,14 @@ def _начальный_брак(sor_id, пол, класс=None):
         if time_rec:
             time_records[ст] = time_rec
 
+    # Все производные заезды (с 'П') — всегда показываем как «ожидаемые» на стартовом протоколе
     pending_by_stage: dict = {}
     for lh in sorted(состав_т.keys()):
-        if lh in existing_locals or 'П' not in состав_т[lh]:
+        if 'П' not in состав_т[lh]:
             continue
         ст = стадии_т[lh]
-        pending_by_stage.setdefault(ст, []).append(lh)
+        if ст not in финальные:
+            pending_by_stage.setdefault(ст, []).append(lh)
 
     # Начальные заезды (прямые посевные пары без 'П'), ещё не созданные в БД
     initial_by_stage: dict = {}
@@ -930,7 +932,12 @@ def _начальный_брак(sor_id, пол, класс=None):
         предв[ст] = уч
 
     # Создать заглушки для ожидаемых промежуточных и начальных заездов (для ввода времени старта)
-    для_заглушек = list(pending_by_stage.items()) + list(initial_by_stage.items())
+    # Только для тех, у которых ещё нет реального заезда в БД
+    незав_pending = {lh for lhs in pending_by_stage.values() for lh in lhs if lh not in existing_locals}
+    для_заглушек = (
+        [(ст, [lh for lh in lhs if lh in незав_pending]) for ст, lhs in pending_by_stage.items()]
+        + list(initial_by_stage.items())
+    )
     for ст, lhs in для_заглушек:
         if ст in финальные:
             continue
@@ -960,13 +967,20 @@ def _начальный_брак(sor_id, пол, класс=None):
             if db_num == 0:
                 continue
             lh = db_to_local.get(db_num)
-            if lh is not None:
+            # Только начальные заезды (без 'П') показываем как реальные
+            if lh is not None and 'П' not in состав_т.get(lh, 'П'):
                 heats_in_stage.append({'local': lh, 'тип': 'real', 'db': db_num, 'записи': records})
         for lh in pending_by_stage.get(ст, []):
-            time_rec = (РезультатПараллельногоСпринта.query
-                        .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
-                        .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
-                        .first())
+            if lh in local_to_db:
+                # Реальный заезд есть в БД — берём время из него
+                rdb = local_to_db[lh]
+                recs = брак.get(ст, {}).get(rdb, [])
+                time_rec = recs[0] if recs else None
+            else:
+                time_rec = (РезультатПараллельногоСпринта.query
+                            .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
+                            .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
+                            .first())
             heats_in_stage.append({'local': lh, 'тип': 'pending', 'уч': pending_уч.get(lh, []), 'time_rec': time_rec})
         for lh in initial_by_stage.get(ст, []):
             time_rec = (РезультатПараллельногоСпринта.query
