@@ -213,9 +213,18 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>ПМ</strong> — превышен лимит времени{% if р.время_прохождения %} ({{ format_dur(р.время_прохождения) }}){% endif %}
-    </td>
+    {% if итоговый %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">Посл. м.</td>
+    {% else %}
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">Посл. м.</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">Посл. м.</td>
+    {% endif %}
     <td class="text-center">{{ р.место or '-' }}</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
@@ -239,9 +248,32 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
-    </td>
+    {% if итоговый %}
+      {% if р.статус in ('НСТ', 'НФН') %}
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+      {% elif р.статус == 'ДК' %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td colspan="3" class="text-center"><strong>{{ р.статус }}</strong></td>
+      {% endif %}
+    {% else %}
+      {% if р.статус == 'НСТ' %}
+    <td class="text-center">Не старт.</td><td class="text-center">–</td><td class="text-center">–</td><td class="text-center">–</td><td class="text-center">Не старт.</td><td class="text-center">–</td>
+      {% elif р.статус == 'НФН' %}
+    <td class="text-center">–</td><td class="text-center">–</td><td class="text-center">Не фин.</td><td class="text-center">–</td><td class="text-center">Не фин.</td><td class="text-center">–</td>
+      {% elif р.статус == 'ДК' %}
+    <td class="text-center">ДК</td><td class="text-center">–</td><td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
+      {% endif %}
+    {% endif %}
     <td class="text-center">-</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
@@ -306,9 +338,18 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>ПМ</strong> — превышен лимит времени{% if р.время_прохождения %} ({{ format_dur(р.время_прохождения) }}){% endif %}
-    </td>
+    {% if итоговый %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">Посл. м.</td>
+    {% else %}
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">Посл. м.</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">Посл. м.</td>
+    {% endif %}
     <td class="text-center">{{ р.место or '-' }}</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
@@ -332,9 +373,32 @@
     <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
-      <strong>{{ р.статус }}</strong>{% if р.статус == 'ДК' %} – ДИСКВАЛИФИКАЦИЯ{% elif р.статус == 'НФН' %} – НЕ ФИНИШИРОВАЛ{% elif р.статус == 'НСТ' %} – НЕ СТАРТОВАЛ{% endif %}
-    </td>
+    {% if итоговый %}
+      {% if р.статус in ('НСТ', 'НФН') %}
+    <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+      {% elif р.статус == 'ДК' %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td colspan="3" class="text-center"><strong>{{ р.статус }}</strong></td>
+      {% endif %}
+    {% else %}
+      {% if р.статус == 'НСТ' %}
+    <td class="text-center">Не старт.</td><td class="text-center">–</td><td class="text-center">–</td><td class="text-center">–</td><td class="text-center">Не старт.</td><td class="text-center">–</td>
+      {% elif р.статус == 'НФН' %}
+    <td class="text-center">–</td><td class="text-center">–</td><td class="text-center">Не фин.</td><td class="text-center">–</td><td class="text-center">Не фин.</td><td class="text-center">–</td>
+      {% elif р.статус == 'ДК' %}
+    <td class="text-center">ДК</td><td class="text-center">–</td><td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">ДК</td>
+      {% else %}
+    <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
+      {% endif %}
+    {% endif %}
     <td class="text-center">-</td>
     <td class="text-center">-</td>
     <td class="text-center">-</td>
