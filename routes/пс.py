@@ -324,7 +324,7 @@ def _разрешить_часть_для_предв(part, посев, local_to_
     """Возвращает (команда, None) если участник известен, иначе (None, метка)."""
     if part.startswith('ПБ'):
         ref_lh = int(part[2:])
-        j = позиции.get(ref_lh, ref_lh)
+        j = ref_lh
         назв = НАЗВАНИЯ.get(стадии_т.get(ref_lh, ''), стадии_т.get(ref_lh, ''))
         rdb = local_to_db.get(ref_lh)
         if rdb is not None:
@@ -335,7 +335,7 @@ def _разрешить_часть_для_предв(part, посев, local_to_
         return None, f'Победитель заезда {j}, {назв}'
     elif part.startswith('ПР'):
         ref_lh = int(part[2:])
-        j = позиции.get(ref_lh, ref_lh)
+        j = ref_lh
         назв = НАЗВАНИЯ.get(стадии_т.get(ref_lh, ''), стадии_т.get(ref_lh, ''))
         rdb = local_to_db.get(ref_lh)
         if rdb is not None:
@@ -727,6 +727,13 @@ def _брак_данные(sor_id, пол, класс=None):
             уч.append((посев[int(parts[0]) - 1], None))
             уч.append((посев[int(parts[1]) - 1], None))
         предв[first_ст] = уч
+        for lh in sorted(состав_т.keys()):
+            if 'П' not in состав_т[lh]:
+                continue
+            ст = стадии_т[lh]
+            for part in состав_т[lh].split('-'):
+                team, label = _разрешить_часть_для_предв(part, посев, {}, {}, стадии_т, {})
+                предв.setdefault(ст, []).append((team, label))
         return брак, стадии, посев_map, предв, {}
 
     стадии_бд = {з.стадия for з in все}
@@ -867,6 +874,13 @@ def _начальный_брак(sor_id, пол, класс=None):
             уч.append((посев[int(parts[0]) - 1], None))
             уч.append((посев[int(parts[1]) - 1], None))
         предв[first_ст] = уч
+        for lh in sorted(состав_т.keys()):
+            if 'П' not in состав_т[lh]:
+                continue
+            ст = стадии_т[lh]
+            for part in состав_т[lh].split('-'):
+                team, label = _разрешить_часть_для_предв(part, посев, {}, {}, стадии_т, {})
+                предв.setdefault(ст, []).append((team, label))
         return брак, стадии, посев_map, предв, {}, {}
 
     ids = _ids_пола(sor_id, пол, класс)
@@ -930,6 +944,18 @@ def _начальный_брак(sor_id, пол, класс=None):
                 лок_уч.append((team, label))
             pending_уч[lh] = лок_уч
         предв[ст] = уч
+
+    # Предв для финалов (в _начальный_брак финалы исключены из pending_by_stage)
+    for lh in sorted(состав_т.keys()):
+        if 'П' not in состав_т[lh]:
+            continue
+        ст = стадии_т[lh]
+        if ст not in финальные or ст in предв:
+            continue
+        for part in состав_т[lh].split('-'):
+            team, label = _разрешить_часть_для_предв(
+                part, посев, local_to_db, по_db, стадии_т, позиции)
+            предв.setdefault(ст, []).append((team, label))
 
     # Создать заглушки для ожидаемых промежуточных и начальных заездов (для ввода времени старта)
     # Только для тех, у которых ещё нет реального заезда в БД
