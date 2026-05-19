@@ -32,7 +32,7 @@
   .ps-heat-hdr b   { white-space: nowrap; min-width: 60px; }
   .ps-heat-hdr .lbl { color: #777; font-size: .66rem; white-space: nowrap; margin-right: 3px; }
   .ps-heat-hdr .time-inp {
-                     width: 65px; font-size: .66rem; padding: 1px 4px;
+                     width: 82px; font-size: .66rem; padding: 1px 4px;
                      background: #fff; border: 1px solid #ced4da; border-radius: 3px;
                      font-family: monospace; }
   .ps-heat-hdr .time-inp:disabled { background: #fff; color: #aaa; }
@@ -199,7 +199,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ item.local }}</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           {% if item.тип == 'real' %}
           <input type="text" name="вс_{{ item.записи[0].id }}"
                  class="time-inp время-ввод-пс"
@@ -245,7 +245,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           {% if time_rec and not _рез_сетка %}
           <input type="text" name="вс_{{ time_rec.id }}"
                  class="time-inp время-ввод-пс"
@@ -299,7 +299,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал Б</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           <input type="text" name="вс_{{ пара[0].id }}"
                  class="time-inp время-ввод-пс"
                  value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
@@ -325,7 +325,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал Б</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           <input type="text" name="вс_{{ бай_б[0].id }}"
                  class="time-inp время-ввод-пс"
                  value="{{ format_time(бай_б[0].время_старта) if бай_б[0].время_старта else '' }}"
@@ -363,7 +363,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал Б</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           {% if time_rec_б and not _рез_сетка %}
           <input type="text" name="вс_{{ time_rec_б.id }}"
                  class="time-inp время-ввод-пс"
@@ -401,7 +401,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал А</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           <input type="text" name="вс_{{ пара[0].id }}"
                  class="time-inp время-ввод-пс"
                  value="{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}"
@@ -427,7 +427,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал А</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           <input type="text" name="вс_{{ бай_а[0].id }}"
                  class="time-inp время-ввод-пс"
                  value="{{ format_time(бай_а[0].время_старта) if бай_а[0].время_старта else '' }}"
@@ -474,7 +474,7 @@
       <div class="ps-heat-hdr">
         <b>Заезд {{ ns.счётчик }}, Финал А</b>
         <span style="display:flex;align-items:center;gap:3px">
-          <span class="lbl">Старт:</span>
+          <span class="lbl">Время старта:</span>
           {% if time_rec_а and not _рез_сетка %}
           <input type="text" name="вс_{{ time_rec_а.id }}"
                  class="time-inp время-ввод-пс"
