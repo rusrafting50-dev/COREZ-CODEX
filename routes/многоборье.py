@@ -26,7 +26,7 @@ def _очки_команды(к):
 def _имеет_все_результаты(к):
     if not к.результат_спринт:
         return False
-    if not к.результат_дг:
+    if not к.результат_дг or к.результат_дг.место is None:
         return False
     if not any(р for р in к.результат_пс if р.итоговое_место is not None):
         return False
