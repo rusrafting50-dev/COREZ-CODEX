@@ -40,6 +40,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица_результатов(рез, без, разряды, пол_заг, цвет) %}
+{% set _норм = ((рез | length) + (без | length)) >= 6 %}
 <h5 class="mt-4 mb-1">{{ пол_заг }}</h5>
 {% if not рез and not без %}
 <div class="text-muted mb-3" style="font-size:.82rem">Нет данных</div>
@@ -129,7 +130,7 @@
           {% else %}—{% endif %}
         </td>
         <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
-        <td class="text-center">{{ разряды.get(р.команда_id, '—') }}</td>
+        <td class="text-center">{{ разряды.get(р.команда_id, '—') if _норм else '—' }}</td>
         <td>
           <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace" style="appearance:none;-webkit-appearance:none;background-image:none;width:80%;padding-right:.4rem">
             {% for код, метка in СТАТУСЫ %}

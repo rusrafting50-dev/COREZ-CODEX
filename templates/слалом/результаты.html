@@ -30,6 +30,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица_рез(рез, без, разряды, попытки, заг, цвет) %}
+{% set _норм = ((рез | length) + (без | length)) >= 6 %}
 <h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not рез and not без %}
 <div class="text-muted small mb-3">Нет данных</div>
@@ -89,7 +90,7 @@
       <td class="text-center border-start">{{ format_dur(р.лучший_результат) }}</td>
       <td class="text-center">{{ р.место }}</td>
       <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
-      <td class="text-center">{{ разряды.get(к.id, '—') }}</td>
+      <td class="text-center">{{ разряды.get(к.id, '—') if _норм else '—' }}</td>
     </tr>
     {% endfor %}
     {% for р in без %}

@@ -31,6 +31,7 @@
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица(рез, разряды, заг, цвет) %}
+{% set _норм = (рез | length) >= 6 %}
 <h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not рез %}
 <div class="text-muted small mb-3">Нет данных — сначала рассчитайте результаты дистанций.</div>
@@ -66,7 +67,7 @@
       <td class="text-center small">{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td class="text-center fw-bold text-primary">{{ р.сумма_очков | int }}</td>
       <td class="text-center fw-bold fs-6">{{ р.место }}</td>
-      <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
+      <td class="text-center small">{{ разряды.get(к.id, '—') if _норм else '—' }}</td>
     </tr>
     {% endfor %}
     </tbody>
