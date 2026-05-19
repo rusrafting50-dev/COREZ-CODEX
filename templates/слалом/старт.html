@@ -80,7 +80,15 @@
       <td class="text-muted small">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
       {% for кол in мб_колонки %}
       <td class="text-center small">
-        {%- if рм -%}{{ (рм | attr(кол.поле) or 0) | int }}{%- else -%}—{%- endif -%}
+        {%- if рм -%}
+          {%- if кол.поле -%}
+            {{ (рм | attr(кол.поле) or 0) | int }}
+          {%- else -%}
+            {%- set _s = namespace(v=0) -%}
+            {%- for к2 in мб_колонки if к2.поле -%}{%- set _s.v = _s.v + ((рм | attr(к2.поле) or 0) | int) -%}{%- endfor -%}
+            {{ _s.v }}
+          {%- endif -%}
+        {%- else -%}—{%- endif -%}
       </td>
       {% endfor %}
       <td>
