@@ -36,13 +36,6 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
 
 {% if not муж and not жен %}
 <div class="alert alert-warning">Нет команд для формирования стартового протокола.</div>
@@ -93,13 +86,13 @@
       <td>
         <input type="text" name="вс1_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
-               value="{{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}"
+               value="{{ format_time(р1.время_старта) if р1 and р1.время_старта is not none else '' }}"
                placeholder="00:00:00.00" autocomplete="off">
       </td>
       <td>
         <input type="text" name="вс2_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
-               value="{{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}"
+               value="{{ format_time(р2.время_старта) if р2 and р2.время_старта is not none else '' }}"
                placeholder="00:00:00.00" autocomplete="off">
       </td>
     </tr>
