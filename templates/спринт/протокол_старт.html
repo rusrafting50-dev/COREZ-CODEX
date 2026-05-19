@@ -16,6 +16,7 @@
       .разрыв { page-break-after: always; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      .col-фио { font-size: 6.5pt; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -81,7 +82,7 @@
 {% set р = к.результат_спринт %}
 <tr>
   <td class="text-center">{{ нс.пп }}</td>
-  <td>{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
+  <td class="col-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td>{{ к.название or '—' }}</td>
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
@@ -107,7 +108,7 @@
 <thead>
   <tr>
     <th style="width:28px">№<br>п/п</th>
-    <th style="min-width:98px">Фамилия, имя, отчество участников</th>
+    <th class="col-фио" style="min-width:98px">Фамилия, имя, отчество участников</th>
     <th style="width:55px">Номер экипажа</th>
     <th style="width:192px">Команда</th>
     <th style="min-width:90px">Территория</th>
