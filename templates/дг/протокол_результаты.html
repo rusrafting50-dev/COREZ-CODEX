@@ -257,6 +257,10 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">ДК</td>
+      {% elif р.статус == 'ПЛВ' %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">Прев. ЛВ</td>
       {% else %}
     <td colspan="3" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
@@ -270,6 +274,11 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center">ДК</td>
+      {% elif р.статус == 'ПЛВ' %}
+    <td class="text-center">–</td><td class="text-center">Прев. ЛВ</td><td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">Прев. ЛВ</td>
       {% else %}
     <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
@@ -382,6 +391,10 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">ДК</td>
+      {% elif р.статус == 'ПЛВ' %}
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center">Прев. ЛВ</td>
       {% else %}
     <td colspan="3" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
@@ -395,6 +408,11 @@
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
     <td class="text-center">ДК</td>
+      {% elif р.статус == 'ПЛВ' %}
+    <td class="text-center">–</td><td class="text-center">Прев. ЛВ</td><td class="text-center">–</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('—', '–') }}</td>
+    <td class="text-center">Прев. ЛВ</td>
       {% else %}
     <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
