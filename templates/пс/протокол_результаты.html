@@ -22,6 +22,11 @@
       body { zoom: 0.707; }
     }
     {% endif %}
+    {% if итоговый %}
+    @media print {
+      table th:nth-child(2), table td:nth-child(2) { width: 173px !important; min-width: 173px !important; }
+    }
+    {% endif %}
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     th { text-align: center; background: #fff; font-weight: bold; }
