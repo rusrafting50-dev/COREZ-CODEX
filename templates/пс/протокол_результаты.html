@@ -8,18 +8,30 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <style>
-    body { font-family: "Times New Roman", serif; font-size: 10pt; }
+    body {
+      font-family: "Times New Roman", serif;
+      font-size: 10pt;
+      max-width: 277mm;   /* равно ширине печатной области A4 landscape с 10мм полями */
+      margin: 0 auto;
+    }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; }
-      @page { margin: 12mm 5mm 12mm 5mm; size: A4 landscape; }
+      @page { margin: 10mm 8mm; size: A4 landscape; }
+      body {
+        max-width: none;
+        margin: 0;
+        font-size: 10pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
     {% if портрет %}
     @media print {
-      @page { margin: 12mm 5mm 12mm 5mm; size: A4 portrait; }
-      body { zoom: 0.707; }
+      @page { margin: 0; size: A4 portrait; }
+      html { zoom: 0.707; }  /* масштабирует 297mm → 210mm */
+      body { width: 297mm; margin: 0; }
     }
     {% endif %}
     table { border-collapse: collapse; width: 100%; }
