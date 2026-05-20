@@ -14,10 +14,10 @@
       body { font-size: 9pt; }
       @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
       .разрыв { page-break-after: always; }
-      table { page-break-inside: auto; }
+      table { page-break-inside: auto; table-layout: fixed; }
       tr { page-break-inside: avoid; }
-      .col-фио { font-size: 6.5pt; width: 440px !important; min-width: 440px !important; }
-      .col-команда { width: 48px !important; min-width: 0 !important; }
+      .col-фио { font-size: 6.5pt; width: 440px !important; }
+      .col-команда { width: 96px !important; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -29,6 +29,8 @@
     .sig-row { display: flex; align-items: baseline; margin-bottom: 10pt; }
     .sig-pos { width: 38%; font-size: 10pt; }
     .sig-fio { font-size: 10pt; }
+    .col-команда { width: 192px; }
+    .col-фио { min-width: 98px; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -109,9 +111,9 @@
 <thead>
   <tr>
     <th style="width:28px">№<br>п/п</th>
-    <th class="col-команда" style="width:192px">Команда</th>
+    <th class="col-команда">Команда</th>
     <th style="width:55px">Номер экипажа</th>
-    <th class="col-фио" style="min-width:98px">Фамилия, имя, отчество участников</th>
+    <th class="col-фио">Фамилия, имя, отчество участников</th>
     <th style="min-width:90px">Территория</th>
     <th style="width:75px">Порядковый номер согласно жеребьёвке</th>
     <th style="width:85px">Время старта</th>
