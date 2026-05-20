@@ -83,9 +83,9 @@
 {% set р = к.результат_спринт %}
 <tr>
   <td class="text-center">{{ нс.пп }}</td>
-  <td class="col-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
-  <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td class="col-команда">{{ к.название or '—' }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td class="col-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '—' }}</strong></td>
   <td class="text-center" style="font-family:monospace">{{ к.время_старта_спринт_план or '' }}</td>
@@ -109,9 +109,9 @@
 <thead>
   <tr>
     <th style="width:28px">№<br>п/п</th>
-    <th class="col-фио" style="min-width:98px">Фамилия, имя, отчество участников</th>
-    <th style="width:55px">Номер экипажа</th>
     <th class="col-команда" style="width:192px">Команда</th>
+    <th style="width:55px">Номер экипажа</th>
+    <th class="col-фио" style="min-width:98px">Фамилия, имя, отчество участников</th>
     <th style="min-width:90px">Территория</th>
     <th style="width:75px">Порядковый номер согласно жеребьёвке</th>
     <th style="width:85px">Время старта</th>

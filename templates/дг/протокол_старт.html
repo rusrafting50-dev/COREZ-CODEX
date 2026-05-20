@@ -77,9 +77,9 @@
 <thead>
   <tr>
     <th rowspan="2" style="width:28px">№<br>п/п</th>
-    <th rowspan="2" style="min-width:98px">Фамилия, имя, отчество участников</th>
-    <th rowspan="2" style="width:55px">Номер экипажа</th>
     <th rowspan="2" style="width:160px">Команда</th>
+    <th rowspan="2" style="width:55px">Номер экипажа</th>
+    <th rowspan="2" style="min-width:98px">Фамилия, имя, отчество участников</th>
     <th rowspan="2" style="min-width:80px">Территория</th>
     {% if мб_кол %}
     <th colspan="{{ мб_кол }}" style="border-bottom:0">Очки Многоборье</th>
@@ -108,9 +108,9 @@
 {% set рм = к.результат_многоборья %}
 <tr>
   <td class="text-center">{{ нс.пп }}</td>
-  <td>{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
-  <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td>{{ к.название or '—' }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td>{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   {% for кол in мб_колонки %}
   <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '—' }}</td>
