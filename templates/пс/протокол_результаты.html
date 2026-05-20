@@ -11,7 +11,7 @@
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; }
+      body { font-size: 10pt; zoom: 82%; }
       @page { margin: 12mm 5mm 12mm 5mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
@@ -19,12 +19,7 @@
     {% if портрет %}
     @media print {
       @page { margin: 12mm 5mm 12mm 5mm; size: A4 portrait; }
-      body { zoom: 0.707; }
-    }
-    {% endif %}
-    {% if итоговый %}
-    @media print {
-      table th:nth-child(2), table td:nth-child(2) { width: 173px !important; min-width: 173px !important; }
+      body { zoom: 57%; }
     }
     {% endif %}
     table { border-collapse: collapse; width: 100%; }
