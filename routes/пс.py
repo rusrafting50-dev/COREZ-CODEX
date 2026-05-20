@@ -1182,7 +1182,7 @@ def сетка(sor_id):
         return redirect(url_for('пс.сетка', sor_id=sor_id))
 
     ctx = _стартовый_контекст(sor_id, сор)
-    return render_template('пс/сетка.html', заголовок='Стартовый протокол', **ctx)
+    return render_template('пс/сетка.html', заголовок='Стартовый протокол', рез_режим=False, **ctx)
 
 
 @bp_пс.route('/<int:sor_id>/результаты-сетка')
@@ -1204,7 +1204,7 @@ def результаты_сетка(sor_id):
             запись_метки.update(_метки_записей(sor_id, пол, 'R6'))
     ctx = _сетка_контекст(sor_id, сор)
     ctx['запись_метки'] = запись_метки
-    return render_template('пс/сетка.html', заголовок='Результаты сетка', **ctx)
+    return render_template('пс/сетка.html', заголовок='Результаты сетка', рез_режим=True, **ctx)
 
 
 @bp_пс.route('/<int:sor_id>/заезды', methods=['GET', 'POST'])
