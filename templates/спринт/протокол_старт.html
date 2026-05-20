@@ -11,14 +11,19 @@
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; padding: 0 !important; }
+      body { font-size: 9pt; padding: 0 !important; margin: 0; }
       @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
       .разрыв { page-break-after: always; }
-      table { page-break-inside: auto; table-layout: fixed; }
+      table { page-break-inside: auto; table-layout: fixed !important; width: 100% !important; }
       tr { page-break-inside: avoid; }
-      .col-фио { font-size: 6.5pt; width: 250px !important; }
-      .col-команда { width: 96px !important; }
-      .col-территория { width: 90px !important; }
+      col.c-пп      { width: 7mm; }
+      col.c-команда { width: 28mm; }
+      col.c-номер   { width: 12mm; }
+      col.c-фио     { width: 57mm; }
+      col.c-тер     { width: 24mm; }
+      col.c-жер     { width: 26mm; }
+      col.c-время   { width: 24mm; }
+      td.c-фио      { font-size: 6.5pt; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -30,8 +35,6 @@
     .sig-row { display: flex; align-items: baseline; margin-bottom: 10pt; }
     .sig-pos { width: 38%; font-size: 10pt; }
     .sig-fio { font-size: 10pt; }
-    .col-команда { width: 192px; }
-    .col-фио { min-width: 98px; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -86,10 +89,10 @@
 {% set р = к.результат_спринт %}
 <tr>
   <td class="text-center">{{ нс.пп }}</td>
-  <td class="col-команда">{{ к.название or '—' }}</td>
+  <td>{{ к.название or '—' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td class="col-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
-  <td class="col-территория">{{ к.субъект.название if к.субъект else '—' }}</td>
+  <td class="c-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
+  <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '—' }}</strong></td>
   <td class="text-center" style="font-family:monospace">{{ к.время_старта_спринт_план or '' }}</td>
 </tr>
@@ -109,15 +112,24 @@
 
 {# ── Макрос: заголовок таблицы ── #}
 {% macro thead() %}
+<colgroup>
+  <col class="c-пп">
+  <col class="c-команда">
+  <col class="c-номер">
+  <col class="c-фио">
+  <col class="c-тер">
+  <col class="c-жер">
+  <col class="c-время">
+</colgroup>
 <thead>
   <tr>
-    <th style="width:28px">№<br>п/п</th>
-    <th class="col-команда">Команда</th>
-    <th style="width:55px">Номер экипажа</th>
-    <th class="col-фио">Фамилия, имя, отчество участников</th>
-    <th class="col-территория" style="min-width:90px">Территория</th>
-    <th style="width:75px">Порядковый номер согласно жеребьёвке</th>
-    <th style="width:85px">Время старта</th>
+    <th>№<br>п/п</th>
+    <th>Команда</th>
+    <th>Номер экипажа</th>
+    <th>Фамилия, имя, отчество участников</th>
+    <th>Территория</th>
+    <th>Порядковый номер согласно жеребьёвке</th>
+    <th>Время старта</th>
   </tr>
 </thead>
 {% endmacro %}
