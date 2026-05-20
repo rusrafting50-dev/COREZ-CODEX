@@ -130,10 +130,31 @@
 
 {# ── Macro: таблица результатов мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_итог, жен_итог, муж_ст, жен_ст) %}
-{% set ncol = 8 if итоговый else 17 %}
 {% set _муж_норм = (муж_итог | length) >= 6 %}
 {% set _жен_норм = (жен_итог | length) >= 6 %}
 {% set _снос = ((муж_итог | length) > 0 and not _муж_норм) or ((жен_итог | length) > 0 and not _жен_норм) %}
+
+{# Определяем, какие стадии присутствуют (только для предварительного протокола) #}
+{% if not итоговый %}
+{% set _sn = namespace(есть_14=false, есть_12=false, есть_ф=false) %}
+{% for д in муж_ст.values() %}
+  {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
+  {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
+  {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
+{% endfor %}
+{% for д in жен_ст.values() %}
+  {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
+  {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
+  {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
+{% endfor %}
+{% set _есть_14 = _sn.есть_14 %}
+{% set _есть_12 = _sn.есть_12 %}
+{% set _есть_ф  = _sn.есть_ф  %}
+{% set ncol = 11 + (_есть_14 | int * 2) + (_есть_12 | int * 2) + (_есть_ф | int * 2) %}
+{% else %}
+{% set ncol = 8 %}
+{% endif %}
+
 {% if муж_итог or жен_итог %}
 <table>
   <thead>
@@ -145,9 +166,9 @@
       <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:80px">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
-      <th colspan="2" class="text-center">¼ финала</th>
-      <th colspan="2" class="text-center">½ финала</th>
-      <th colspan="2" class="text-center">Финалы</th>
+      {% if _есть_14 %}<th colspan="2" class="text-center">¼ финала</th>{% endif %}
+      {% if _есть_12 %}<th colspan="2" class="text-center">½ финала</th>{% endif %}
+      {% if _есть_ф  %}<th colspan="2" class="text-center">Финалы</th>{% endif %}
       <th colspan="2" class="text-center">Итоговый результат</th>
       {% endif %}
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:36px">Место</th>
@@ -156,12 +177,9 @@
     </tr>
     {% if not итоговый %}
     <tr>
-      <th style="width:42px">Заезд №</th>
-      <th style="width:68px">Результат</th>
-      <th style="width:42px">Заезд №</th>
-      <th style="width:68px">Результат</th>
-      <th style="width:36px">Финал</th>
-      <th style="width:64px">Результат</th>
+      {% if _есть_14 %}<th style="width:42px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_12 %}<th style="width:42px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_ф  %}<th style="width:36px">Финал</th><th style="width:64px">Результат</th>{% endif %}
       <th style="width:50px">Стадия</th>
       <th style="width:70px">Время</th>
     </tr>
@@ -199,14 +217,20 @@
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
+    {% if _есть_14 %}
     <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
+    {% endif %}
+    {% if _есть_12 %}
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
+    {% endif %}
+    {% if _есть_ф %}
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">
       {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}—{% endif %}
     </td>
+    {% endif %}
     <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
     <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
     {% endif %}
@@ -249,14 +273,20 @@
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
+    {% if _есть_14 %}
     <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
+    {% endif %}
+    {% if _есть_12 %}
     <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
+    {% endif %}
+    {% if _есть_ф %}
     <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}—{% endif %}</td>
     <td class="text-center" style="font-family:monospace">
       {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}—{% endif %}
     </td>
+    {% endif %}
     <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
     <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
     {% endif %}
