@@ -18,6 +18,7 @@
       tr { page-break-inside: avoid; }
       .col-фио { font-size: 6.5pt; width: 293px !important; }
       .col-команда { width: 96px !important; }
+      .col-территория { width: 90px !important; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -88,7 +89,7 @@
   <td class="col-команда">{{ к.название or '—' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td class="col-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
-  <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+  <td class="col-территория">{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center"><strong>{{ к.стартовый_номер_спринт or '—' }}</strong></td>
   <td class="text-center" style="font-family:monospace">{{ к.время_старта_спринт_план or '' }}</td>
 </tr>
@@ -114,7 +115,7 @@
     <th class="col-команда">Команда</th>
     <th style="width:55px">Номер экипажа</th>
     <th class="col-фио">Фамилия, имя, отчество участников</th>
-    <th style="min-width:90px">Территория</th>
+    <th class="col-территория" style="min-width:90px">Территория</th>
     <th style="width:75px">Порядковый номер согласно жеребьёвке</th>
     <th style="width:85px">Время старта</th>
   </tr>
