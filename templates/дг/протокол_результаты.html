@@ -89,8 +89,12 @@
   {{ сор.название }}
 </div>
 
+{% if итоговый and сор.номер_екп %}
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">ЕКП № {{ сор.номер_екп }}</div>
+{% endif %}
+
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
-  {% if итоговый %}Протокол соревнований{% else %}Предварительный протокол соревнований{% endif %}
+  {% if итоговый %}ПРОТОКОЛ РЕЗУЛЬТАТОВ{% else %}Предварительный протокол соревнований{% endif %}
 </div>
 
 <div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
@@ -122,29 +126,29 @@
   {% if итоговый %}
   <tr>
     <th style="width:28px">№<br>п/п</th>
-    <th style="min-width:88px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
-    <th style="width:48px">Номер экипажа</th>
     <th style="width:180px">Команда</th>
-    <th style="min-width:90px">Территория</th>
+    <th style="width:48px">Номер</th>
+    <th style="min-width:88px">Состав</th>
+    <th style="min-width:90px">Субъект РФ</th>
     <th style="width:70px">Время</th>
     <th style="width:60px">Штраф</th>
     <th style="width:70px">Результат</th>
     <th style="width:38px">Место</th>
-    <th style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-    <th style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
+    <th style="width:60px">Очки</th>
+    <th style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
   </tr>
   {% else %}
   <tr>
     <th rowspan="2" style="width:28px">№<br>п/п</th>
     <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
-    <th rowspan="2" style="width:48px">Номер экипажа</th>
+    <th rowspan="2" style="width:48px">Номер</th>
     <th rowspan="2" style="width:134px">Команда</th>
-    <th rowspan="2" style="min-width:90px">Территория</th>
+    <th rowspan="2" style="min-width:90px">Субъект РФ</th>
     <th colspan="3">Прохождение дистанции<br>(штрафные баллы)</th>
     <th colspan="3">Результат</th>
     <th rowspan="2" style="width:38px">Место</th>
-    <th rowspan="2" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-    <th rowspan="2" style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
+    <th rowspan="2" style="width:60px">Очки</th>
+    <th rowspan="2" style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
   </tr>
   <tr>
     <th style="width:55px">Старт</th>
@@ -167,6 +171,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -176,8 +182,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace"></td>
@@ -201,6 +205,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#fff3cd">
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -210,8 +216,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% set _метка = 'Прев. ЛВ' if р.статус == 'ПЛВ' else 'Посл. м.' %}
     {% if итоговый %}
@@ -237,6 +241,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -246,8 +252,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if итоговый %}
       {% if р.статус in ('НСТ', 'НФН') %}
@@ -293,6 +297,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -302,8 +308,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace"></td>
@@ -327,6 +331,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr style="background:#fff3cd">
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -336,8 +342,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% set _метка = 'Прев. ЛВ' if р.статус == 'ПЛВ' else 'Посл. м.' %}
     {% if итоговый %}
@@ -363,6 +367,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '-' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -372,8 +378,6 @@
         {% endif %}
       {% else %}-{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '-' }}</td>
     <td>{{ к.субъект.название if к.субъект else '-' }}</td>
     {% if итоговый %}
       {% if р.статус in ('НСТ', 'НФН') %}

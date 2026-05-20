@@ -63,10 +63,8 @@
   {{ сор.название }}
 </div>
 
-{% if сор.номер_екп %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; margin-top:4px">
-  ЕКП № {{ сор.номер_екп }}
-</div>
+{% if итоговый and сор.номер_екп %}
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">ЕКП № {{ сор.номер_екп }}</div>
 {% endif %}
 
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; text-transform:uppercase">
@@ -98,14 +96,14 @@
   <thead>
     <tr>
       <th rowspan="3" style="width:28px">№ п/п</th>
-      <th rowspan="3" style="min-width:126px">Фамилия, имя, отчество (дата рождения, спортивная квалификация) участников</th>
-      <th rowspan="3" style="width:48px">Номер экипажа</th>
       <th rowspan="3" style="width:120px">Команда</th>
-      <th rowspan="3" style="min-width:90px">Территория</th>
+      <th rowspan="3" style="width:48px">Номер</th>
+      <th rowspan="3" style="min-width:126px">Состав</th>
+      <th rowspan="3" style="min-width:90px">Субъект РФ</th>
       <th colspan="8">Набранные очки за занятые места в спортивных дисциплинах:</th>
       <th rowspan="3" style="width:55px">Результат</th>
       <th rowspan="3" style="width:38px">Место</th>
-      <th rowspan="3" style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
+      <th rowspan="3" style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
     </tr>
     <tr>
       <th colspan="2">СПРИНТ</th>
@@ -140,13 +138,13 @@
     {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '—' %}
     <tr>
       <td>{{ loop.index }}</td>
+      <td style="text-align:left">{{ к.название or '—' }}</td>
+      <td>{{ к.нагрудный_номер }}</td>
       <td style="font-size:7.5pt; text-align:left">
         {% if состав %}
           {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}{% if loop.index % 2 == 0 %}<br>{% else %}, {% endif %}{% endif %}{% endfor %}
         {% else %}—{% endif %}
       </td>
-      <td>{{ к.нагрудный_номер }}</td>
-      <td style="text-align:left">{{ к.название or '—' }}</td>
       <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
       <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
@@ -178,13 +176,13 @@
     {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '—' %}
     <tr>
       <td>{{ loop.index }}</td>
+      <td style="text-align:left">{{ к.название or '—' }}</td>
+      <td>{{ к.нагрудный_номер }}</td>
       <td style="font-size:7.5pt; text-align:left">
         {% if состав %}
           {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}{% if loop.index % 2 == 0 %}<br>{% else %}, {% endif %}{% endif %}{% endfor %}
         {% else %}—{% endif %}
       </td>
-      <td>{{ к.нагрудный_номер }}</td>
-      <td style="text-align:left">{{ к.название or '—' }}</td>
       <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
       <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>

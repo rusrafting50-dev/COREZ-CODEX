@@ -99,8 +99,12 @@
   {{ сор.название }}
 </div>
 
+{% if итоговый and сор.номер_екп %}
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">ЕКП № {{ сор.номер_екп }}</div>
+{% endif %}
+
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
-  {% if итоговый %}Протокол соревнований{% else %}Предварительный протокол соревнований{% endif %}
+  {% if итоговый %}ПРОТОКОЛ РЕЗУЛЬТАТОВ{% else %}Предварительный протокол соревнований{% endif %}
 </div>
 
 <div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
@@ -135,10 +139,10 @@
   <thead>
     <tr>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}white-space:nowrap; {% endif %}min-width:88px">Фамилия, имя{% if итоговый %}, отчество (дата рождения, спортивная квалификация){% endif %} участников</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер экипажа</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:130px">Команда</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:80px">Территория</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}white-space:nowrap; {% endif %}min-width:88px">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:80px">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
       <th colspan="2" class="text-center">¼ финала</th>
@@ -147,8 +151,8 @@
       <th colspan="2" class="text-center">Итоговый результат</th>
       {% endif %}
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:36px">Место</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:55px">Выполненный норматив{% if _снос %}*{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:60px">Очки</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
     </tr>
     {% if not итоговый %}
     <tr>
@@ -181,6 +185,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '—' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -190,8 +196,6 @@
         {% endif %}
       {% else %}—{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '—' }}</td>
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
@@ -231,6 +235,8 @@
   {% set ns.idx = ns.idx + 1 %}
   <tr>
     <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '—' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
     <td style="font-size:7.5pt">
       {% if состав %}
         {% if итоговый %}
@@ -240,8 +246,6 @@
         {% endif %}
       {% else %}—{% endif %}
     </td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '—' }}</td>
     <td>{{ к.субъект.название if к.субъект else '—' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
