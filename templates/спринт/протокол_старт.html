@@ -49,7 +49,17 @@
 {# ── Макрос: шапка протокола ── #}
 {% macro шапка() %}
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold;">
+{%- for строка in сор.организаторы_блок.split('\n') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }}<br>"{{ ч[1] }}
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+</div>
 {% endif %}
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">{{ сор.название }}</div>
 <div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">Стартовый протокол</div>
@@ -126,7 +136,7 @@
   <tr>
     <th>№<br>п/п</th>
     <th>Команда</th>
-    <th>Номер экипажа</th>
+    <th>Номер</th>
     <th>Фамилия, имя, отчество участников</th>
     <th>Территория</th>
     <th>Порядковый номер согласно жеребьёвке</th>
