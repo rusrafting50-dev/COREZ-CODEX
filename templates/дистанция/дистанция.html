@@ -58,14 +58,6 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Параметры дистанций</h5></div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
-
 <form id="формаДистанций" method="post"
       action="{{ url_for('дистанция.сохранить', sor_id=сор.id) }}">
   <input type="hidden" name="тип" value="{{ тип }}">
