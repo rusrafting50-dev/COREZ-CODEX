@@ -177,6 +177,10 @@ class Соревнование(db.Model):
     единый_кп                   = db.Column(db.Text, nullable=True)
     положение_о_соревнованиях   = db.Column(db.Text, nullable=True)
 
+    # Обязанности организаторов
+    обязанности_федерации       = db.Column(db.Text, nullable=True)
+    обязанности_проводящей      = db.Column(db.Text, nullable=True)
+
     # Программа соревнований — расписание мероприятий (JSON-список)
     программа_соревнований      = db.Column(db.Text, nullable=True)
     # Виды программы (JSON-список {дисциплина, пол_возраст})
@@ -218,6 +222,7 @@ class Соревнование(db.Model):
     отч_характеристика   = db.Column(db.Text, nullable=True)
 
     # Финансы
+    заявочный_взнос_r4          = db.Column(db.String(300), nullable=True)
     заявочный_взнос             = db.Column(db.String(300), nullable=True)
     реквизиты_оплаты            = db.Column(db.Text, nullable=True)
     назначение_платежа          = db.Column(db.Text, nullable=True)
@@ -993,7 +998,10 @@ def применить_миграции():
             ('правила_вида_спорта',         'TEXT'),
             ('единый_кп',                   'TEXT'),
             ('положение_о_соревнованиях',   'TEXT'),
+            ('обязанности_федерации',       'TEXT'),
+            ('обязанности_проводящей',      'TEXT'),
             ('программа_соревнований',      'TEXT'),
+            ('заявочный_взнос_r4',          'VARCHAR(300)'),
             ('заявочный_взнос',             'VARCHAR(300)'),
             ('реквизиты_оплаты',            'TEXT'),
             ('назначение_платежа',          'TEXT'),

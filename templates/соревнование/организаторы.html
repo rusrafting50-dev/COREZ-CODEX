@@ -154,9 +154,31 @@
 
       <hr class="my-3">
 
-      {# ── 5. Программа соревнований ── #}
+      {# ── 5. Обязанности спортивной федерации ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">5</span> Программа соревнований
+        <span class="badge bg-secondary me-1">5</span> Обязанности спортивной федерации
+      </h6>
+      <div class="mb-3">
+        <textarea name="обязанности_федерации" class="form-control" rows="5"
+                  placeholder="– организацию финансового обеспечения проведения спортивных соревнований из федерального бюджета в соответствии с установленными лимитами.&#10;– размещение информации о спортивных соревнованиях на сайте rusraftfed.ru;&#10;– утверждение по представлению Проводящей организации состава главной судейской коллегии соревнований;&#10;– утверждение кандидатуры технического делегата ФРР и обеспечение направления его на соревнования.">{{ сор.обязанности_федерации or '' }}</textarea>
+      </div>
+
+      <hr class="my-3">
+
+      {# ── 6. Обязанности проводящей организации ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">6</span> Обязанности проводящей организации
+      </h6>
+      <div class="mb-3">
+        <textarea name="обязанности_проводящей" class="form-control" rows="10"
+                  placeholder="– формирование судейской коллегии спортивных соревнований и направление документа о составе главной судейской коллегии для утверждения в ФРР;&#10;– деятельность судейской коллегии во время проведения спортивных соревнований;&#10;– организацию материально-технического, транспортного, хозяйственного, санитарно-гигиенического и медицинского обеспечения спортивных соревнований;&#10;– организацию обеспечения мер безопасности общественного порядка и безопасности зрителей, спортсменов и официальных лиц;&#10;– организацию наглядной агитации и размещение информации в средствах массовой информации о проведении спортивных соревнований;&#10;– организацию проживания и питания участников;&#10;– составление, утверждение и выполнение сметы доходов и расходов при проведении спортивных соревнований;&#10;– утверждение и направление в ФРР по итогам проведения спортивного соревнования:&#10;  – отчета о проведении спортивного соревнования;&#10;  – итоговых результатов (протоколов) спортивных соревнований;&#10;  – справки о составе и квалификации судейской коллегии, подписанной главным судьей;&#10;  – справки, подписанной главным судьей, содержащей сведения о количестве субъектов Российской Федерации, принявших участие в спортивном соревновании.">{{ сор.обязанности_проводящей or '' }}</textarea>
+      </div>
+
+      <hr class="my-3">
+
+      {# ── 7. Программа соревнований ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">7</span> Программа соревнований
       </h6>
 
       <p class="fw-semibold mb-2">Виды программы</p>
@@ -257,9 +279,9 @@
         <thead class="table-light">
           <tr>
             <th style="width:30px"></th>
-            <th>Наименование мероприятия</th>
             <th style="width:140px">Дата</th>
             <th style="width:110px">Время</th>
+            <th>Наименование мероприятия</th>
             <th style="width:40px"></th>
           </tr>
         </thead>
@@ -268,17 +290,17 @@
           <tr class="drag-item-расп" draggable="true">
             <td class="text-center" style="cursor:grab;user-select:none;font-size:1.1rem;color:#adb5bd">⠿</td>
             <td>
-              <input type="text" name="прог_название[]" list="datalistМероприятия"
-                     class="form-control form-control-sm"
-                     value="{{ событие.наименование }}">
-            </td>
-            <td>
               <input type="text" name="прог_дата[]" class="form-control form-control-sm"
                      placeholder="16.09.2025" value="{{ событие.дата }}">
             </td>
             <td>
               <input type="text" name="прог_время[]" class="form-control form-control-sm"
                      placeholder="10:00" value="{{ событие.время }}">
+            </td>
+            <td>
+              <input type="text" name="прог_название[]" list="datalistМероприятия"
+                     class="form-control form-control-sm"
+                     value="{{ событие.наименование }}">
             </td>
             <td>
               <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-прог">×</button>
@@ -296,15 +318,28 @@
 
       <hr class="my-3">
 
-      {# ── 6. Заявочный взнос ── #}
+      {# ── 8. Заявочный взнос R4 ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">6</span> Заявочный взнос
+        <span class="badge bg-secondary me-1">8</span> Размер заявочного взноса за участие в спортивных соревнованиях в классе судов R4
       </h6>
       <div class="row g-3 mb-3">
         <div class="col-md-5">
-          <label class="form-label fw-semibold">Размер заявочного взноса</label>
+          <input type="text" name="заявочный_взнос_r4" class="form-control"
+                 placeholder="2000 (две тысячи) рублей с одного участника"
+                 value="{{ сор.заявочный_взнос_r4 or '' }}">
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      {# ── 9. Заявочный взнос R6 ── #}
+      <h6 class="fw-semibold mb-2">
+        <span class="badge bg-secondary me-1">9</span> Размер заявочного взноса за участие в спортивных соревнованиях в классе судов R6
+      </h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-5">
           <input type="text" name="заявочный_взнос" class="form-control"
-                 placeholder="1 000 руб. на одного участника"
+                 placeholder="2000 (две тысячи) рублей с одного участника"
                  value="{{ сор.заявочный_взнос or '' }}">
         </div>
       </div>
@@ -323,9 +358,9 @@
 
       <hr class="my-3">
 
-      {# ── 7. Размещение и проживание ── #}
+      {# ── 10. Размещение и проживание ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">7</span> Размещение и проживание участников
+        <span class="badge bg-secondary me-1">10</span> Размещение и проживание участников
       </h6>
       <label class="form-label fw-semibold">Варианты проживания и питания участников</label>
       <textarea name="проживание_описание" class="form-control" rows="4"
@@ -333,18 +368,18 @@
 
       <hr class="my-3">
 
-      {# ── 8. Магазины, мобильная связь, стоянка ── #}
+      {# ── 11. Магазины, мобильная связь, стоянка ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">8</span> Магазины, мобильная связь, стоянка
+        <span class="badge bg-secondary me-1">11</span> Магазины, мобильная связь, стоянка
       </h6>
       <textarea name="инфраструктура_описание" class="form-control" rows="4"
                 placeholder="Магазины: ...&#10;Мобильная связь: операторы ..., качество покрытия ...&#10;Стоянка автомобилей: ...">{{ сор.инфраструктура_описание or '' }}</textarea>
 
       <hr class="my-3">
 
-      {# ── 9. Варианты проезда ── #}
+      {# ── 12. Варианты проезда ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">9</span> Варианты проезда
+        <span class="badge bg-secondary me-1">12</span> Варианты проезда
       </h6>
       <div class="row g-3">
         <div class="col-md-6">
@@ -361,9 +396,9 @@
 
       <hr class="my-3">
 
-      {# ── 10. Награждение ── #}
+      {# ── 13. Награждение ── #}
       <h6 class="fw-semibold mb-2">
-        <span class="badge bg-secondary me-1">10</span> Награждение
+        <span class="badge bg-secondary me-1">13</span> Награждение
       </h6>
 
       <div class="mb-3">
@@ -567,19 +602,19 @@ function добавитьМероприятие() {
   td0.style.cssText = 'text-align:center;cursor:grab;user-select:none;font-size:1.1rem;color:#adb5bd';
   const td1 = document.createElement('td');
   const inp1 = document.createElement('input');
-  inp1.type = 'text'; inp1.name = 'прог_название[]';
-  inp1.setAttribute('list', 'datalistМероприятия');
-  inp1.className = 'form-control form-control-sm';
+  inp1.type = 'text'; inp1.name = 'прог_дата[]';
+  inp1.className = 'form-control form-control-sm'; inp1.placeholder = '16.09.2025';
   td1.appendChild(inp1);
   const td2 = document.createElement('td');
   const inp2 = document.createElement('input');
-  inp2.type = 'text'; inp2.name = 'прог_дата[]';
-  inp2.className = 'form-control form-control-sm'; inp2.placeholder = '16.09.2025';
+  inp2.type = 'text'; inp2.name = 'прог_время[]';
+  inp2.className = 'form-control form-control-sm'; inp2.placeholder = '10:00';
   td2.appendChild(inp2);
   const td3 = document.createElement('td');
   const inp3 = document.createElement('input');
-  inp3.type = 'text'; inp3.name = 'прог_время[]';
-  inp3.className = 'form-control form-control-sm'; inp3.placeholder = '10:00';
+  inp3.type = 'text'; inp3.name = 'прог_название[]';
+  inp3.setAttribute('list', 'datalistМероприятия');
+  inp3.className = 'form-control form-control-sm';
   td3.appendChild(inp3);
   const td4 = document.createElement('td');
   const btn = document.createElement('button');
@@ -589,7 +624,7 @@ function добавитьМероприятие() {
   td4.appendChild(btn);
   tr.append(td0, td1, td2, td3, td4);
   tbody.appendChild(tr);
-  inp1.focus();
+  inp3.focus();
 }
 
 document.getElementById('btnДобавитьМероприятие').addEventListener('click', добавитьМероприятие);
