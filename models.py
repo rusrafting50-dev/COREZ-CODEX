@@ -526,6 +526,7 @@ class НаграждениеПараметры(db.Model):
     отступ_снизу              = db.Column(db.Integer, nullable=False, default=25)
     отступ_слева              = db.Column(db.Integer, nullable=False, default=15)
     отступ_справа             = db.Column(db.Integer, nullable=False, default=15)
+    размер_шрифта_текста      = db.Column(db.Integer, nullable=False, default=14)
     наименование_соревнований = db.Column(db.Text,    nullable=True)
     должность_подписывающего  = db.Column(db.Text,    nullable=True)
     ио_фамилия_подписывающего = db.Column(db.String(200), nullable=True)
