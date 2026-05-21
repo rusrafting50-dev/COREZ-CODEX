@@ -14,8 +14,8 @@
       body { font-size: 9pt; }
       @page { margin: 12mm 5mm 12mm 5mm; size: A4 landscape; }
       table { page-break-inside: auto; }
-      tbody tr { page-break-inside: avoid; break-inside: avoid; }
-      td.col-состав { font-size: 6pt !important; white-space: nowrap; }
+      tr { page-break-inside: avoid; }
+      td.col-состав { white-space: nowrap; }
     }
     {% if портрет %}
     @media print {
@@ -129,33 +129,33 @@
     {% for р in муж_рез %}
     {% set к = р.команда %}
     {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
-    {% set место_сп = к.результат_спринт.место if к.результат_спринт and к.результат_спринт.место else '–' %}
+    {% set место_сп = к.результат_спринт.место if к.результат_спринт and к.результат_спринт.место else '—' %}
     {% set пс_итог = к.результат_пс | selectattr('итоговое_место') | list %}
-    {% set место_пс = пс_итог[0].итоговое_место if пс_итог else '–' %}
+    {% set место_пс = пс_итог[0].итоговое_место if пс_итог else '—' %}
     {% set сл_итог = к.результат_слалом | selectattr('место') | list %}
-    {% set место_сл = сл_итог[0].место if сл_итог else '–' %}
-    {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '–' %}
+    {% set место_сл = сл_итог[0].место if сл_итог else '—' %}
+    {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '—' %}
     <tr>
       <td>{{ loop.index }}</td>
-      <td style="text-align:left">{{ к.название or '–' }}</td>
+      <td style="text-align:left">{{ к.название or '—' }}</td>
       <td>{{ к.нагрудный_номер }}</td>
-      <td class="col-состав" style="text-align:left">
+      <td class="col-состав" style="font-size:7.5pt; text-align:left">
         {% if состав %}
           {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
         {% else %}–{% endif %}
       </td>
-      <td style="text-align:left">{{ к.субъект.название if к.субъект else '–' }}</td>
+      <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
-      <td>{{ р.очки_спринт | int if р.очки_спринт else '–' }}</td>
+      <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
       <td>{{ место_пс }}</td>
-      <td>{{ р.очки_пс | int if р.очки_пс else '–' }}</td>
+      <td>{{ р.очки_пс | int if р.очки_пс else '—' }}</td>
       <td>{{ место_сл }}</td>
-      <td>{{ р.очки_слалом | int if р.очки_слалом else '–' }}</td>
+      <td>{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td>{{ место_дг }}</td>
-      <td>{{ р.очки_дг | int if р.очки_дг else '–' }}</td>
+      <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td>{{ р.сумма_очков | int }}</td>
       <td>{{ р.место }}</td>
-      <td>{{ муж_разр.get(к.id, '–') if _муж_норм else '–' }}</td>
+      <td>{{ муж_разр.get(к.id, '—') if _муж_норм else '—' }}</td>
     </tr>
     {% else %}
     <tr><td colspan="16" style="text-align:center; padding:4px">Нет данных</td></tr>
@@ -167,33 +167,33 @@
     {% for р in жен_рез %}
     {% set к = р.команда %}
     {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
-    {% set место_сп = к.результат_спринт.место if к.результат_спринт and к.результат_спринт.место else '–' %}
+    {% set место_сп = к.результат_спринт.место if к.результат_спринт and к.результат_спринт.место else '—' %}
     {% set пс_итог = к.результат_пс | selectattr('итоговое_место') | list %}
-    {% set место_пс = пс_итог[0].итоговое_место if пс_итог else '–' %}
+    {% set место_пс = пс_итог[0].итоговое_место if пс_итог else '—' %}
     {% set сл_итог = к.результат_слалом | selectattr('место') | list %}
-    {% set место_сл = сл_итог[0].место if сл_итог else '–' %}
-    {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '–' %}
+    {% set место_сл = сл_итог[0].место if сл_итог else '—' %}
+    {% set место_дг = к.результат_дг.место if к.результат_дг and к.результат_дг.место else '—' %}
     <tr>
       <td>{{ loop.index }}</td>
-      <td style="text-align:left">{{ к.название or '–' }}</td>
+      <td style="text-align:left">{{ к.название or '—' }}</td>
       <td>{{ к.нагрудный_номер }}</td>
-      <td class="col-состав" style="text-align:left">
+      <td class="col-состав" style="font-size:7.5pt; text-align:left">
         {% if состав %}
           {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
         {% else %}–{% endif %}
       </td>
-      <td style="text-align:left">{{ к.субъект.название if к.субъект else '–' }}</td>
+      <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
-      <td>{{ р.очки_спринт | int if р.очки_спринт else '–' }}</td>
+      <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
       <td>{{ место_пс }}</td>
-      <td>{{ р.очки_пс | int if р.очки_пс else '–' }}</td>
+      <td>{{ р.очки_пс | int if р.очки_пс else '—' }}</td>
       <td>{{ место_сл }}</td>
-      <td>{{ р.очки_слалом | int if р.очки_слалом else '–' }}</td>
+      <td>{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td>{{ место_дг }}</td>
-      <td>{{ р.очки_дг | int if р.очки_дг else '–' }}</td>
+      <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td>{{ р.сумма_очков | int }}</td>
       <td>{{ р.место }}</td>
-      <td>{{ жен_разр.get(к.id, '–') if _жен_норм else '–' }}</td>
+      <td>{{ жен_разр.get(к.id, '—') if _жен_норм else '—' }}</td>
     </tr>
     {% else %}
     <tr><td colspan="16" style="text-align:center; padding:4px">Нет данных</td></tr>
