@@ -75,6 +75,59 @@
 
 <div class="регламент-страница">
 
+  {# ── Блоки УТВЕРЖДАЮ ── #}
+  <div style="display:flex; justify-content:space-between; margin-bottom:14pt; font-size:10pt;">
+
+    {# Левый: Спортивная федерация #}
+    <div style="width:47%; text-align:center;">
+      <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:6px">УТВЕРЖДАЮ</div>
+      <div style="line-height:1.6;">
+        {% if сор.федерация_должность %}{{ сор.федерация_должность }}{% endif %}
+        {% if сор.федерация_название %}
+          <br>
+          {%- if '«' in сор.федерация_название -%}
+            {%- set части = сор.федерация_название.split('«', 1) -%}
+            {{ части[0] | trim }}<br>«{{ части[1] | trim }}
+          {%- else -%}
+            {{ сор.федерация_название }}
+          {%- endif -%}
+        {% endif %}
+      </div>
+      <div style="margin-top:10px; text-align:right;">
+        {% if сор.федерация_руководитель %}
+          {% set фио = сор.федерация_руководитель.split() %}
+          {% if фио|length >= 3 %}{{ фио[1][0] }}. {{ фио[2][0] }}. {{ фио[0] }}
+          {% else %}{{ сор.федерация_руководитель }}{% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {# Правый: Проводящая организация #}
+    <div style="width:47%; text-align:center;">
+      <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:6px">УТВЕРЖДАЮ</div>
+      <div style="line-height:1.6;">
+        {% if сор.проводящая_орг_должность %}{{ сор.проводящая_орг_должность }}{% endif %}
+        {% if сор.проводящая_орг_название %}
+          <br>
+          {%- if '«' in сор.проводящая_орг_название -%}
+            {%- set части = сор.проводящая_орг_название.split('«', 1) -%}
+            {{ части[0] | trim }}<br>«{{ части[1] | trim }}
+          {%- else -%}
+            {{ сор.проводящая_орг_название }}
+          {%- endif -%}
+        {% endif %}
+      </div>
+      <div style="margin-top:10px; text-align:right;">
+        {% if сор.проводящая_орг_руководитель %}
+          {% set фио = сор.проводящая_орг_руководитель.split() %}
+          {% if фио|length >= 3 %}{{ фио[1][0] }}. {{ фио[2][0] }}. {{ фио[0] }}
+          {% else %}{{ сор.проводящая_орг_руководитель }}{% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
   {# ── Заголовок ── #}
   <div style="margin-bottom:8pt;">
     <p class="reg-title">РЕГЛАМЕНТ</p>
