@@ -101,7 +101,7 @@
 {# ── Макрос: строки одного вида программы в tbody ── #}
 {% macro секция(список, метка) %}
 {% if список %}
-{% set colspan = 6 + (мб_колонки | length) %}
+{% set colspan = 7 + (мб_колонки | length) %}
 <tr class="section-row"><td colspan="{{ colspan }}" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
