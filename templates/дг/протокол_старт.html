@@ -110,12 +110,12 @@
 {% set рм = к.результат_многоборья %}
 <tr>
   <td class="text-center">{{ нс.пп }}</td>
-  <td>{{ к.название or '—' }}</td>
+  <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td>{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
-  <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+  <td>{{ к.субъект.название if к.субъект else '–' }}</td>
   {% for кол in мб_колонки %}
-  <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '—' }}</td>
+  <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '–' }}</td>
   {% endfor %}
   <td class="text-center">{{ нс.пп }}</td>
   <td class="text-center" style="font-family:monospace">{{ format_time(рез.время_старта) if рез and рез.время_старта else '' }}</td>

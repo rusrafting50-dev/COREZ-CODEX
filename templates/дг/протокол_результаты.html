@@ -180,7 +180,7 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
@@ -188,12 +188,12 @@
     <td class="text-center">{{ format_dur(сор.лимит_время_муж) if сор.лимит_время_муж else '–' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     {% else %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) }}</td>
     <td class="text-center">{{ р.место or '–' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '–' }}</td>
     <td class="text-center">{{ муж_разр.get(к.id, '–') if _муж_норм else '–' }}</td>
@@ -214,12 +214,12 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% set _метка = 'Прев. ЛВ' if р.статус == 'ПЛВ' else 'Посл. м.' %}
     {% if итоговый %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">{{ _метка }}</td>
     {% else %}
@@ -227,12 +227,12 @@
     <td class="text-center">{{ _метка }}</td>
     <td class="text-center">{{ _метка }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center">{{ _метка }}</td>
     {% endif %}
     <td class="text-center">{{ р.место or '–' }}</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% for р in муж_без %}
@@ -250,7 +250,7 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if итоговый %}
@@ -259,7 +259,7 @@
     <td class="text-center">–</td>
     <td class="text-center">–</td>
       {% elif р.статус == 'ДК' %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">ДК</td>
       {% else %}
@@ -273,15 +273,15 @@
       {% elif р.статус == 'ДК' %}
     <td class="text-center">ДК</td><td class="text-center">–</td><td class="text-center">–</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center">ДК</td>
       {% else %}
     <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
     {% endif %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% if not муж_рез and not муж_пм and not муж_без %}
@@ -306,7 +306,7 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
@@ -314,12 +314,12 @@
     <td class="text-center">{{ format_dur(сор.лимит_время_жен) if сор.лимит_время_жен else '–' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     {% else %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     {% endif %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) | replace('–', '-') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.результат) }}</td>
     <td class="text-center">{{ р.место or '–' }}</td>
     <td class="text-center">{{ р.очки | int if р.очки else '–' }}</td>
     <td class="text-center">{{ жен_разр.get(к.id, '–') if _жен_норм else '–' }}</td>
@@ -340,12 +340,12 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% set _метка = 'Прев. ЛВ' if р.статус == 'ПЛВ' else 'Посл. м.' %}
     {% if итоговый %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">{{ _метка }}</td>
     {% else %}
@@ -353,12 +353,12 @@
     <td class="text-center">{{ _метка }}</td>
     <td class="text-center">{{ _метка }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center">{{ _метка }}</td>
     {% endif %}
     <td class="text-center">{{ р.место or '–' }}</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% for р in жен_без %}
@@ -376,7 +376,7 @@
         {% else %}
           {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
         {% endif %}
-      {% else %}-{% endif %}
+      {% else %}–{% endif %}
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if итоговый %}
@@ -385,7 +385,7 @@
     <td class="text-center">–</td>
     <td class="text-center">–</td>
       {% elif р.статус == 'ДК' %}
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center">ДК</td>
       {% else %}
@@ -399,15 +399,15 @@
       {% elif р.статус == 'ДК' %}
     <td class="text-center">ДК</td><td class="text-center">–</td><td class="text-center">–</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
-    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
+    <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     <td class="text-center">ДК</td>
       {% else %}
     <td colspan="6" class="text-center"><strong>{{ р.статус }}</strong></td>
       {% endif %}
     {% endif %}
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
-    <td class="text-center">-</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
+    <td class="text-center">–</td>
   </tr>
   {% endfor %}
   {% if not жен_рез and not жен_пм and not жен_без %}
