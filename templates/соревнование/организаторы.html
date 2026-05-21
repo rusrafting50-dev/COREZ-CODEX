@@ -192,15 +192,17 @@
       <table class="table table-sm mb-1" id="tableРасписание">
         <thead class="table-light">
           <tr>
+            <th style="width:30px"></th>
             <th>Наименование мероприятия</th>
             <th style="width:140px">Дата</th>
             <th style="width:110px">Время</th>
             <th style="width:40px"></th>
           </tr>
         </thead>
-        <tbody id="tbodyРасписание">
+        <tbody id="tbodyРасписание" class="sortable-list-расп">
           {% for событие in программа %}
-          <tr>
+          <tr class="drag-item-расп" draggable="true">
+            <td class="text-center" style="cursor:grab;user-select:none;font-size:1.1rem;color:#adb5bd">⠿</td>
             <td>
               <input type="text" name="прог_название[]" list="datalistМероприятия"
                      class="form-control form-control-sm"
@@ -221,9 +223,12 @@
           {% endfor %}
         </tbody>
       </table>
-      <button type="button" class="btn btn-outline-success btn-sm" id="btnДобавитьМероприятие">
-        + Добавить мероприятие
-      </button>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <button type="button" class="btn btn-outline-success btn-sm" id="btnДобавитьМероприятие">
+          + Добавить мероприятие
+        </button>
+        <span class="text-muted small">Перетащите строки для ручной корректировки</span>
+      </div>
 
       <hr class="my-3">
 
@@ -491,6 +496,11 @@ document.getElementById('tbodyВиды').addEventListener('click', function(e) {
 function добавитьМероприятие() {
   const tbody = document.getElementById('tbodyРасписание');
   const tr = document.createElement('tr');
+  tr.className = 'drag-item-расп';
+  tr.draggable = true;
+  const td0 = document.createElement('td');
+  td0.textContent = '⠿';
+  td0.style.cssText = 'text-align:center;cursor:grab;user-select:none;font-size:1.1rem;color:#adb5bd';
   const td1 = document.createElement('td');
   const inp1 = document.createElement('input');
   inp1.type = 'text'; inp1.name = 'прог_название[]';
@@ -513,7 +523,7 @@ function добавитьМероприятие() {
   btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-прог';
   btn.textContent = '×';
   td4.appendChild(btn);
-  tr.append(td1, td2, td3, td4);
+  tr.append(td0, td1, td2, td3, td4);
   tbody.appendChild(tr);
   inp1.focus();
 }
@@ -522,6 +532,35 @@ document.getElementById('btnДобавитьМероприятие').addEventLis
 document.getElementById('tbodyРасписание').addEventListener('click', function(e) {
   if (e.target.classList.contains('btn-del-прог')) e.target.closest('tr').remove();
 });
+
+// ── Drag-and-drop расписания ──────────────────────────────────────────────
+
+(function() {
+  const list = document.getElementById('tbodyРасписание');
+  let dragging = null;
+
+  list.addEventListener('dragstart', function(e) {
+    dragging = e.target.closest('.drag-item-расп');
+    if (!dragging) return;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(function() { if (dragging) dragging.classList.add('opacity-25'); }, 0);
+  });
+
+  list.addEventListener('dragend', function() {
+    if (dragging) dragging.classList.remove('opacity-25');
+    dragging = null;
+  });
+
+  list.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    if (!dragging) return;
+    const target = e.target.closest('.drag-item-расп');
+    if (!target || target === dragging) return;
+    const rect = target.getBoundingClientRect();
+    const after = e.clientY > rect.top + rect.height / 2;
+    list.insertBefore(dragging, after ? target.nextSibling : target);
+  });
+})();
 
 }); // DOMContentLoaded
 </script>
