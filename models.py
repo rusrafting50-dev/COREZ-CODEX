@@ -1261,6 +1261,14 @@ def применить_миграции():
                     conn2.execute(text('ALTER TABLE команды_new RENAME TO команды'))
                     conn2.execute(text('PRAGMA foreign_keys = ON'))
                     conn2.commit()
+        # награждение_параметры: размер_шрифта_текста
+        if inspector.has_table('награждение_параметры'):
+            cols_нп = {c['name'] for c in inspector.get_columns('награждение_параметры')}
+            if 'размер_шрифта_текста' not in cols_нп:
+                conn.execute(text(
+                    'ALTER TABLE награждение_параметры ADD COLUMN размер_шрифта_текста INTEGER NOT NULL DEFAULT 14'
+                ))
+                conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
