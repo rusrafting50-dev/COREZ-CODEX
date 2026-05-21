@@ -1,13 +1,13 @@
 # routes/пс.py — дистанция ПАРАЛЛЕЛЬНЫЙ СПРИНТ
 import re
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатПараллельногоСпринта,
                     ТаблицаОчков,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
 from routes.спринт import parse_time, format_time
 from нормативы import получить_норматив
-from docx_utils import html_to_docx_response
+from docx_utils import send_docx
 
 bp_пс = Blueprint('пс', __name__)
 
@@ -1426,11 +1426,7 @@ def протокол_сетка_word(sor_id):
                            вывод=вывод,
                            сегодня=date.today(),
                            **ctx)
-    buf, fname = html_to_docx_response(html, f'протокол_сетка_пс_{sor_id}.docx')
-    resp = make_response(buf.read())
-    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
-    return resp
+    return send_docx(html, f'протокол_сетка_пс_{sor_id}.docx')
 
 
 @bp_пс.route('/<int:sor_id>/протокол-результаты-сетка')

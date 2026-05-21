@@ -2,14 +2,14 @@
 import json
 import re
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатДлиннойГонки, ШтрафСекции,
                     РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК, СТАТУС_ПМ, СТАТУС_ПЛВ)
 from routes.спринт import parse_time, format_time, format_dur
 from нормативы import получить_норматив
-from docx_utils import html_to_docx_response
+from docx_utils import send_docx
 
 bp_дг = Blueprint('дг', __name__)
 
@@ -328,11 +328,7 @@ def протокол_старт_word(sor_id):
                            вывод=вывод, последовательность=последовательность,
                            format_time=format_time, format_dur=format_dur,
                            сегодня=date.today())
-    buf, fname = html_to_docx_response(html, f'протокол_старт_дг_{sor_id}.docx')
-    resp = make_response(buf.read())
-    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
-    return resp
+    return send_docx(html, f'протокол_старт_дг_{sor_id}.docx')
 
 
 @bp_дг.route('/<int:sor_id>/протокол-результаты')
