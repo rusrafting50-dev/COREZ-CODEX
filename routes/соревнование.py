@@ -332,7 +332,7 @@ def организаторы(id):
         _применить_параметры_дипломов(id, request.form)
         db.session.commit()
         flash('Регламент сохранён.', 'success')
-        return redirect(url_for('соревнование.карточка', id=id))
+        return redirect(url_for('соревнование.организаторы', id=id))
     пар = НаграждениеПараметры.query.filter_by(соревнование_id=id).first()
     return render_template('соревнование/организаторы.html', сор=сор, пар=пар,
                            виды=_получить_виды(сор),
