@@ -293,17 +293,17 @@
 {% if not муж_рез and not муж_без and not жен_рез and not жен_без %}
 <div class="text-center py-4">Нет результатов для отображения</div>
 {% else %}
-<table style="font-size:7pt">
+<table style="font-size:7pt;table-layout:fixed;width:100%">
   <colgroup>
     <col style="width:18px">
-    <col>
+    <col style="width:110px">
     <col style="width:30px">
-    <col>
-    <col>
+    <col style="width:170px">
+    <col style="width:80px">
     <col style="width:20px">
-    <col style="width:14px">
-    {% for _ in range(кол_ворот) %}<col style="width:14px">{% endfor %}
-    <col style="width:14px">
+    <col style="width:18px">
+    {% for _ in range(кол_ворот) %}<col style="width:18px">{% endfor %}
+    <col style="width:18px">
     <col style="width:36px">
     <col style="width:42px">
     <col style="width:46px">
@@ -325,7 +325,7 @@
       <th rowspan="2">Результат лучшей попытки</th>
       <th rowspan="2">Место</th>
       <th rowspan="2">Очки</th>
-      <th rowspan="2" style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed">Выполнение разряда{% if есть_сноска %}*{% endif %}</div></th>
+      <th rowspan="2" style="padding:2px;text-align:center"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">Выполнение разряда{% if есть_сноска %}*{% endif %}</div></th>
     </tr>
     <tr>
       <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
