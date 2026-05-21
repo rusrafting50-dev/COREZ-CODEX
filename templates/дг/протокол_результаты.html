@@ -440,12 +440,6 @@
     <div style="width:38%">Главный секретарь</div>
     <div>{{ сор.главный_секретарь or '' }}</div>
   </div>
-  {% if not итоговый and сор.зам_главного_секретаря %}
-  <div style="display:flex; align-items:baseline; margin-bottom:10px">
-    <div style="width:38%">Заместитель главного секретаря</div>
-    <div>{{ сор.зам_главного_секретаря }}</div>
-  </div>
-  {% endif %}
 </div>
 
 {% if not итоговый %}
