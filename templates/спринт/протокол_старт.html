@@ -43,7 +43,10 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
      class="btn btn-outline-primary btn-sm">← Жеребьёвка и стартовый протокол</a>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('спринт.протокол_старт_word', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Word</a>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
 {# ── Макрос: шапка протокола ── #}

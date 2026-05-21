@@ -2,13 +2,14 @@
 import json
 import re
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from models import (db, Соревнование, Команда, РезультатДлиннойГонки, ШтрафСекции,
                     РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК, СТАТУС_ПМ, СТАТУС_ПЛВ)
 from routes.спринт import parse_time, format_time, format_dur
 from нормативы import получить_норматив
+from docx_utils import html_to_docx_response
 
 bp_дг = Blueprint('дг', __name__)
 
@@ -305,6 +306,33 @@ def протокол_старт(sor_id):
                            format_time=format_time, format_dur=format_dur,
                            сегодня=date.today())
 
+
+
+@bp_дг.route('/<int:sor_id>/протокол-старт-word')
+def протокол_старт_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    муж = _по_посеву(sor_id, 'м')
+    жен = _по_посеву(sor_id, 'ж')
+    мб_колонки = _дисц_мб(сор)
+    муж_р4 = [к for к in муж if к.класс_судна == 'R4']
+    муж_р6 = [к for к in муж if к.класс_судна == 'R6']
+    жен_р4 = [к for к in жен if к.класс_судна == 'R4']
+    жен_р6 = [к for к in жен if к.класс_судна == 'R6']
+    последовательность = (сор.последовательность_дг or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
+    вывод = сор.вывод_старт_дг or 'Попарно'
+    html = render_template('дг/протокол_старт.html',
+                           сор=сор,
+                           муж_р4=муж_р4, жен_р4=жен_р4,
+                           муж_р6=муж_р6, жен_р6=жен_р6,
+                           мб_колонки=мб_колонки,
+                           вывод=вывод, последовательность=последовательность,
+                           format_time=format_time, format_dur=format_dur,
+                           сегодня=date.today())
+    buf, fname = html_to_docx_response(html, f'протокол_старт_дг_{sor_id}.docx')
+    resp = make_response(buf.read())
+    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
+    return resp
 
 
 @bp_дг.route('/<int:sor_id>/протокол-результаты')

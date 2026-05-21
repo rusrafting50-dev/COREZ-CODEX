@@ -1,13 +1,14 @@
 # routes/слалом.py — дистанция СЛАЛОМ: две попытки, штрафы на воротах
 import json
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from models import (db, Соревнование, Команда, РезультатСлалома, ШтрафВорот,
                     РезультатПараллельногоСпринта, РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов, ПараметрыДистанции,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК, СТАТУС_ПЛВ)
 from routes.спринт import parse_time, format_time, format_dur
 from нормативы import получить_норматив
+from docx_utils import html_to_docx_response
 
 bp_слалом = Blueprint('слалом', __name__)
 
@@ -431,6 +432,35 @@ def протокол_старт(sor_id):
                            вывод=вывод,
                            мб_колонки=мб_колонки,
                            format_time=format_time, сегодня=date.today())
+
+
+@bp_слалом.route('/<int:sor_id>/протокол-старт-word')
+def протокол_старт_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    последовательность = (сор.последовательность_слалом or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
+    вывод = сор.вывод_старт_слалом or 'Попарно'
+    муж_р4 = [к for к in _по_посеву(sor_id, 'м') if к.класс_судна == 'R4']
+    жен_р4 = [к for к in _по_посеву(sor_id, 'ж') if к.класс_судна == 'R4']
+    муж_р6 = [к for к in _по_посеву(sor_id, 'м') if к.класс_судна == 'R6']
+    жен_р6 = [к for к in _по_посеву(sor_id, 'ж') if к.класс_судна == 'R6']
+    if not муж_р4 and not муж_р6:
+        муж_р4 = _по_посеву(sor_id, 'м')
+    if not жен_р4 and not жен_р6:
+        жен_р4 = _по_посеву(sor_id, 'ж')
+    мб_колонки = _дисц_мб(сор)
+    html = render_template('слалом/протокол_старт.html',
+                           сор=сор,
+                           муж_р4=муж_р4, жен_р4=жен_р4,
+                           муж_р6=муж_р6, жен_р6=жен_р6,
+                           последовательность=последовательность,
+                           вывод=вывод,
+                           мб_колонки=мб_колонки,
+                           format_time=format_time, сегодня=date.today())
+    buf, fname = html_to_docx_response(html, f'протокол_старт_слалом_{sor_id}.docx')
+    resp = make_response(buf.read())
+    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
+    return resp
 
 
 @bp_слалом.route('/<int:sor_id>/протокол-финиш')

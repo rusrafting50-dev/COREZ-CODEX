@@ -60,6 +60,7 @@
      class="btn btn-outline-info btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
+    <a href="{{ url_for('пс.протокол_сетка_word', sor_id=сор.id) }}" class="btn btn-outline-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>

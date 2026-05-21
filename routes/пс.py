@@ -1,12 +1,13 @@
 # routes/пс.py — дистанция ПАРАЛЛЕЛЬНЫЙ СПРИНТ
 import re
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from models import (db, Соревнование, Команда, РезультатПараллельногоСпринта,
                     ТаблицаОчков,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
 from routes.спринт import parse_time, format_time
 from нормативы import получить_норматив
+from docx_utils import html_to_docx_response
 
 bp_пс = Blueprint('пс', __name__)
 
@@ -1412,6 +1413,24 @@ def протокол_сетка(sor_id):
                            вывод=вывод,
                            сегодня=date.today(),
                            **ctx)
+
+
+@bp_пс.route('/<int:sor_id>/протокол-сетка-word')
+def протокол_сетка_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    последовательность = (сор.последовательность_пс or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
+    вывод = сор.вывод_старт_пс or 'Попарно'
+    ctx = _стартовый_контекст(sor_id, сор)
+    html = render_template('пс/протокол_сетка.html',
+                           последовательность=последовательность,
+                           вывод=вывод,
+                           сегодня=date.today(),
+                           **ctx)
+    buf, fname = html_to_docx_response(html, f'протокол_сетка_пс_{sor_id}.docx')
+    resp = make_response(buf.read())
+    resp.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    resp.headers['Content-Disposition'] = f'attachment; filename="{fname}"'
+    return resp
 
 
 @bp_пс.route('/<int:sor_id>/протокол-результаты-сетка')
