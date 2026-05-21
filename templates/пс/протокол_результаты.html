@@ -23,7 +23,7 @@
     }
     {% endif %}
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
+    th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 10pt; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
@@ -162,8 +162,8 @@
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:88px">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:80px">Субъект РФ</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:8px">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:160px">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
       {% if _есть_14 %}<th colspan="2" class="text-center">¼ финала</th>{% endif %}
