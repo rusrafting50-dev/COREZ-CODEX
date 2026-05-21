@@ -160,28 +160,28 @@
   <thead>
     <tr>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}width:260px{% else %}min-width:8px{% endif %}">Команда</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}width:260px{% else %}width:520px{% endif %}">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:260px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:160px">Субъект РФ</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:160px{% else %}width:70px{% endif %}">Субъект РФ</th>
       {% if not итоговый %}
-      <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
+      <th rowspan="2" style="width:56px">Место<br>СПРИНТ</th>
       {% if _есть_14 %}<th colspan="2" class="text-center">¼ финала</th>{% endif %}
       {% if _есть_12 %}<th colspan="2" class="text-center">½ финала</th>{% endif %}
       {% if _есть_ф  %}<th colspan="2" class="text-center">Финалы</th>{% endif %}
       <th colspan="2" class="text-center">Итоговый результат</th>
       {% endif %}
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:36px">Место</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:60px">Очки</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:42px">Место</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}width:60px{% else %}width:42px{% endif %}">Очки</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:65px">Выполнение разряда{% if _снос %}*{% endif %}</th>
     </tr>
     {% if not итоговый %}
     <tr>
-      {% if _есть_14 %}<th style="width:42px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
-      {% if _есть_12 %}<th style="width:42px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
-      {% if _есть_ф  %}<th style="width:36px">Финал</th><th style="width:64px">Результат</th>{% endif %}
+      {% if _есть_14 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_12 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_ф  %}<th style="width:46px">Финал</th><th style="width:64px">Результат</th>{% endif %}
       <th style="width:50px">Стадия</th>
-      <th style="width:70px">Время</th>
+      <th style="width:46px">Время</th>
     </tr>
     {% endif %}
   </thead>
