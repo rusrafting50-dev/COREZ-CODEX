@@ -4,6 +4,7 @@ from io import BytesIO
 from bs4 import BeautifulSoup, NavigableString
 from docx import Document
 from docx.shared import Pt, Cm, Twips
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from htmldocx import HtmlToDocx
@@ -11,8 +12,9 @@ from flask import send_file
 
 DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
-# A4 landscape usable width (29.7 cm − 1.5 cm left − 1.0 cm right)
-_PAGE_WIDTH_CM = 27.2
+# Usable widths (page − margins)
+_PAGE_WIDTH_LANDSCAPE_CM = 27.2   # 29.7 − 1.5 − 1.0
+_PAGE_WIDTH_PORTRAIT_CM  = 18.5   # 21.0 − 1.5 − 1.0
 
 _BLOCK = frozenset({
     'div','p','h1','h2','h3','h4','h5','h6',
@@ -23,15 +25,23 @@ _BLOCK = frozenset({
 
 # ─── Document setup ──────────────────────────────────────────────────────────
 
-def _make_base_doc():
+def _make_base_doc(portrait=False):
     doc = Document()
     sec = doc.sections[0]
-    sec.page_width    = Cm(29.7)
-    sec.page_height   = Cm(21.0)
-    sec.left_margin   = Cm(1.5)
-    sec.right_margin  = Cm(1.0)
-    sec.top_margin    = Cm(1.5)
-    sec.bottom_margin = Cm(1.5)
+    if portrait:
+        sec.page_width    = Cm(21.0)
+        sec.page_height   = Cm(29.7)
+        sec.left_margin   = Cm(1.5)
+        sec.right_margin  = Cm(1.0)
+        sec.top_margin    = Cm(1.2)
+        sec.bottom_margin = Cm(1.5)
+    else:
+        sec.page_width    = Cm(29.7)
+        sec.page_height   = Cm(21.0)
+        sec.left_margin   = Cm(1.5)
+        sec.right_margin  = Cm(1.0)
+        sec.top_margin    = Cm(1.5)
+        sec.bottom_margin = Cm(1.5)
     doc.styles['Normal'].font.name = 'Times New Roman'
     doc.styles['Normal'].font.size = Pt(10)
     return doc
@@ -54,32 +64,101 @@ def _px(tag):
     return None
 
 
+# ─── Cell XML helpers ────────────────────────────────────────────────────────
+
+def _set_cell_valign(cell, align):
+    """Set vertical alignment of a table cell: 'top', 'center', 'bottom'."""
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    vAlign = tcPr.find(qn('w:vAlign'))
+    if vAlign is None:
+        vAlign = OxmlElement('w:vAlign')
+        tcPr.append(vAlign)
+    vAlign.set(qn('w:val'), align)
+
+
+def _set_cell_bottom_border(cell, size=6, color='000000'):
+    """Draw a single bottom border on a table cell."""
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcBorders = tcPr.find(qn('w:tcBorders'))
+    if tcBorders is None:
+        tcBorders = OxmlElement('w:tcBorders')
+        tcPr.append(tcBorders)
+    existing = tcBorders.find(qn('w:bottom'))
+    if existing is not None:
+        tcBorders.remove(existing)
+    border = OxmlElement('w:bottom')
+    border.set(qn('w:val'), 'single')
+    border.set(qn('w:sz'), str(size))
+    border.set(qn('w:color'), color)
+    tcBorders.append(border)
+
+
+def _set_cell_width(cell, twips_val):
+    tc   = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    for old in tcPr.findall(qn('w:tcW')):
+        tcPr.remove(old)
+    tcW = OxmlElement('w:tcW')
+    tcW.set(qn('w:w'), str(int(twips_val)))
+    tcW.set(qn('w:type'), 'dxa')
+    tcPr.append(tcW)
+
+
 # ─── Pre-processing: signature blocks ────────────────────────────────────────
 
 def _process_sig_blocks(soup):
     """
-    Convert each .sig-row into a single paragraph:
-      «Должность   ____________________   Фамилия И.О.»
+    Convert each .sig-block into a borderless 2-column table so that
+    the FIO column starts at the same horizontal position on every row.
+    No underline between position and FIO.
     """
+    for sig_block in soup.find_all(class_='sig-block'):
+        sig_rows = sig_block.find_all(class_='sig-row')
+        rows_html = ''
+        for sig_row in sig_rows:
+            pos_el = sig_row.find(class_='sig-pos')
+            fio_el = sig_row.find(class_='sig-fio')
+            if fio_el is None:
+                kids = [c for c in sig_row.children
+                        if getattr(c, 'name', None) and c is not pos_el]
+                fio_el = kids[0] if kids else None
+            pos_text = pos_el.get_text(strip=True) if pos_el else ''
+            fio_text = fio_el.get_text(strip=True) if fio_el else ''
+            rows_html += (
+                '<tr>'
+                f'<td style="border:none;width:260px"><b>{pos_text}</b></td>'
+                f'<td style="border:none;width:440px">{fio_text}</td>'
+                '</tr>'
+            )
+        if not rows_html:
+            sig_block.decompose()
+            continue
+        tbl_html = (
+            '<table style="width:100%;border:none;margin-top:12pt">'
+            + rows_html +
+            '</table>'
+        )
+        tbl_tag = BeautifulSoup(tbl_html, 'html.parser').find('table')
+        sig_block.replace_with(tbl_tag)
+
+    # Fallback: orphaned sig-rows not inside a sig-block
     for sig_row in soup.find_all(class_='sig-row'):
         pos_el = sig_row.find(class_='sig-pos')
         fio_el = sig_row.find(class_='sig-fio')
-        # Fallback: second non-pos child
         if fio_el is None:
             kids = [c for c in sig_row.children
                     if getattr(c, 'name', None) and c is not pos_el]
             fio_el = kids[0] if kids else None
-
         pos_text = pos_el.get_text(strip=True) if pos_el else ''
         fio_text = fio_el.get_text(strip=True) if fio_el else ''
-
         p = soup.new_tag('p')
         if pos_text:
             b = soup.new_tag('b')
             b.string = pos_text
             p.append(b)
-        gap = '  ' + '_' * 30 + '  '
-        p.append(NavigableString(gap + fio_text))
+        p.append(NavigableString('  ' + fio_text))
         sig_row.replace_with(p)
 
 
@@ -88,7 +167,9 @@ def _process_sig_blocks(soup):
 def _process_flex_between(soup):
     """
     Convert d-flex justify-content-between containers (date/venue row) to a
-    borderless 2-column table so they sit on opposite sides.
+    3-column, 2-row borderless table:
+      Row 1: [date value, bottom-border, centered] | [empty] | [place value, bottom-border, centered]
+      Row 2: [«Дата проведения», top, centered]     | [empty] | [«Место проведения», top, centered]
     """
     def _is_flex_between(tag):
         if tag.name != 'div':
@@ -98,23 +179,48 @@ def _process_flex_between(soup):
         return (('justify-content-between' in classes) or
                 ('justify-content:space-between' in style))
 
+    def _extract_value_label(child_div):
+        inners = [c for c in child_div.children if getattr(c, 'name', None)]
+        if len(inners) >= 2:
+            return inners[0].get_text(' ', strip=True), inners[1].get_text(' ', strip=True)
+        return child_div.get_text(' ', strip=True), ''
+
     for div in soup.find_all(_is_flex_between):
         block_children = [c for c in div.children if getattr(c, 'name', None)]
         if len(block_children) < 2:
             div.unwrap()
             continue
 
-        left_text  = block_children[0].get_text(' ', strip=True)
-        right_text = block_children[-1].get_text(' ', strip=True)
+        left_value, left_label   = _extract_value_label(block_children[0])
+        right_value, right_label = _extract_value_label(block_children[-1])
 
-        tbl_html = (
-            '<table style="width:100%;border:none">'
-            '<tr>'
-            f'<td style="border:none;text-align:left">{left_text}</td>'
-            f'<td style="border:none;text-align:right">{right_text}</td>'
-            '</tr>'
-            '</table>'
-        )
+        if left_label or right_label:
+            # Structured 2-row, 3-column table with value row and label row
+            # widths in px: 280+140+280 = 700 (proportional to portrait page)
+            tbl_html = (
+                '<table class="date-place-table" style="width:100%;border:none">'
+                '<tr>'
+                f'<td style="border:none;text-align:center;width:280px">{left_value}</td>'
+                '<td style="border:none;width:140px"></td>'
+                f'<td style="border:none;text-align:center;width:280px">{right_value}</td>'
+                '</tr>'
+                '<tr>'
+                f'<td style="border:none;text-align:center;font-size:8pt">{left_label}</td>'
+                '<td style="border:none"></td>'
+                f'<td style="border:none;text-align:center;font-size:8pt">{right_label}</td>'
+                '</tr>'
+                '</table>'
+            )
+        else:
+            tbl_html = (
+                '<table style="width:100%;border:none">'
+                '<tr>'
+                f'<td style="border:none;text-align:left">{left_value}</td>'
+                f'<td style="border:none;text-align:right">{right_value}</td>'
+                '</tr>'
+                '</table>'
+            )
+
         tbl_tag = BeautifulSoup(tbl_html, 'html.parser').find('table')
         div.replace_with(tbl_tag)
 
@@ -151,6 +257,11 @@ def _pre_line_to_br(tag, soup):
 
 def _divs_to_paragraphs(soup):
     for div in reversed(soup.find_all('div')):
+        # Promote text-center class to inline style so HtmlToDocx picks it up
+        if 'text-center' in (div.get('class') or []):
+            style = div.get('style', '').rstrip(';')
+            if 'text-align' not in style:
+                div['style'] = (style + ';text-align:center').lstrip(';')
         _apply_bold(div, soup)
         _pre_line_to_br(div, soup)
         has_block = any(getattr(c, 'name', None) in _BLOCK for c in div.children)
@@ -167,6 +278,9 @@ def _divs_to_paragraphs(soup):
 def _normalize_tables(soup):
     for table in soup.find_all('table'):
         for tr in table.find_all('tr'):
+            # Preserve colspan for section-row rows — HtmlToDocx merges them natively
+            if 'section-row' in (tr.get('class') or []):
+                continue
             for cell in list(tr.find_all(['td', 'th'])):
                 colspan = int(cell.get('colspan', 1))
                 if colspan > 1:
@@ -194,21 +308,12 @@ def _extract_table_widths(soup):
 
 # ─── Post-processing: apply column widths to DOCX ────────────────────────────
 
-def _set_cell_width(cell, twips_val):
-    tc   = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    for old in tcPr.findall(qn('w:tcW')):
-        tcPr.remove(old)
-    tcW = OxmlElement('w:tcW')
-    tcW.set(qn('w:w'), str(int(twips_val)))
-    tcW.set(qn('w:type'), 'dxa')
-    tcPr.append(tcW)
-
-
-def _apply_table_widths(doc, table_widths):
+def _apply_table_widths(doc, table_widths, page_width_cm=None):
     """Scale extracted px widths to the page and apply them to DOCX tables."""
+    if page_width_cm is None:
+        page_width_cm = _PAGE_WIDTH_LANDSCAPE_CM
     CM_TO_TWIPS = 566.929
-    total_twips = int(_PAGE_WIDTH_CM * CM_TO_TWIPS)
+    total_twips = int(page_width_cm * CM_TO_TWIPS)
 
     for t_idx, table in enumerate(doc.tables):
         if t_idx >= len(table_widths):
@@ -217,17 +322,15 @@ def _apply_table_widths(doc, table_widths):
         if not widths_px:
             continue
 
-        # Separate known and unknown widths
         known = [(i, w) for i, w in enumerate(widths_px) if w is not None]
         if not known:
             continue
 
         total_known_px = sum(w for _, w in known)
         n_unknown      = len(widths_px) - len(known)
-        # Reserve 10% of total width for unknown columns
         reserved_for_unknown = (total_twips * 0.10) if n_unknown else 0
         available = total_twips - reserved_for_unknown
-        scale = available / total_known_px  # twips per px
+        scale = available / total_known_px
 
         default_unknown = (reserved_for_unknown / n_unknown) if n_unknown else 0
 
@@ -236,16 +339,56 @@ def _apply_table_widths(doc, table_widths):
             for w in widths_px
         ]
 
-        # Apply to every cell in every row
         for row in table.rows:
             for c_idx, cell in enumerate(row.cells):
                 if c_idx < len(col_twips):
                     _set_cell_width(cell, col_twips[c_idx])
 
 
+# ─── Post-processing: date/place table borders and alignment ─────────────────
+
+def _post_process_date_place_tables(doc):
+    """
+    Find date/place tables (3 columns, 2 rows) and apply:
+      Row 0: value cells → bottom-aligned, bottom border, centered
+      Row 1: label cells → top-aligned, centered
+    """
+    for table in doc.tables:
+        try:
+            n_rows = len(table.rows)
+            n_cols = len(table.columns)
+        except Exception:
+            continue
+        if n_rows != 2 or n_cols != 3:
+            continue
+        # Value row
+        for col_idx in [0, 2]:
+            try:
+                cell = table.rows[0].cells[col_idx]
+                _set_cell_valign(cell, 'bottom')
+                _set_cell_bottom_border(cell)
+                for para in cell.paragraphs:
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            except Exception:
+                pass
+        # Label row
+        for col_idx in [0, 2]:
+            try:
+                cell = table.rows[1].cells[col_idx]
+                _set_cell_valign(cell, 'top')
+                for para in cell.paragraphs:
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            except Exception:
+                pass
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename):
+    # Detect page orientation from CSS
+    portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
+    page_width_cm = _PAGE_WIDTH_PORTRAIT_CM if portrait else _PAGE_WIDTH_LANDSCAPE_CM
+
     soup = BeautifulSoup(html_string, 'html.parser')
 
     # 1. Strip navigation and CDN
@@ -262,11 +405,14 @@ def send_docx(html_string, filename):
     table_widths = _extract_table_widths(soup)
 
     # 4. HTML → DOCX
-    doc = _make_base_doc()
+    doc = _make_base_doc(portrait=portrait)
     HtmlToDocx().add_html_to_document(str(soup), doc)
 
     # 5. Apply column widths
-    _apply_table_widths(doc, table_widths)
+    _apply_table_widths(doc, table_widths, page_width_cm)
+
+    # 6. Post-process: date/place table borders and alignment
+    _post_process_date_place_tables(doc)
 
     buf = BytesIO()
     doc.save(buf)
