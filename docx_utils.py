@@ -1,50 +1,48 @@
-# docx_utils.py — HTML → DOCX export via pandoc
-import os
-import tempfile
+# docx_utils.py — HTML → DOCX export via python-docx + htmldocx (no external binaries)
+from io import BytesIO
 from bs4 import BeautifulSoup
+from docx import Document
+from docx.shared import Pt, Cm
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from htmldocx import HtmlToDocx
 from flask import send_file
 
 DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-_REF_DOC  = os.path.join(os.path.dirname(__file__), 'pandoc_reference.docx')
+
+
+def _make_base_doc():
+    """Return a Document pre-configured with Times New Roman and A4 landscape margins."""
+    doc = Document()
+    section = doc.sections[0]
+    section.page_width   = Cm(29.7)
+    section.page_height  = Cm(21.0)
+    section.left_margin  = Cm(1.5)
+    section.right_margin = Cm(1.0)
+    section.top_margin   = Cm(1.5)
+    section.bottom_margin = Cm(1.5)
+
+    normal = doc.styles['Normal']
+    normal.font.name = 'Times New Roman'
+    normal.font.size = Pt(10)
+    return doc
 
 
 def send_docx(html_string, filename):
-    """Strip .no-print elements, convert HTML→docx via pandoc, return Flask send_file."""
-    import pypandoc
-
+    """Strip .no-print elements, convert HTML→docx, return Flask send_file response."""
     soup = BeautifulSoup(html_string, 'html.parser')
 
-    # Remove nav/button elements not needed in print
     for el in soup.select('.no-print'):
         el.decompose()
-    # Remove Bootstrap CDN link (not needed for conversion)
-    for el in soup.select('link[rel="stylesheet"]'):
+    for el in soup.select('link[rel="stylesheet"], script'):
         el.decompose()
-    for el in soup.select('script'):
-        el.decompose()
-
-    # Set explicit UTF-8 charset meta if missing
-    head = soup.find('head')
-    if head and not soup.find('meta', charset=True):
-        meta = soup.new_tag('meta', charset='UTF-8')
-        head.insert(0, meta)
 
     clean_html = str(soup)
 
-    with tempfile.TemporaryDirectory() as td:
-        out_path = os.path.join(td, filename)
-        extra = ['--reference-doc', _REF_DOC] if os.path.exists(_REF_DOC) else []
-        pypandoc.convert_text(
-            clean_html,
-            'docx',
-            format='html',
-            outputfile=out_path,
-            extra_args=extra,
-        )
-        # Read into memory so temp dir can be cleaned up
-        with open(out_path, 'rb') as f:
-            data = f.read()
+    doc = _make_base_doc()
+    parser = HtmlToDocx()
+    parser.add_html_to_document(clean_html, doc)
 
-    from io import BytesIO
-    buf = BytesIO(data)
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
