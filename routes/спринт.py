@@ -60,7 +60,7 @@ def format_time(secs):
 def format_dur(secs):
     """Секунды → М:СС.сс (для отображения длительности)."""
     if secs is None:
-        return '—'
+        return '–'
     secs = float(secs)
     neg = secs < 0
     secs = abs(secs)

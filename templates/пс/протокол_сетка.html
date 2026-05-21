@@ -105,7 +105,7 @@
   <span class="seed-b">СП&nbsp;{{ посев_map.get(команда.id, '?') }}</span>
   <span class="bib-b">{{ команда.нагрудный_номер }}</span>
   <div class="team-b">
-    <div class="team-nm">{{ команда.название or '—' }}</div>
+    <div class="team-nm">{{ команда.название or '–' }}</div>
     {% if команда.субъект %}
     <div class="team-sb">{{ команда.субъект.название }}</div>
     {% endif %}
