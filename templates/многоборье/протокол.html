@@ -217,28 +217,14 @@
 {% endif %}
 
 <div class="mt-4" style="font-size:10pt; font-weight:bold">
-  {% set судьи_список = сор.судьи | sort(attribute='номер_в_базе') if сор.судьи else [] %}
-  {% if судьи_список %}
-    {% for с in судьи_список %}
-    <div style="display:flex; align-items:baseline; margin-bottom:10px">
-      <div style="width:38%">{{ с.должность or 'Судья' }}</div>
-      <div>{{ с.фамилия_имя_отчество }}{% if с.квалификация %}, {{ с.квалификация }}{% endif %}{% if с.субъект_рф %}, {{ с.субъект_рф }}{% endif %}</div>
-    </div>
-    {% endfor %}
-  {% else %}
-    {% if сор.главный_судья %}
-    <div style="display:flex; align-items:baseline; margin-bottom:10px">
-      <div style="width:38%">Главный судья</div>
-      <div>{{ сор.главный_судья }}{% if сор.главный_судья_квалификация %}, {{ сор.главный_судья_квалификация }}{% endif %}{% if сор.главный_судья_субъект_рф %}, {{ сор.главный_судья_субъект_рф }}{% endif %}</div>
-    </div>
-    {% endif %}
-    {% if сор.главный_секретарь %}
-    <div style="display:flex; align-items:baseline; margin-bottom:10px">
-      <div style="width:38%">Главный секретарь</div>
-      <div>{{ сор.главный_секретарь }}</div>
-    </div>
-    {% endif %}
-  {% endif %}
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный судья</div>
+    <div>{{ сор.главный_судья or '' }}</div>
+  </div>
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный секретарь</div>
+    <div>{{ сор.главный_секретарь or '' }}</div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
