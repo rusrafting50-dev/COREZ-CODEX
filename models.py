@@ -158,6 +158,13 @@ class Соревнование(db.Model):
     главный_судья_субъект_рф    = db.Column(db.String(200), nullable=True)
     главный_судья_телефон       = db.Column(db.String(50),  nullable=True)
 
+    # Спортивная федерация по рафтингу
+    федерация_название          = db.Column(db.String(300), nullable=True)
+    федерация_руководитель      = db.Column(db.String(200), nullable=True)
+    федерация_должность         = db.Column(db.String(200), nullable=True)
+    федерация_телефон           = db.Column(db.String(50),  nullable=True)
+    федерация_email             = db.Column(db.String(100), nullable=True)
+
     # Проводящая организация
     проводящая_орг_название     = db.Column(db.String(300), nullable=True)
     проводящая_орг_руководитель = db.Column(db.String(200), nullable=True)
@@ -973,6 +980,11 @@ def применить_миграции():
             ('главный_судья_квалификация',  'VARCHAR(50)'),
             ('главный_судья_субъект_рф',    'VARCHAR(200)'),
             ('главный_судья_телефон',       'VARCHAR(50)'),
+            ('федерация_название',           'VARCHAR(300)'),
+            ('федерация_руководитель',       'VARCHAR(200)'),
+            ('федерация_должность',          'VARCHAR(200)'),
+            ('федерация_телефон',            'VARCHAR(50)'),
+            ('федерация_email',              'VARCHAR(100)'),
             ('проводящая_орг_название',     'VARCHAR(300)'),
             ('проводящая_орг_руководитель', 'VARCHAR(200)'),
             ('проводящая_орг_должность',    'VARCHAR(200)'),
