@@ -160,9 +160,9 @@
   <thead>
     <tr>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}width:260px{% else %}min-width:8px{% endif %}">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:8px">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:260px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="min-width:160px">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:46px">Место<br>СПРИНТ</th>
