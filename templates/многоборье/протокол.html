@@ -139,11 +139,7 @@
       <td>{{ loop.index }}</td>
       <td style="text-align:left">{{ к.название or '—' }}</td>
       <td>{{ к.нагрудный_номер }}</td>
-      <td class="col-состав" style="font-size:7.5pt; text-align:left">
-        {% if состав %}
-          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
-        {% else %}–{% endif %}
-      </td>
+      <td class="col-состав" style="font-size:7.5pt; text-align:left">{%- if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{%- if сп.дата_рождения or сп.разряд %} ({%- if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{%- if сп.дата_рождения and сп.разряд %}, {% endif %}{%- if сп.разряд %}{{ сп.разряд }}{% endif -%}){%- endif %}{% if not loop.last %}, {% endif %}{% endfor %}{%- else %}—{%- endif %}</td>
       <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
       <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
@@ -177,11 +173,7 @@
       <td>{{ loop.index }}</td>
       <td style="text-align:left">{{ к.название or '—' }}</td>
       <td>{{ к.нагрудный_номер }}</td>
-      <td class="col-состав" style="font-size:7.5pt; text-align:left">
-        {% if состав %}
-          {% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if сп.дата_рождения or сп.разряд %} ({% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{% if сп.дата_рождения and сп.разряд %}, {% endif %}{% if сп.разряд %}{{ сп.разряд }}{% endif %}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
-        {% else %}–{% endif %}
-      </td>
+      <td class="col-состав" style="font-size:7.5pt; text-align:left">{%- if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{%- if сп.дата_рождения or сп.разряд %} ({%- if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% endif %}{%- if сп.дата_рождения and сп.разряд %}, {% endif %}{%- if сп.разряд %}{{ сп.разряд }}{% endif -%}){%- endif %}{% if not loop.last %}, {% endif %}{% endfor %}{%- else %}—{%- endif %}</td>
       <td style="text-align:left">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>{{ место_сп }}</td>
       <td>{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
