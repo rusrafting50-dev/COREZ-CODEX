@@ -101,25 +101,25 @@
       <th rowspan="3" style="min-width:126px">Состав</th>
       <th rowspan="3" style="min-width:90px">Субъект РФ</th>
       <th colspan="8">Набранные очки за занятые места в спортивных дисциплинах:</th>
-      <th rowspan="3" style="width:55px">Результат</th>
+      <th rowspan="3" style="width:55px">Общая сумма</th>
       <th rowspan="3" style="width:38px">Место</th>
       <th rowspan="3" style="width:55px">Выполнение разряда{% if _снос %}*{% endif %}</th>
     </tr>
     <tr>
-      <th colspan="2">СПРИНТ</th>
-      <th colspan="2">ПАРАЛЛЕЛЬНЫЙ СПРИНТ</th>
-      <th colspan="2">СЛАЛОМ</th>
-      <th colspan="2">ДЛИННАЯ ГОНКА</th>
+      <th colspan="2">Спринт</th>
+      <th colspan="2">Параллельный спринт</th>
+      <th colspan="2">Слалом</th>
+      <th colspan="2">Длинная гонка</th>
     </tr>
     <tr>
-      <th style="width:38px">МЕСТО</th>
-      <th style="width:42px">ОЧКИ</th>
-      <th style="width:38px">МЕСТО</th>
-      <th style="width:42px">ОЧКИ</th>
-      <th style="width:38px">МЕСТО</th>
-      <th style="width:42px">ОЧКИ</th>
-      <th style="width:38px">МЕСТО</th>
-      <th style="width:42px">ОЧКИ</th>
+      <th style="width:38px">Место</th>
+      <th style="width:42px">Очки</th>
+      <th style="width:38px">Место</th>
+      <th style="width:42px">Очки</th>
+      <th style="width:38px">Место</th>
+      <th style="width:42px">Очки</th>
+      <th style="width:38px">Место</th>
+      <th style="width:42px">Очки</th>
     </tr>
   </thead>
   <tbody>
@@ -154,8 +154,8 @@
       <td>{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td>{{ место_дг }}</td>
       <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
-      <td class="fw-bold">{{ р.сумма_очков | int }}</td>
-      <td class="fw-bold">{{ р.место }}</td>
+      <td>{{ р.сумма_очков | int }}</td>
+      <td>{{ р.место }}</td>
       <td>{{ муж_разр.get(к.id, '—') if _муж_норм else '—' }}</td>
     </tr>
     {% else %}
@@ -192,8 +192,8 @@
       <td>{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td>{{ место_дг }}</td>
       <td>{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
-      <td class="fw-bold">{{ р.сумма_очков | int }}</td>
-      <td class="fw-bold">{{ р.место }}</td>
+      <td>{{ р.сумма_очков | int }}</td>
+      <td>{{ р.место }}</td>
       <td>{{ жен_разр.get(к.id, '—') if _жен_норм else '—' }}</td>
     </tr>
     {% else %}
@@ -216,17 +216,29 @@
 <div class="text-center text-muted py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<div style="margin-top:20px; font-size:10pt; font-weight:bold">
-  <div style="display:flex; align-items:baseline; margin-bottom:12px">
-    <div style="width:36%">Главный судья</div>
-    <span class="underline-field" style="min-width:40px; flex:1"></span>
-    <div style="margin-left:8px">{{ сор.главный_судья or '' }}</div>
-  </div>
-  <div style="display:flex; align-items:baseline">
-    <div style="width:36%">Главный секретарь</div>
-    <span class="underline-field" style="min-width:40px; flex:1"></span>
-    <div style="margin-left:8px">{{ сор.главный_секретарь or '' }}</div>
-  </div>
+<div class="mt-4" style="font-size:10pt; font-weight:bold">
+  {% set судьи_список = сор.судьи | sort(attribute='номер_в_базе') if сор.судьи else [] %}
+  {% if судьи_список %}
+    {% for с in судьи_список %}
+    <div style="display:flex; align-items:baseline; margin-bottom:10px">
+      <div style="width:38%">{{ с.должность or 'Судья' }}</div>
+      <div>{{ с.фамилия_имя_отчество }}{% if с.квалификация %}, {{ с.квалификация }}{% endif %}{% if с.субъект_рф %}, {{ с.субъект_рф }}{% endif %}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    {% if сор.главный_судья %}
+    <div style="display:flex; align-items:baseline; margin-bottom:10px">
+      <div style="width:38%">Главный судья</div>
+      <div>{{ сор.главный_судья }}{% if сор.главный_судья_квалификация %}, {{ сор.главный_судья_квалификация }}{% endif %}{% if сор.главный_судья_субъект_рф %}, {{ сор.главный_судья_субъект_рф }}{% endif %}</div>
+    </div>
+    {% endif %}
+    {% if сор.главный_секретарь %}
+    <div style="display:flex; align-items:baseline; margin-bottom:10px">
+      <div style="width:38%">Главный секретарь</div>
+      <div>{{ сор.главный_секретарь }}</div>
+    </div>
+    {% endif %}
+  {% endif %}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
