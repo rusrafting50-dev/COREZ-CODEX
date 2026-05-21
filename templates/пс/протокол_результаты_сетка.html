@@ -105,7 +105,7 @@
 {% endmacro %}
 
 {# ── Строка команды с результатом ── #}
-{% macro ряд_команды(з, посев_map) %}
+{% macro ряд_команды(з, посев_map, доп_инфо=none) %}
 <div class="heat-row {{ 'win-row' if з.победитель is true else ('lose-row' if з.победитель is false else '') }}">
   <span class="seed-b">СП&nbsp;{{ посев_map.get(з.команда.id, '?') }}</span>
   <span class="bib-b">{{ з.команда.нагрудный_номер }}</span>
@@ -121,6 +121,7 @@
     {%- elif з.статус == 'НФН' -%}Не фин.
     {%- elif з.статус == 'НСТ' -%}Не старт.
     {%- endif -%}
+    {% if доп_инфо and з.статус != 'ДК' %}<div style="font-size:5pt;color:#555;font-style:italic;white-space:nowrap">{{ доп_инфо }}</div>{% endif %}
   </div>
 </div>
 {% endmacro %}
@@ -156,7 +157,7 @@
         {% endif %}
       </div>
       {% if item.тип == 'real' %}
-        {% for з in item.записи %}{{ ряд_команды(з, посев_map) }}{% endfor %}
+        {% for з in item.записи %}{{ ряд_команды(з, посев_map, запись_метки.get(з.id)) }}{% endfor %}
       {% else %}
         {% for команда, метка in item.уч %}
           {% if команда %}
@@ -214,7 +215,7 @@
           <b>Заезд {{ ns.hn }}, Финал Б</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
         </div>
-        {% for з in пара %}{{ ряд_команды(з, посев_map) }}{% endfor %}
+        {% for з in пара %}{{ ряд_команды(з, посев_map, запись_метки.get(з.id)) }}{% endfor %}
       </div>
       {% endfor %}
     {% else %}
@@ -246,7 +247,7 @@
           <b>Заезд {{ ns.hn }}, Финал А</b>
           <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
         </div>
-        {% for з in пара %}{{ ряд_команды(з, посев_map) }}{% endfor %}
+        {% for з in пара %}{{ ряд_команды(з, посев_map, запись_метки.get(з.id)) }}{% endfor %}
       </div>
       {% endfor %}
     {% else %}
