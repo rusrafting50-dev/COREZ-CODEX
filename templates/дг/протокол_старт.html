@@ -224,11 +224,14 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page{size:' + (_landscape ? '297mm 210mm' : '210mm 297mm') + ';mso-page-orientation:' + (_landscape ? 'landscape' : 'portrait') + ';margin:12mm 5mm;}';
+  var _pgSz = _landscape ? '297mm 210mm' : '210mm 297mm';
+  var _pgOr = _landscape ? 'landscape' : 'portrait';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
-    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+    + '<head><meta charset="UTF-8"><style>' + css + '</style>'
+    + '<style>@page{size:' + _pgSz + ';mso-page-orientation:' + _pgOr + ';margin:12mm 5mm;}</style>'
+    + '</head><body style="mso-page-orientation:' + _pgOr + '">';
   var post = '</body></html>';
   var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
   var url = URL.createObjectURL(blob);
