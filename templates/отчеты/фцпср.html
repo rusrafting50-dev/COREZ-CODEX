@@ -156,35 +156,24 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-
-  // Collect all CSS from the page stylesheets
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
       try {
         var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
-        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + '
-'; }
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
       } catch(e) {}
     }
   } catch(e) {}
-
-  // Word-specific table border overrides
-  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}'
-       + 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}'
-       + '@page{size:A4 portrait;margin:20mm 15mm;}';
-
-  var html = '<!DOCTYPE html>
-'
-    + '<html xmlns:o="urn:schemas-microsoft-com:office:office"'
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
-    + ' xmlns="http://www.w3.org/TR/REC-html40">
-'
-    + '<head><meta charset="UTF-8"><style>' + css + '</style></head>
-'
-    + '<body>' + clone.innerHTML + '</body></html>';
-
-  var blob = new Blob(['﻿', html], {type: 'application/msword'});
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
