@@ -43,20 +43,26 @@
 {# ── Макрос: шапка протокола ── #}
 {% macro шапка() %}
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line; text-align:center">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+{%- for строка in сор.организаторы_блок.split('\n') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }}<br>"{{ ч[1] }}
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+</div>
 {% endif %}
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Стартовый протокол</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</div>
 <table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
-    <td style="width:140px;text-align:center;border:none;padding:2px 4px;vertical-align:bottom">
-      <div style="border-bottom:1px solid #000;display:block;text-align:center">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    </td>
+    <td style="width:140px;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
     <td style="width:100%;border:none;padding:0"></td>
-    <td style="white-space:nowrap;text-align:center;border:none;padding:2px 4px;vertical-align:bottom">
-      <div style="border-bottom:1px solid #000;display:block;text-align:center;white-space:nowrap">{{ сор.место_проведения or '&nbsp;' }}</div>
-    </td>
+    <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
   <tr>
     <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
