@@ -83,36 +83,47 @@
 </div>
 
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+{%- for строка in сор.организаторы_блок.split('
+') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }}<br>"{{ ч[1] }}
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+</div>
 {% endif %}
 
-<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
-  {{ сор.название }}
-</div>
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 
 {% if итоговый and сор.номер_екп %}
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">ЕКП № {{ сор.номер_екп }}</div>
 {% endif %}
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">
   {% if итоговый %}ПРОТОКОЛ РЕЗУЛЬТАТОВ{% else %}Предварительный протокол соревнований{% endif %}
 </div>
 
-<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
+<div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">
   Спортивная дисциплина:
   {% if класс == 'R4' %}ДЛИННАЯ ГОНКА – R4, код ВРВС 1740011811Я{% elif класс == 'R6' %}ДЛИННАЯ ГОНКА – R6, код ВРВС 1740021811Я{% else %}ДЛИННАЯ ГОНКА{% if класс %} – {{ класс }}{% endif %}{% endif %}
 </div>
 
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
-  <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Дата проведения</div>
-  </div>
-  <div style="display:inline-block;text-align:center">
-    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt">Место проведения</div>
-  </div>
-</div>
+<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
+  <tr>
+    <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+  </tr>
+  <tr>
+    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
+  </tr>
+</table>
 
 {% set ncol = 11 if итоговый else 14 %}
 
@@ -478,7 +489,7 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  css += '@page{size:A4 {{ "portrait" if портрет else "landscape" }};margin:12mm 5mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
