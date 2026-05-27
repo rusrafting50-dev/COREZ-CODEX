@@ -53,31 +53,31 @@
     <td style="width:140px;text-align:center;border:none;padding:2px 4px;vertical-align:bottom">
       <div style="border-bottom:1px solid #000;display:block;text-align:center">{{ сор.даты_проведения or '&nbsp;' }}</div>
     </td>
-    <td style="border:none;padding:0"></td>
-    <td style="width:140px;text-align:center;border:none;padding:2px 4px;vertical-align:bottom">
-      <div style="border-bottom:1px solid #000;display:block;text-align:center">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:2px 4px;vertical-align:bottom">
+      <div style="border-bottom:1px solid #000;display:block;text-align:center;white-space:nowrap">{{ сор.место_проведения or '&nbsp;' }}</div>
     </td>
   </tr>
   <tr>
     <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
-    <td style="border:none;padding:0"></td>
-    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
   </tr>
 </table>
 {% endmacro %}
 
 {# ── Макрос: блок подписей ── #}
 {% macro подписи() %}
-<div class="sig-block">
-  <div class="sig-row">
-    <div class="sig-pos">Главный судья</div>
-    <div class="sig-fio">{{ сор.главный_судья or '' }}</div>
-  </div>
-  <div class="sig-row">
-    <div class="sig-pos">Главный секретарь</div>
-    <div class="sig-fio">{{ сор.главный_секретарь or '' }}</div>
-  </div>
-</div>
+<table style="width:100%;border-collapse:collapse;font-size:10pt;margin-top:16pt;margin-bottom:16pt">
+  <tr>
+    <td style="width:50%;border:none;padding:0 0 10pt 0">Главный судья</td>
+    <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
+  </tr>
+  <tr>
+    <td style="width:50%;border:none;padding:0">Главный секретарь</td>
+    <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
+  </tr>
+</table>
 {% endmacro %}
 
 {# ── Макрос: заголовок таблицы (принимает список колонок для конкретного вида) ── #}
