@@ -36,6 +36,8 @@
        style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">🖨 Отчёт ФРР</a>
     <a href="{{ url_for('отчеты.отчет_липецк', sor_id=сор.id) }}"
        style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">🖨 Отчёт УМФКС Липецк</a>
+    <button onclick="exportWord()"
+            style="font-size:.875rem;border:1px solid #198754;border-radius:.25rem;padding:.25rem .5rem;background:#198754;color:#fff;cursor:pointer">Word</button>
     <button onclick="window.print()"
             style="font-size:.875rem;border:1px solid #0d6efd;border-radius:.25rem;padding:.25rem .5rem;background:#0d6efd;color:#fff;cursor:pointer">Печать</button>
   </div>
@@ -226,15 +228,21 @@
   {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} г.
 </div>
 
-{# ── Примечание — второй лист ─────────────────────────────────────────────── #}
-<div style="page-break-before:always; margin-top:20px; font-size:10pt">
-  <p style="margin-top:0">
-    <strong>Примечание:</strong> данный отчёт главной судейской коллегии представляется в ФГБУ ФЦПСР в двух экземплярах
-    (приложение к отчёту — в одном экземпляре по электронной почте) в течение двух недель по адресу: 105064, Москва,
-    ул.&nbsp;Казакова д.&nbsp;18, стр.&nbsp;8, каб.&nbsp;32 (отдел проведения первенств России и иных соревнований) тел.: 8(499)941-13-21,
-    e-mail: sportotdel@fcpsr.ru.
-  </p>
-</div>
-
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var html = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" '
+    + 'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"></head><body>' + clone.innerHTML + '</body></html>';
+  var blob = new Blob(['﻿', html], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

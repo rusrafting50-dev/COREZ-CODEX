@@ -28,7 +28,10 @@
   <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
      style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
             color:#6c757d; text-decoration:none; background:transparent;">← Техническая комиссия</a>
-  <button onclick="window.print()"
+  <button onclick="exportWord()"
+          style="font-size:.875rem; border:1px solid #198754; border-radius:.25rem; padding:.25rem .5rem;
+                 background:#198754; color:#fff; cursor:pointer;">Word</button>
+    <button onclick="window.print()"
           style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
                  background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
 </div>
@@ -167,5 +170,21 @@
 </div>
 {% endif %}
 
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var html = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" '
+    + 'xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"></head><body>' + clone.innerHTML + '</body></html>';
+  var blob = new Blob(['﻿', html], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>
