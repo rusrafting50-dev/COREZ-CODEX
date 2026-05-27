@@ -32,8 +32,10 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
-  <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  <div class="d-flex gap-2">
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
 {# ── Шапка (как в Итоговом протоколе) ── #}

@@ -31,8 +31,10 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('документы.заявки', sor_id=сор.id, взнос=взнос if взнос else '') }}"
      class="btn btn-outline-secondary btn-sm">← К списку делегаций</a>
-  <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  <div class="d-flex gap-2">
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
 {# ── Шапка ── #}
