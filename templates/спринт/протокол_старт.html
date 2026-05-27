@@ -219,10 +219,6 @@ function toggleOrient() {
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-  clone.querySelectorAll('[class]').forEach(function(el){
-    if (el.className && el.className.indexOf('разрыв') >= 0)
-      el.className = el.className.replace(/разрыв/g, '').trim();
-  });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
@@ -245,7 +241,8 @@ function exportWord() {
     + '<style>' + css + '</style>'
     + '</head><body>';
   var post = '</body></html>';
-  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
+  var разрывRe = new RegExp('разрыв', 'g');
+  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML.replace(разрывRe, '') + '</div>' + post], {type: 'application/msword'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
