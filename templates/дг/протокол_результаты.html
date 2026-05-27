@@ -119,9 +119,9 @@
     <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
   <tr>
-    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
+    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal;vertical-align:top">Дата проведения</td>
     <td style="width:100%;border:none;padding:0"></td>
-    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal;vertical-align:top">Место проведения</td>
   </tr>
 </table>
 
@@ -443,16 +443,16 @@
 <div class="text-center py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<div class="mt-4" style="font-size:10pt; font-weight:bold">
-  <div style="display:flex; align-items:baseline; margin-bottom:10px">
-    <div style="width:38%">Главный судья</div>
-    <div>{{ сор.главный_судья or '' }}</div>
-  </div>
-  <div style="display:flex; align-items:baseline; margin-bottom:10px">
-    <div style="width:38%">Главный секретарь</div>
-    <div>{{ сор.главный_секретарь or '' }}</div>
-  </div>
-</div>
+<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
+  <tr>
+    <td style="width:50%;border:none;padding:0 0 10pt 0">Главный судья</td>
+    <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
+  </tr>
+  <tr>
+    <td style="width:50%;border:none;padding:0">Главный секретарь</td>
+    <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
+  </tr>
+</table>
 
 {% if not итоговый %}
 <div class="mt-3" style="font-size:10pt; font-weight:bold">
@@ -489,7 +489,7 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page{size:A4 {{ "portrait" if портрет else "landscape" }};margin:12mm 5mm;}';
+  css += '@page{size:A4 {% if портрет %}portrait{% else %}landscape{% endif %};mso-page-orientation:{% if портрет %}portrait{% else %}landscape{% endif %};margin:12mm 5mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
