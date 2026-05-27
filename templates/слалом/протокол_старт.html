@@ -27,7 +27,7 @@
     .sig-pos { width: 38%; font-size: 10pt; }
     .sig-fio { font-size: 10pt; }
   </style>
-  <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 portrait; } }</style>
+  <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
 </head>
 <body class="px-3 py-3">
 
@@ -35,7 +35,7 @@
   <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Назад</a>
   <div class="d-flex gap-2">
-    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
     <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
@@ -222,7 +222,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-let _landscape = false;
+let _landscape = true;
 function toggleOrient() {
   _landscape = !_landscape;
   var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
