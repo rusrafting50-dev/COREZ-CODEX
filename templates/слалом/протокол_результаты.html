@@ -171,7 +171,7 @@
   <td class="text-center" rowspan="2">{{ ns.idx }}</td>
   <td rowspan="2">{{ к.название or '–' }}</td>
   <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
-  <td rowspan="2" style="font-size:6.5pt">
+  <td rowspan="2" style="font-size:10pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td rowspan="2">{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -243,7 +243,7 @@
   <td class="text-center" rowspan="2">{{ ns.idx }}</td>
   <td rowspan="2">{{ к.название or '–' }}</td>
   <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
-  <td rowspan="2" style="font-size:6.5pt">
+  <td rowspan="2" style="font-size:10pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td rowspan="2">{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -333,7 +333,7 @@
       <th rowspan="2">Номер</th>
       <th rowspan="2">Фамилия, имя, отчество участников</th>
       <th rowspan="2">Субъект РФ</th>
-      <th rowspan="2" style="padding:2px;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed">Попытка</div></th>
+      <th rowspan="2" style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed">Попытка</div></th>
       <th colspan="{{ кол_ворот + 2 }}" class="text-center">Прохождение дистанции (штрафные баллы)</th>
       <th colspan="3" class="text-center">Результат попытки</th>
       <th rowspan="2" style="white-space:normal;word-break:normal;overflow:visible">Результат лучшей попытки</th>
@@ -344,7 +344,7 @@
     <tr>
       <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
       {% for в in range(1, кол_ворот + 1) %}<th>{{ в }}</th>{% endfor %}
-      <th style="padding:2px;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Финиш</div></th>
+      <th style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Финиш</div></th>
       <th>Штраф</th>
       <th>Время</th>
       <th>Итоговый</th>
@@ -378,7 +378,7 @@
   <td class="text-center">{{ ns.idx }}</td>
   <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td style="font-size:7.5pt">
+  <td style="font-size:10pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }} ({{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else 'б/д' }}, {{ сп.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -436,7 +436,7 @@
   <td class="text-center">{{ ns.idx }}</td>
   <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td style="font-size:7.5pt">
+  <td style="font-size:10pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }} ({{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else 'б/д' }}, {{ сп.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
