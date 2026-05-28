@@ -333,7 +333,7 @@
       <th rowspan="2">Номер</th>
       <th rowspan="2">Фамилия, имя, отчество участников</th>
       <th rowspan="2">Субъект РФ</th>
-      <th rowspan="2" style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed">Попытка</div></th>
+      <th rowspan="2" style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">Попытка</div></th>
       <th colspan="{{ кол_ворот + 2 }}" class="text-center">Прохождение дистанции (штрафные баллы)</th>
       <th colspan="3" class="text-center">Результат попытки</th>
       <th rowspan="2" style="white-space:normal;word-break:normal;overflow:visible">Результат лучшей попытки</th>
@@ -344,7 +344,7 @@
     <tr>
       <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
       {% for в in range(1, кол_ворот + 1) %}<th>{{ в }}</th>{% endfor %}
-      <th style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Финиш</div></th>
+      <th style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block">Финиш</div></th>
       <th>Штраф</th>
       <th>Время</th>
       <th>Итоговый</th>
@@ -565,6 +565,9 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  clone.querySelectorAll('th[style*="mso-rotate"] div, td[style*="mso-rotate"] div').forEach(function(div) {
+    var p = div.parentNode; while (div.firstChild) p.insertBefore(div.firstChild, div); p.removeChild(div);
+  });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
