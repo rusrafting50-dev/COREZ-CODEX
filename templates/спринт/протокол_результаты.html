@@ -390,11 +390,11 @@
 
 <table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
   <tr>
-    <td style="width:50%;border:none;padding:0 0 10pt 0">Главный судья</td>
+    <td style="width:33%;border:none;padding:0 0 10pt 0">Главный судья</td>
     <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
   </tr>
   <tr>
-    <td style="width:50%;border:none;padding:0">Главный секретарь</td>
+    <td style="width:33%;border:none;padding:0">Главный секретарь</td>
     <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
   </tr>
 </table>
@@ -434,7 +434,7 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page WordSection1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:34.0pt 14.2pt;} div.WordSection1{page:WordSection1;}';
+  css += '@page WordSection1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
