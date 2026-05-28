@@ -219,7 +219,6 @@ function toggleOrient() {
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-  clone.querySelectorAll('.разрыв').forEach(function(el){ el.classList.remove('разрыв'); });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
