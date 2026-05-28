@@ -171,7 +171,7 @@
   <td class="text-center" rowspan="2">{{ ns.idx }}</td>
   <td rowspan="2">{{ к.название or '–' }}</td>
   <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
-  <td rowspan="2" style="font-size:10pt">
+  <td rowspan="2" style="font-size:8pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td rowspan="2">{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -243,7 +243,7 @@
   <td class="text-center" rowspan="2">{{ ns.idx }}</td>
   <td rowspan="2">{{ к.название or '–' }}</td>
   <td class="text-center" rowspan="2">{{ к.нагрудный_номер }}</td>
-  <td rowspan="2" style="font-size:10pt">
+  <td rowspan="2" style="font-size:8pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td rowspan="2">{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -378,7 +378,7 @@
   <td class="text-center">{{ ns.idx }}</td>
   <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td style="font-size:10pt">
+  <td style="font-size:8pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }} ({{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else 'б/д' }}, {{ сп.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
@@ -436,7 +436,7 @@
   <td class="text-center">{{ ns.idx }}</td>
   <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td style="font-size:10pt">
+  <td style="font-size:8pt">
     {% if состав %}{% for сп in состав %}{{ сп.фамилия_имя_отчество }} ({{ сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else 'б/д' }}, {{ сп.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}{% else %}–{% endif %}
   </td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
