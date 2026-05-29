@@ -88,9 +88,9 @@
 <div class="w-pb"></div>
 {% endmacro %}
 
-{# ── Макрос: заголовок таблицы ── #}
-{% macro thead() %}
-{% set мб_кол = мб_колонки | length %}
+{# ── Макрос: заголовок таблицы (принимает список колонок для конкретного вида) ── #}
+{% macro thead(мб_список) %}
+{% set мб_кол = мб_список | length %}
 <thead>
   <tr>
     <th rowspan="2" style="width:28px">№<br>п/п</th>
@@ -105,7 +105,7 @@
     <th rowspan="2" style="width:56px">Время<br>старта</th>
   </tr>
   <tr>
-    {% for кол in мб_колонки %}
+    {% for кол in мб_список %}
     <th style="width:26px;font-size:7pt;white-space:nowrap;vertical-align:bottom;text-align:center;overflow:hidden;border-top:0.75pt solid #333"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">{{ кол.заг | safe }}</div></th>
     {% endfor %}
   </tr>
@@ -113,9 +113,9 @@
 {% endmacro %}
 
 {# ── Макрос: строки одного вида программы в tbody ── #}
-{% macro секция(список, метка) %}
+{% macro секция(список, метка, мб_список) %}
 {% if список %}
-{% set colspan = 7 + (мб_колонки | length) %}
+{% set colspan = 7 + (мб_список | length) %}
 <tr class="section-row"><td colspan="{{ colspan }}" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
@@ -128,8 +128,18 @@
   <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td style="font-size:8pt">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
-  {% for кол in мб_колонки %}
-  <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '–' }}</td>
+  {% for кол in мб_список %}
+  <td class="text-center">
+    {%- if рм -%}
+      {%- if кол.поле -%}
+        {{ (рм | attr(кол.поле) or 0) | int }}
+      {%- else -%}
+        {%- set _s = namespace(v=0) -%}
+        {%- for к2 in мб_список if к2.поле -%}{%- set _s.v = _s.v + ((рм | attr(к2.поле) or 0) | int) -%}{%- endfor -%}
+        {{ _s.v }}
+      {%- endif -%}
+    {%- else -%}–{%- endif -%}
+  </td>
   {% endfor %}
   <td class="text-center">{{ нс.пп }}</td>
   <td class="text-center" style="font-family:monospace;white-space:nowrap">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
@@ -138,12 +148,17 @@
 {% endif %}
 {% endmacro %}
 
-{# ── Вспомогательный макрос: секция по коду ── #}
-{% macro секция_код(код) %}
-{% if код == 'R4-м' %}{{ секция(муж_р4, 'Длинная гонка – R4, Мужчины') }}
-{% elif код == 'R4-ж' %}{{ секция(жен_р4, 'Длинная гонка – R4, Женщины') }}
-{% elif код == 'R6-м' %}{{ секция(муж_р6, 'Длинная гонка – R6, Мужчины') }}
-{% elif код == 'R6-ж' %}{{ секция(жен_р6, 'Длинная гонка – R6, Женщины') }}
+{# ── Вспомогательный макрос: отдельная таблица одного вида ── #}
+{% macro таблица_вида(код, margin_top=false) %}
+{% set _мб = мб_по_коду.get(код, []) %}
+{% if код == 'R4-м' %}{% set _сп = муж_р4 %}{% set _мт = 'Длинная гонка – R4, Мужчины' %}
+{% elif код == 'R4-ж' %}{% set _сп = жен_р4 %}{% set _мт = 'Длинная гонка – R4, Женщины' %}
+{% elif код == 'R6-м' %}{% set _сп = муж_р6 %}{% set _мт = 'Длинная гонка – R6, Мужчины' %}
+{% elif код == 'R6-ж' %}{% set _сп = жен_р6 %}{% set _мт = 'Длинная гонка – R6, Женщины' %}
+{% else %}{% set _сп = [] %}{% set _мт = '' %}
+{% endif %}
+{% if _сп %}
+<table{% if margin_top %} style="margin-top:8px"{% endif %}>{{ thead(_мб) }}<tbody>{{ секция(_сп, _мт, _мб) }}</tbody></table>
 {% endif %}
 {% endmacro %}
 
@@ -155,21 +170,23 @@
 
 {% elif вывод == 'Попарно' %}
 {# ── Попарно: два блока — первые два вида и вторые два вида ── #}
+{# Каждый вид в отдельной таблице со своими колонками мб ── #}
 
   {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
   {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
   {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
   {% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
 
-  {% set г1_есть = (к0 == 'R4-м' and муж_р4) or (к0 == 'R4-ж' and жен_р4) or (к0 == 'R6-м' and муж_р6) or (к0 == 'R6-ж' and жен_р6)
-                or (к1 == 'R4-м' and муж_р4) or (к1 == 'R4-ж' and жен_р4) or (к1 == 'R6-м' and муж_р6) or (к1 == 'R6-ж' and жен_р6) %}
-  {% set г2_есть = (к2 == 'R4-м' and муж_р4) or (к2 == 'R4-ж' and жен_р4) or (к2 == 'R6-м' and муж_р6) or (к2 == 'R6-ж' and жен_р6)
-                or (к3 == 'R4-м' and муж_р4) or (к3 == 'R4-ж' and жен_р4) or (к3 == 'R6-м' and муж_р6) or (к3 == 'R6-ж' and жен_р6) %}
+  {% macro есть_вид(к) %}{% if (к == 'R4-м' and муж_р4) or (к == 'R4-ж' and жен_р4) or (к == 'R6-м' and муж_р6) or (к == 'R6-ж' and жен_р6) %}1{% endif %}{% endmacro %}
+
+  {% set г1_есть = есть_вид(к0) or есть_вид(к1) %}
+  {% set г2_есть = есть_вид(к2) or есть_вид(к3) %}
 
   {% if г1_есть %}
   <div class="{% if г2_есть %}разрыв{% endif %}">
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
+    {{ таблица_вида(к0) }}
+    {{ таблица_вида(к1, margin_top=true) }}
     {{ подписи() }}
   </div>
   {% endif %}
@@ -177,7 +194,8 @@
   {% if г2_есть %}
   <div>
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
+    {{ таблица_вида(к2) }}
+    {{ таблица_вида(к3, margin_top=true) }}
     {{ подписи() }}
   </div>
   {% endif %}
@@ -195,7 +213,7 @@
   {% for код in нса.список %}
   <div class="{% if not loop.last %}разрыв{% endif %}">
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
+    {{ таблица_вида(код) }}
     {{ подписи() }}
   </div>
   {% endfor %}
