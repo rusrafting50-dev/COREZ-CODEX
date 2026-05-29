@@ -26,7 +26,7 @@
     .underline-field { border-bottom: 1px solid #000; min-width: 120px; display: inline-block; }
 
     /* Шапка — как в Итоговом протоколе */
-    .орг-блок { text-align: center; font-size:10pt; white-space:pre-line; margin-bottom:3pt; }
+    .орг-блок { text-align: center; font-size:10pt; margin-bottom:3pt; }
     .назв-сор  { text-align: center; font-size:11pt; font-weight:bold; margin-bottom:6pt; }
     .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; }
     .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center; }
@@ -61,7 +61,20 @@
 
   {# ── Шапка (как в Итоговом протоколе, без строк протокола и дисциплины) ── #}
   {% if сор.организаторы_блок %}
-  <div class="орг-блок">{{ сор.организаторы_блок | replace(' «', '\n«') | replace(' "', '\n"') }}</div>
+  <div class="орг-блок">
+  {%- for строка in сор.организаторы_блок.split('\n') -%}
+    {%- if '"' in строка -%}
+      {%- set ч = строка.split('"', 1) -%}
+      {{ ч[0] | trim }}<span style="display:inline-block">"{{ ч[1] }}</span>
+    {%- elif '«' in строка -%}
+      {%- set ч = строка.split('«', 1) -%}
+      {{ ч[0] | trim }}<span style="display:inline-block">«{{ ч[1] }}</span>
+    {%- else -%}
+      {{ строка }}
+    {%- endif -%}
+    {%- if not loop.last %}<br>{% endif %}
+  {%- endfor -%}
+  </div>
   {% else %}
   <div class="орг-блок">Министерство спорта Российской Федерации</div>
   {% endif %}
