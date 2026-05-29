@@ -179,83 +179,49 @@
   <td class="st-col">
     <div class="st-hdr">Финалы</div>
 
-    {# Финал Б #}
+    {# Финал Б — на стартовом протоколе всегда предв #}
     {% if 'Финал_Б' in стадии %}
-    {% set зб = брак.get('Финал_Б', {}) %}
-    {% set реальные_б = зб.keys() | reject('equalto', 0) | list %}
-    {% if реальные_б %}
-      {% for номер in реальные_б | sort %}
-      {% set пара = зб[номер] %}
-      {% set ns.hn = ns.hn + 1 %}
-      <div class="heat">
-        <div class="heat-hdr fin-b-hdr">
-          <b>Заезд {{ ns.hn }}, Финал Б</b>
-          <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
-        </div>
-        {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
-      </div>
-      {% endfor %}
-    {% else %}
-      {% set уч_б = предв.get('Финал_Б', []) %}
-      {% set ns.hn = ns.hn + 1 %}
-      <div class="heat">
-        <div class="heat-hdr fin-b-hdr">
-          <b>Заезд {{ ns.hn }}, Финал Б</b>
-        </div>
-        {% for команда, метка in уч_б %}
-          {% if команда %}{{ ряд_команды(команда, посев_map) }}
-          {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
-        {% else %}
-          <div class="ph-row">Ожидается</div>
-          <div class="ph-row">Ожидается</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-    {% endif %}
-
-    {# Финал А — реальные заезды или заглушка с победителями ½ финала #}
-    {% set за = брак.get('Финал_А', {}) %}
-    {% set реальные_а = за.keys() | reject('equalto', 0) | list | sort %}
-    {% if реальные_а %}
-      {% for номер in реальные_а %}
-      {% set пара = за[номер] %}
-      {% set ns.hn = ns.hn + 1 %}
-      {% set _финал_сыгран = пара | selectattr('результат') | list | length > 0 %}
-      <div class="heat">
-        <div class="heat-hdr fin-a-hdr">
-          <b>Заезд {{ ns.hn }}, Финал А</b>
-          <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(пара[0].время_старта) if пара[0].время_старта else '' }}</span></span>
-        </div>
-        {% if not _финал_сыгран and n > 3 %}
-          {% set уч_а = предв.get('Финал_А', []) %}
-          {% for команда, метка in уч_а %}
-            {% if команда %}{{ ряд_команды(команда, посев_map) }}
-            {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
-          {% else %}
-            <div class="ph-row">Ожидается</div>
-            <div class="ph-row">Ожидается</div>
-          {% endfor %}
-        {% else %}
-          {% for з in пара %}{{ ряд_команды(з.команда, посев_map) }}{% endfor %}
+    {% set зб_все = брак.get('Финал_Б', {}) %}
+    {% set _time_б_рек = зб_все.values() | list | first %}
+    {% set уч_б = предв.get('Финал_Б', []) %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat">
+      <div class="heat-hdr fin-b-hdr">
+        <b>Заезд {{ ns.hn }}, Финал Б</b>
+        {% if _time_б_рек and _time_б_рек[0].время_старта %}
+        <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(_time_б_рек[0].время_старта) }}</span></span>
         {% endif %}
       </div>
+      {% for команда, метка in уч_б %}
+        {% if команда %}{{ ряд_команды(команда, посев_map) }}
+        {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
+      {% else %}
+        <div class="ph-row">Ожидается</div>
+        <div class="ph-row">Ожидается</div>
       {% endfor %}
-    {% else %}
-      {% set уч_а = предв.get('Финал_А', []) %}
-      {% set ns.hn = ns.hn + 1 %}
-      <div class="heat">
-        <div class="heat-hdr fin-a-hdr">
-          <b>Заезд {{ ns.hn }}, Финал А</b>
-        </div>
-        {% for команда, метка in уч_а %}
-          {% if команда %}{{ ряд_команды(команда, посев_map) }}
-          {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
-        {% else %}
-          <div class="ph-row">Ожидается</div>
-          <div class="ph-row">Ожидается</div>
-        {% endfor %}
-      </div>
+    </div>
     {% endif %}
+
+    {# Финал А — на стартовом протоколе всегда предв #}
+    {% set за_все = брак.get('Финал_А', {}) %}
+    {% set _time_а_рек = за_все.values() | list | first %}
+    {% set уч_а = предв.get('Финал_А', []) %}
+    {% set ns.hn = ns.hn + 1 %}
+    <div class="heat">
+      <div class="heat-hdr fin-a-hdr">
+        <b>Заезд {{ ns.hn }}, Финал А</b>
+        {% if _time_а_рек and _time_а_рек[0].время_старта %}
+        <span class="heat-start">Старт:&nbsp;<span class="heat-time-v">{{ format_time(_time_а_рек[0].время_старта) }}</span></span>
+        {% endif %}
+      </div>
+      {% for команда, метка in уч_а %}
+        {% if команда %}{{ ряд_команды(команда, посев_map) }}
+        {% else %}<div class="ph-row">{{ метка or 'Ожидается' }}</div>{% endif %}
+      {% else %}
+        <div class="ph-row">Ожидается</div>
+        <div class="ph-row">Ожидается</div>
+      {% endfor %}
+    </div>
 
   </td>
 </tr></table>
