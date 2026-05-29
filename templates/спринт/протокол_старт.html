@@ -11,21 +11,15 @@
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; padding: 0 !important; margin: 0; }
+      body { font-size: 9pt; }
+      .px-3 { padding-left: 0 !important; padding-right: 0 !important; }
+      .py-3 { padding-top: 0 !important; padding-bottom: 0 !important; }
       .разрыв { page-break-after: always; }
       table { page-break-inside: auto; }
-      table.t-данные { table-layout: fixed !important; width: 100% !important; }
-      table.t-данные th { width: auto !important; }
+      table.t-данные { width: 100% !important; }
       tr { page-break-inside: avoid; }
       th, td { overflow-wrap: break-word; word-break: break-word; }
-      col.c-пп      { width: 4%; }
-      col.c-команда { width: 16%; }
-      col.c-номер   { width: 7%; }
-      col.c-фио     { width: 36%; }
-      col.c-тер     { width: 13%; }
-      col.c-жер     { width: 11%; }
-      col.c-время   { width: 13%; }
-      td.c-фио      { font-size: 8pt; }
+      td.c-фио { font-size: 8pt; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -70,14 +64,14 @@
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Стартовый протокол</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СПРИНТ</div>
-<div style="display:flex;justify-content:space-between;width:100%;font-size:10pt;font-weight:bold;margin-bottom:8px">
-  <div style="text-align:center">
-    <div style="border-bottom:0.75pt solid #000;padding:2px 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt;font-weight:normal;padding:0 4px">Дата проведения</div>
-  </div>
-  <div style="text-align:center">
+<div style="overflow:hidden;font-size:10pt;font-weight:bold;margin-bottom:8px">
+  <div style="float:right;text-align:center">
     <div style="border-bottom:0.75pt solid #000;padding:2px 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt;font-weight:normal;padding:0 4px">Место проведения</div>
+  </div>
+  <div style="text-align:center;display:inline-block">
+    <div style="border-bottom:0.75pt solid #000;padding:2px 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt;font-weight:normal;padding:0 4px">Дата проведения</div>
   </div>
 </div>
 {% endmacro %}
