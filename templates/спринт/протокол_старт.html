@@ -12,14 +12,9 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      .px-3 { padding-left: 0 !important; padding-right: 0 !important; }
-      .py-3 { padding-top: 0 !important; padding-bottom: 0 !important; }
       .разрыв { page-break-after: always; }
       table { page-break-inside: auto; }
-      table.t-данные { width: 100% !important; }
       tr { page-break-inside: avoid; }
-      th, td { overflow-wrap: break-word; word-break: break-word; }
-      td.c-фио { font-size: 8pt; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
@@ -66,14 +61,14 @@
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СПРИНТ</div>
 <table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
-    <td style="width:160px;text-align:center;border:1px solid #333;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
-    <td style="border:none;padding:0"></td>
-    <td style="text-align:center;border:1px solid #333;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+    <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
   <tr>
-    <td style="text-align:center;border:1px solid #333;padding:1px 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
-    <td style="border:none;padding:0"></td>
-    <td style="text-align:center;border:1px solid #333;padding:1px 4px;font-size:8pt;font-weight:normal">Место проведения</td>
+    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
   </tr>
 </table>
 {% endmacro %}
@@ -169,7 +164,7 @@
   {% if г1_есть %}
   <div class="{% if г2_есть %}разрыв{% endif %}">
     {{ шапка() }}
-    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
+    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endif %}
@@ -177,7 +172,7 @@
   {% if г2_есть %}
   <div>
     {{ шапка() }}
-    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
+    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endif %}
@@ -196,7 +191,7 @@
   {% for код in нса.список %}
   <div class="{% if not loop.last %}разрыв{% endif %}">
     {{ шапка() }}
-    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
+    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endfor %}
