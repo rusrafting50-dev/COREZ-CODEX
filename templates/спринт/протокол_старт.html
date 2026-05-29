@@ -13,7 +13,8 @@
       .no-print { display: none !important; }
       body { font-size: 9pt; padding: 0 !important; margin: 0; }
       .разрыв { page-break-after: always; }
-      table { page-break-inside: auto; table-layout: fixed !important; width: 100% !important; }
+      table { page-break-inside: auto; }
+      table.t-данные { table-layout: fixed !important; width: 100% !important; }
       tr { page-break-inside: avoid; }
       th, td { overflow-wrap: break-word; word-break: break-word; }
       col.c-пп      { width: 7mm; }
@@ -173,7 +174,7 @@
   {% if г1_есть %}
   <div class="{% if г2_есть %}разрыв{% endif %}">
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
+    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endif %}
@@ -181,7 +182,7 @@
   {% if г2_есть %}
   <div>
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
+    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endif %}
@@ -200,7 +201,7 @@
   {% for код in нса.список %}
   <div class="{% if not loop.last %}разрыв{% endif %}">
     {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
+    <table class="t-данные">{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
     {{ подписи() }}
   </div>
   {% endfor %}
