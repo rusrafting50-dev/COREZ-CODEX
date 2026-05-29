@@ -64,16 +64,18 @@
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Стартовый протокол</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СПРИНТ</div>
-<div style="overflow:hidden;font-size:10pt;font-weight:bold;margin-bottom:8px">
-  <div style="float:right;text-align:center">
-    <div style="border-bottom:0.75pt solid #000;padding:2px 4px">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt;font-weight:normal;padding:0 4px">Место проведения</div>
-  </div>
-  <div style="text-align:center;display:inline-block">
-    <div style="border-bottom:0.75pt solid #000;padding:2px 4px">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt;font-weight:normal;padding:0 4px">Дата проведения</div>
-  </div>
-</div>
+<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
+  <tr>
+    <td style="width:160px;text-align:center;border:1px solid #333;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="border:none;padding:0"></td>
+    <td style="text-align:center;border:1px solid #333;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;border:1px solid #333;padding:1px 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
+    <td style="border:none;padding:0"></td>
+    <td style="text-align:center;border:1px solid #333;padding:1px 4px;font-size:8pt;font-weight:normal">Место проведения</td>
+  </tr>
+</table>
 {% endmacro %}
 
 {# ── Макрос: блок подписей ── #}
