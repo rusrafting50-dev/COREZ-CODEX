@@ -126,7 +126,7 @@
   <td class="text-center">{{ нс.пп }}</td>
   <td>{{ к.название or '–' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td style="font-size:8pt">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</td>
+  <td style="font-size:8pt">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   <td>{{ к.субъект.название if к.субъект else '–' }}</td>
   {% for кол in мб_колонки %}
   <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '–' }}</td>
