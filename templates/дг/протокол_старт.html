@@ -17,7 +17,7 @@
       tr { page-break-inside: avoid; }
     }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
+    th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
@@ -96,17 +96,17 @@
     <th rowspan="2" style="width:28px">№<br>п/п</th>
     <th rowspan="2" style="width:160px">Команда</th>
     <th rowspan="2" style="width:55px">Номер экипажа</th>
-    <th rowspan="2" style="min-width:98px">Фамилия, имя, отчество участников</th>
+    <th rowspan="2">Фамилия, имя, отчество участников</th>
     <th rowspan="2" style="min-width:80px">Территория</th>
     {% if мб_кол %}
     <th colspan="{{ мб_кол }}" style="border-bottom:0">Очки Многоборье</th>
     {% endif %}
     <th rowspan="2" style="width:80px">Очередь выбора позиции</th>
-    <th rowspan="2" style="width:75px">Время старта</th>
+    <th rowspan="2" style="width:56px">Время<br>старта</th>
   </tr>
   <tr>
     {% for кол in мб_колонки %}
-    <th style="width:52px;font-size:7pt;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;vertical-align:bottom;text-align:left">{{ кол.заг | safe }}</th>
+    <th style="width:26px;font-size:7pt;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;vertical-align:bottom;text-align:center">{{ кол.заг | safe }}</th>
     {% endfor %}
   </tr>
 </thead>
@@ -132,7 +132,7 @@
   <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '–' }}</td>
   {% endfor %}
   <td class="text-center">{{ нс.пп }}</td>
-  <td class="text-center" style="font-family:monospace">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
+  <td class="text-center" style="font-family:monospace;white-space:nowrap">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
 </tr>
 {% endfor %}
 {% endif %}
