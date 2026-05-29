@@ -153,14 +153,16 @@
 {# Определяем, какие стадии присутствуют (только для предварительного протокола) #}
 {% if not итоговый %}
 {% set _sn = namespace(есть_16=false, есть_18=false, есть_14=false, есть_12=false, есть_ф=false) %}
-{% for д in муж_ст.values() %}
+{% for з in муж_итог %}
+  {% set д = муж_ст.get(з.команда_id, {}) %}
   {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
   {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
   {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
   {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
   {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
 {% endfor %}
-{% for д in жен_ст.values() %}
+{% for з in жен_итог %}
+  {% set д = жен_ст.get(з.команда_id, {}) %}
   {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
   {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
   {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
