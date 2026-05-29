@@ -106,7 +106,7 @@
   </tr>
   <tr>
     {% for кол in мб_колонки %}
-    <th style="width:26px;font-size:7pt;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;vertical-align:bottom;text-align:center">{{ кол.заг | safe }}</th>
+    <th style="width:26px;font-size:7pt;white-space:nowrap;vertical-align:bottom;text-align:center;overflow:hidden;border-top:0.75pt solid #333"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">{{ кол.заг | safe }}</div></th>
     {% endfor %}
   </tr>
 </thead>
