@@ -142,8 +142,8 @@
     {%- else -%}—{%- endif -%}
   </td>
   {% endfor %}
-  <td class="text-center" style="font-family:monospace">{{ format_time(р1.время_старта) if р1 and р1.время_старта is not none else '' }}</td>
-  <td class="text-center" style="font-family:monospace">{{ format_time(р2.время_старта) if р2 and р2.время_старта is not none else '' }}</td>
+  <td class="text-center" style="font-family:monospace">{{ format_time_hms(р1.время_старта) if р1 and р1.время_старта is not none else '' }}</td>
+  <td class="text-center" style="font-family:monospace">{{ format_time_hms(р2.время_старта) if р2 and р2.время_старта is not none else '' }}</td>
 </tr>
 {% endfor %}
 {% endif %}

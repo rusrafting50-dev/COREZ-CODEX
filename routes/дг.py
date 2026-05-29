@@ -7,7 +7,7 @@ from models import (db, Соревнование, Команда, Результ
                     РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК, СТАТУС_ПМ, СТАТУС_ПЛВ)
-from routes.спринт import parse_time, format_time, format_dur
+from routes.спринт import parse_time, format_time, format_time_hms, format_dur
 from нормативы import получить_норматив
 from docx_utils import send_docx
 
@@ -305,7 +305,7 @@ def протокол_старт(sor_id):
                            муж_р6=муж_р6, жен_р6=жен_р6,
                            мб_колонки=мб_колонки,
                            вывод=вывод, последовательность=последовательность,
-                           format_time=format_time, format_dur=format_dur,
+                           format_time=format_time, format_time_hms=format_time_hms, format_dur=format_dur,
                            сегодня=date.today())
 
 
@@ -328,7 +328,7 @@ def протокол_старт_word(sor_id):
                            муж_р6=муж_р6, жен_р6=жен_р6,
                            мб_колонки=мб_колонки,
                            вывод=вывод, последовательность=последовательность,
-                           format_time=format_time, format_dur=format_dur,
+                           format_time=format_time, format_time_hms=format_time_hms, format_dur=format_dur,
                            сегодня=date.today())
     return send_docx(html, f'протокол_старт_дг_{sor_id}.docx')
 

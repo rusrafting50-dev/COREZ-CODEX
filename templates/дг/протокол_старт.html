@@ -132,7 +132,7 @@
   <td class="text-center">{{ (рм | attr(кол.поле) or 0) | int if рм else '–' }}</td>
   {% endfor %}
   <td class="text-center">{{ нс.пп }}</td>
-  <td class="text-center" style="font-family:monospace">{{ format_time(рез.время_старта) if рез and рез.время_старта else '' }}</td>
+  <td class="text-center" style="font-family:monospace">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
 </tr>
 {% endfor %}
 {% endif %}

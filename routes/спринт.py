@@ -57,6 +57,17 @@ def format_time(secs):
     return f'{h:02d}:{m:02d}:{si:02d}.{cc:02d}'
 
 
+def format_time_hms(secs):
+    """Секунды → ЧЧ:ММ:СС (без сотых, для печатных протоколов)."""
+    if secs is None:
+        return ''
+    secs = float(secs)
+    h = int(secs // 3600)
+    m = int((secs % 3600) // 60)
+    si = int(secs % 60)
+    return f'{h:02d}:{m:02d}:{si:02d}'
+
+
 def format_dur(secs):
     """Секунды → М:СС.сс (для отображения длительности)."""
     if secs is None:

@@ -6,7 +6,7 @@ from models import (db, Соревнование, Команда, Результ
                     РезультатПараллельногоСпринта, РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов, ПараметрыДистанции,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК, СТАТУС_ПЛВ)
-from routes.спринт import parse_time, format_time, format_dur
+from routes.спринт import parse_time, format_time, format_time_hms, format_dur
 from нормативы import получить_норматив
 from docx_utils import send_docx
 
@@ -502,7 +502,7 @@ def протокол_старт(sor_id):
                            последовательность=последовательность,
                            вывод=вывод,
                            мб_по_коду=мб_по_коду,
-                           format_time=format_time, сегодня=date.today())
+                           format_time=format_time, format_time_hms=format_time_hms, сегодня=date.today())
 
 
 @bp_слалом.route('/<int:sor_id>/протокол-старт-word')
@@ -526,7 +526,7 @@ def протокол_старт_word(sor_id):
                            последовательность=последовательность,
                            вывод=вывод,
                            мб_по_коду=мб_по_коду,
-                           format_time=format_time, сегодня=date.today())
+                           format_time=format_time, format_time_hms=format_time_hms, сегодня=date.today())
     return send_docx(html, f'протокол_старт_слалом_{sor_id}.docx')
 
 

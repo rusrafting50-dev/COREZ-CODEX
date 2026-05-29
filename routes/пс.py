@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатПараллельногоСпринта,
                     ТаблицаОчков,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
-from routes.спринт import parse_time, format_time
+from routes.спринт import parse_time, format_time, format_time_hms
 from нормативы import получить_норматив
 from docx_utils import send_docx
 
@@ -1079,7 +1079,7 @@ def _стартовый_контекст(sor_id, сор):
         жен_time_r6=жен_time_r6, жен_sh_r6=жен_sh_r6,
         n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
         виды_все=виды_все, текущий_порядок=текущий_порядок,
-        НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time,
+        НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time, format_time_hms=format_time_hms,
     )
 
 
@@ -1129,7 +1129,7 @@ def _сетка_контекст(sor_id, сор):
         жен_time_r6={}, жен_sh_r6=жен_sh_r6,
         n_муж_r6=n_муж_r6, n_жен_r6=n_жен_r6,
         виды_все=виды_все, текущий_порядок=текущий_порядок,
-        НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time,
+        НАЗВАНИЯ=НАЗВАНИЯ, format_dur=_format_dur, format_time=format_time, format_time_hms=format_time_hms,
     )
 
 
