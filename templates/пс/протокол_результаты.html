@@ -21,7 +21,6 @@
     @media print {
       @page { margin: 12mm 5mm 12mm 5mm; size: A4 portrait; }
       body { zoom: 57%; }
-      .col-итог-состав { max-width: 180px; overflow-wrap: break-word; word-break: break-word; }
     }
     {% endif %}
     table { border-collapse: collapse; width: 100%; }
@@ -178,7 +177,7 @@
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
-      <th {% if not итоговый %}rowspan="2" {% endif %}{% if итоговый %}class="col-итог-состав" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:520px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:520px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:160px{% else %}width:70px{% endif %}">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:56px">Место<br>СПРИНТ</th>
@@ -221,7 +220,7 @@
     <td class="text-center">{{ ns.idx }}</td>
     <td>{{ к.название or '–' }}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td {% if итоговый %}class="col-итог-состав" {% endif %}style="font-size:8pt">
+    <td style="font-size:8pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
@@ -277,7 +276,7 @@
     <td class="text-center">{{ ns.idx }}</td>
     <td>{{ к.название or '–' }}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td {% if итоговый %}class="col-итог-состав" {% endif %}style="font-size:8pt">
+    <td style="font-size:8pt">
       {% if состав %}
         {% if итоговый %}
           {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
