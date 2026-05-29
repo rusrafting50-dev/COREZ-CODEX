@@ -382,6 +382,25 @@ def _post_process_date_place_tables(doc):
                 pass
 
 
+def _add_page_breaks_after_sig_tables(doc):
+    """Insert a page-break paragraph after each table that contains 'Главный'."""
+    for table in doc.tables:
+        has_sig = any(
+            'Главный' in cell.text
+            for row in table.rows
+            for cell in row.cells
+        )
+        if not has_sig:
+            continue
+        p = OxmlElement('w:p')
+        r = OxmlElement('w:r')
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        r.append(br)
+        p.append(r)
+        table._tbl.addnext(p)
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename):
@@ -413,6 +432,9 @@ def send_docx(html_string, filename):
 
     # 6. Post-process: date/place table borders and alignment
     _post_process_date_place_tables(doc)
+
+    # 7. Insert page break after each signature table
+    _add_page_breaks_after_sig_tables(doc)
 
     buf = BytesIO()
     doc.save(buf)
