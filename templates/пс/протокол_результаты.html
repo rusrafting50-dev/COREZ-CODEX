@@ -152,21 +152,27 @@
 
 {# Определяем, какие стадии присутствуют (только для предварительного протокола) #}
 {% if not итоговый %}
-{% set _sn = namespace(есть_14=false, есть_12=false, есть_ф=false) %}
+{% set _sn = namespace(есть_16=false, есть_18=false, есть_14=false, есть_12=false, есть_ф=false) %}
 {% for д in муж_ст.values() %}
+  {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
+  {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
   {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
   {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
   {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
 {% endfor %}
 {% for д in жен_ст.values() %}
+  {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
+  {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
   {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
   {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
   {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
 {% endfor %}
+{% set _есть_16 = _sn.есть_16 %}
+{% set _есть_18 = _sn.есть_18 %}
 {% set _есть_14 = _sn.есть_14 %}
 {% set _есть_12 = _sn.есть_12 %}
 {% set _есть_ф  = _sn.есть_ф  %}
-{% set ncol = 11 + (_есть_14 | int * 2) + (_есть_12 | int * 2) + (_есть_ф | int * 2) %}
+{% set ncol = 11 + (_есть_16 | int * 2) + (_есть_18 | int * 2) + (_есть_14 | int * 2) + (_есть_12 | int * 2) + (_есть_ф | int * 2) %}
 {% else %}
 {% set ncol = 8 %}
 {% endif %}
@@ -175,13 +181,15 @@
 <table>
   <thead>
     <tr>
-      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px">№<br>п/п</th>
+      {% if not итоговый %}<th style="width:28px; white-space:nowrap">№</th>{% else %}<th style="width:28px">№<br>п/п</th>{% endif %}
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}{% if итоговый %}class="col-итог-состав" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:520px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:160px{% else %}width:70px{% endif %}">Субъект РФ</th>
       {% if not итоговый %}
       <th rowspan="2" style="width:56px">Место<br>СПРИНТ</th>
+      {% if _есть_16 %}<th colspan="2" class="text-center">1/16 финала</th>{% endif %}
+      {% if _есть_18 %}<th colspan="2" class="text-center">1/8 финала</th>{% endif %}
       {% if _есть_14 %}<th colspan="2" class="text-center">¼ финала</th>{% endif %}
       {% if _есть_12 %}<th colspan="2" class="text-center">½ финала</th>{% endif %}
       {% if _есть_ф  %}<th colspan="2" class="text-center">Финалы</th>{% endif %}
@@ -193,6 +201,9 @@
     </tr>
     {% if not итоговый %}
     <tr>
+      <th style="white-space:nowrap">п/п</th>
+      {% if _есть_16 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_18 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
       {% if _есть_14 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
       {% if _есть_12 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
       {% if _есть_ф  %}<th style="width:46px">Финал</th><th style="width:64px">Результат</th>{% endif %}
@@ -211,6 +222,8 @@
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set рез_сп = к.результат_спринт %}
   {% if not итоговый %}
+  {% set з_16 = муж_ст.get(к.id, {}).get('1/16') %}
+  {% set з_18 = муж_ст.get(к.id, {}).get('1/8') %}
   {% set з_14 = муж_ст.get(к.id, {}).get('1/4') %}
   {% set з_12 = муж_ст.get(к.id, {}).get('1/2') %}
   {% set з_фа = муж_ст.get(к.id, {}).get('Финал_А') %}
@@ -233,6 +246,14 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '–' }}</td>
+    {% if _есть_16 %}
+    <td class="text-center">{% if з_16 %}{{ з_16.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_16) }}</td>
+    {% endif %}
+    {% if _есть_18 %}
+    <td class="text-center">{% if з_18 %}{{ з_18.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_18) }}</td>
+    {% endif %}
     {% if _есть_14 %}
     <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}–{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
@@ -267,6 +288,8 @@
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set рез_сп = к.результат_спринт %}
   {% if not итоговый %}
+  {% set з_16 = жен_ст.get(к.id, {}).get('1/16') %}
+  {% set з_18 = жен_ст.get(к.id, {}).get('1/8') %}
   {% set з_14 = жен_ст.get(к.id, {}).get('1/4') %}
   {% set з_12 = жен_ст.get(к.id, {}).get('1/2') %}
   {% set з_фа = жен_ст.get(к.id, {}).get('Финал_А') %}
@@ -289,6 +312,14 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '–' }}</td>
+    {% if _есть_16 %}
+    <td class="text-center">{% if з_16 %}{{ з_16.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_16) }}</td>
+    {% endif %}
+    {% if _есть_18 %}
+    <td class="text-center">{% if з_18 %}{{ з_18.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_18) }}</td>
+    {% endif %}
     {% if _есть_14 %}
     <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}–{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
