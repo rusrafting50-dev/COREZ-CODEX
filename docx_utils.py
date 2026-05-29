@@ -386,7 +386,7 @@ def _add_page_breaks_after_sig_tables(doc):
     """Insert a page-break paragraph after each table that contains 'Главный'."""
     for table in doc.tables:
         has_sig = any(
-            'Главный' in cell.text
+            'Главный секретарь' in cell.text
             for row in table.rows
             for cell in row.cells
         )
