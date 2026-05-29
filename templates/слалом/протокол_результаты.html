@@ -327,7 +327,7 @@
     <col style="width:46px">
     <col style="width:22px">
     <col style="width:30px">
-    <col style="width:36px">
+    <col style="width:50px">
   </colgroup>
   <thead>
     <tr>
@@ -342,10 +342,10 @@
       <th rowspan="2" style="white-space:normal;word-break:normal;overflow:visible">Результат лучшей попытки</th>
       <th rowspan="2" style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">Место</div></th>
       <th rowspan="2">Очки</th>
-      <th rowspan="2" style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">Выполнение разряда{% if есть_сноска %}*{% endif %}</div></th>
+      <th rowspan="2" style="text-align:center">Выполнение<br>разряда{% if есть_сноска %}*{% endif %}</th>
     </tr>
     <tr>
-      <th style="padding:2px"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
+      <th style="padding:2px;text-align:center"><div style="writing-mode:vertical-rl;transform:rotate(180deg)">Старт</div></th>
       {% for в in range(1, кол_ворот + 1) %}<th>{{ в }}</th>{% endfor %}
       <th style="padding:2px;text-align:center;mso-rotate:-90"><div style="writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block">Финиш</div></th>
       <th>Штраф</th>
