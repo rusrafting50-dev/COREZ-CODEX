@@ -162,6 +162,8 @@ def _рассчитать(sor_id, пол, класс=None):
             рез.очки = оч.очки if оч else 0
 
     db.session.commit()
+    from routes.многоборье import обновить_мб_очки
+    обновить_мб_очки(sor_id)
     return [рез for _, рез in с_местом], без_места, разряды
 
 

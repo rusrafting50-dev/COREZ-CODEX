@@ -174,6 +174,8 @@ def _рассчитать_итог(sor_id, пол, класс=None):
         рез.очки = 0
 
     db.session.commit()
+    from routes.многоборье import обновить_мб_очки
+    обновить_мб_очки(sor_id)
     return (
         [рез for _, _, рез in финишеры],
         [рез for _, _, рез in пм],
