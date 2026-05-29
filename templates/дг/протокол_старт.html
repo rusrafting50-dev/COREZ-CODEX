@@ -218,7 +218,12 @@ function exportWord() {
     var next = div.nextElementSibling;
     if (next && next.firstElementChild) next.firstElementChild.style.pageBreakBefore = 'always';
   });
-  clone.querySelectorAll('.w-pb').forEach(function(el){ el.style.pageBreakAfter = 'always'; });
+  clone.querySelectorAll('.w-pb').forEach(function(el){
+    var pb = document.createElement('p');
+    pb.style.cssText = 'page-break-after:always;margin:0;line-height:0;font-size:1px';
+    pb.innerHTML = '&nbsp;';
+    el.parentNode.replaceChild(pb, el);
+  });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
