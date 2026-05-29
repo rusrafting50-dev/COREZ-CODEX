@@ -57,7 +57,20 @@
 </div>
 
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+{%- for строка in сор.организаторы_блок.split('\n') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+  {%- elif '«' in строка -%}
+    {%- set ч = строка.split('«', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+</div>
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
