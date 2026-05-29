@@ -85,6 +85,7 @@
     <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
   </tr>
 </table>
+<div class="w-pb"></div>
 {% endmacro %}
 
 {# ── Макрос: заголовок таблицы (принимает список колонок для конкретного вида) ── #}
@@ -236,6 +237,7 @@ function exportWord() {
     var next = div.nextElementSibling;
     if (next && next.firstElementChild) next.firstElementChild.style.pageBreakBefore = 'always';
   });
+  clone.querySelectorAll('.w-pb').forEach(function(el){ el.style.pageBreakAfter = 'always'; });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
