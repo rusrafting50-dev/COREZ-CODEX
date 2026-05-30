@@ -183,7 +183,7 @@
 <table>
   <thead>
     <tr>
-      {% if not итоговый %}<th style="width:28px; white-space:nowrap">№</th>{% else %}<th style="width:28px">№<br>п/п</th>{% endif %}
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px;white-space:nowrap">№<br>п/п</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
       <th {% if not итоговый %}rowspan="2" {% endif %}{% if итоговый %}class="col-итог-состав" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:520px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
@@ -203,7 +203,6 @@
     </tr>
     {% if not итоговый %}
     <tr>
-      <th style="white-space:nowrap">п/п</th>
       {% if _есть_16 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
       {% if _есть_18 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
       {% if _есть_14 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
