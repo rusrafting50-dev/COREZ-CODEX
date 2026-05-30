@@ -249,13 +249,17 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  {% if портрет %}
+  css += '@page WordSection1{size:595.3pt 841.9pt;mso-page-orientation:portrait;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  {% else %}
+  css += '@page WordSection1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  {% endif %}
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
   var post = '</body></html>';
-  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
