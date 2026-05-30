@@ -91,6 +91,7 @@
 {# ── Макрос: заголовок таблицы (принимает список колонок для конкретного вида) ── #}
 {% macro thead(мб_список) %}
 {% set мб_кол = мб_список | length %}
+{% set один_без_суммы = мб_кол == 1 %}
 <thead>
   <tr>
     <th rowspan="2" style="white-space:nowrap">№<br>п/п</th>
@@ -98,16 +99,20 @@
     <th rowspan="2" style="width:40px">Номер</th>
     <th rowspan="2" style="width:43%">Фамилия, имя, отчество участников</th>
     <th rowspan="2" style="min-width:80px">Территория</th>
-    {% if мб_кол %}
+    {% if один_без_суммы %}
+    <th rowspan="2" style="width:26px;font-size:7pt;white-space:nowrap">Очки<br>Много&shy;борье<br>{{ мб_список[0].заг | safe }}</th>
+    {% elif мб_кол %}
     <th colspan="{{ мб_кол }}">Очки Многоборье</th>
     {% endif %}
     <th rowspan="2" style="white-space:nowrap">Очередь<br>выбора<br>позиции</th>
     <th rowspan="2" style="width:56px">Время<br>старта</th>
   </tr>
   <tr>
+    {% if not один_без_суммы %}
     {% for кол in мб_список %}
     <th style="width:26px;font-size:7pt;white-space:nowrap;vertical-align:bottom;text-align:center;overflow:hidden;border-top:0.75pt solid #333"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">{{ кол.заг | safe }}</div></th>
     {% endfor %}
+    {% endif %}
   </tr>
 </thead>
 {% endmacro %}
