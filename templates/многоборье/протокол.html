@@ -30,6 +30,10 @@
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
+    @media print {
+      table { border-collapse: collapse !important; }
+      th, td { border: 0.75pt solid #333 !important; }
+    }
   </style>
 </head>
 <body class="px-3 py-3">
