@@ -243,8 +243,8 @@ function exportWord() {
   });
   clone.querySelectorAll('.w-pb').forEach(function(el){
     var pb = document.createElement('p');
-    pb.style.cssText = 'page-break-after:always;margin:0;line-height:0;font-size:1px';
-    pb.innerHTML = '&nbsp;';
+    pb.style.cssText = 'margin:0;padding:0;line-height:0;font-size:1px';
+    pb.innerHTML = '<br style="mso-special-character:line-break;page-break-before:always">';
     el.parentNode.replaceChild(pb, el);
   });
   var css = '';
