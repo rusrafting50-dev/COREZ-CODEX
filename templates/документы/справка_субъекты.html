@@ -41,11 +41,11 @@
 
 {# ── Шапка: как в протоколе допуска ── #}
 {% if сор.организаторы_блок %}
-<div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
+<div style="text-align:center; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
 {% endif %}
-<div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
+<div style="text-align:center; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
 {% if сор.номер_екп %}
-<div style="text-align:center; font-size:10pt; font-weight:bold; margin-bottom:2px">ЕКП №{{ сор.номер_екп }}</div>
+<div style="text-align:center; font-weight:bold; margin-bottom:2px">ЕКП №{{ сор.номер_екп }}</div>
 {% endif %}
 <div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 16px">
   <div>
@@ -83,7 +83,7 @@
 </table>
 
 {# ── Подпись: как в протоколе допуска ── #}
-<div style="margin-top:20px; font-size:10pt; font-weight:bold">
+<div style="margin-top:20px; font-weight:bold">
   <div style="display:flex; align-items:baseline">
     <div style="width:42%">Главный судья соревнований</div>
     <div>{{ сор.главный_судья or '' }}</div>
