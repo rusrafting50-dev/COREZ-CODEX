@@ -23,6 +23,8 @@
        class="btn btn-outline-primary btn-sm">← Состав комиссии</a>
     <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол комиссии по допуску</a>
+    <a href="{{ url_for('документы.справка_субъекты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Справка о количестве субъектов</a>
     <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Новая заявка</a>
   </div>
