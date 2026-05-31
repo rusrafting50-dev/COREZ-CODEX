@@ -16,12 +16,8 @@
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { border-collapse: separate; border-spacing: 0; width: 100%; }
-    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
-    thead tr:first-child th, thead tr:first-child td { border-top: 0.75pt solid #333; }
-    thead tr:first-child th:first-child,
-    thead tr:first-child td:first-child,
-    tbody td:first-child { border-left: 0.75pt solid #333; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .text-center { text-align: center; }
     .underline-field { border-bottom: 0.75pt solid #000; min-width: 160px; display: inline-block; }
