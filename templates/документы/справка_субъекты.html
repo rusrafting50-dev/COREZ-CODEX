@@ -14,11 +14,10 @@
                  letter-spacing: 1px; margin: 0 0 4pt; }
     .doc-subtitle { text-align: center; font-size: 12pt; margin: 0 0 2pt; }
     .count-line { font-size: 12pt; margin: 12pt 0 8pt; }
-    .list-heading { font-weight: bold; font-size: 12pt; margin: 12pt 0 4pt; }
+    .list-heading { font-size: 12pt; margin: 12pt 0 4pt; }
     .subj-table { width: 100%; border-collapse: collapse; font-size: 12pt; margin-bottom: 20pt; }
     .subj-table td { padding: 2pt 6pt; vertical-align: top; }
     .subj-table td:first-child { width: 30pt; text-align: right; padding-right: 8pt; white-space: nowrap; }
-    .footer-date { margin-top: 12pt; font-size: 10pt; color: #666; }
     .underline-field { border-bottom: 0.75pt solid #000; display: inline-block; min-width: 120px; }
   </style>
 </head>
@@ -41,7 +40,7 @@
 
 {# ── Шапка: как в протоколе допуска ── #}
 {% if сор.организаторы_блок %}
-<div style="text-align:center; font-weight:bold; margin-bottom:4px">
+<div style="text-align:center; margin-bottom:1em">
 {%- for строка in сор.организаторы_блок.split('\n') -%}
   {%- if '"' in строка -%}
     {%- set ч = строка.split('"', 1) -%}
@@ -58,9 +57,9 @@
 {% endif %}
 <div style="text-align:center; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
 {% if сор.номер_екп %}
-<div style="text-align:center; font-weight:bold; margin-bottom:2px">ЕКП №{{ сор.номер_екп }}</div>
+<div style="text-align:center; margin-bottom:2px">ЕКП №{{ сор.номер_екп }}</div>
 {% endif %}
-<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 16px">
+<div style="display:flex; justify-content:space-between; font-size:10pt; margin:6px 0 16px">
   <div>
     <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
     <div style="font-size:7.5pt; text-align:center">дата проведения</div>
@@ -95,15 +94,14 @@
   {% endfor %}
 </table>
 
-{# ── Подпись: как в протоколе допуска ── #}
-<div style="margin-top:20px; font-weight:bold">
-  <div style="display:flex; align-items:baseline">
-    <div style="width:42%">Главный судья соревнований</div>
-    <div>{{ сор.главный_судья or '' }}</div>
+{# ── Подпись ── #}
+<div style="margin-top:20px; display:flex; align-items:baseline">
+  <div style="width:50%">Главный судья соревнований</div>
+  <div>{{ сор.главный_судья or '' -}}
+    {%- if сор.главный_судья_квалификация %}, {{ сор.главный_судья_квалификация }}{% endif %}
+    {%- if сор.главный_судья_субъект_рф %}, {{ сор.главный_судья_субъект_рф }}{% endif %}
   </div>
 </div>
-
-<div class="footer-date">Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА</div>
 
 <script>
 function exportWord() {
