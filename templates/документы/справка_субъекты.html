@@ -10,26 +10,16 @@
       @page { size: A4 portrait; margin: 20mm 15mm 20mm 25mm; }
       body { font-size: 11pt; }
     }
-    .header-orgs { display: flex; justify-content: space-between; font-size: 10pt; margin-bottom: 18pt; line-height: 1.3; }
-    .header-orgs div { width: 45%; text-align: center; }
     .doc-title { text-align: center; font-weight: bold; font-size: 14pt; text-transform: uppercase;
                  letter-spacing: 1px; margin: 0 0 4pt; }
     .doc-subtitle { text-align: center; font-size: 12pt; margin: 0 0 2pt; }
-    .meta-table { width: 100%; border-collapse: collapse; margin: 16pt 0 12pt; font-size: 12pt; }
-    .meta-table td { padding: 2pt 4pt; vertical-align: top; }
-    .meta-table td:first-child { white-space: nowrap; font-weight: bold; padding-right: 8pt; }
     .count-line { font-size: 12pt; margin: 12pt 0 8pt; }
     .list-heading { font-weight: bold; font-size: 12pt; margin: 12pt 0 4pt; }
     .subj-table { width: 100%; border-collapse: collapse; font-size: 12pt; margin-bottom: 20pt; }
     .subj-table td { padding: 2pt 6pt; vertical-align: top; }
     .subj-table td:first-child { width: 30pt; text-align: right; padding-right: 8pt; white-space: nowrap; }
-    .sign-block { margin-top: 30pt; font-size: 12pt; }
-    .sign-row { display: flex; justify-content: space-between; margin-bottom: 6pt; }
-    .sign-row .label { width: 200pt; }
-    .sign-row .line { flex: 1; border-bottom: 1px solid #000; margin: 0 8pt; }
-    .sign-row .fio { white-space: nowrap; }
     .footer-date { margin-top: 12pt; font-size: 10pt; color: #666; }
-    .underline-field { border-bottom: 1px solid #000; display: inline-block; min-width: 180px; }
+    .underline-field { border-bottom: 0.75pt solid #000; display: inline-block; min-width: 120px; }
   </style>
 </head>
 <body>
@@ -49,41 +39,30 @@
   </div>
 </div>
 
-{# ── Шапка: организаторы ── #}
+{# ── Шапка: как в протоколе допуска ── #}
 {% if сор.организаторы_блок %}
-<div class="header-orgs">
-  {%- set строки = сор.организаторы_блок.split('\n') | map('trim') | select | list -%}
-  {%- set половина = (строки | length // 2) -%}
-  <div>{% for с in строки[:половина] %}{{ с }}<br>{% endfor %}</div>
-  <div>{% for с in строки[половина:] %}{{ с }}<br>{% endfor %}</div>
-</div>
-{% else %}
-<div class="header-orgs">
-  <div>Министерство спорта<br>Российской Федерации</div>
-  <div>Общероссийская общественная организация<br>«Федерация рафтинга России»</div>
-</div>
+<div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
 {% endif %}
+<div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
+<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 16px">
+  <div>
+    <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">дата проведения</div>
+  </div>
+  <div style="text-align:center">
+    <span class="underline-field" style="text-align:center; padding:0 4px; min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">место проведения</div>
+  </div>
+</div>
 
 {# ── Заголовок ── #}
 <p class="doc-title">СПРАВКА</p>
 <p class="doc-subtitle">о количестве субъектов Российской Федерации,</p>
 <p class="doc-subtitle">принявших участие в спортивных соревнованиях по рафтингу</p>
 
-{# ── Реквизиты ── #}
-<table class="meta-table">
-  <tr>
-    <td>Спортивные соревнования:</td>
-    <td>{{ сор.название }}{% if сор.номер_екп %}&nbsp;&nbsp;&nbsp;&nbsp;СМ в ЕКП №{{ сор.номер_екп }}{% endif %}</td>
-  </tr>
-  <tr>
-    <td>Дата проведения:</td>
-    <td>{{ сор.даты_проведения or '___' }}</td>
-  </tr>
-  <tr>
-    <td>Место проведения:</td>
-    <td>{{ сор.место_проведения or '___' }}</td>
-  </tr>
-</table>
+{% if сор.номер_екп %}
+<div style="text-align:center; font-size:10pt; margin-bottom:8px">СМ в ЕКП №{{ сор.номер_екп }}</div>
+{% endif %}
 
 {# ── Количество субъектов ── #}
 <p class="count-line">
@@ -104,12 +83,11 @@
   {% endfor %}
 </table>
 
-{# ── Подпись ── #}
-<div class="sign-block">
-  <div class="sign-row">
-    <span class="label">Главный судья</span>
-    <span class="line"></span>
-    <span class="fio">{{ ('/' ~ сор.главный_судья ~ '/') if сор.главный_судья else '/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/' }}</span>
+{# ── Подпись: как в протоколе допуска ── #}
+<div style="margin-top:20px; font-size:10pt; font-weight:bold">
+  <div style="display:flex; align-items:baseline">
+    <div style="width:42%">Главный судья соревнований</div>
+    <div>{{ сор.главный_судья or '' }}</div>
   </div>
 </div>
 
