@@ -81,11 +81,11 @@
 <div class="регламент-страница">
 
   {# ── Блоки УТВЕРЖДАЮ — строка 1: заголовок + должность + организация ── #}
-  <div style="display:flex; justify-content:space-between; font-size:10pt; line-height:1.15;">
+  <div style="display:flex; justify-content:space-between; line-height:1.15;">
 
     {# Левый: Спортивная федерация #}
     <div style="width:47%; text-align:center;">
-      <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
+      <div style="font-weight:bold; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
       {% if сор.федерация_должность %}<div>{{ сор.федерация_должность }}</div>{% endif %}
       {% if сор.федерация_название %}
         {%- if '«' in сор.федерация_название -%}
@@ -99,7 +99,7 @@
 
     {# Правый: Проводящая организация #}
     <div style="width:47%; text-align:center;">
-      <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
+      <div style="font-weight:bold; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
       {% if сор.проводящая_орг_должность %}<div>{{ сор.проводящая_орг_должность }}</div>{% endif %}
       {% if сор.проводящая_орг_название %}
         {%- if '«' in сор.проводящая_орг_название -%}
@@ -114,7 +114,7 @@
   </div>
 
   {# ── Блоки УТВЕРЖДАЮ — строка 2: подпись + ФИО + дата ── #}
-  <div style="display:flex; justify-content:space-between; font-size:10pt; line-height:1.15; margin-top:6pt; margin-bottom:10pt;">
+  <div style="display:flex; justify-content:space-between; line-height:1.15; margin-top:6pt; margin-bottom:10pt;">
 
     {# Левый: подпись + ФИО + дата #}
     <div style="width:47%; text-align:center;">
