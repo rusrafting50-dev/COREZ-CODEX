@@ -213,8 +213,8 @@
   <table class="schedule-table">
     <thead>
       <tr>
-        <th style="width:90pt">Дата</th>
-        <th style="width:60pt">Время</th>
+        <th style="width:70pt">Дата</th>
+        <th style="width:80pt; white-space:nowrap">Время</th>
         <th>Наименование</th>
       </tr>
     </thead>
@@ -228,7 +228,7 @@
           {% set нс.same = программа | selectattr('дата', 'equalto', пункт.дата) | list | length %}
           <td rowspan="{{ нс.same }}" style="text-align:center; vertical-align:middle">{{ пункт.дата or '' }}</td>
         {% endif %}
-        <td>{{ пункт.время or '' }}</td>
+        <td style="white-space:nowrap">{{ пункт.время or '' }}</td>
         <td>{{ пункт.наименование or '' }}</td>
       </tr>
       {% endfor %}
