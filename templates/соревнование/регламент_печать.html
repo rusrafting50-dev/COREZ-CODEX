@@ -80,11 +80,11 @@
 
 <div class="регламент-страница">
 
-  {# ── Блоки УТВЕРЖДАЮ ── #}
-  <div style="display:flex; justify-content:space-between; margin-bottom:10pt; font-size:10pt;">
+  {# ── Блоки УТВЕРЖДАЮ — строка 1: заголовок + должность + организация ── #}
+  <div style="display:flex; justify-content:space-between; font-size:10pt; line-height:1.15;">
 
     {# Левый: Спортивная федерация #}
-    <div style="width:47%; text-align:center; line-height:1.15;">
+    <div style="width:47%; text-align:center;">
       <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
       {% if сор.федерация_должность %}<div>{{ сор.федерация_должность }}</div>{% endif %}
       {% if сор.федерация_название %}
@@ -95,15 +95,10 @@
           <div>{{ сор.федерация_название }}</div>
         {%- endif -%}
       {% endif %}
-      {% if сор.федерация_руководитель %}
-      {%- set _фио = сор.федерация_руководитель.split() -%}
-      <div style="margin-top:6px; text-align:right;">___________&nbsp;{% if _фио | length >= 3 %}{{ _фио[1][0] }}.{{ _фио[2][0] }}.&nbsp;{{ _фио[0] }}{% else %}{{ сор.федерация_руководитель }}{% endif %}</div>
-      {% endif %}
-      <div style="margin-top:4px;">«____»___________202__г.</div>
     </div>
 
     {# Правый: Проводящая организация #}
-    <div style="width:47%; text-align:center; line-height:1.15;">
+    <div style="width:47%; text-align:center;">
       <div style="font-weight:bold; font-size:11pt; text-transform:uppercase; margin-bottom:4px">УТВЕРЖДАЮ</div>
       {% if сор.проводящая_орг_должность %}<div>{{ сор.проводящая_орг_должность }}</div>{% endif %}
       {% if сор.проводящая_орг_название %}
@@ -114,9 +109,31 @@
           <div>{{ сор.проводящая_орг_название }}</div>
         {%- endif -%}
       {% endif %}
+    </div>
+
+  </div>
+
+  {# ── Блоки УТВЕРЖДАЮ — строка 2: подпись + ФИО + дата ── #}
+  <div style="display:flex; justify-content:space-between; font-size:10pt; line-height:1.15; margin-top:6pt; margin-bottom:10pt;">
+
+    {# Левый: подпись + ФИО + дата #}
+    <div style="width:47%; text-align:center;">
+      {% if сор.федерация_руководитель %}
+      {%- set _фио = сор.федерация_руководитель.split() -%}
+      <div style="text-align:right;">___________&nbsp;{% if _фио | length >= 3 %}{{ _фио[1][0] }}.{{ _фио[2][0] }}.&nbsp;{{ _фио[0] }}{% else %}{{ сор.федерация_руководитель }}{% endif %}</div>
+      {% else %}
+      <div style="text-align:right;">___________&nbsp;___________</div>
+      {% endif %}
+      <div style="margin-top:4px;">«____»___________202__г.</div>
+    </div>
+
+    {# Правый: подпись + ФИО + дата #}
+    <div style="width:47%; text-align:center;">
       {% if сор.проводящая_орг_руководитель %}
       {%- set _фио2 = сор.проводящая_орг_руководитель.split() -%}
-      <div style="margin-top:6px; text-align:right;">___________&nbsp;{% if _фио2 | length >= 3 %}{{ _фио2[1][0] }}.{{ _фио2[2][0] }}.&nbsp;{{ _фио2[0] }}{% else %}{{ сор.проводящая_орг_руководитель }}{% endif %}</div>
+      <div style="text-align:right;">___________&nbsp;{% if _фио2 | length >= 3 %}{{ _фио2[1][0] }}.{{ _фио2[2][0] }}.&nbsp;{{ _фио2[0] }}{% else %}{{ сор.проводящая_орг_руководитель }}{% endif %}</div>
+      {% else %}
+      <div style="text-align:right;">___________&nbsp;___________</div>
       {% endif %}
       <div style="margin-top:4px;">«____»___________202__г.</div>
     </div>
