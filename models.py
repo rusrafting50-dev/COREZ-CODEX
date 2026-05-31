@@ -276,7 +276,8 @@ class Субъект(db.Model):
     номер_делегации     = db.Column(db.Integer, nullable=True)
     название            = db.Column(db.String(150), nullable=False)   # территория / регион
     код_субъекта_рф     = db.Column(db.Integer, nullable=True)        # официальный код субъекта
-    представитель       = db.Column(db.String(200), nullable=True)    # ФИО тренера-представителя
+    представитель       = db.Column(db.String(200), nullable=True)    # ФИО представителя
+    тренер              = db.Column(db.String(200), nullable=True)    # ФИО тренера
 
     # Связи
     соревнование    = db.relationship('Соревнование', back_populates='субъекты')
@@ -924,11 +925,16 @@ def применить_миграции():
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
     with db.engine.connect() as conn:
-        # субъекты: представитель
+        # субъекты: представитель, тренер
         cols = {c['name'] for c in inspector.get_columns('субъекты')}
         if 'представитель' not in cols:
             conn.execute(text(
                 'ALTER TABLE субъекты ADD COLUMN представитель VARCHAR(200)'
+            ))
+            conn.commit()
+        if 'тренер' not in cols:
+            conn.execute(text(
+                'ALTER TABLE субъекты ADD COLUMN тренер VARCHAR(200)'
             ))
             conn.commit()
         # команды: класс_судна

@@ -56,9 +56,16 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Фамилия, имя, отчество тренера-представителя</label>
-          <input type="text" name="тренер_представитель" class="form-control"
+          <label class="form-label fw-semibold">Фамилия, имя, отчество представителя</label>
+          <input type="text" name="представитель" class="form-control"
                  value="{{ команда.субъект.представитель if команда and команда.субъект and команда.субъект.представитель else '' }}"
+                 placeholder="Фамилия Имя Отчество">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Фамилия, имя, отчество тренера</label>
+          <input type="text" name="тренер" class="form-control"
+                 value="{{ команда.субъект.тренер if команда and команда.субъект and команда.субъект.тренер else '' }}"
                  placeholder="Фамилия Имя Отчество">
         </div>
 
@@ -234,17 +241,23 @@
 const РАЗРЯДЫ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
 const ДИСТ    = [['спринт','СП'],['пс','ПС'],['слалом','СЛ'],['дг','ДГ']];
 
-// Авто-заполнение тренера при выборе субъекта
-const СУБЪЕКТЫ_ТРЕНЕРЫ = {
+// Авто-заполнение представителя и тренера при выборе субъекта
+const СУБЪЕКТЫ_ПРЕДСТАВИТЕЛИ = {
   {% for с in субъекты %}{% if с.представитель %}"{{ с.id }}": {{ с.представитель | tojson }},{% endif %}{% endfor %}
+};
+const СУБЪЕКТЫ_ТРЕНЕРЫ = {
+  {% for с in субъекты %}{% if с.тренер %}"{{ с.id }}": {{ с.тренер | tojson }},{% endif %}{% endfor %}
 };
 (function() {
   const selСубъект = document.querySelector('select[name="субъект_id"]');
-  const inpТренер  = document.querySelector('input[name="тренер_представитель"]');
-  if (!selСубъект || !inpТренер) return;
+  const inpПред    = document.querySelector('input[name="представитель"]');
+  const inpТренер  = document.querySelector('input[name="тренер"]');
+  if (!selСубъект) return;
   selСубъект.addEventListener('change', function() {
+    const пред   = СУБЪЕКТЫ_ПРЕДСТАВИТЕЛИ[this.value] || '';
     const тренер = СУБЪЕКТЫ_ТРЕНЕРЫ[this.value] || '';
-    if (тренер) inpТренер.value = тренер;
+    if (inpПред   && пред)   inpПред.value   = пред;
+    if (inpТренер && тренер) inpТренер.value = тренер;
   });
 })();
 
