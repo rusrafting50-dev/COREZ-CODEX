@@ -694,6 +694,103 @@ def _merge_section_rows(doc, section_row_texts):
                     rPr.append(OxmlElement('w:bCs'))
 
 
+# ─── Post-processing: left-align specific data-table columns ─────────────────
+
+def _left_align_data_columns(doc, header_texts):
+    """
+    For each table whose first row contains a header matching one of header_texts,
+    left-align (jc=left) every cell in that column across all rows.
+    Works at XML level to avoid python-docx cache issues after merges.
+    """
+    for table in doc.tables:
+        tbl = table._tbl
+        trs = tbl.findall(qn('w:tr'))
+        if not trs:
+            continue
+        header_tcs = trs[0].findall(qn('w:tc'))
+        left_cols: set[int] = set()
+        for col_idx, tc in enumerate(header_tcs):
+            cell_text = ''.join((t.text or '') for t in tc.iter(qn('w:t'))).strip()
+            if cell_text in header_texts:
+                left_cols.add(col_idx)
+        if not left_cols:
+            continue
+        for tr in trs:
+            for col_idx, tc in enumerate(tr.findall(qn('w:tc'))):
+                if col_idx not in left_cols:
+                    continue
+                for w_p in tc.findall('.//' + qn('w:p')):
+                    pPr = w_p.find(qn('w:pPr'))
+                    if pPr is None:
+                        pPr = OxmlElement('w:pPr')
+                        w_p.insert(0, pPr)
+                    jc = pPr.find(qn('w:jc'))
+                    if jc is None:
+                        jc = OxmlElement('w:jc')
+                        pPr.append(jc)
+                    jc.set(qn('w:val'), 'left')
+
+
+# ─── Post-processing: signature table rows — left-align + minimum height ──────
+
+def _post_process_sig_tables(doc, row_height_twips=500):
+    """
+    Find tables that contain 'Главный секретарь' (signature blocks) and:
+      - left-align every cell
+      - set minimum row height so rows are roughly twice the normal line height
+    """
+    for table in doc.tables:
+        has_sig = any(
+            'Главный секретарь' in cell.text
+            for row in table.rows
+            for cell in row.cells
+        )
+        if not has_sig:
+            continue
+        for tr in table._tbl.findall(qn('w:tr')):
+            # Minimum row height
+            trPr = tr.find(qn('w:trPr'))
+            if trPr is None:
+                trPr = OxmlElement('w:trPr')
+                tr.insert(0, trPr)
+            old = trPr.find(qn('w:trHeight'))
+            if old is not None:
+                trPr.remove(old)
+            trH = OxmlElement('w:trHeight')
+            trH.set(qn('w:val'), str(row_height_twips))
+            trH.set(qn('w:hRule'), 'atLeast')
+            trPr.append(trH)
+            # Left-align all cells
+            for tc in tr.findall(qn('w:tc')):
+                for w_p in tc.findall('.//' + qn('w:p')):
+                    pPr = w_p.find(qn('w:pPr'))
+                    if pPr is None:
+                        pPr = OxmlElement('w:pPr')
+                        w_p.insert(0, pPr)
+                    jc = pPr.find(qn('w:jc'))
+                    if jc is None:
+                        jc = OxmlElement('w:jc')
+                        pPr.append(jc)
+                    jc.set(qn('w:val'), 'left')
+
+
+# ─── Post-processing: remove leading empty paragraphs from document body ──────
+
+def _remove_leading_empty_paragraphs(doc, max_remove=5):
+    """Remove empty paragraphs that HtmlToDocx leaves at the start of the document."""
+    body = doc.element.body
+    removed = 0
+    while removed < max_remove:
+        children = list(body)
+        if not children or children[0].tag != qn('w:p'):
+            break
+        has_text = any((t.text or '').strip() for t in children[0].iter(qn('w:t')))
+        if has_text:
+            break
+        body.remove(children[0])
+        removed += 1
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
@@ -745,17 +842,30 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # 5d. Center all cells + No Spacing + Times New Roman (overridden where needed below)
     _center_all_cells(doc)
 
-    # 5e. noWrap on specific header cells that must stay on one line
+    # 5e. Left-align columns that should not be centered
+    _left_align_data_columns(doc, {
+        'Команда',
+        'Фамилия, имя, отчество участников',
+        'Территория',
+    })
+
+    # 5f. noWrap on specific header cells that must stay on one line
     _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников'})
 
     # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
     _post_process_date_place_tables(doc, border_size=date_place_border_size)
+
+    # 6b. Signature tables: left-align + 2× row height
+    _post_process_sig_tables(doc)
 
     # 7. Insert page break after each signature table
     _add_page_breaks_after_sig_tables(doc)
 
     # 8. Overwrite borders on data tables with uniform single 0.375pt lines
     _set_all_table_borders(doc, data_table_indices)
+
+    # 9. Remove empty paragraphs HtmlToDocx leaves at the top of the document
+    _remove_leading_empty_paragraphs(doc)
 
     buf = BytesIO()
     doc.save(buf)
