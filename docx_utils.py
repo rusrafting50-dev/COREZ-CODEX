@@ -348,15 +348,19 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
             ]
 
         for row in table.rows:
-            # Sum widths across colspan-merged cells, then apply once per unique tc
+            # Collect cells and their _tc refs first to hold strong references.
+            # lxml proxy objects get new ids after GC, so id(cell._tc) is only
+            # stable while a strong reference to the proxy is held.
+            row_cells = list(row.cells)
+            row_tcs   = [c._tc for c in row_cells]
             tc_widths: dict[int, int] = {}
-            for c_idx, cell in enumerate(row.cells):
-                tc_id = id(cell._tc)
+            for c_idx, tc in enumerate(row_tcs):
+                tc_id = id(tc)
                 if c_idx < len(col_twips):
                     tc_widths[tc_id] = tc_widths.get(tc_id, 0) + col_twips[c_idx]
             applied: set[int] = set()
-            for cell in row.cells:
-                tc_id = id(cell._tc)
+            for cell, tc in zip(row_cells, row_tcs):
+                tc_id = id(tc)
                 if tc_id in applied:
                     continue
                 applied.add(tc_id)
