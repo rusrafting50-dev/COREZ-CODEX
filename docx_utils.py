@@ -409,6 +409,18 @@ def _post_process_date_place_tables(doc, border_size=6):
         if 'Дата проведения' not in all_text and 'Место проведения' not in all_text:
             continue
 
+        # Switch to autofit so noWrap can expand cells beyond fixed widths
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl.insert(0, tblPr)
+        old_layout = tblPr.find(qn('w:tblLayout'))
+        if old_layout is not None:
+            tblPr.remove(old_layout)
+        layout = OxmlElement('w:tblLayout')
+        layout.set(qn('w:type'), 'autofit')
+        tblPr.append(layout)
+
         # Value row — first and last TC
         value_tcs = trs[0].findall(qn('w:tc'))
         if len(value_tcs) < 2:
