@@ -328,16 +328,24 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
 
         total_known_px = sum(w for _, w in known)
         n_unknown      = len(widths_px) - len(known)
-        reserved_for_unknown = (total_twips * 0.10) if n_unknown else 0
-        available = total_twips - reserved_for_unknown
-        scale = available / total_known_px
 
-        default_unknown = (reserved_for_unknown / n_unknown) if n_unknown else 0
-
-        col_twips = [
-            int(w * scale * scale_factor) if w is not None else int(default_unknown * scale_factor)
-            for w in widths_px
-        ]
+        if n_unknown == 0:
+            # All columns known: distribute proportionally with round(), last column
+            # absorbs rounding remainder so columns sum exactly to target width.
+            target = round(total_twips * scale_factor)
+            col_twips = [round(w / total_known_px * total_twips * scale_factor)
+                         for w in widths_px]
+            col_twips[-1] = target - sum(col_twips[:-1])
+        else:
+            reserved_for_unknown = total_twips * 0.10
+            available = total_twips - reserved_for_unknown
+            scale = available / total_known_px
+            default_unknown = reserved_for_unknown / n_unknown
+            col_twips = [
+                int(w * scale * scale_factor) if w is not None
+                else int(default_unknown * scale_factor)
+                for w in widths_px
+            ]
 
         for row in table.rows:
             # Sum widths across colspan-merged cells, then apply once per unique tc
