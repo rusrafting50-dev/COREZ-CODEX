@@ -415,6 +415,43 @@ def _scale_table_fonts(doc, scale_factor):
                         run.font.size = int(current * scale_factor)
 
 
+# ─── Post-processing: vertical text (writing-mode:vertical-*) ────────────────
+
+def _apply_vertical_text(doc, soup):
+    """Find th/td cells with writing-mode:vertical-* and apply btLr text direction."""
+    vertical_texts = set()
+    for cell_tag in soup.find_all(['th', 'td']):
+        has_vertical = False
+        for node in [cell_tag] + list(cell_tag.descendants):
+            if not hasattr(node, 'get'):
+                continue
+            if re.search(r'writing-mode\s*:\s*vertical', node.get('style', '')):
+                has_vertical = True
+                break
+        if has_vertical:
+            text = cell_tag.get_text(strip=True)
+            if text:
+                vertical_texts.add(text)
+
+    if not vertical_texts:
+        return
+
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.text.strip() not in vertical_texts:
+                    continue
+                tcPr = cell._tc.get_or_add_tcPr()
+                existing = tcPr.find(qn('w:textDirection'))
+                if existing is not None:
+                    tcPr.remove(existing)
+                td_el = OxmlElement('w:textDirection')
+                td_el.set(qn('w:val'), 'btLr')
+                tcPr.append(td_el)
+                for para in cell.paragraphs:
+                    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+
 # ─── Post-processing: uniform single borders on data tables ──────────────────
 
 def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
@@ -477,7 +514,10 @@ def send_docx(html_string, filename):
     _apply_table_widths(doc, table_widths, page_width_cm,
                         scale_factor=(18.5/27.2 if portrait else 1.0))
 
-    # 5b. Scale table fonts for portrait mode
+    # 5b. Restore vertical text lost by HtmlToDocx (writing-mode:vertical-*)
+    _apply_vertical_text(doc, soup)
+
+    # 5d. Scale table fonts for portrait mode
     if portrait:
         _scale_table_fonts(doc, 18.5/27.2)
 
