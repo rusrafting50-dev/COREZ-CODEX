@@ -459,6 +459,21 @@ def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
     for t_idx, table in enumerate(doc.tables):
         if t_idx not in data_table_indices:
             continue
+        # Clear table-level borders (set to none) so they don't overlap cell borders
+        tblPr = table._tbl.find(qn('w:tblPr'))
+        if tblPr is not None:
+            old = tblPr.find(qn('w:tblBorders'))
+            if old is not None:
+                tblPr.remove(old)
+        tblBorders = OxmlElement('w:tblBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            b = OxmlElement(f'w:{side}')
+            b.set(qn('w:val'), 'none')
+            tblBorders.append(b)
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            table._tbl.insert(0, tblPr)
+        tblPr.append(tblBorders)
         for row in table.rows:
             for cell in row.cells:
                 tc = cell._tc
