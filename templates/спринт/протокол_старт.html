@@ -37,7 +37,7 @@
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <a href="{{ url_for('спринт.протокол_старт_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
