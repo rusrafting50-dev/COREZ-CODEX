@@ -15,18 +15,13 @@
       @page { margin: 12mm 8mm; size: A4 portrait; }
       tr { page-break-inside: avoid; }
     }
-    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
+    table { font-size: 9pt; border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
     table th, table td { border: 0.75pt solid #333; padding: 3px 4px; vertical-align: middle; }
     thead { background: #f0f0f0; font-weight: bold; }
     h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
     .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .best { background: #e8ffe8; font-weight: bold; }
-    @media print {
-      table:has(thead) { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
-      table:has(thead) th, table:has(thead) td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
-      table:has(thead) thead th, table:has(thead) thead td { border-top: none; }
-    }
   </style>
 </head>
 <body class="px-3 py-3">

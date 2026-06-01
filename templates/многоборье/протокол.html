@@ -23,18 +23,13 @@
       body { zoom: 0.707; }
     }
     {% endif %}
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; text-align: center; font-size: 8pt; background: #fff; font-family: "Times New Roman", serif !important; }
+    table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; text-align: center; font-size: 8pt; background: #fff; font-family: "Times New Roman", serif !important; }
     th { font-weight: bold; }
     td.text-left { text-align: left; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
-    @media print {
-      table:has(thead) { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
-      table:has(thead) th, table:has(thead) td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
-      table:has(thead) thead th, table:has(thead) thead td { border-top: none; }
-    }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -95,7 +90,7 @@
   Спортивная дисциплина Многоборье – {{ класс }}{% if сор.код_многоборье %}, код ВРВС {{ сор.код_многоборье }}{% endif %}
 </div>
 
-<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
     <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
     <td style="width:100%;border:none;padding:0"></td>

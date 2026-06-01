@@ -16,8 +16,8 @@
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
+    table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
@@ -26,11 +26,6 @@
     .sig-row { display: flex; align-items: baseline; margin-bottom: 10pt; }
     .sig-pos { width: 38%; font-size: 10pt; }
     .sig-fio { font-size: 10pt; }
-    @media print {
-      table:has(thead) { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
-      table:has(thead) th, table:has(thead) td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
-      table:has(thead) thead th, table:has(thead) thead td { border-top: none; }
-    }
   </style>
   <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
 </head>
@@ -64,7 +59,7 @@
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Стартовый протокол</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СПРИНТ</div>
-<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-bottom:8px">
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
     <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
     <td style="width:100%;border:none;padding:0"></td>
@@ -80,7 +75,7 @@
 
 {# ── Макрос: блок подписей ── #}
 {% macro подписи() %}
-<table style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
   <tr>
     <td style="width:33%;border:none;padding:0 0 10pt 0">Главный судья</td>
     <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
