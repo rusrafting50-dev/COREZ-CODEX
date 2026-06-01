@@ -544,12 +544,21 @@ def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
 
 # ─── Post-processing: center all cells in all tables ─────────────────────────
 
+_TNR = 'Times New Roman'
+
+
 def _center_all_cells(doc):
-    """Center every table cell both horizontally and vertically (direct XML, no python-docx cache)."""
+    """
+    For every table cell (direct XML, avoids python-docx stale-cache after merges):
+      - vertical align: center
+      - horizontal align (jc): center
+      - spacing before/after: 0  (equivalent to Word's «Без интервала» style)
+      - font: Times New Roman on runs and as paragraph-level run-property default
+    """
     for table in doc.tables:
         for tr in table._tbl.findall(qn('w:tr')):
             for tc in tr.findall(qn('w:tc')):
-                # Vertical center
+                # ── vertical center ──────────────────────────────────────────
                 tcPr = tc.find(qn('w:tcPr'))
                 if tcPr is None:
                     tcPr = OxmlElement('w:tcPr')
@@ -559,17 +568,72 @@ def _center_all_cells(doc):
                     vAlign = OxmlElement('w:vAlign')
                     tcPr.append(vAlign)
                 vAlign.set(qn('w:val'), 'center')
-                # Horizontal center
+
                 for w_p in tc.findall('.//' + qn('w:p')):
                     pPr = w_p.find(qn('w:pPr'))
                     if pPr is None:
                         pPr = OxmlElement('w:pPr')
                         w_p.insert(0, pPr)
+
+                    # ── horizontal center ─────────────────────────────────────
                     jc = pPr.find(qn('w:jc'))
                     if jc is None:
                         jc = OxmlElement('w:jc')
                         pPr.append(jc)
                     jc.set(qn('w:val'), 'center')
+
+                    # ── «Без интервала»: no space before/after ────────────────
+                    spacing = pPr.find(qn('w:spacing'))
+                    if spacing is None:
+                        spacing = OxmlElement('w:spacing')
+                        pPr.append(spacing)
+                    spacing.set(qn('w:before'), '0')
+                    spacing.set(qn('w:after'), '0')
+
+                    # ── paragraph-level TNR default ───────────────────────────
+                    p_rPr = pPr.find(qn('w:rPr'))
+                    if p_rPr is None:
+                        p_rPr = OxmlElement('w:rPr')
+                        pPr.append(p_rPr)
+                    _set_tnr(p_rPr)
+
+                    # ── TNR on every run ──────────────────────────────────────
+                    for w_r in w_p.findall('.//' + qn('w:r')):
+                        rPr = w_r.find(qn('w:rPr'))
+                        if rPr is None:
+                            rPr = OxmlElement('w:rPr')
+                            w_r.insert(0, rPr)
+                        _set_tnr(rPr)
+
+
+def _set_tnr(rPr_el):
+    """Set Times New Roman on an rPr or paragraph-rPr element."""
+    rFonts = rPr_el.find(qn('w:rFonts'))
+    if rFonts is None:
+        rFonts = OxmlElement('w:rFonts')
+        rPr_el.insert(0, rFonts)
+    rFonts.set(qn('w:ascii'),  _TNR)
+    rFonts.set(qn('w:hAnsi'),  _TNR)
+    rFonts.set(qn('w:cs'),     _TNR)
+    rFonts.set(qn('w:eastAsia'), _TNR)
+
+
+# ─── Post-processing: noWrap on specific header cells ────────────────────────
+
+def _nowrap_cells_by_text(doc, texts):
+    """Set w:noWrap on every table cell whose text matches one of the given strings."""
+    for table in doc.tables:
+        seen: set[int] = set()
+        for row in table.rows:
+            for cell in row.cells:
+                tc_id = id(cell._tc)
+                if tc_id in seen:
+                    continue
+                seen.add(tc_id)
+                if cell.text.strip() in texts:
+                    tcPr = cell._tc.get_or_add_tcPr()
+                    if tcPr.find(qn('w:noWrap')) is None:
+                        tcPr.append(OxmlElement('w:noWrap'))
 
 
 # ─── Post-processing: merge section-row cells HtmlToDocx expands ─────────────
@@ -678,8 +742,11 @@ def send_docx(html_string, filename, portrait=None):
     # 5c. Re-merge section-row cells that HtmlToDocx expands into N empty cells
     _merge_section_rows(doc, section_row_texts)
 
-    # 5d. Center all cells (overridden by specific post-processing below)
+    # 5d. Center all cells + No Spacing + Times New Roman (overridden where needed below)
     _center_all_cells(doc)
+
+    # 5e. noWrap on specific header cells that must stay on one line
+    _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников'})
 
     # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
     _post_process_date_place_tables(doc)
