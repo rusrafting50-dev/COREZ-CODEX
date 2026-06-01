@@ -401,52 +401,6 @@ def _add_page_breaks_after_sig_tables(doc):
         table._tbl.addnext(p)
 
 
-# ─── Post-processing: uniform borders on data tables ─────────────────────────
-
-_VERTICAL_HEADER_LABELS = frozenset({'Спринт', 'Параллельный спринт', 'Слалом', 'Сумма'})
-
-
-def _set_all_table_borders(doc, data_table_indices, size=6, color='333333'):
-    """Set single borders on all 4 sides of every cell in data tables (those with thead)."""
-    for t_idx, table in enumerate(doc.tables):
-        if t_idx not in data_table_indices:
-            continue
-        for row in table.rows:
-            for cell in row.cells:
-                tc = cell._tc
-                tcPr = tc.get_or_add_tcPr()
-                tcBorders = tcPr.find(qn('w:tcBorders'))
-                if tcBorders is None:
-                    tcBorders = OxmlElement('w:tcBorders')
-                    tcPr.append(tcBorders)
-                for side in ('top', 'bottom', 'left', 'right'):
-                    existing = tcBorders.find(qn(f'w:{side}'))
-                    if existing is not None:
-                        tcBorders.remove(existing)
-                    border = OxmlElement(f'w:{side}')
-                    border.set(qn('w:val'), 'single')
-                    border.set(qn('w:sz'), str(size))
-                    border.set(qn('w:color'), color)
-                    tcBorders.append(border)
-
-
-def _set_vertical_text_cells(doc, data_table_indices):
-    """Apply btLr text direction to header cells whose text matches vertical-column labels."""
-    for t_idx, table in enumerate(doc.tables):
-        if t_idx not in data_table_indices:
-            continue
-        for row in table.rows:
-            for cell in row.cells:
-                if cell.text.strip() in _VERTICAL_HEADER_LABELS:
-                    tcPr = cell._tc.get_or_add_tcPr()
-                    existing = tcPr.find(qn('w:textDirection'))
-                    if existing is not None:
-                        tcPr.remove(existing)
-                    td_el = OxmlElement('w:textDirection')
-                    td_el.set(qn('w:val'), 'btLr')
-                    tcPr.append(td_el)
-
-
 # ─── Post-processing: scale table fonts ──────────────────────────────────────
 
 def _scale_table_fonts(doc, scale_factor):
@@ -483,12 +437,6 @@ def send_docx(html_string, filename):
     # 3. Extract widths after normalization (colspan already expanded)
     table_widths = _extract_table_widths(soup)
 
-    # 3b. Mark data tables (those with <thead>) for border/vertical-text post-processing
-    data_table_indices = {
-        i for i, t in enumerate(soup.find_all('table'))
-        if t.find('thead')
-    }
-
     # 4. HTML → DOCX
     doc = _make_base_doc(portrait=portrait)
     HtmlToDocx().add_html_to_document(str(soup), doc)
@@ -506,12 +454,6 @@ def send_docx(html_string, filename):
 
     # 7. Insert page break after each signature table
     _add_page_breaks_after_sig_tables(doc)
-
-    # 8. Set uniform single 0.75pt borders on all data tables
-    _set_all_table_borders(doc, data_table_indices)
-
-    # 9. Set btLr text direction on vertical-header cells (Спринт / Параллельный спринт / Слалом / Сумма)
-    _set_vertical_text_cells(doc, data_table_indices)
 
     buf = BytesIO()
     doc.save(buf)
