@@ -413,6 +413,11 @@ def _post_process_date_place_tables(doc):
                 _set_cell_bottom_border(cell, size=6)  # 0.75pt = 6 eighths-of-point
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                # Prevent venue/date from wrapping to multiple lines
+                tc = cell._tc
+                tcPr = tc.get_or_add_tcPr()
+                if tcPr.find(qn('w:noWrap')) is None:
+                    tcPr.append(OxmlElement('w:noWrap'))
             except Exception:
                 pass
         # Label row
@@ -537,6 +542,36 @@ def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
                     tcBorders.append(border)
 
 
+# ─── Post-processing: center all cells in all tables ─────────────────────────
+
+def _center_all_cells(doc):
+    """Center every table cell both horizontally and vertically (direct XML, no python-docx cache)."""
+    for table in doc.tables:
+        for tr in table._tbl.findall(qn('w:tr')):
+            for tc in tr.findall(qn('w:tc')):
+                # Vertical center
+                tcPr = tc.find(qn('w:tcPr'))
+                if tcPr is None:
+                    tcPr = OxmlElement('w:tcPr')
+                    tc.insert(0, tcPr)
+                vAlign = tcPr.find(qn('w:vAlign'))
+                if vAlign is None:
+                    vAlign = OxmlElement('w:vAlign')
+                    tcPr.append(vAlign)
+                vAlign.set(qn('w:val'), 'center')
+                # Horizontal center
+                for w_p in tc.findall('.//' + qn('w:p')):
+                    pPr = w_p.find(qn('w:pPr'))
+                    if pPr is None:
+                        pPr = OxmlElement('w:pPr')
+                        w_p.insert(0, pPr)
+                    jc = pPr.find(qn('w:jc'))
+                    if jc is None:
+                        jc = OxmlElement('w:jc')
+                        pPr.append(jc)
+                    jc.set(qn('w:val'), 'center')
+
+
 # ─── Post-processing: merge section-row cells HtmlToDocx expands ─────────────
 
 def _merge_section_rows(doc, section_row_texts):
@@ -583,6 +618,16 @@ def _merge_section_rows(doc, section_row_texts):
             first_tcPr.append(gs)
             for tc in tcs[1:]:
                 tr.remove(tc)
+            # Bold the merged cell text
+            for w_r in tcs[0].iter(qn('w:r')):
+                rPr = w_r.find(qn('w:rPr'))
+                if rPr is None:
+                    rPr = OxmlElement('w:rPr')
+                    w_r.insert(0, rPr)
+                if rPr.find(qn('w:b')) is None:
+                    rPr.append(OxmlElement('w:b'))
+                if rPr.find(qn('w:bCs')) is None:
+                    rPr.append(OxmlElement('w:bCs'))
 
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
@@ -633,7 +678,10 @@ def send_docx(html_string, filename, portrait=None):
     # 5c. Re-merge section-row cells that HtmlToDocx expands into N empty cells
     _merge_section_rows(doc, section_row_texts)
 
-    # 6. Post-process: date/place table borders and alignment
+    # 5d. Center all cells (overridden by specific post-processing below)
+    _center_all_cells(doc)
+
+    # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
     _post_process_date_place_tables(doc)
 
     # 7. Insert page break after each signature table

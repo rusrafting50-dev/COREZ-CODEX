@@ -105,7 +105,7 @@
   <td class="c-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center">{{ к.стартовый_номер_спринт or '—' }}</td>
-  <td class="text-center">{{ к.время_старта_спринт_план or '' }}</td>
+  <td class="text-center">{{ (к.время_старта_спринт_план or '').split('.')[0] }}</td>
 </tr>
 {% endfor %}
 {% endif %}
