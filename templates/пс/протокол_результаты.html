@@ -90,7 +90,7 @@
     <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0), портрет=1) }}"
        class="btn btn-outline-secondary btn-sm">Портрет</a>
     {% endif %}
-    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <a href="{{ url_for('пс.протокол_результаты_word', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0), портрет=(1 if портрет else 0)) }}" class="btn btn-success btn-sm">Word</a>
   <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
