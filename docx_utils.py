@@ -340,9 +340,20 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
         ]
 
         for row in table.rows:
+            # Sum widths across colspan-merged cells, then apply once per unique tc
+            tc_widths: dict[int, int] = {}
             for c_idx, cell in enumerate(row.cells):
+                tc_id = id(cell._tc)
                 if c_idx < len(col_twips):
-                    _set_cell_width(cell, col_twips[c_idx])
+                    tc_widths[tc_id] = tc_widths.get(tc_id, 0) + col_twips[c_idx]
+            applied: set[int] = set()
+            for cell in row.cells:
+                tc_id = id(cell._tc)
+                if tc_id in applied:
+                    continue
+                applied.add(tc_id)
+                if tc_id in tc_widths:
+                    _set_cell_width(cell, tc_widths[tc_id])
 
 
 # ─── Post-processing: date/place table borders and alignment ─────────────────
