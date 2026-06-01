@@ -61,11 +61,14 @@
 <div class="акт-страница {% if not loop.last %}page-break{% endif %}">
 
   {% if сор.организаторы_блок %}
-  <div style="font-size:10pt; font-weight:bold; text-align:center">
+  <div style="font-size:10pt; font-weight:normal; text-align:center">
   {%- for строка in сор.организаторы_блок.split('\n') -%}
     {%- if '"' in строка -%}
       {%- set ч = строка.split('"', 1) -%}
-      {{ ч[0] | trim }}<wbr>"{{ ч[1] }}
+      {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+    {%- elif '«' in строка -%}
+      {%- set ч = строка.split('«', 1) -%}
+      {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
     {%- else -%}
       {{ строка }}
     {%- endif -%}

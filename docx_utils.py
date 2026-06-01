@@ -733,19 +733,20 @@ def _left_align_data_columns(doc, header_texts):
 
 # ─── Post-processing: signature table rows — left-align + minimum height ──────
 
+_SIG_KEYWORDS = frozenset({'Главный секретарь', 'Главный судья', 'Начальник дистанции'})
+
+
 def _post_process_sig_tables(doc, row_height_twips=500):
     """
-    Find tables that contain 'Главный секретарь' (signature blocks) and:
+    Find signature tables (those containing any of _SIG_KEYWORDS) and:
       - left-align every cell
-      - set minimum row height so rows are roughly twice the normal line height
+      - set minimum row height (~2× normal line height)
+      - noWrap on the FIO column (col index 1) so names stay on one line
+    Covers both sprint start protocol (Главный секретарь) and act (Начальник дистанции).
     """
     for table in doc.tables:
-        has_sig = any(
-            'Главный секретарь' in cell.text
-            for row in table.rows
-            for cell in row.cells
-        )
-        if not has_sig:
+        all_text = ' '.join(cell.text for row in table.rows for cell in row.cells)
+        if not any(kw in all_text for kw in _SIG_KEYWORDS):
             continue
         for tr in table._tbl.findall(qn('w:tr')):
             # Minimum row height
@@ -760,8 +761,9 @@ def _post_process_sig_tables(doc, row_height_twips=500):
             trH.set(qn('w:val'), str(row_height_twips))
             trH.set(qn('w:hRule'), 'atLeast')
             trPr.append(trH)
-            # Left-align all cells
-            for tc in tr.findall(qn('w:tc')):
+            tcs = tr.findall(qn('w:tc'))
+            for col_idx, tc in enumerate(tcs):
+                # Left-align every cell
                 for w_p in tc.findall('.//' + qn('w:p')):
                     pPr = w_p.find(qn('w:pPr'))
                     if pPr is None:
@@ -772,6 +774,14 @@ def _post_process_sig_tables(doc, row_height_twips=500):
                         jc = OxmlElement('w:jc')
                         pPr.append(jc)
                     jc.set(qn('w:val'), 'left')
+                # noWrap on FIO column (col 1) so names don't wrap
+                if col_idx == 1:
+                    tcPr = tc.find(qn('w:tcPr'))
+                    if tcPr is None:
+                        tcPr = OxmlElement('w:tcPr')
+                        tc.insert(0, tcPr)
+                    if tcPr.find(qn('w:noWrap')) is None:
+                        tcPr.append(OxmlElement('w:noWrap'))
 
 
 # ─── Post-processing: remove leading empty paragraphs from document body ──────
