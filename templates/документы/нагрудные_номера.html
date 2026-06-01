@@ -41,11 +41,14 @@
 
 {# ── Шапка (как в Стартовом протоколе) ── #}
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+<div class="text-center" style="font-size:10pt; font-weight:normal; text-align:center">
 {%- for строка in сор.организаторы_блок.split('\n') -%}
   {%- if '"' in строка -%}
     {%- set ч = строка.split('"', 1) -%}
-    {{ ч[0] | trim }}<wbr>"{{ ч[1] }}
+    {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+  {%- elif '«' in строка -%}
+    {%- set ч = строка.split('«', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
   {%- else -%}
     {{ строка }}
   {%- endif -%}
@@ -54,11 +57,11 @@
 </div>
 {% endif %}
 
-<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-align:center">
   {{ сор.название }}
 </div>
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px; text-align:center">
+<div class="text-center mb-1" style="font-size:12pt; font-weight:bold; margin-top:6px; text-align:center">
   Протокол выдачи нагрудных номеров
 </div>
 
@@ -75,7 +78,7 @@
 
 {# ── Таблица ── #}
 {% if команды %}
-<table>
+<table class="all-left">
   <thead>
     <tr>
       <th style="width:28px">№<br>п/п</th>

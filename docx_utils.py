@@ -822,6 +822,27 @@ def _post_process_sig_tables(doc, row_height_twips=500):
                         tcPr.append(OxmlElement('w:noWrap'))
 
 
+# ─── Post-processing: left-align ALL cells in specified tables ───────────────
+
+def _left_align_all_in_tables(doc, table_indices):
+    """Override horizontal alignment to left for every cell in the given tables."""
+    for t_idx, table in enumerate(doc.tables):
+        if t_idx not in table_indices:
+            continue
+        for tr in table._tbl.findall(qn('w:tr')):
+            for tc in tr.findall(qn('w:tc')):
+                for w_p in tc.findall('.//' + qn('w:p')):
+                    pPr = w_p.find(qn('w:pPr'))
+                    if pPr is None:
+                        pPr = OxmlElement('w:pPr')
+                        w_p.insert(0, pPr)
+                    jc = pPr.find(qn('w:jc'))
+                    if jc is None:
+                        jc = OxmlElement('w:jc')
+                        pPr.append(jc)
+                    jc.set(qn('w:val'), 'left')
+
+
 # ─── Post-processing: remove leading empty paragraphs from document body ──────
 
 def _remove_leading_empty_paragraphs(doc, max_remove=5):
@@ -874,6 +895,12 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
         if t.find('thead')
     }
 
+    # 3c. Mark tables that want all cells left-aligned (class="all-left")
+    all_left_table_indices = {
+        i for i, t in enumerate(soup.find_all('table'))
+        if 'all-left' in (t.get('class') or [])
+    }
+
     # 4. HTML → DOCX
     doc = _make_base_doc(portrait=portrait)
     HtmlToDocx().add_html_to_document(str(soup), doc)
@@ -889,6 +916,10 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
 
     # 5d. Center all cells + No Spacing + Times New Roman (overridden where needed below)
     _center_all_cells(doc)
+
+    # 5d2. Override to left-align ALL cells in tables marked with class="all-left"
+    if all_left_table_indices:
+        _left_align_all_in_tables(doc, all_left_table_indices)
 
     # 5e. Left-align columns that should not be centered
     _left_align_data_columns(doc, {
