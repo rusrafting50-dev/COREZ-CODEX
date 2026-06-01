@@ -354,6 +354,20 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
                 for w in widths_px
             ]
 
+        # Set table-level preferred width to match column sum
+        table_target = int(sum(col_twips))
+        tblPr = table._tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            table._tbl.insert(0, tblPr)
+        old_tblW = tblPr.find(qn('w:tblW'))
+        if old_tblW is not None:
+            tblPr.remove(old_tblW)
+        new_tblW = OxmlElement('w:tblW')
+        new_tblW.set(qn('w:w'), str(table_target))
+        new_tblW.set(qn('w:type'), 'dxa')
+        tblPr.append(new_tblW)
+
         for row in table.rows:
             # Collect cells and their _tc refs first to hold strong references.
             # lxml proxy objects get new ids after GC, so id(cell._tc) is only
@@ -396,7 +410,7 @@ def _post_process_date_place_tables(doc):
             try:
                 cell = table.rows[0].cells[col_idx]
                 _set_cell_valign(cell, 'bottom')
-                _set_cell_bottom_border(cell, size=3)
+                _set_cell_bottom_border(cell, size=6)  # 0.75pt = 6 eighths-of-point
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception:
@@ -523,6 +537,54 @@ def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
                     tcBorders.append(border)
 
 
+# ─── Post-processing: merge section-row cells HtmlToDocx expands ─────────────
+
+def _merge_section_rows(doc, section_row_texts):
+    """
+    HtmlToDocx expands colspan into N separate empty cells instead of a merged cell.
+    For each row whose first cell text matches a known section-row label and
+    whose remaining cells are empty, collapse them into one cell spanning all columns.
+    """
+    if not section_row_texts:
+        return
+    for table in doc.tables:
+        tbl = table._tbl
+        tblGrid = tbl.find(qn('w:tblGrid'))
+        if tblGrid is None:
+            continue
+        n_grid_cols = len(tblGrid.findall(qn('w:gridCol')))
+        if n_grid_cols < 2:
+            continue
+        for tr in tbl.findall(qn('w:tr')):
+            tcs = tr.findall(qn('w:tc'))
+            if len(tcs) < 2:
+                continue
+            first_text = ''.join(
+                (t.text or '') for t in tcs[0].iter() if t.tag == qn('w:t')
+            ).strip()
+            if first_text not in section_row_texts:
+                continue
+            rest_empty = all(
+                ''.join((t.text or '') for t in tc.iter() if t.tag == qn('w:t')).strip() == ''
+                for tc in tcs[1:]
+            )
+            if not rest_empty:
+                continue
+            # Apply gridSpan to first TC and remove the rest
+            first_tcPr = tcs[0].find(qn('w:tcPr'))
+            if first_tcPr is None:
+                first_tcPr = OxmlElement('w:tcPr')
+                tcs[0].insert(0, first_tcPr)
+            old_gs = first_tcPr.find(qn('w:gridSpan'))
+            if old_gs is not None:
+                first_tcPr.remove(old_gs)
+            gs = OxmlElement('w:gridSpan')
+            gs.set(qn('w:val'), str(n_grid_cols))
+            first_tcPr.append(gs)
+            for tc in tcs[1:]:
+                tr.remove(tc)
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename, portrait=None):
@@ -541,6 +603,12 @@ def send_docx(html_string, filename, portrait=None):
     _process_sig_blocks(soup)
     _process_flex_between(soup)
     _divs_to_paragraphs(soup)
+    # Collect section-row texts before normalization so we can re-merge later
+    section_row_texts = {
+        tr.get_text(strip=True)
+        for tr in soup.find_all(class_='section-row')
+        if tr.get_text(strip=True)
+    }
     _normalize_tables(soup)
 
     # 3. Extract widths after normalization (colspan already expanded)
@@ -561,6 +629,9 @@ def send_docx(html_string, filename, portrait=None):
 
     # 5b. Restore vertical text lost by HtmlToDocx (writing-mode:vertical-*)
     _apply_vertical_text(doc, soup)
+
+    # 5c. Re-merge section-row cells that HtmlToDocx expands into N empty cells
+    _merge_section_rows(doc, section_row_texts)
 
     # 6. Post-process: date/place table borders and alignment
     _post_process_date_place_tables(doc)
