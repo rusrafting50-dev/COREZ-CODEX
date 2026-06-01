@@ -25,12 +25,6 @@
     .indent { text-indent: 10mm; }
     .underline-field { border-bottom: 0.75pt solid #000; min-width: 120px; display: inline-block; }
 
-    /* Шапка — как в Итоговом протоколе */
-    .орг-блок { text-align: center; font-size:10pt; margin-bottom:3pt; }
-    .назв-сор  { text-align: center; font-size:11pt; font-weight:bold; margin-bottom:6pt; }
-    .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; }
-    .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center; }
-
     h-акт { display: block; font-size: 15pt; font-weight: bold; letter-spacing: 4pt; text-align: center; margin: 8pt 0 2pt; }
 
     /* Параметры — без подчёркиваний */
@@ -66,38 +60,32 @@
 {% for д in дистанции %}
 <div class="акт-страница {% if not loop.last %}page-break{% endif %}">
 
-  {# ── Шапка (как в Итоговом протоколе, без строк протокола и дисциплины) ── #}
   {% if сор.организаторы_блок %}
-  <div class="орг-блок">
+  <div style="font-size:10pt; font-weight:bold; text-align:center">
   {%- for строка in сор.организаторы_блок.split('\n') -%}
     {%- if '"' in строка -%}
       {%- set ч = строка.split('"', 1) -%}
-      {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
-    {%- elif '«' in строка -%}
-      {%- set ч = строка.split('«', 1) -%}
-      {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
+      {{ ч[0] | trim }}<wbr>"{{ ч[1] }}
     {%- else -%}
       {{ строка }}
     {%- endif -%}
     {%- if not loop.last %}<br>{% endif %}
   {%- endfor -%}
   </div>
-  {% else %}
-  <div class="орг-блок">Министерство спорта Российской Федерации</div>
   {% endif %}
-
-  <div class="назв-сор">{{ сор.название }}</div>
-
-  <div class="дата-место" style="display:flex;justify-content:space-between">
-    <div style="display:inline-block;text-align:center">
-      <div class="underline-field" style="display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
-      <div class="подпись">Дата проведения</div>
-    </div>
-    <div style="display:inline-block;text-align:center">
-      <div class="underline-field" style="min-width:160px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
-      <div class="подпись">Место проведения</div>
-    </div>
-  </div>
+  <div style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
+  <table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
+    <tr>
+      <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+      <td style="width:100%;border:none;padding:0"></td>
+      <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+    </tr>
+    <tr>
+      <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Дата проведения</td>
+      <td style="width:100%;border:none;padding:0"></td>
+      <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Место проведения</td>
+    </tr>
+  </table>
 
   {# ── Заголовок акта ── #}
   <h-акт>А К Т</h-акт>
