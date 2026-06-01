@@ -366,7 +366,7 @@ def _post_process_date_place_tables(doc):
             try:
                 cell = table.rows[0].cells[col_idx]
                 _set_cell_valign(cell, 'bottom')
-                _set_cell_bottom_border(cell)
+                _set_cell_bottom_border(cell, size=3)
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception:
