@@ -518,9 +518,10 @@ def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
-def send_docx(html_string, filename):
-    # Detect page orientation from CSS
-    portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
+def send_docx(html_string, filename, portrait=None):
+    # Detect page orientation from CSS (can be overridden by caller)
+    if portrait is None:
+        portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
     page_width_cm = _PAGE_WIDTH_PORTRAIT_CM if portrait else _PAGE_WIDTH_LANDSCAPE_CM
 
     soup = BeautifulSoup(html_string, 'html.parser')

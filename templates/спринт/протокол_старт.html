@@ -37,7 +37,7 @@
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a href="{{ url_for('спринт.протокол_старт_word', sor_id=сор.id) }}"
+    <a id="btn-word" href="{{ url_for('спринт.протокол_старт_word', sor_id=сор.id) }}"
        class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
@@ -204,6 +204,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 let _landscape = true;
+var _wordBase = '{{ url_for("спринт.протокол_старт_word", sor_id=сор.id) }}';
 function toggleOrient() {
   _landscape = !_landscape;
   var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
@@ -213,6 +214,7 @@ function toggleOrient() {
   s.textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   old.parentNode.replaceChild(s, old);
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
+  document.getElementById('btn-word').href = _wordBase + (_landscape ? '' : '?portrait=1');
 }
 
 </script>

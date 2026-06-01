@@ -274,6 +274,7 @@ def протокол_старт_word(sor_id):
     жен_р4 = _по_старту_класс(sor_id, 'ж', 'R4')
     муж_р6 = _по_старту_класс(sor_id, 'м', 'R6')
     жен_р6 = _по_старту_класс(sor_id, 'ж', 'R6')
+    portrait = request.args.get('portrait') == '1'
     html = render_template('спринт/протокол_старт.html',
                            сор=сор,
                            муж_р4=муж_р4, жен_р4=жен_р4,
@@ -281,7 +282,7 @@ def протокол_старт_word(sor_id):
                            последовательность=последовательность,
                            вывод=вывод,
                            format_time=format_time, сегодня=date.today())
-    return send_docx(html, f'протокол_старт_спринт_{sor_id}.docx')
+    return send_docx(html, f'протокол_старт_спринт_{sor_id}.docx', portrait=portrait)
 
 
 @bp_спринт.route('/<int:sor_id>/протокол-финиш')
