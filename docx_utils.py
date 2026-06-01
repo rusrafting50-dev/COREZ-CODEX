@@ -393,38 +393,64 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
 
 def _post_process_date_place_tables(doc, border_size=6):
     """
-    Find date/place tables (3 columns, 2 rows) and apply:
-      Row 0: value cells → bottom-aligned, bottom border, centered
-      Row 1: label cells → top-aligned, centered
+    Find date/place header tables by label text ('Дата проведения' / 'Место проведения')
+    instead of column count, which is unreliable after direct XML edits.
+
+    Row 0 (value cells, first and last column):
+      - vertical align bottom, bottom border, horizontal center, noWrap
+    Row 1 (label cells): vertical align top, horizontal center
     """
     for table in doc.tables:
-        try:
-            n_rows = len(table.rows)
-            n_cols = len(table.columns)
-        except Exception:
+        tbl = table._tbl
+        trs = tbl.findall(qn('w:tr'))
+        if len(trs) != 2:
             continue
-        if n_rows != 2 or n_cols != 3:
+        all_text = ''.join((t.text or '') for t in tbl.iter(qn('w:t')))
+        if 'Дата проведения' not in all_text and 'Место проведения' not in all_text:
             continue
-        # Value row
-        for col_idx in [0, 2]:
+
+        # Value row — first and last TC
+        value_tcs = trs[0].findall(qn('w:tc'))
+        if len(value_tcs) < 2:
+            continue
+        for tc in [value_tcs[0], value_tcs[-1]]:
+            # noWrap + bottom align via XML (always reliable)
+            tcPr = tc.find(qn('w:tcPr'))
+            if tcPr is None:
+                tcPr = OxmlElement('w:tcPr')
+                tc.insert(0, tcPr)
+            if tcPr.find(qn('w:noWrap')) is None:
+                tcPr.append(OxmlElement('w:noWrap'))
+            vAlign = tcPr.find(qn('w:vAlign'))
+            if vAlign is None:
+                vAlign = OxmlElement('w:vAlign')
+                tcPr.append(vAlign)
+            vAlign.set(qn('w:val'), 'bottom')
+            # Bottom border and horizontal center via python-docx
             try:
+                col_idx = list(trs[0].findall(qn('w:tc'))).index(tc)
                 cell = table.rows[0].cells[col_idx]
-                _set_cell_valign(cell, 'bottom')
                 _set_cell_bottom_border(cell, size=border_size)
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                # Prevent venue/date from wrapping to multiple lines
-                tc = cell._tc
-                tcPr = tc.get_or_add_tcPr()
-                if tcPr.find(qn('w:noWrap')) is None:
-                    tcPr.append(OxmlElement('w:noWrap'))
             except Exception:
                 pass
-        # Label row
-        for col_idx in [0, 2]:
+
+        # Label row — first and last TC: top align, center
+        label_tcs = trs[1].findall(qn('w:tc'))
+        for tc in ([label_tcs[0], label_tcs[-1]] if len(label_tcs) >= 2 else label_tcs):
+            tcPr = tc.find(qn('w:tcPr'))
+            if tcPr is None:
+                tcPr = OxmlElement('w:tcPr')
+                tc.insert(0, tcPr)
+            vAlign = tcPr.find(qn('w:vAlign'))
+            if vAlign is None:
+                vAlign = OxmlElement('w:vAlign')
+                tcPr.append(vAlign)
+            vAlign.set(qn('w:val'), 'top')
             try:
+                col_idx = list(trs[1].findall(qn('w:tc'))).index(tc)
                 cell = table.rows[1].cells[col_idx]
-                _set_cell_valign(cell, 'top')
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception:
