@@ -308,7 +308,7 @@ def _extract_table_widths(soup):
 
 # ─── Post-processing: apply column widths to DOCX ────────────────────────────
 
-def _apply_table_widths(doc, table_widths, page_width_cm=None):
+def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0):
     """Scale extracted px widths to the page and apply them to DOCX tables."""
     if page_width_cm is None:
         page_width_cm = _PAGE_WIDTH_LANDSCAPE_CM
@@ -335,7 +335,7 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None):
         default_unknown = (reserved_for_unknown / n_unknown) if n_unknown else 0
 
         col_twips = [
-            int(w * scale) if w is not None else int(default_unknown)
+            int(w * scale * scale_factor) if w is not None else int(default_unknown * scale_factor)
             for w in widths_px
         ]
 
@@ -401,6 +401,20 @@ def _add_page_breaks_after_sig_tables(doc):
         table._tbl.addnext(p)
 
 
+# ─── Post-processing: scale table fonts ──────────────────────────────────────
+
+def _scale_table_fonts(doc, scale_factor):
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    for run in para.runs:
+                        current = run.font.size
+                        if current is None:
+                            current = Pt(10)
+                        run.font.size = int(current * scale_factor)
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename):
@@ -428,7 +442,12 @@ def send_docx(html_string, filename):
     HtmlToDocx().add_html_to_document(str(soup), doc)
 
     # 5. Apply column widths
-    _apply_table_widths(doc, table_widths, page_width_cm)
+    _apply_table_widths(doc, table_widths, page_width_cm,
+                        scale_factor=(18.5/27.2 if portrait else 1.0))
+
+    # 5b. Scale table fonts for portrait mode
+    if portrait:
+        _scale_table_fonts(doc, 18.5/27.2)
 
     # 6. Post-process: date/place table borders and alignment
     _post_process_date_place_tables(doc)
