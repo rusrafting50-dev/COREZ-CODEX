@@ -37,7 +37,8 @@
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <a href="{{ url_for('спринт.протокол_старт_word', sor_id=сор.id) }}"
+       class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -209,48 +210,7 @@ function toggleOrient() {
   document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
 }
-function exportWord() {
-  var clone = document.body.cloneNode(true);
-  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-  clone.querySelectorAll('.разрыв').forEach(function(div) {
-    var next = div.nextElementSibling;
-    if (next && next.firstElementChild) next.firstElementChild.style.pageBreakBefore = 'always';
-  });
-  clone.querySelectorAll('.w-pb').forEach(function(el){
-    var pb = document.createElement('p');
-    pb.style.cssText = 'margin:0;padding:0;line-height:0;font-size:1px';
-    pb.innerHTML = '<br style="mso-special-character:line-break;page-break-before:always">';
-    el.parentNode.replaceChild(pb, el);
-  });
-  var css = '';
-  try {
-    for (var i = 0; i < document.styleSheets.length; i++) {
-      try {
-        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
-        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
-      } catch(e) {}
-    }
-  } catch(e) {}
-  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  var _pgSz = _landscape ? '841.9pt 595.3pt' : '595.3pt 841.9pt';
-  var _pgOr = _landscape ? 'landscape' : 'portrait';
-  css += '@page WordSection1{size:' + _pgSz + ';mso-page-orientation:' + _pgOr + ';margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
-  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
-    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
-    + ' xmlns="http://www.w3.org/TR/REC-html40">'
-    + '<head><meta charset="UTF-8">'
-    + '<style>' + css + '</style>'
-    + '</head><body>';
-  var post = '</body></html>';
-  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = (document.title || 'document') + '.doc';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-}
+
 </script>
 </body>
 </html>
