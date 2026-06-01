@@ -207,7 +207,11 @@ let _landscape = true;
 function toggleOrient() {
   _landscape = !_landscape;
   var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
-  document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
+  var old = document.getElementById('orient-style');
+  var s = document.createElement('style');
+  s.id = 'orient-style';
+  s.textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
+  old.parentNode.replaceChild(s, old);
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
 }
 
