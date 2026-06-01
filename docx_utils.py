@@ -391,7 +391,7 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
 
 # ─── Post-processing: date/place table borders and alignment ─────────────────
 
-def _post_process_date_place_tables(doc):
+def _post_process_date_place_tables(doc, border_size=6):
     """
     Find date/place tables (3 columns, 2 rows) and apply:
       Row 0: value cells → bottom-aligned, bottom border, centered
@@ -410,7 +410,7 @@ def _post_process_date_place_tables(doc):
             try:
                 cell = table.rows[0].cells[col_idx]
                 _set_cell_valign(cell, 'bottom')
-                _set_cell_bottom_border(cell, size=6)  # 0.75pt = 6 eighths-of-point
+                _set_cell_bottom_border(cell, size=border_size)
                 for para in cell.paragraphs:
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 # Prevent venue/date from wrapping to multiple lines
@@ -696,7 +696,7 @@ def _merge_section_rows(doc, section_row_texts):
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
-def send_docx(html_string, filename, portrait=None):
+def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # Detect page orientation from CSS (can be overridden by caller)
     if portrait is None:
         portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
@@ -749,7 +749,7 @@ def send_docx(html_string, filename, portrait=None):
     _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников'})
 
     # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
-    _post_process_date_place_tables(doc)
+    _post_process_date_place_tables(doc, border_size=date_place_border_size)
 
     # 7. Insert page break after each signature table
     _add_page_breaks_after_sig_tables(doc)

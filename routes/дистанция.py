@@ -85,4 +85,4 @@ def акт_word(sor_id):
     from datetime import date
     html = render_template('дистанция/акт_дистанции.html',
                            сор=сор, дистанции=дистанции, тип=тип, сегодня=date.today())
-    return send_docx(html, f'акт_дистанции_{тип}_{sor_id}.docx')
+    return send_docx(html, f'акт_дистанции_{тип}_{sor_id}.docx', date_place_border_size=3)
