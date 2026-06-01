@@ -39,7 +39,8 @@
   <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
   <div class="d-flex gap-2">
-    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <a href="{{ url_for('документы.протокол_жеребьёвки_word', sor_id=сор.id) }}"
+       class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -110,8 +111,8 @@
       <th style="width:28px">№<br>п/п</th>
       <th style="width:160px">Команда</th>
       <th style="width:55px">Номер экипажа</th>
-      <th style="min-width:130px">Фамилия, имя, отчество участников</th>
-      <th style="min-width:90px">Территория</th>
+      <th style="width:160px">Фамилия, имя, отчество участников</th>
+      <th style="width:100px">Территория</th>
       <th style="width:75px">Порядковый номер согласно жеребьёвке</th>
     </tr>
   </thead>

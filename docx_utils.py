@@ -135,8 +135,8 @@ def _process_sig_blocks(soup):
             fio_text = fio_el.get_text(strip=True) if fio_el else ''
             rows_html += (
                 '<tr>'
-                f'<td style="border:none;width:260px"><b>{pos_text}</b></td>'
-                f'<td style="border:none;width:440px">{fio_text}</td>'
+                f'<td style="border:none;width:350px"><b>{pos_text}</b></td>'
+                f'<td style="border:none;width:350px">{fio_text}</td>'
                 '</tr>'
             )
         if not rows_html:
