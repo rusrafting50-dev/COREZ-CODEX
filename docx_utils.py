@@ -415,6 +415,32 @@ def _scale_table_fonts(doc, scale_factor):
                         run.font.size = int(current * scale_factor)
 
 
+# ─── Post-processing: uniform single borders on data tables ──────────────────
+
+def _set_all_table_borders(doc, data_table_indices, size=3, color='333333'):
+    """Overwrite cell borders on all data tables with uniform single lines."""
+    for t_idx, table in enumerate(doc.tables):
+        if t_idx not in data_table_indices:
+            continue
+        for row in table.rows:
+            for cell in row.cells:
+                tc = cell._tc
+                tcPr = tc.get_or_add_tcPr()
+                tcBorders = tcPr.find(qn('w:tcBorders'))
+                if tcBorders is None:
+                    tcBorders = OxmlElement('w:tcBorders')
+                    tcPr.append(tcBorders)
+                for side in ('top', 'bottom', 'left', 'right'):
+                    existing = tcBorders.find(qn(f'w:{side}'))
+                    if existing is not None:
+                        tcBorders.remove(existing)
+                    border = OxmlElement(f'w:{side}')
+                    border.set(qn('w:val'), 'single')
+                    border.set(qn('w:sz'), str(size))
+                    border.set(qn('w:color'), color)
+                    tcBorders.append(border)
+
+
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
 def send_docx(html_string, filename):
@@ -437,6 +463,12 @@ def send_docx(html_string, filename):
     # 3. Extract widths after normalization (colspan already expanded)
     table_widths = _extract_table_widths(soup)
 
+    # 3b. Mark data tables (those with <thead>) — layout/signature tables are excluded
+    data_table_indices = {
+        i for i, t in enumerate(soup.find_all('table'))
+        if t.find('thead')
+    }
+
     # 4. HTML → DOCX
     doc = _make_base_doc(portrait=portrait)
     HtmlToDocx().add_html_to_document(str(soup), doc)
@@ -454,6 +486,9 @@ def send_docx(html_string, filename):
 
     # 7. Insert page break after each signature table
     _add_page_breaks_after_sig_tables(doc)
+
+    # 8. Overwrite borders on data tables with uniform single 0.375pt lines
+    _set_all_table_borders(doc, data_table_indices)
 
     buf = BytesIO()
     doc.save(buf)
