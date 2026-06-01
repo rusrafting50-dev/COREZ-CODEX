@@ -19,6 +19,7 @@
     table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
     th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     thead tr + tr th, thead tr + tr td { border-top: 0.75pt solid #333; }
+    thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
@@ -76,7 +77,7 @@
 
 {# ── Макрос: блок подписей ── #}
 {% macro подписи() %}
-<table style="width:100%;border-collapse:collapse;font-size:10pt;margin-top:16pt;margin-bottom:16pt">
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;margin-top:16pt;margin-bottom:16pt">
   <tr>
     <td style="width:33%;border:none;padding:0 0 10pt 0;font-weight:bold">Главный судья</td>
     <td style="border:none;padding:0 0 10pt 0;white-space:nowrap;font-weight:bold">{{ сор.главный_судья or '' }}</td>
