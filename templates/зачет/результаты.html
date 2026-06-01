@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Зачёт субъектов — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}Командный зачёт субъектов — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,78 +7,80 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Зачёт субъектов</li>
+    <li class="breadcrumb-item active">Командный зачёт</li>
   </ol>
 {% endblock %}
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-  <div>
-    <h5 class="mb-0">Зачёт субъектов РФ</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Командный зачет среди субъектов Российской Федерации</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
     <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол</a>
+    <a href="{{ url_for('награждение.диплом_зачет', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
-<div class="alert alert-info py-2 small mb-3">
-  Суммируются очки всех экипажей субъекта по всем дистанциям.
-  {% if сор.кол_субъектов %}Используется коэффициент для {{ сор.кол_субъектов }} субъектов.{% else %}
-  Коэффициент = 1.0 (кол. субъектов не задано).{% endif %}
-</div>
-
-{% for пол, назв, кл, итог in таблицы %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ 'primary' if пол == 'м' else 'danger' }}">
-  {{ назв }} · {{ кл }} ({{ итог | length }} субъектов)
-</h6>
 {% if not итог %}
-<div class="text-muted small mb-3">Нет данных.</div>
+<div class="alert alert-info mt-3">Нет данных. Введите результаты по дисциплинам.</div>
 {% else %}
-<div class="table-responsive mb-3">
-  <table class="table table-sm table-hover align-middle" style="font-size:.85rem">
+
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle" style="font-size:.82rem">
     <thead class="table-light">
       <tr>
-        <th class="text-center" style="width:45px">Место</th>
-        <th>Субъект РФ</th>
-        <th class="text-center" style="width:45px">Экип.</th>
-        <th class="text-center" style="width:60px">Спринт</th>
-        <th class="text-center" style="width:60px">ПС</th>
-        <th class="text-center" style="width:60px">Слалом</th>
-        <th class="text-center" style="width:60px">Дл. гонка</th>
-        <th class="text-center" style="width:60px">Многобор.</th>
-        <th class="text-center fw-bold" style="width:70px">Сумма</th>
-        <th class="text-center" style="width:55px">Коэф.</th>
-        <th class="text-center fw-bold" style="width:75px">Итого</th>
+        <th rowspan="2">Субъект Российской Федерации</th>
+        {% for пол, кл in группы %}
+        <th colspan="2" class="text-center" style="border-left:2px solid #adb5bd">{{ ПОЛ_НАЗВ[пол] }} {{ кл }}</th>
+        {% endfor %}
+        <th colspan="2" class="text-center fw-bold" style="border-left:2px solid #adb5bd">Итого</th>
+        <th rowspan="2" class="text-center fw-bold" style="width:52px; border-left:2px solid #adb5bd">Место</th>
+      </tr>
+      <tr>
+        {% for пол, кл in группы %}
+        <th class="text-center" style="width:80px; border-left:2px solid #adb5bd">Количество<br>экипажей</th>
+        <th class="text-center" style="width:60px">Баллы</th>
+        {% endfor %}
+        <th class="text-center" style="width:80px; border-left:2px solid #adb5bd">Количество<br>экипажей</th>
+        <th class="text-center fw-bold" style="width:68px">Баллы</th>
       </tr>
     </thead>
     <tbody>
     {% for з in итог %}
-    <tr class="{{ 'table-warning' if з.место == 1 else ('table-light' if з.место == 2 else ('bg-warning bg-opacity-10' if з.место == 3 else '')) }}">
-      <td class="text-center fw-bold fs-6">{{ з.место }}</td>
+    {% set highlight = 'table-warning' if з.место == 1 else ('table-light' if з.место == 2 else ('bg-warning bg-opacity-10' if з.место == 3 else '')) %}
+    <tr class="{{ highlight }}">
       <td>{{ з.субъект.название }}</td>
-      <td class="text-center small">{{ з.кол_команд }}</td>
-      <td class="text-center small">{{ з.оч_сп | int if з.оч_сп else '—' }}</td>
-      <td class="text-center small">{{ з.оч_пс | int if з.оч_пс else '—' }}</td>
-      <td class="text-center small">{{ з.оч_сл | int if з.оч_сл else '—' }}</td>
-      <td class="text-center small">{{ з.оч_дг | int if з.оч_дг else '—' }}</td>
-      <td class="text-center small">{{ з.оч_мб | int if з.оч_мб else '—' }}</td>
-      <td class="text-center fw-bold text-primary">{{ з.итого | int }}</td>
-      <td class="text-center small text-muted">{{ з.коэффициент }}</td>
-      <td class="text-center fw-bold">{{ з.итого_к | int }}</td>
+      {% for пол, кл in группы %}
+      {% set гр = з.группы.get((пол, кл), {'кол': 0, 'баллы': 0.0}) %}
+      <td class="text-center small text-muted" style="border-left:2px solid #adb5bd">{{ гр.кол if гр.кол else '—' }}</td>
+      <td class="text-center small">{{ гр.баллы if гр.баллы else '—' }}</td>
+      {% endfor %}
+      <td class="text-center small" style="border-left:2px solid #adb5bd">{{ з.итого_кол }}</td>
+      <td class="text-center fw-bold text-primary">{{ з.итого_баллы }}</td>
+      <td class="text-center fw-bold fs-6" style="border-left:2px solid #adb5bd">{{ з.место }}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
 </div>
-{% endif %}
-{% endfor %}
 
-<div class="text-muted small mt-2">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-end mt-3">
+  <div class="text-muted small">Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='наград-зачет') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if готов_наград else 'В работе' }}
+    </button>
+  </form>
 </div>
 {% endblock %}

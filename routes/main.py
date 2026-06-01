@@ -1,4 +1,5 @@
 # routes/main.py — главная страница
+from datetime import date as _date
 from flask import Blueprint, render_template
 from models import Соревнование
 
@@ -7,5 +8,7 @@ bp_main = Blueprint('main', __name__)
 
 @bp_main.route('/')
 def index():
-    соревнования = Соревнование.query.order_by(Соревнование.создано.desc()).all()
-    return render_template('index.html', соревнования=соревнования)
+    все = Соревнование.query.all()
+    # Поздние → ранние; без дата_начала — в конец
+    все.sort(key=lambda с: с.дата_начала if с.дата_начала is not None else _date.min, reverse=True)
+    return render_template('index.html', соревнования=все)

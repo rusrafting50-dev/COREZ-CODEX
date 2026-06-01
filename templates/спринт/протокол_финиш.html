@@ -12,17 +12,21 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 10pt; }
-      @page { margin: 15mm 10mm 15mm 20mm; size: A4 landscape; }
+      @page { margin: 15mm 10mm 15mm 20mm; size: A4 portrait; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
-    table th, table td { border: 1px solid #333; padding: 3px 5px; vertical-align: middle; }
+    table { font-size: 9pt; border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    table th, table td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 3px 5px; vertical-align: middle; }
+    thead tr + tr th, thead tr + tr td { border-top: 0.75pt solid #333; }
+    thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
     thead { background: #f0f0f0; font-weight: bold; }
     h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
     .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .dk-row { background: #ffe0e0; }
+    @media print {
+    }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -30,7 +34,10 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Назад</a>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  <div class="d-flex gap-2">
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
 {% if сор.организаторы_блок %}
@@ -115,8 +122,36 @@
   Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

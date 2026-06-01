@@ -86,9 +86,10 @@ class Соревнование(db.Model):
     организаторы                = db.Column(db.Text,    nullable=True)
     название                    = db.Column(db.String(300), nullable=False)
     даты_проведения             = db.Column(db.String(100), nullable=True)
+    дата_начала                 = db.Column(db.Date,    nullable=True)          # для сортировки
     место_проведения            = db.Column(db.String(300), nullable=True)
-    код_субъекта_рф             = db.Column(db.Integer,     nullable=True)   # код региона-организатора
-    номер_екп                   = db.Column(db.String(100), nullable=True)   # номер в ЕКП
+    код_субъекта_рф             = db.Column(db.Integer,     nullable=True)
+    номер_екп                   = db.Column(db.String(100), nullable=True)
 
     # Спортивные характеристики
     класс_судна                 = db.Column(db.String(5),  nullable=False, default='R4')  # R4 / R6
@@ -96,6 +97,20 @@ class Соревнование(db.Model):
     статус                      = db.Column(db.String(50), nullable=True)   # Чемпионат, Кубок …
     уровень                     = db.Column(db.String(50), nullable=True)   # России, ФО, области …
     код_соревнований            = db.Column(db.String(20), nullable=True)   # ЧР, КР, ВС …
+
+    # Статус готовности разделов (ручное переключение В работе / Готово)
+    готов_организаторы  = db.Column(db.Boolean, nullable=False, default=False)
+    готов_судьи         = db.Column(db.Boolean, nullable=False, default=False)
+    готов_заявки        = db.Column(db.Boolean, nullable=False, default=False)
+    готов_допуск        = db.Column(db.Boolean, nullable=False, default=False)
+    готов_тех           = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_спринт = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_пс     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_слалом = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_дг     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_мб     = db.Column(db.Boolean, nullable=False, default=False)
+    готов_наград_зачет  = db.Column(db.Boolean, nullable=False, default=False)
+    готов_отчеты        = db.Column(db.Boolean, nullable=False, default=False)
 
     # Организаторы (4 строки)
     организатор_1               = db.Column(db.String(300), nullable=True)
@@ -135,6 +150,90 @@ class Соревнование(db.Model):
     код_длинная_гонка           = db.Column(db.String(30), nullable=True)
     код_многоборье              = db.Column(db.String(30), nullable=True)
 
+    # Субъект РФ (текстовое название)
+    субъект_рф_название         = db.Column(db.String(200), nullable=True)
+
+    # Главный судья — расширенные поля
+    главный_судья_квалификация  = db.Column(db.String(50),  nullable=True)
+    главный_судья_субъект_рф    = db.Column(db.String(200), nullable=True)
+    главный_судья_телефон       = db.Column(db.String(50),  nullable=True)
+
+    # Спортивная федерация по рафтингу
+    федерация_название          = db.Column(db.String(300), nullable=True)
+    федерация_руководитель      = db.Column(db.String(200), nullable=True)
+    федерация_должность         = db.Column(db.String(200), nullable=True)
+    федерация_телефон           = db.Column(db.String(50),  nullable=True)
+    федерация_email             = db.Column(db.String(100), nullable=True)
+
+    # Проводящая организация
+    проводящая_орг_название     = db.Column(db.String(300), nullable=True)
+    проводящая_орг_руководитель = db.Column(db.String(200), nullable=True)
+    проводящая_орг_должность    = db.Column(db.String(200), nullable=True)
+    проводящая_орг_телефон      = db.Column(db.String(50),  nullable=True)
+    проводящая_орг_email        = db.Column(db.String(100), nullable=True)
+
+    # Регламентирующие документы
+    правила_вида_спорта         = db.Column(db.Text, nullable=True)
+    единый_кп                   = db.Column(db.Text, nullable=True)
+    положение_о_соревнованиях   = db.Column(db.Text, nullable=True)
+
+    # Обязанности организаторов
+    обязанности_федерации       = db.Column(db.Text, nullable=True)
+    обязанности_проводящей      = db.Column(db.Text, nullable=True)
+
+    # Программа соревнований — расписание мероприятий (JSON-список)
+    программа_соревнований      = db.Column(db.Text, nullable=True)
+    # Виды программы (JSON-список {дисциплина, пол_возраст})
+    виды_список                 = db.Column(db.Text, nullable=True)
+    # Последовательность проведения дисциплин (positions 2-4, comma-separated)
+    последовательность_r4       = db.Column(db.String(300), nullable=True)
+    последовательность_r6       = db.Column(db.String(300), nullable=True)
+
+    # Параметры жеребьёвки и стартового протокола (Спринт)
+    последовательность_видов    = db.Column(db.String(100), nullable=True)   # "R4-м,R4-ж,R6-м,R6-ж"
+    вывод_старт_протокола       = db.Column(db.String(20),  nullable=True)   # "Попарно"/"Раздельно"
+    # Параметры стартового протокола Слалома
+    последовательность_слалом   = db.Column(db.String(100), nullable=True)
+    вывод_старт_слалом          = db.Column(db.String(20),  nullable=True)
+
+    # Параметры стартового протокола Длинной Гонки
+    последовательность_дг       = db.Column(db.String(100), nullable=True)
+    вывод_старт_дг              = db.Column(db.String(20),  nullable=True)
+
+    # Параметры стартового протокола Параллельного Спринта
+    последовательность_пс       = db.Column(db.String(100), nullable=True)
+    вывод_старт_пс              = db.Column(db.String(20),  nullable=True)
+
+    последовательность_допуска  = db.Column(db.String(100), nullable=True)
+    вывод_допуска               = db.Column(db.String(20),  nullable=True)
+
+    # Отчёты о соревнованиях
+    отч_номер_сметы      = db.Column(db.String(100), nullable=True)
+    отч_объект_спорта    = db.Column(db.Text, nullable=True)
+    отч_работа_комиссии  = db.Column(db.Text, nullable=True)
+    отч_тех_совещания    = db.Column(db.Text, nullable=True)
+    отч_открытие         = db.Column(db.Text, nullable=True)
+    отч_информационное   = db.Column(db.Text, nullable=True)
+    отч_зрители          = db.Column(db.String(200), nullable=True)
+    отч_оценка_качества  = db.Column(db.Text, nullable=True)
+    отч_медицинское      = db.Column(db.Text, nullable=True)
+    отч_безопасность     = db.Column(db.Text, nullable=True)
+    отч_замечания        = db.Column(db.Text, nullable=True)
+    отч_характеристика   = db.Column(db.Text, nullable=True)
+
+    # Финансы
+    заявочный_взнос_r4          = db.Column(db.String(300), nullable=True)
+    заявочный_взнос             = db.Column(db.String(300), nullable=True)
+    реквизиты_оплаты            = db.Column(db.Text, nullable=True)
+    назначение_платежа          = db.Column(db.Text, nullable=True)
+
+    # Логистика
+    проживание_описание         = db.Column(db.Text, nullable=True)
+    инфраструктура_описание     = db.Column(db.Text, nullable=True)
+    проезд_общественный         = db.Column(db.Text, nullable=True)
+    проезд_собственный          = db.Column(db.Text, nullable=True)
+    награждение_описание        = db.Column(db.Text, nullable=True)
+
     создано                     = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     @property
@@ -152,9 +251,17 @@ class Соревнование(db.Model):
         return self.организаторы or ''
 
     # Связи
-    субъекты    = db.relationship('Субъект',  back_populates='соревнование', cascade='all, delete-orphan')
-    команды     = db.relationship('Команда',  back_populates='соревнование', cascade='all, delete-orphan')
-    судьи       = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
+    субъекты            = db.relationship('Субъект',  back_populates='соревнование', cascade='all, delete-orphan')
+    команды             = db.relationship('Команда',  back_populates='соревнование', cascade='all, delete-orphan')
+    судьи               = db.relationship('Судья',    back_populates='соревнование', cascade='all, delete-orphan')
+    тех_проверки        = db.relationship('ТехПроверка', back_populates='соревнование', cascade='all, delete-orphan')
+    тех_состав_комиссии = db.relationship('ТехСоставКомиссии', back_populates='соревнование', uselist=False)
+    состав_комиссии_допуска = db.relationship('СоставКомиссииДопуска', back_populates='соревнование', uselist=False)
+    параметры_дистанций = db.relationship('ПараметрыДистанции', back_populates='соревнование',
+                                          cascade='all, delete-orphan',
+                                          order_by='ПараметрыДистанции.порядок')
+    параметры_награждения = db.relationship('НаграждениеПараметры', back_populates='соревнование',
+                                             uselist=False, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Соревнование id={self.id} "{self.название}" {self.класс_судна}>'
@@ -169,7 +276,8 @@ class Субъект(db.Model):
     номер_делегации     = db.Column(db.Integer, nullable=True)
     название            = db.Column(db.String(150), nullable=False)   # территория / регион
     код_субъекта_рф     = db.Column(db.Integer, nullable=True)        # официальный код субъекта
-    представитель       = db.Column(db.String(200), nullable=True)    # ФИО тренера-представителя
+    представитель       = db.Column(db.String(200), nullable=True)    # ФИО представителя
+    тренер              = db.Column(db.String(200), nullable=True)    # ФИО тренера
 
     # Связи
     соревнование    = db.relationship('Соревнование', back_populates='субъекты')
@@ -188,7 +296,7 @@ class Команда(db.Model):
     соревнование_id     = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
     субъект_id          = db.Column(db.Integer, db.ForeignKey('субъекты.id'),     nullable=True)
 
-    нагрудный_номер     = db.Column(db.Integer, nullable=False)   # уникальный в рамках соревнования
+    нагрудный_номер     = db.Column(db.Integer, nullable=False)   # уникальный внутри вида программы (класс+пол)
     название            = db.Column(db.String(150), nullable=True)  # название клуба/команды
     класс_судна         = db.Column(db.String(5),   nullable=False, default='R4')  # R4 / R6
     пол                 = db.Column(db.String(5),   nullable=False, default='м')   # м / ж
@@ -205,8 +313,9 @@ class Команда(db.Model):
     принадлежность_к_орг    = db.Column(db.String(100), nullable=True)
     оплата_взноса           = db.Column(db.String(50),  nullable=True, default='Ожидает оплаты')
 
-    # Номер жеребьёвки для спринта (стартовый порядок)
+    # Номер жеребьёвки для спринта (стартовый порядок) и плановое время старта
     стартовый_номер_спринт  = db.Column(db.Integer, nullable=True)
+    время_старта_спринт_план = db.Column(db.String(20), nullable=True)
 
     # Связи
     соревнование    = db.relationship('Соревнование',  back_populates='команды')
@@ -220,7 +329,7 @@ class Команда(db.Model):
     результат_многоборья    = db.relationship('РезультатМногоборья',    back_populates='команда', uselist=False, cascade='all, delete-orphan')
 
     __table_args__ = (
-        db.UniqueConstraint('соревнование_id', 'нагрудный_номер', name='uq_сор_номер'),
+        db.UniqueConstraint('соревнование_id', 'класс_судна', 'пол', 'нагрудный_номер', name='uq_сор_номер'),
     )
 
     def __repr__(self):
@@ -254,6 +363,10 @@ class Спортсмен(db.Model):
     участие_слалом          = db.Column(db.Boolean, nullable=False, default=True)
     участие_дг              = db.Column(db.Boolean, nullable=False, default=True)
 
+    # Документы
+    номер_приказа           = db.Column(db.String(150), nullable=True)
+    номер_страховки         = db.Column(db.String(100), nullable=True)
+
     # Связи
     команда  = db.relationship('Команда',  back_populates='спортсмены')
     субъект  = db.relationship('Субъект',  back_populates='спортсмены')
@@ -283,13 +396,146 @@ class Судья(db.Model):
 
     # Должность на данном соревновании
     должность               = db.Column(db.String(100), nullable=True)
-    # например: «Главный судья», «Главный секретарь», «Судья на старте», …
 
     # Связи
     соревнование = db.relationship('Соревнование', back_populates='судьи')
 
     def __repr__(self):
         return f'<Судья "{self.фамилия_имя_отчество}" {self.квалификация}>'
+
+
+# ---------------------------------------------------------------------------
+# Техническая комиссия
+# ---------------------------------------------------------------------------
+
+class ТехПроверка(db.Model):
+    """Техническая проверка одной команды на соревновании."""
+    __tablename__ = 'тех_проверки'
+
+    id                   = db.Column(db.Integer, primary_key=True)
+    соревнование_id      = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
+    субъект_рф           = db.Column(db.String(200), nullable=True)
+    наименование_команды = db.Column(db.String(200), nullable=True)
+    тренер_фио           = db.Column(db.String(200), nullable=True)
+    создано              = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    снаряжение   = db.relationship('ТехСнаряжение', back_populates='проверка',
+                                   cascade='all, delete-orphan', order_by='ТехСнаряжение.порядок')
+    соревнование = db.relationship('Соревнование', back_populates='тех_проверки')
+
+    def __repr__(self):
+        return f'<ТехПроверка id={self.id} "{self.наименование_команды}">'
+
+
+class ТехСнаряжение(db.Model):
+    """Единица снаряжения в технической проверке."""
+    __tablename__ = 'тех_снаряжение'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    проверка_id     = db.Column(db.Integer, db.ForeignKey('тех_проверки.id'), nullable=False)
+    наименование    = db.Column(db.String(50),  nullable=False)   # Рафт R4 / Рафт R6 / Спасжилет / Каска / Весло
+    марка           = db.Column(db.String(100), nullable=True)
+    серийный_номер  = db.Column(db.String(100), nullable=True)
+    количество      = db.Column(db.Integer,     nullable=True, default=1)
+    допуск          = db.Column(db.String(20),  nullable=True, default='Допущен')
+    порядок         = db.Column(db.Integer,     nullable=True, default=0)
+
+    проверка = db.relationship('ТехПроверка', back_populates='снаряжение')
+
+
+class ТехСоставКомиссии(db.Model):
+    """Состав технической комиссии на соревновании (одна запись на соревнование)."""
+    __tablename__ = 'тех_состав_комиссии'
+
+    id                       = db.Column(db.Integer, primary_key=True)
+    соревнование_id          = db.Column(db.Integer, db.ForeignKey('соревнования.id'), unique=True, nullable=False)
+    председатель_фио           = db.Column(db.String(200), nullable=True)
+    председатель_должность     = db.Column(db.String(200), nullable=True)
+    председатель_квалификация  = db.Column(db.String(100), nullable=True)
+    председатель_субъект_рф    = db.Column(db.String(200), nullable=True)
+    член_1_фио                 = db.Column(db.String(200), nullable=True)
+    член_1_должность           = db.Column(db.String(200), nullable=True)
+    член_1_квалификация        = db.Column(db.String(100), nullable=True)
+    член_1_субъект_рф          = db.Column(db.String(200), nullable=True)
+    член_2_фио                 = db.Column(db.String(200), nullable=True)
+    член_2_должность           = db.Column(db.String(200), nullable=True)
+    член_2_квалификация        = db.Column(db.String(100), nullable=True)
+    член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='тех_состав_комиссии')
+
+
+class СоставКомиссииДопуска(db.Model):
+    """Состав комиссии по допуску на соревновании (одна запись на соревнование)."""
+    __tablename__ = 'состав_комиссии_допуска'
+
+    id                       = db.Column(db.Integer, primary_key=True)
+    соревнование_id          = db.Column(db.Integer, db.ForeignKey('соревнования.id'), unique=True, nullable=False)
+    председатель_фио           = db.Column(db.String(200), nullable=True)
+    председатель_должность     = db.Column(db.String(200), nullable=True)
+    председатель_квалификация  = db.Column(db.String(100), nullable=True)
+    председатель_субъект_рф    = db.Column(db.String(200), nullable=True)
+    член_1_фио                 = db.Column(db.String(200), nullable=True)
+    член_1_должность           = db.Column(db.String(200), nullable=True)
+    член_1_квалификация        = db.Column(db.String(100), nullable=True)
+    член_1_субъект_рф          = db.Column(db.String(200), nullable=True)
+    член_2_фио                 = db.Column(db.String(200), nullable=True)
+    член_2_должность           = db.Column(db.String(200), nullable=True)
+    член_2_квалификация        = db.Column(db.String(100), nullable=True)
+    член_2_субъект_рф          = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='состав_комиссии_допуска')
+
+
+class ПараметрыДистанции(db.Model):
+    """Параметры одной дистанции в рамках соревнования (до 4 дистанций)."""
+    __tablename__ = 'параметры_дистанций'
+
+    id              = db.Column(db.Integer, primary_key=True)
+    соревнование_id = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False)
+    порядок         = db.Column(db.Integer, nullable=False, default=1)
+
+    название        = db.Column(db.String(200), nullable=True)
+    протяженность   = db.Column(db.String(50),  nullable=True)
+    категория       = db.Column(db.String(50),  nullable=True)
+    среднее_время   = db.Column(db.String(50),  nullable=True)
+    лимит_времени   = db.Column(db.String(50),  nullable=True)
+    вариант_старта    = db.Column(db.Text,        nullable=True)
+    вариант_финиша    = db.Column(db.Text,        nullable=True)
+    страховка         = db.Column(db.Text,        nullable=True)
+    тип               = db.Column(db.String(50),  nullable=False, default='спринт')
+    буи               = db.Column(db.Text,        nullable=True)
+    кол_ворот         = db.Column(db.String(50),  nullable=True)
+    кол_обратных      = db.Column(db.String(50),  nullable=True)
+    конструкция_ворот = db.Column(db.Text,        nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='параметры_дистанций')
+
+    def __repr__(self):
+        return f'<ПараметрыДистанции #{self.порядок} сор={self.соревнование_id}>'
+
+
+class НаграждениеПараметры(db.Model):
+    """Параметры дипломов для страницы Награждение."""
+    __tablename__ = 'награждение_параметры'
+
+    id                        = db.Column(db.Integer, primary_key=True)
+    соревнование_id           = db.Column(db.Integer, db.ForeignKey('соревнования.id'), nullable=False, unique=True)
+
+    использует_награждается   = db.Column(db.Boolean, nullable=False, default=True)
+    отступ_сверху             = db.Column(db.Integer, nullable=False, default=75)
+    отступ_снизу              = db.Column(db.Integer, nullable=False, default=25)
+    отступ_слева              = db.Column(db.Integer, nullable=False, default=15)
+    отступ_справа             = db.Column(db.Integer, nullable=False, default=15)
+    размер_шрифта_текста      = db.Column(db.Integer, nullable=False, default=14)
+    наименование_соревнований = db.Column(db.Text,    nullable=True)
+    должность_подписывающего  = db.Column(db.Text,    nullable=True)
+    ио_фамилия_подписывающего = db.Column(db.String(200), nullable=True)
+
+    соревнование = db.relationship('Соревнование', back_populates='параметры_награждения')
+
+    def __repr__(self):
+        return f'<НаграждениеПараметры сор={self.соревнование_id}>'
 
 
 # ---------------------------------------------------------------------------
@@ -302,6 +548,7 @@ class Судья(db.Model):
 СТАТУС_ДНФ     = 'НФН'   # не финишировал
 СТАТУС_ДК      = 'ДК'    # дисквалификация
 СТАТУС_ПМ      = 'ПМ'    # последнее место (штраф без времени)
+СТАТУС_ПЛВ     = 'ПЛВ'   # превышение лимита времени
 
 
 class РезультатСпринт(db.Model):
@@ -351,11 +598,11 @@ class РезультатПараллельногоСпринта(db.Model):
 
     # Стадия турнирной сетки
     стадия          = db.Column(db.String(20), nullable=False)
-    # '1_этап', '1/16', '1/8', '1/4', '1/2', 'Финал_А', 'Финал_Б'
 
     номер_заезда    = db.Column(db.Integer, nullable=True)
     дорожка         = db.Column(db.String(10), nullable=True)   # 'левая' / 'правая'
 
+    время_старта    = db.Column(db.Float, nullable=True)
     время           = db.Column(db.Float, nullable=True)
     штрафное_время  = db.Column(db.Float, nullable=False, default=0)
     результат       = db.Column(db.Float, nullable=True)   # время + штраф
@@ -390,7 +637,10 @@ class РезультатСлалома(db.Model):
     # Штрафы слалома (количество нарушений каждого типа)
     кол_штраф_5         = db.Column(db.Integer, nullable=False, default=0)   # касание вехи (5 сек)
     кол_штраф_50        = db.Column(db.Integer, nullable=False, default=0)   # неправильный заход (50 сек)
-    штрафное_время      = db.Column(db.Float,   nullable=False, default=0)   # 5*n5 + 50*n50
+    кол_штраф_с10       = db.Column(db.Integer, nullable=False, default=0)   # +10с на старте
+    кол_штраф_старт     = db.Column(db.Integer, nullable=False, default=0)   # +50с на старте
+    кол_штраф_финиш     = db.Column(db.Integer, nullable=False, default=0)   # +50с на финише
+    штрафное_время      = db.Column(db.Float,   nullable=False, default=0)   # суммарный штраф
 
     результат_попытки   = db.Column(db.Float, nullable=True)   # время + штраф данной попытки
     статус_попытки      = db.Column(db.String(5), nullable=False, default=СТАТУС_ФИНИШ)
@@ -466,6 +716,7 @@ class РезультатДлиннойГонки(db.Model):
     время_финиша        = db.Column(db.Float, nullable=True)
     время_прохождения   = db.Column(db.Float, nullable=True)
 
+    кол_штраф_с10       = db.Column(db.Integer, nullable=False, default=0)
     кол_штраф_старт     = db.Column(db.Integer, nullable=False, default=0)
     кол_штраф_финиш     = db.Column(db.Integer, nullable=False, default=0)
     штрафное_время      = db.Column(db.Float,   nullable=False, default=0)
@@ -575,6 +826,32 @@ def получить_очки(дистанция: str, место: int) -> float
     return запись.очки if запись else 0.0
 
 
+ДАННЫЕ_КОЭФФИЦИЕНТОВ_ЗС = {
+    # кол_субъектов: (место_1, место_2, место_3, место_4+)
+    3:  (3.5, 2.3, 1.2, 1.0),   # 3 и менее
+    4:  (4.6, 3.0, 1.5, 1.0),
+    5:  (5.8, 3.8, 1.9, 1.0),
+    6:  (6.9, 4.6, 2.3, 1.0),
+    7:  (8.1, 5.4, 2.7, 1.0),
+    8:  (9.2, 6.2, 3.1, 1.0),
+    9:  (10.4, 6.9, 3.5, 1.0),
+    10: (11.5, 7.7, 3.8, 1.0),
+    11: (12.7, 8.5, 4.2, 1.0),
+    12: (13.8, 9.2, 4.6, 1.0),
+    13: (15.0, 10.0, 5.0, 1.0),  # 13 и более
+}
+
+
+def заполнить_коэффициенты_субъектов():
+    """Заполнить таблицу ЗС коэффициентами из официальной Таблицы ЗС."""
+    if КоэффициентыСубъектов.query.first():
+        return
+    for кол, (к1, к2, к3, к4) in ДАННЫЕ_КОЭФФИЦИЕНТОВ_ЗС.items():
+        for место, коэф in [(1, к1), (2, к2), (3, к3), (4, к4)]:
+            db.session.add(КоэффициентыСубъектов(место=место, кол_субъектов=кол, коэффициент=коэф))
+    db.session.commit()
+
+
 def заполнить_штрафы():
     """Заполнить справочник штрафов стандартными нарушениями для спринта."""
     if Штраф.query.filter_by(дистанция='СТАРТ').first():
@@ -610,10 +887,11 @@ class ПредварительнаяЗаявка(db.Model):
     субъект_рф            = db.Column(db.String(200), nullable=True)
     наименование_команды  = db.Column(db.String(200), nullable=True)
     # Организация
-    орг_наименование      = db.Column(db.String(300), nullable=True)
-    орг_фио_руководителя  = db.Column(db.String(200), nullable=True)
-    орг_телефон           = db.Column(db.String(50),  nullable=True)
-    орг_email             = db.Column(db.String(100), nullable=True)
+    орг_наименование           = db.Column(db.String(300), nullable=True)
+    орг_фио_руководителя       = db.Column(db.String(200), nullable=True)
+    орг_должность_руководителя = db.Column(db.String(200), nullable=True)
+    орг_телефон                = db.Column(db.String(50),  nullable=True)
+    орг_email                  = db.Column(db.String(100), nullable=True)
     # Тренер-представитель
     тренер_фио            = db.Column(db.String(200), nullable=True)
     тренер_телефон        = db.Column(db.String(50),  nullable=True)
@@ -647,11 +925,16 @@ def применить_миграции():
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
     with db.engine.connect() as conn:
-        # субъекты: представитель
+        # субъекты: представитель, тренер
         cols = {c['name'] for c in inspector.get_columns('субъекты')}
         if 'представитель' not in cols:
             conn.execute(text(
                 'ALTER TABLE субъекты ADD COLUMN представитель VARCHAR(200)'
+            ))
+            conn.commit()
+        if 'тренер' not in cols:
+            conn.execute(text(
+                'ALTER TABLE субъекты ADD COLUMN тренер VARCHAR(200)'
             ))
             conn.commit()
         # команды: класс_судна
@@ -692,6 +975,51 @@ def применить_миграции():
             ('председатель_мандатной_комиссии', 'VARCHAR(200)'),
             ('технический_делегат',          'VARCHAR(200)'),
             ('номер_екп',                    'VARCHAR(100)'),
+            ('дата_начала',                  'DATE'),
+        ]:
+            if col not in cols:
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
+                conn.commit()
+        # соревнования: коды дисциплин во ВРВС и расширенные поля формы
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col, ddl in [
+            ('код_спринт',                  'VARCHAR(30)'),
+            ('код_параллельный_спринт',     'VARCHAR(30)'),
+            ('код_слалом',                  'VARCHAR(30)'),
+            ('код_длинная_гонка',           'VARCHAR(30)'),
+            ('код_многоборье',              'VARCHAR(30)'),
+            ('субъект_рф_название',         'VARCHAR(200)'),
+            ('главный_судья_квалификация',  'VARCHAR(50)'),
+            ('главный_судья_субъект_рф',    'VARCHAR(200)'),
+            ('главный_судья_телефон',       'VARCHAR(50)'),
+            ('федерация_название',           'VARCHAR(300)'),
+            ('федерация_руководитель',       'VARCHAR(200)'),
+            ('федерация_должность',          'VARCHAR(200)'),
+            ('федерация_телефон',            'VARCHAR(50)'),
+            ('федерация_email',              'VARCHAR(100)'),
+            ('проводящая_орг_название',     'VARCHAR(300)'),
+            ('проводящая_орг_руководитель', 'VARCHAR(200)'),
+            ('проводящая_орг_должность',    'VARCHAR(200)'),
+            ('проводящая_орг_телефон',      'VARCHAR(50)'),
+            ('проводящая_орг_email',        'VARCHAR(100)'),
+            ('правила_вида_спорта',         'TEXT'),
+            ('единый_кп',                   'TEXT'),
+            ('положение_о_соревнованиях',   'TEXT'),
+            ('обязанности_федерации',       'TEXT'),
+            ('обязанности_проводящей',      'TEXT'),
+            ('программа_соревнований',      'TEXT'),
+            ('заявочный_взнос_r4',          'VARCHAR(300)'),
+            ('заявочный_взнос',             'VARCHAR(300)'),
+            ('реквизиты_оплаты',            'TEXT'),
+            ('назначение_платежа',          'TEXT'),
+            ('проживание_описание',         'TEXT'),
+            ('инфраструктура_описание',     'TEXT'),
+            ('проезд_общественный',         'TEXT'),
+            ('проезд_собственный',          'TEXT'),
+            ('награждение_описание',        'TEXT'),
+            ('виды_список',                  'TEXT'),
+            ('последовательность_r4',        'VARCHAR(300)'),
+            ('последовательность_r6',        'VARCHAR(300)'),
         ]:
             if col not in cols:
                 conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
@@ -702,6 +1030,11 @@ def применить_миграции():
             if 'возрастная_группа' not in cols:
                 conn.execute(text('ALTER TABLE спортсмены_заявки ADD COLUMN возрастная_группа VARCHAR(50)'))
                 conn.commit()
+        # команды: время_старта_спринт_план
+        cols = {c['name'] for c in inspector.get_columns('команды')}
+        if 'время_старта_спринт_план' not in cols:
+            conn.execute(text("ALTER TABLE команды ADD COLUMN время_старта_спринт_план VARCHAR(20)"))
+            conn.commit()
         # команды: принадлежность_к_орг, оплата_взноса
         cols = {c['name'] for c in inspector.get_columns('команды')}
         if 'принадлежность_к_орг' not in cols:
@@ -710,6 +1043,39 @@ def применить_миграции():
         if 'оплата_взноса' not in cols:
             conn.execute(text("ALTER TABLE команды ADD COLUMN оплата_взноса VARCHAR(50) DEFAULT 'Ожидает оплаты'"))
             conn.commit()
+        # спортсмены: документы
+        cols = {c['name'] for c in inspector.get_columns('спортсмены')}
+        if 'номер_приказа' not in cols:
+            conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_приказа VARCHAR(150)'))
+            conn.commit()
+        if 'номер_страховки' not in cols:
+            conn.execute(text('ALTER TABLE спортсмены ADD COLUMN номер_страховки VARCHAR(100)'))
+            conn.commit()
+        # соревнования: статус готовности разделов
+        cols = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col in ('готов_организаторы', 'готов_судьи', 'готов_заявки',
+                    'готов_допуск', 'готов_тех',
+                    'готов_наград_спринт', 'готов_наград_пс', 'готов_наград_слалом',
+                    'готов_наград_дг', 'готов_наград_мб', 'готов_наград_зачет'):
+            if col not in cols:
+                conn.execute(text(
+                    f"ALTER TABLE соревнования ADD COLUMN {col} BOOLEAN NOT NULL DEFAULT 0"
+                ))
+                conn.commit()
+        # тех_состав_комиссии: квалификация и субъект членов
+        if inspector.has_table('тех_состав_комиссии'):
+            cols = {c['name'] for c in inspector.get_columns('тех_состав_комиссии')}
+            for col, ddl in [
+                ('председатель_квалификация', 'VARCHAR(100)'),
+                ('председатель_субъект_рф',   'VARCHAR(200)'),
+                ('член_1_квалификация',        'VARCHAR(100)'),
+                ('член_1_субъект_рф',          'VARCHAR(200)'),
+                ('член_2_квалификация',        'VARCHAR(100)'),
+                ('член_2_субъект_рф',          'VARCHAR(200)'),
+            ]:
+                if col not in cols:
+                    conn.execute(text(f'ALTER TABLE тех_состав_комиссии ADD COLUMN {col} {ddl}'))
+                    conn.commit()
         # результаты_спринт: новые колонки штрафов по типу
         if inspector.has_table('результаты_спринт'):
             cols = {c['name'] for c in inspector.get_columns('результаты_спринт')}
@@ -719,6 +1085,196 @@ def применить_миграции():
                         f'ALTER TABLE результаты_спринт ADD COLUMN {col} INTEGER DEFAULT 0'
                     ))
                     conn.commit()
+        # параметры_дистанций: создаём таблицу если нет, добавляем новые столбцы
+        if not inspector.has_table('параметры_дистанций'):
+            db.create_all()
+        else:
+            cols_д = {c['name'] for c in inspector.get_columns('параметры_дистанций')}
+            for col, ddl in [
+                ('тип',               "VARCHAR(50) NOT NULL DEFAULT 'спринт'"),
+                ('буи',               'TEXT'),
+                ('кол_ворот',         'VARCHAR(50)'),
+                ('кол_обратных',      'VARCHAR(50)'),
+                ('конструкция_ворот', 'TEXT'),
+            ]:
+                if col not in cols_д:
+                    conn.execute(text(f'ALTER TABLE параметры_дистанций ADD COLUMN {col} {ddl}'))
+                    conn.commit()
+        # награждение_параметры: создаём таблицу если нет
+        if not inspector.has_table('награждение_параметры'):
+            db.create_all()
+        # параметры жеребьёвки: два новых столбца в соревнованиях
+        cols_сор = {c['name'] for c in inspector.get_columns('соревнования')}
+        if 'последовательность_видов' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_видов VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_протокола' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_протокола VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'последовательность_слалом' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_слалом VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_слалом' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_слалом VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'последовательность_дг' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_дг VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_дг' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_дг VARCHAR(20)"
+                ))
+                conn.commit()
+        # результаты_дг: штраф +10с (новый столбец)
+        if inspector.has_table('результаты_дг'):
+            cols_дг = {c['name'] for c in inspector.get_columns('результаты_дг')}
+            if 'кол_штраф_с10' not in cols_дг:
+                conn.execute(text('ALTER TABLE результаты_дг ADD COLUMN кол_штраф_с10 INTEGER DEFAULT 0'))
+                conn.commit()
+        # результаты_пс: время старта заезда
+        if inspector.has_table('результаты_пс'):
+            cols_пс = {c['name'] for c in inspector.get_columns('результаты_пс')}
+            if 'время_старта' not in cols_пс:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text(
+                        "ALTER TABLE результаты_пс ADD COLUMN время_старта FLOAT"
+                    ))
+                    conn.commit()
+        if 'последовательность_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_пс VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_старт_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_старт_пс VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'последовательность_допуска' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN последовательность_допуска VARCHAR(100)"
+                ))
+                conn.commit()
+        if 'вывод_допуска' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN вывод_допуска VARCHAR(20)"
+                ))
+                conn.commit()
+        # предварительные_заявки: должность руководителя
+        if inspector.has_table('предварительные_заявки'):
+            cols_з = {c['name'] for c in inspector.get_columns('предварительные_заявки')}
+            if 'орг_должность_руководителя' not in cols_з:
+                conn.execute(text(
+                    'ALTER TABLE предварительные_заявки ADD COLUMN орг_должность_руководителя VARCHAR(200)'
+                ))
+                conn.commit()
+        # соревнования: готовность и текстовые поля отчётов
+        cols_сор3 = {c['name'] for c in inspector.get_columns('соревнования')}
+        if 'готов_отчеты' not in cols_сор3:
+            conn.execute(text("ALTER TABLE соревнования ADD COLUMN готов_отчеты BOOLEAN NOT NULL DEFAULT 0"))
+            conn.commit()
+        for col, ddl in [
+            ('отч_объект_спорта',   'TEXT'),
+            ('отч_работа_комиссии', 'TEXT'),
+            ('отч_тех_совещания',   'TEXT'),
+            ('отч_открытие',        'TEXT'),
+            ('отч_информационное',  'TEXT'),
+            ('отч_зрители',         'VARCHAR(200)'),
+            ('отч_оценка_качества', 'TEXT'),
+            ('отч_медицинское',     'TEXT'),
+            ('отч_безопасность',    'TEXT'),
+            ('отч_замечания',       'TEXT'),
+            ('отч_характеристика',  'TEXT'),
+            ('отч_номер_сметы',     'VARCHAR(100)'),
+        ]:
+            if col not in cols_сор3:
+                conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} {ddl}'))
+                conn.commit()
+        # результаты_слалом: штрафы старта и финиша
+        if inspector.has_table('результаты_слалом'):
+            cols_сл = {c['name'] for c in inspector.get_columns('результаты_слалом')}
+            for col in ('кол_штраф_с10', 'кол_штраф_старт', 'кол_штраф_финиш'):
+                if col not in cols_сл:
+                    conn.execute(text(
+                        f'ALTER TABLE результаты_слалом ADD COLUMN {col} INTEGER DEFAULT 0'
+                    ))
+                    conn.commit()
+        # команды: заменить UNIQUE(соревнование_id, нагрудный_номер)
+        #          на     UNIQUE(соревнование_id, класс_судна, пол, нагрудный_номер)
+        uq_indexes = {idx['name'] for idx in inspector.get_unique_constraints('команды')}
+        if 'uq_сор_номер' in uq_indexes:
+            # Проверяем, что старый constraint ещё двухколоночный
+            old_cols = next(
+                (idx['column_names'] for idx in inspector.get_unique_constraints('команды')
+                 if idx['name'] == 'uq_сор_номер'),
+                []
+            )
+            if 'класс_судна' not in old_cols:
+                with db.engine.connect() as conn2:
+                    conn2.execute(text('PRAGMA foreign_keys = OFF'))
+                    conn2.execute(text('''
+                        CREATE TABLE команды_new (
+                            id INTEGER NOT NULL PRIMARY KEY,
+                            соревнование_id INTEGER NOT NULL REFERENCES соревнования(id),
+                            субъект_id INTEGER REFERENCES субъекты(id),
+                            нагрудный_номер INTEGER NOT NULL,
+                            название VARCHAR(150),
+                            класс_судна VARCHAR(5) NOT NULL DEFAULT "R4",
+                            пол VARCHAR(5) NOT NULL DEFAULT "м",
+                            возрастная_группа VARCHAR(20),
+                            участие_спринт BOOLEAN NOT NULL DEFAULT 1,
+                            участие_пс BOOLEAN NOT NULL DEFAULT 1,
+                            участие_слалом BOOLEAN NOT NULL DEFAULT 1,
+                            участие_дг BOOLEAN NOT NULL DEFAULT 1,
+                            участие_многоборье BOOLEAN NOT NULL DEFAULT 1,
+                            принадлежность_к_орг VARCHAR(100),
+                            оплата_взноса VARCHAR(50) DEFAULT "Ожидает оплаты",
+                            стартовый_номер_спринт INTEGER,
+                            время_старта_спринт_план VARCHAR(20),
+                            UNIQUE (соревнование_id, класс_судна, пол, нагрудный_номер)
+                        )
+                    '''))
+                    conn2.execute(text('''
+                        INSERT INTO команды_new SELECT
+                            id, соревнование_id, субъект_id, нагрудный_номер, название,
+                            класс_судна, пол, возрастная_группа,
+                            участие_спринт, участие_пс, участие_слалом, участие_дг, участие_многоборье,
+                            принадлежность_к_орг, оплата_взноса,
+                            стартовый_номер_спринт, время_старта_спринт_план
+                        FROM команды
+                    '''))
+                    conn2.execute(text('DROP TABLE команды'))
+                    conn2.execute(text('ALTER TABLE команды_new RENAME TO команды'))
+                    conn2.execute(text('PRAGMA foreign_keys = ON'))
+                    conn2.commit()
+        # награждение_параметры: размер_шрифта_текста
+        if inspector.has_table('награждение_параметры'):
+            cols_нп = {c['name'] for c in inspector.get_columns('награждение_параметры')}
+            if 'размер_шрифта_текста' not in cols_нп:
+                conn.execute(text(
+                    'ALTER TABLE награждение_параметры ADD COLUMN размер_шрифта_текста INTEGER NOT NULL DEFAULT 14'
+                ))
+                conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения

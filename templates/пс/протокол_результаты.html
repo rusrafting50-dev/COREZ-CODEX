@@ -11,178 +11,427 @@
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; }
-      @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
+      body { font-size: 10pt; zoom: 82%; }
+      @page { margin: 5mm 5mm 12mm 5mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      .gender-row { page-break-after: avoid; break-after: avoid; }
     }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }
-    thead { background: #f0f0f0; font-weight: bold; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; }
+    {% if портрет %}
+    @media print {
+      @page { margin: 5mm 5mm 12mm 5mm; size: A4 portrait; }
+      body { zoom: 65%; }
+      .col-итог-состав { overflow-wrap: break-word; word-break: break-word; }
+    }
+    {% endif %}
+    table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 10pt; font-family: "Times New Roman", serif !important; }
+    thead tr + tr th, thead tr + tr td { border-top: 0.75pt solid #333; }
+    thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
+    th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .место-1 { background: #fffde0; }
-    .место-2 { background: #f8f8f8; }
-    .место-3 { background: #fff4e8; }
     .text-center { text-align: center; }
     .fw-bold { font-weight: bold; }
+    .gender-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
   </style>
 </head>
 <body class="px-3 py-3">
 
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← Назад к результатам</a>
+     class="btn btn-outline-info btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
-    {% if итоговый %}
-    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предварительный</a>
+    {% if has_r6 %}
+      {% if итоговый %}
+        {% if класс == 'R4' %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R6</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+        {% else %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R6</a>
+        {% endif %}
+      {% else %}
+        {% if класс == 'R4' %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R6</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+        {% else %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Предварительные протоколы R4</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R4') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R4</a>
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс='R6') }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы R6</a>
+        {% endif %}
+      {% endif %}
     {% else %}
-    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-outline-primary btn-sm" target="_blank">Итоговый</a>
+      {% if итоговый %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, портрет=(1 if портрет else 0), класс=класс) }}"
+       class="btn btn-outline-secondary btn-sm">Предварительный</a>
+      {% else %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0), класс=класс) }}"
+       class="btn btn-outline-primary btn-sm">Итоговый</a>
+      {% endif %}
     {% endif %}
-    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+    {% if портрет %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0)) }}"
+       class="btn btn-outline-secondary btn-sm">Альбом</a>
+    {% else %}
+    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, класс=класс, итоговый=(1 if итоговый else 0), портрет=1) }}"
+       class="btn btn-outline-secondary btn-sm">Портрет</a>
+    {% endif %}
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
 
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+{%- for строка in сор.организаторы_блок.split('\n') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+  {%- elif '«' in строка -%}
+    {%- set ч = строка.split('«', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
+</div>
 {% endif %}
 
 <div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
-  {{ сор.название }}{% if сор.уровень %},&nbsp;{{ сор.уровень }}{% endif %}
+  {{ сор.название }}
 </div>
 
-<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; text-transform:uppercase; margin-top:6px">
-  {{ 'ИТОГОВЫЙ' if итоговый else 'ПРЕДВАРИТЕЛЬНЫЙ' }} ПРОТОКОЛ СПОРТИВНЫХ СОРЕВНОВАНИЙ
+{% if итоговый and сор.номер_екп %}
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">ЕКП № {{ сор.номер_екп }}</div>
+{% endif %}
+
+<div class="text-center mb-1" style="font-size:11pt; font-weight:bold; margin-top:6px">
+  {% if итоговый %}ПРОТОКОЛ РЕЗУЛЬТАТОВ{% else %}ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ{% endif %}
 </div>
 
-<div class="text-center mb-1" style="font-size:10pt">
-  Спортивная дисциплина: <strong>ПАРАЛЛЕЛЬНЫЙ СПРИНТ{% if сор.класс_судна %} - {{ сор.класс_судна }}{% endif %}</strong>
+<div class="text-center mb-1" style="font-size:10pt; font-weight:bold">
+  Спортивная дисциплина:
+  {% if класс == 'R4' %}ПАРАЛЛЕЛЬНЫЙ СПРИНТ – R4, код ВРВС 1740051811Я
+  {% elif класс == 'R6' %}ПАРАЛЛЕЛЬНЫЙ СПРИНТ – R6, код ВРВС 1740061811Я
+  {% else %}ПАРАЛЛЕЛЬНЫЙ СПРИНТ{% if класс %} – {{ класс }}{% endif %}{% endif %}
 </div>
 
-<div class="d-flex justify-content-between mb-2" style="font-size:10pt">
-  <div>
-    Дата проведения:
-    <span class="underline-field" style="min-width:120px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+<div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:bold;">
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Дата проведения</div>
   </div>
-  <div>
-    Место проведения:
-    <span class="underline-field" style="min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+  <div style="display:inline-block;text-align:center">
+    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:8pt">Место проведения</div>
   </div>
 </div>
 
-{# ── Macro: таблица результатов ─────────────────────────────────────────────── #}
-{% macro таблица_рез(итог, стадии_команд, заг) %}
-{% if итог %}
-<div class="section-title">
-  {{ заг }}
-  {% if сор.возрастная_группа %}&nbsp;—&nbsp;{{ сор.возрастная_группа }}{% endif %}
-</div>
+{# Вспомогательный макрос: результат с учётом статуса ДК/НФН/НСТ #}
+{% macro рез(з) %}{% if з %}{% if з.статус == 'ДК' %}ДК{% elif з.статус == 'НФН' %}Не фин.{% elif з.статус == 'НСТ' %}Не старт.{% elif з.статус == 'ПМ' %}Посл. м.{% elif з.статус == 'ПЛВ' %}Прев. ЛВ{% else %}{{ format_dur(з.результат) }}{% endif %}{% else %}–{% endif %}{% endmacro %}
+
+{# ── Macro: таблица результатов мужчины + женщины ─────────────────────────── #}
+{% macro таблица_рез(муж_итог, жен_итог, муж_ст, жен_ст) %}
+{% set _муж_норм = (муж_итог | length) >= 6 %}
+{% set _жен_норм = (жен_итог | length) >= 6 %}
+{% set _снос = ((муж_итог | length) > 0 and not _муж_норм) or ((жен_итог | length) > 0 and not _жен_норм) %}
+
+{# Определяем, какие стадии присутствуют (только для предварительного протокола) #}
+{% if not итоговый %}
+{% set _sn = namespace(есть_16=false, есть_18=false, есть_14=false, есть_12=false, есть_ф=false) %}
+{% for з in муж_итог %}
+  {% set д = муж_ст.get(з.команда_id, {}) %}
+  {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
+  {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
+  {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
+  {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
+  {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
+{% endfor %}
+{% for з in жен_итог %}
+  {% set д = жен_ст.get(з.команда_id, {}) %}
+  {% if '1/16' in д %}{% set _sn.есть_16 = true %}{% endif %}
+  {% if '1/8' in д %}{% set _sn.есть_18 = true %}{% endif %}
+  {% if '1/4' in д %}{% set _sn.есть_14 = true %}{% endif %}
+  {% if '1/2' in д %}{% set _sn.есть_12 = true %}{% endif %}
+  {% if 'Финал_А' in д or 'Финал_Б' in д %}{% set _sn.есть_ф = true %}{% endif %}
+{% endfor %}
+{% set _есть_16 = _sn.есть_16 %}
+{% set _есть_18 = _sn.есть_18 %}
+{% set _есть_14 = _sn.есть_14 %}
+{% set _есть_12 = _sn.есть_12 %}
+{% set _есть_ф  = _sn.есть_ф  %}
+{% set ncol = 11 + (_есть_16 | int * 2) + (_есть_18 | int * 2) + (_есть_14 | int * 2) + (_есть_12 | int * 2) + (_есть_ф | int * 2) %}
+{% else %}
+{% set ncol = 8 %}
+{% endif %}
+
+{% if муж_итог or жен_итог %}
 <table>
   <thead>
     <tr>
-      <th rowspan="2" class="text-center" style="width:28px">№п/п</th>
-      <th rowspan="2" class="text-center" style="width:48px">Номер экипажа</th>
-      <th rowspan="2" style="min-width:180px">Фамилия, имя, спортивная квалификация участников</th>
-      <th rowspan="2" style="width:80px">Команда</th>
-      <th rowspan="2" style="min-width:90px">Территория</th>
-      <th rowspan="2" class="text-center" style="width:50px">Место СПРИНТ</th>
-      <th colspan="2" class="text-center" style="width:120px">1/2 финала</th>
-      <th colspan="2" class="text-center" style="width:110px">Финалы</th>
-      <th colspan="2" class="text-center" style="width:120px">Итоговый результат</th>
-      <th rowspan="2" class="text-center" style="width:38px">Место</th>
-      <th rowspan="2" class="text-center" style="width:60px">Очки в спортивной дисциплине МНОГОБОРЬЕ</th>
-      <th rowspan="2" class="text-center" style="width:55px">Выполненный норматив*</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:28px;white-space:nowrap">№<br>п/п</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:260px">Команда</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:48px">Номер</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}{% if итоговый %}class="col-итог-состав" {% endif %}style="{% if итоговый %}min-width:8px{% else %}width:520px{% endif %}">{% if итоговый %}Состав{% else %}Фамилия, имя, отчество участников{% endif %}</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}min-width:160px{% else %}width:70px{% endif %}">Субъект РФ</th>
+      {% if not итоговый %}
+      <th rowspan="2" style="width:56px">Место<br>СПРИНТ</th>
+      {% if _есть_16 %}<th colspan="2" class="text-center">1/16 финала</th>{% endif %}
+      {% if _есть_18 %}<th colspan="2" class="text-center">1/8 финала</th>{% endif %}
+      {% if _есть_14 %}<th colspan="2" class="text-center">¼ финала</th>{% endif %}
+      {% if _есть_12 %}<th colspan="2" class="text-center">½ финала</th>{% endif %}
+      {% if _есть_ф  %}<th colspan="2" class="text-center">Финалы</th>{% endif %}
+      <th colspan="2" class="text-center">Итоговый результат</th>
+      {% endif %}
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:42px">Место</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="{% if итоговый %}width:60px{% else %}width:42px{% endif %}">Очки</th>
+      <th {% if not итоговый %}rowspan="2" {% endif %}style="width:65px">Выполнение разряда{% if _снос %}*{% endif %}</th>
     </tr>
+    {% if not итоговый %}
     <tr>
-      <th class="text-center" style="width:55px">Номер заезда</th>
-      <th class="text-center" style="width:65px">Итоговый результат</th>
-      <th class="text-center" style="width:42px">Финал</th>
-      <th class="text-center" style="width:68px">Итоговый результат</th>
-      <th class="text-center" style="width:50px">Стадия по сетке</th>
-      <th class="text-center" style="width:70px">Время прохождения</th>
+      {% if _есть_16 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_18 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_14 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_12 %}<th style="width:44px">Заезд №</th><th style="width:68px">Результат</th>{% endif %}
+      {% if _есть_ф  %}<th style="width:46px">Финал</th><th style="width:64px">Результат</th>{% endif %}
+      <th style="width:50px">Стадия</th>
+      <th style="width:46px">Время</th>
     </tr>
+    {% endif %}
   </thead>
   <tbody>
-  {% for з in итог %}
+
+  {# ── Мужчины ── #}
+  <tr class="gender-row"><td colspan="{{ ncol }}" class="text-center">Мужчины</td></tr>
+  {% set ns = namespace(idx=0) %}
+  {% for з in муж_итог %}
   {% set к = з.команда %}
   {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
   {% set рез_сп = к.результат_спринт %}
-  {% set з_12 = стадии_команд.get(к.id, {}).get('1/2') %}
-  {% set з_фа = стадии_команд.get(к.id, {}).get('Финал_А') %}
-  {% set з_фб = стадии_команд.get(к.id, {}).get('Финал_Б') %}
-  <tr class="{{ 'место-1' if з.итоговое_место == 1 else ('место-2' if з.итоговое_место == 2 else ('место-3' if з.итоговое_место == 3 else '')) }}">
-    <td class="text-center">{{ loop.index }}</td>
+  {% if not итоговый %}
+  {% set з_16 = муж_ст.get(к.id, {}).get('1/16') %}
+  {% set з_18 = муж_ст.get(к.id, {}).get('1/8') %}
+  {% set з_14 = муж_ст.get(к.id, {}).get('1/4') %}
+  {% set з_12 = муж_ст.get(к.id, {}).get('1/2') %}
+  {% set з_фа = муж_ст.get(к.id, {}).get('Финал_А') %}
+  {% set з_фб = муж_ст.get(к.id, {}).get('Финал_Б') %}
+  {% endif %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr>
+    <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '–' }}</td>
     <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td style="font-size:7.5pt">
-      {% if состав %}{{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}{% else %}—{% endif %}
+    <td {% if итоговый %}class="col-итог-состав" {% endif %}style="font-size:8pt">
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}–{% endif %}
     </td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '—' }}</td>
-    {# 1/2 финала #}
-    <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% endif %}</td>
-    <td class="text-center" style="font-family:monospace">{% if з_12 %}{{ format_dur(з_12.результат) }}{% endif %}</td>
-    {# Финалы #}
-    <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% endif %}</td>
+    <td>{{ к.субъект.название if к.субъект else '–' }}</td>
+    {% if not итоговый %}
+    <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '–' }}</td>
+    {% if _есть_16 %}
+    <td class="text-center">{% if з_16 %}{{ з_16.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_16) }}</td>
+    {% endif %}
+    {% if _есть_18 %}
+    <td class="text-center">{% if з_18 %}{{ з_18.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_18) }}</td>
+    {% endif %}
+    {% if _есть_14 %}
+    <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
+    {% endif %}
+    {% if _есть_12 %}
+    <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
+    {% endif %}
+    {% if _есть_ф %}
+    <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}–{% endif %}</td>
     <td class="text-center" style="font-family:monospace">
-      {% if з_фа %}{{ format_dur(з_фа.результат) }}{% elif з_фб %}{{ format_dur(з_фб.результат) }}{% endif %}
+      {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}–{% endif %}
     </td>
-    {# Итоговый результат #}
+    {% endif %}
     <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
-    <td class="text-center fw-bold" style="font-family:monospace">{{ format_dur(з.результат) }}</td>
-    <td class="text-center fw-bold">{{ з.итоговое_место }}</td>
-    <td class="text-center">{{ з.очки | int if з.очки else '—' }}</td>
-    <td class="text-center">-</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
+    {% endif %}
+    <td class="text-center fw-bold">{{ з.итоговое_место or '–' }}</td>
+    <td class="text-center">{{ з.очки | int if з.очки else '–' }}</td>
+    <td class="text-center">{{ муж_разр.get(з.команда_id, '–') if _муж_норм else '–' }}</td>
   </tr>
   {% endfor %}
+  {% if not муж_итог %}
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
+  {# ── Женщины ── #}
+  <tr class="gender-row"><td colspan="{{ ncol }}" class="text-center">Женщины</td></tr>
+  {% set ns.idx = 0 %}
+  {% for з in жен_итог %}
+  {% set к = з.команда %}
+  {% set состав = к.спортсмены | sort(attribute='номер_в_экипаже') %}
+  {% set рез_сп = к.результат_спринт %}
+  {% if not итоговый %}
+  {% set з_16 = жен_ст.get(к.id, {}).get('1/16') %}
+  {% set з_18 = жен_ст.get(к.id, {}).get('1/8') %}
+  {% set з_14 = жен_ст.get(к.id, {}).get('1/4') %}
+  {% set з_12 = жен_ст.get(к.id, {}).get('1/2') %}
+  {% set з_фа = жен_ст.get(к.id, {}).get('Финал_А') %}
+  {% set з_фб = жен_ст.get(к.id, {}).get('Финал_Б') %}
+  {% endif %}
+  {% set ns.idx = ns.idx + 1 %}
+  <tr>
+    <td class="text-center">{{ ns.idx }}</td>
+    <td>{{ к.название or '–' }}</td>
+    <td class="text-center">{{ к.нагрудный_номер }}</td>
+    <td {% if итоговый %}class="col-итог-состав" {% endif %}style="font-size:8pt">
+      {% if состав %}
+        {% if итоговый %}
+          {% for с in состав %}{{ с.фамилия_имя_отчество }} ({{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else 'б/д' }}, {{ с.разряд or 'б/р' }}){% if not loop.last %}, {% endif %}{% endfor %}
+        {% else %}
+          {{ состав | map(attribute='фамилия_имя_отчество') | join(', ') }}
+        {% endif %}
+      {% else %}–{% endif %}
+    </td>
+    <td>{{ к.субъект.название if к.субъект else '–' }}</td>
+    {% if not итоговый %}
+    <td class="text-center">{{ рез_сп.место | int if рез_сп and рез_сп.место else '–' }}</td>
+    {% if _есть_16 %}
+    <td class="text-center">{% if з_16 %}{{ з_16.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_16) }}</td>
+    {% endif %}
+    {% if _есть_18 %}
+    <td class="text-center">{% if з_18 %}{{ з_18.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_18) }}</td>
+    {% endif %}
+    {% if _есть_14 %}
+    <td class="text-center">{% if з_14 %}{{ з_14.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_14) }}</td>
+    {% endif %}
+    {% if _есть_12 %}
+    <td class="text-center">{% if з_12 %}{{ з_12.номер_заезда }}{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">{{ рез(з_12) }}</td>
+    {% endif %}
+    {% if _есть_ф %}
+    <td class="text-center">{% if з_фа %}ФА{% elif з_фб %}ФБ{% else %}–{% endif %}</td>
+    <td class="text-center" style="font-family:monospace">
+      {% if з_фа %}{{ рез(з_фа) }}{% elif з_фб %}{{ рез(з_фб) }}{% else %}–{% endif %}
+    </td>
+    {% endif %}
+    <td class="text-center">{{ АББРЕВ_СТАДИЙ.get(з.стадия, з.стадия) }}</td>
+    <td class="text-center fw-bold" style="font-family:monospace">{{ рез(з) }}</td>
+    {% endif %}
+    <td class="text-center fw-bold">{{ з.итоговое_место or '–' }}</td>
+    <td class="text-center">{{ з.очки | int if з.очки else '–' }}</td>
+    <td class="text-center">{{ жен_разр.get(з.команда_id, '–') if _жен_норм else '–' }}</td>
+  </tr>
+  {% endfor %}
+  {% if not жен_итог %}
+  <tr><td colspan="{{ ncol }}" class="text-center" style="padding:6px">Нет данных</td></tr>
+  {% endif %}
+
   </tbody>
 </table>
-<div style="font-size:8pt; margin-top:4px">
+{% if _снос %}
+<div style="font-size:8pt; margin-top:4px; font-weight:bold">
   * Разряды не присваиваются, т.к. количество участников в виде программы недостаточно для присвоения
   в соответствии с положением о ЕВСК (пункт 25)
 </div>
 {% endif %}
+{% endif %}
 {% endmacro %}
 
-{{ таблица_рез(муж_итог, муж_стадии_команд, 'МУЖСКИЕ ЭКИПАЖИ') }}
-{{ таблица_рез(жен_итог, жен_стадии_команд, 'ЖЕНСКИЕ ЭКИПАЖИ') }}
+{{ таблица_рез(муж_итог, жен_итог, муж_стадии_команд, жен_стадии_команд) }}
 
 {% if not муж_итог and not жен_итог %}
-<div class="text-center text-muted py-4">Нет результатов для отображения</div>
+<div class="text-center py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<div class="mt-4" style="font-size:10pt">
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный судья</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_судья or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+<div class="mt-4" style="font-size:10pt; font-weight:bold">
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный судья</div>
+    <div>{{ сор.главный_судья or '' }}</div>
   </div>
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Главный секретарь</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.главный_секретарь or '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' }}/
-    </span>
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный секретарь</div>
+    <div>{{ сор.главный_секретарь or '' }}</div>
   </div>
-  {% if сор.зам_главного_секретаря %}
-  <div class="d-flex align-items-baseline gap-2 mb-2">
-    <span>Заместитель главного секретаря</span>
-    <span class="underline-field" style="min-width:300px">
-      /{{ сор.зам_главного_секретаря }}/
-    </span>
-  </div>
+</div>
+
+{% if not итоговый %}
+<div class="mt-3" style="font-size:10pt; font-weight:bold">
+  Время опубликования: <span id="pubtime"></span>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% if not итоговый %}
+<script>
+  function updatePubTime() {
+    var now = new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    document.getElementById('pubtime').textContent =
+      pad(now.getDate()) + '.' + pad(now.getMonth() + 1) + '.' + now.getFullYear() +
+      ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  updatePubTime();
+  window.addEventListener('beforeprint', updatePubTime);
+</script>
+{% endif %}
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  {% if портрет %}
+  css += '@page WordSection1{size:595.3pt 841.9pt;mso-page-orientation:portrait;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  {% else %}
+  css += '@page WordSection1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
   {% endif %}
-</div>
-
-<div class="mt-3" style="font-size:9pt; color:#666">
-  Время опубликования: {{ сегодня.strftime('%d.%m.%Y') }} &middot;
-  {{ 'Итоговый' if итоговый else 'Предварительный' }} протокол
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
-        crossorigin="anonymous"></script>
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8">'
+    + '<style>' + css + '</style>'
+    + '</head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

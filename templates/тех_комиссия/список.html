@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block title %}Техническая комиссия — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">Техническая комиссия</li>
+  </ol>
+{% endblock %}
+
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
+{% block content %}
+
+{{ кнопка_готовности(сор.готов_тех, 'tech') }}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Техническая комиссия</h5>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('тех.состав', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">← Состав комиссии</a>
+    <a href="{{ url_for('тех.акт_все', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Акт технической комиссии</a>
+    <a href="{{ url_for('тех.новая', sor_id=сор.id) }}"
+       class="btn btn-primary btn-sm">+ Новая проверка команды</a>
+  </div>
+</div>
+
+{% if проверки %}
+
+<div class="table-responsive">
+  <table class="table table-sm table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th style="width:2rem" rowspan="2"></th>
+        <th style="width:2.5rem" class="text-center" rowspan="2">№<br>п/п</th>
+        <th rowspan="2">Наименование команды /<br>Субъект РФ / Тренер</th>
+        <th colspan="3" class="text-center border-start">Рафты</th>
+        <th colspan="2" class="text-center border-start">Каски</th>
+        <th colspan="2" class="text-center border-start">Спасжилеты</th>
+        <th colspan="2" class="text-center border-start">Вёсла</th>
+        <th rowspan="2" class="no-print"></th>
+      </tr>
+      <tr>
+        <th class="border-start" style="min-width:55px">Вид</th>
+        <th style="min-width:90px">Марка</th>
+        <th class="text-center" style="width:50px">Кол.</th>
+        <th class="border-start" style="min-width:90px">Марка</th>
+        <th class="text-center" style="width:50px">Кол.</th>
+        <th class="border-start" style="min-width:90px">Марка</th>
+        <th class="text-center" style="width:50px">Кол.</th>
+        <th class="border-start" style="min-width:90px">Марка</th>
+        <th class="text-center" style="width:50px">Кол.</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for п in проверки %}
+    {# сгруппируем снаряжение по типу #}
+    {% set рафты      = [] %}
+    {% set каски      = [] %}
+    {% set спасжилеты = [] %}
+    {% set весла      = [] %}
+    {% for с in п.снаряжение %}
+      {% if 'Рафт' in с.наименование %}{% if рафты.append(с) %}{% endif %}
+      {% elif с.наименование == 'Каска' %}{% if каски.append(с) %}{% endif %}
+      {% elif с.наименование == 'Спасжилет' %}{% if спасжилеты.append(с) %}{% endif %}
+      {% elif с.наименование == 'Весло' %}{% if весла.append(с) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+    <tr>
+      <td class="text-center">
+        {% if п.снаряжение %}
+        <button class="btn btn-outline-success btn-sm px-1 py-0"
+                type="button"
+                onclick="toggleEq(this, 'eq-{{ п.id }}')">+</button>
+        {% endif %}
+      </td>
+      <td class="text-center fw-bold">{{ loop.index }}</td>
+      <td class="small">
+        <span class="fw-semibold">{{ п.наименование_команды or '—' }}</span>
+        {% if п.субъект_рф %}<div class="text-muted" style="font-size:.75rem">{{ п.субъект_рф }}</div>{% endif %}
+        {% if п.тренер_фио %}<div class="text-muted" style="font-size:.75rem">{{ п.тренер_фио }}</div>{% endif %}
+      </td>
+      {# Рафты: Вид | Марка | Кол #}
+      <td class="small border-start">
+        {% for р in рафты %}{{ р.наименование }}<br>{% else %}—{% endfor %}
+      </td>
+      <td class="small">
+        {% for р in рафты %}{{ р.марка or '—' }}<br>{% else %}{% endfor %}
+      </td>
+      <td class="text-center small">
+        {% for р in рафты %}{{ р.количество or 1 }}<br>{% else %}{% endfor %}
+      </td>
+      {# Каски: Марка | Кол #}
+      <td class="small border-start">
+        {% for к in каски %}{{ к.марка or '—' }}<br>{% else %}—{% endfor %}
+      </td>
+      <td class="text-center small">
+        {% for к in каски %}{{ к.количество or 1 }}<br>{% else %}{% endfor %}
+      </td>
+      {# Спасжилеты: Марка | Кол #}
+      <td class="small border-start">
+        {% for с in спасжилеты %}{{ с.марка or '—' }}<br>{% else %}—{% endfor %}
+      </td>
+      <td class="text-center small">
+        {% for с in спасжилеты %}{{ с.количество or 1 }}<br>{% else %}{% endfor %}
+      </td>
+      {# Весла: Марка | Кол #}
+      <td class="small border-start">
+        {% for в in весла %}{{ в.марка or '—' }}<br>{% else %}—{% endfor %}
+      </td>
+      <td class="text-center small">
+        {% for в in весла %}{{ в.количество or 1 }}<br>{% else %}{% endfor %}
+      </td>
+      <td class="text-end text-nowrap no-print">
+        <a href="{{ url_for('тех.редактировать', sor_id=сор.id, id=п.id) }}"
+           class="btn btn-outline-primary btn-sm">Изменить</a>
+        <form action="{{ url_for('тех.удалить', sor_id=сор.id, id=п.id) }}"
+              method="post" class="d-inline"
+              onsubmit="return confirm('Удалить проверку команды {{ п.наименование_команды or '' }}?')">
+          <button class="btn btn-outline-danger btn-sm">Удалить</button>
+        </form>
+      </td>
+    </tr>
+    {% if п.снаряжение %}
+    <tr id="eq-{{ п.id }}" style="display:none">
+      <td colspan="13" class="p-0">
+        <div class="px-3 py-2 bg-light border-bottom">
+          <table class="table table-sm table-bordered mb-0" style="font-size:.82rem">
+            <thead class="table-secondary">
+              <tr>
+                <th class="text-center" style="width:2.5rem">№<br>п/п</th>
+                <th>Наименование</th>
+                <th>Марка</th>
+                <th>Серийный номер</th>
+                <th class="text-center" style="width:60px">Кол-во</th>
+                <th class="text-center" style="width:100px">Допуск</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for с in п.снаряжение %}
+            <tr>
+              <td class="text-center text-muted">{{ loop.index }}</td>
+              <td>{{ с.наименование }}</td>
+              <td>{{ с.марка or '—' }}</td>
+              <td>{{ с.серийный_номер or '—' }}</td>
+              <td class="text-center">{{ с.количество or 1 }}</td>
+              <td class="text-center">
+                {% if с.допуск == 'Допущен' %}
+                <span class="badge bg-success">Допущен</span>
+                {% else %}
+                <span class="badge bg-danger">Не допущен</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+    <tfoot class="table-light">
+      {% set субъ = namespace(seen=[]) %}
+      {% for п in проверки %}
+        {% if п.субъект_рф and п.субъект_рф not in субъ.seen %}
+          {% set _ = субъ.seen.append(п.субъект_рф) %}
+        {% endif %}
+      {% endfor %}
+      <tr>
+        <td colspan="12" class="text-muted small ps-2">
+          Всего проверено {{ проверки | length }} команд, из {{ субъ.seen | length }} субъектов Российской Федерации
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+  <div class="display-4 text-muted mb-3">🛶</div>
+  <h6 class="text-muted">Нет записей технических проверок</h6>
+  <a href="{{ url_for('тех.новая', sor_id=сор.id) }}" class="btn btn-primary">
+    + Новая проверка команды
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEq(btn, id) {
+  var row = document.getElementById(id);
+  var hidden = row.style.display === 'none';
+  row.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '−' : '+';
+}
+</script>
+{% endblock %}

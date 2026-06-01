@@ -13,75 +13,62 @@
 
 {% block content %}
 
-<div class="text-center mb-1">
+<div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Комиссия по допуску</h5>
   <div class="d-flex gap-2">
-    <a href="{{ url_for('документы.заявки', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">Тех. заявки</a>
-    <a href="{{ url_for('документы.выписка_допуска', sor_id=сор.id) }}"
-       class="btn btn-outline-success btn-sm" target="_blank">Протокол комиссии по допуску</a>
-    <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}"
-       class="btn btn-primary btn-sm">+ Добавить команду</a>
+    <a href="{{ url_for('команды.состав_комиссии', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">← Состав комиссии</a>
+    <a href="{{ url_for('документы.протокол_допуска', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол комиссии по допуску</a>
+    <a href="{{ url_for('документы.справка_субъекты', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Справка о количестве субъектов</a>
+    <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}"
+       class="btn btn-primary btn-sm">+ Новая заявка</a>
   </div>
 </div>
 
 {% if команды %}
 
-{# Сводка #}
-{% set оплачено = команды | selectattr('оплата_взноса', 'eq', 'Оплачено') | list %}
-{% set с_составом = команды | selectattr('спортсмены') | list %}
-<div class="row g-2 mb-3">
-  {% for val, лейбл, цвет in [
-      (команды | length,    'всего команд',    'primary'),
-      (оплачено | length,   'оплачено',        'success'),
-      ((команды | length) - (оплачено | length), 'ожидают оплаты', 'warning'),
-      (с_составом | length, 'с составом',      'info'),
-  ] %}
-  <div class="col-auto">
-    <div class="border rounded px-3 py-1 text-center" style="min-width:80px">
-      <div class="fw-bold fs-5 text-{{ цвет }}">{{ val }}</div>
-      <div class="text-muted" style="font-size:.7rem">{{ лейбл }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
+{# Подсчёт по классу и полу #}
+{% set r4m = команды | selectattr('класс_судна','eq','R4') | selectattr('пол','eq','м') | list | length %}
+{% set r4f = команды | selectattr('класс_судна','eq','R4') | selectattr('пол','eq','ж') | list | length %}
+{% set r6m = команды | selectattr('класс_судна','eq','R6') | selectattr('пол','eq','м') | list | length %}
+{% set r6f = команды | selectattr('класс_судна','eq','R6') | selectattr('пол','eq','ж') | list | length %}
 
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
       <tr>
-        <th class="text-center" style="width:3rem">№</th>
+        <th style="width:2rem"></th>
+        <th>Субъект Российской Федерации</th>
         <th>Наименование команды</th>
-        <th>Субъект РФ</th>
-        <th>Тренер-представитель</th>
-        <th class="text-center">Принадлежность</th>
-        <th class="text-center">Оплата</th>
-        <th class="text-center">Дисциплины</th>
-        <th class="text-center" style="width:3.5rem">Сп.</th>
-        <th style="width:5.5rem"></th>
+        <th>Фамилия, имя, отчество тренера-представителя</th>
+        <th>Принадлежность к организации</th>
+        <th>Оплата стартового взноса</th>
+        <th>Класс судов</th>
+        <th>Пол, возраст</th>
+        <th class="no-print"></th>
       </tr>
     </thead>
     <tbody>
     {% for к in команды %}
     <tr>
-      <td class="text-center fw-bold">{{ к.нагрудный_номер }}</td>
+      <td class="text-center">
+        {% if к.спортсмены %}
+        <button class="btn btn-outline-success btn-sm px-1 py-0"
+                type="button"
+                onclick="toggleSp(this, 'sp-{{ к.id }}')">+</button>
+        {% endif %}
+      </td>
+      <td class="small">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td>
-        <span class="fw-semibold">
-          {{ к.название or '<em class="text-muted">без названия</em>' | safe }}
-        </span>
+        {{ к.название or '<em class="text-muted">без названия</em>' | safe }}
       </td>
-      <td class="small text-muted">
-        {{ к.субъект.название | truncate(25) if к.субъект else '—' }}
-        <span class="badge {{ 'bg-primary' if к.класс_судна == 'R4' else 'bg-success' }} ms-1">{{ к.класс_судна }}</span>
-        <span class="badge {{ 'bg-secondary' if к.пол == 'м' else 'bg-info text-dark' }}">{{ к.пол | upper }}</span>
-      </td>
-      <td class="small text-muted">
-        {{ к.субъект.представитель | truncate(28) if к.субъект and к.субъект.представитель else '—' }}
-      </td>
-      <td class="text-center small">{{ к.принадлежность_к_орг or '—' }}</td>
+      <td class="small">{{ к.субъект.представитель if к.субъект and к.субъект.представитель else '—' }}</td>
+      <td class="small text-center">{{ к.принадлежность_к_орг or '—' }}</td>
       <td class="text-center">
         {% if к.оплата_взноса == 'Оплачено' %}
         <span class="badge bg-success">Оплачено</span>
@@ -89,27 +76,79 @@
         <span class="badge bg-warning text-dark">Ожидает</span>
         {% endif %}
       </td>
-      <td class="text-center" style="white-space:nowrap">
-        {% if к.участие_спринт %}<span class="badge bg-primary" style="font-size:.65rem">СП</span>{% endif %}
-        {% if к.участие_пс %}<span class="badge bg-info text-dark" style="font-size:.65rem">ПС</span>{% endif %}
-        {% if к.участие_слалом %}<span class="badge bg-success" style="font-size:.65rem">СЛ</span>{% endif %}
-        {% if к.участие_дг %}<span class="badge bg-warning text-dark" style="font-size:.65rem">ДГ</span>{% endif %}
-        {% if к.участие_многоборье %}<span class="badge bg-danger" style="font-size:.65rem">МБ</span>{% endif %}
+      <td class="text-center small">
+        <span class="badge {{ 'bg-primary' if к.класс_судна == 'R4' else 'bg-success' }}">{{ к.класс_судна }}</span>
       </td>
-      <td class="text-center">
-        {% set n = к.спортсмены | length %}
-        {% set мин = 4 if к.класс_судна == 'R4' else 6 %}
-        <span class="{{ 'text-success fw-bold' if n >= мин else 'text-warning fw-bold' if n > 0 else 'text-muted' }}">
-          {{ n }}
-        </span>
+      <td class="small text-center">
+        {{ к.возрастная_группа or к.пол | upper or '—' }}
       </td>
-      <td>
+      <td class="text-end text-nowrap no-print">
         <a href="{{ url_for('команды.допуск_команда', sor_id=сор.id, id=к.id) }}"
-           class="btn btn-sm btn-outline-primary py-0 px-2">Открыть</a>
+           class="btn btn-outline-primary btn-sm">Изменить</a>
+        <form action="{{ url_for('команды.удалить', sor_id=сор.id, id=к.id) }}"
+              method="post" class="d-inline"
+              onsubmit="return confirm('Удалить команду {{ к.название or '' }} и всех её спортсменов?')">
+          <button class="btn btn-outline-danger btn-sm">Удалить</button>
+        </form>
       </td>
     </tr>
+    {% if к.спортсмены %}
+    <tr id="sp-{{ к.id }}" style="display:none">
+      <td colspan="9" class="p-0">
+        <div class="px-3 py-2 bg-light border-bottom">
+          <table class="table table-sm table-bordered mb-0" style="font-size:.82rem">
+            <thead class="table-secondary">
+              <tr>
+                <th class="text-center" style="width:2.5rem">№<br>п/п</th>
+                <th>Фамилия, имя, отчество</th>
+                <th class="text-center" style="width:3rem">Пол</th>
+                <th style="width:90px">Дата рождения</th>
+                <th style="width:110px;white-space:nowrap">Спортивная квалификация</th>
+                <th>Возрастная группа</th>
+                <th>№ приказа о присвоении спортивной квалификации</th>
+                <th>№ полиса о страховании</th>
+                <th>Участие в спортивных дисциплинах</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for с in к.спортсмены | sort(attribute='номер_в_экипаже') %}
+            <tr>
+              <td class="text-center text-muted">{{ loop.index }}</td>
+              <td>{{ с.фамилия_имя_отчество }}</td>
+              <td class="text-center">{{ с.пол | upper }}</td>
+              <td>{{ с.дата_рождения.strftime('%d.%m.%Y') if с.дата_рождения else '—' }}</td>
+              <td class="text-center">{{ с.разряд or '—' }}</td>
+              <td>{{ с.возрастная_группа or '—' }}</td>
+              <td>{{ с.номер_приказа or '—' }}</td>
+              <td>{{ с.номер_страховки or '—' }}</td>
+              <td style="white-space:nowrap">
+                {% if с.участие_спринт %}<span class="badge bg-primary" style="font-size:.65rem">СП</span>{% endif %}
+                {% if с.участие_пс %}<span class="badge bg-info text-dark" style="font-size:.65rem">ПС</span>{% endif %}
+                {% if с.участие_слалом %}<span class="badge bg-success" style="font-size:.65rem">СЛ</span>{% endif %}
+                {% if с.участие_дг %}<span class="badge bg-warning text-dark" style="font-size:.65rem">ДГ</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </td>
+    </tr>
+    {% endif %}
     {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="8" class="text-muted small ps-2">
+          Всего {{ команды | length }} заявок
+          {%- if r4m %}, R4 мужчины — {{ r4m }}{% endif %}
+          {%- if r4f %}, R4 женщины — {{ r4f }}{% endif %}
+          {%- if r6m %}, R6 мужчины — {{ r6m }}{% endif %}
+          {%- if r6f %}, R6 женщины — {{ r6f }}{% endif %}
+        </td>
+        <td class="no-print"></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 
@@ -117,9 +156,80 @@
 <div class="text-center py-5">
   <div class="display-4 text-muted mb-3">🚣</div>
   <h6 class="text-muted">Нет команд</h6>
-  <a href="{{ url_for('команды.добавить', sor_id=сор.id) }}" class="btn btn-primary">
-    + Добавить первую команду
+  <a href="{{ url_for('команды.новая_заявка', sor_id=сор.id) }}" class="btn btn-primary">
+    + Новая заявка
   </a>
 </div>
 {% endif %}
+
+{# ── Параметры протокола комиссии по допуску ── #}
+<div class="card border-secondary mb-3 mt-4">
+  <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
+    <span class="fw-semibold">Параметры протокола комиссии по допуску</span>
+  </div>
+  <div class="card-body py-3 px-3">
+    <form method="post" action="{{ url_for('команды.параметры_допуска', sor_id=сор.id) }}">
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-2">Последовательность видов программ</label>
+        <div class="row g-2">
+          {% for поз in range(1, 5) %}
+          {% set текущее = текущий_порядок[поз-1] if поз-1 < текущий_порядок|length else '' %}
+          <div class="col-6 col-md-3 d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 flex-shrink-0">{{ поз }}.</label>
+            <select name="порядок_{{ поз }}" class="form-select form-select-sm вид-допуска"
+                    data-поз="{{ поз }}">
+              {% for код, назв in виды_все %}
+              <option value="{{ код }}" {% if текущее == код %}selected{% endif %}>{{ назв }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <label class="form-label mb-0 fw-semibold">Выводить протокол по видам программы</label>
+        <select name="вывод_допуска" class="form-select form-select-sm" style="width:auto">
+          <option value="Попарно" {% if (сор.вывод_допуска or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
+          <option value="Раздельно" {% if сор.вывод_допуска == 'Раздельно' %}selected{% endif %}>Раздельно</option>
+          <option value="Вместе" {% if сор.вывод_допуска == 'Вместе' %}selected{% endif %}>Все вместе</option>
+        </select>
+        <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="d-flex justify-content-end mt-2">
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='admit') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if сор.готов_допуск else 'btn-outline-secondary bg-white' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if сор.готов_допуск else 'В работе' }}
+    </button>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSp(btn, id) {
+  var row = document.getElementById(id);
+  var hidden = row.style.display === 'none';
+  row.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '−' : '+';
+}
+
+document.querySelectorAll('.вид-допуска').forEach(sel => {
+  sel.addEventListener('focus', function() { this._старое = this.value; });
+  sel.addEventListener('change', function() {
+    const новое = this.value;
+    const все = [...document.querySelectorAll('.вид-допуска')];
+    const другой = все.find(s => s !== this && s.value === новое);
+    if (другой && this._старое) другой.value = this._старое;
+    this._старое = null;
+  });
+});
+</script>
 {% endblock %}

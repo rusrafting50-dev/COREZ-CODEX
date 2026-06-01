@@ -48,68 +48,26 @@
     <div class="card-header fw-semibold py-2">Основные данные</div>
     <div class="card-body">
 
-      <div class="mb-3">
-        <label class="form-label fw-semibold">ФИО полностью <span class="text-danger">*</span></label>
-        <input type="text" name="фамилия_имя_отчество" id="fieldФИО"
-               class="form-control" required
-               placeholder="Иванов Иван Иванович"
-               value="{{ судья.фамилия_имя_отчество if судья else '' }}">
-      </div>
-
+      {# Строка 1: ФИО + Дата рождения #}
       <div class="row g-3 mb-3">
-        {# Квалификация #}
-        <div class="col-sm-5">
-          <label class="form-label fw-semibold">Квалификация <span class="text-danger">*</span></label>
-          <div class="d-flex gap-2 flex-wrap mt-1">
-            {% set квал_сейчас = судья.квалификация if судья else '' %}
-            {% for к in квалификации %}
-            <div class="form-check form-check-inline me-0">
-              <input class="form-check-input" type="radio" name="квалификация"
-                     id="квал{{ к }}" value="{{ к }}"
-                     {{ 'checked' if квал_сейчас == к }}
-                     onchange="обновитьЦветКвал()">
-              <label class="form-check-label" for="квал{{ к }}">
-                <span class="badge bg-{{ квал_цвет[к] }}" id="badge{{ к }}">{{ к }}</span>
-              </label>
-            </div>
-            {% endfor %}
-          </div>
-          <div class="form-text">ССВК — высшая, ЮС — юношеская</div>
+        <div class="col-md-9">
+          <label class="form-label fw-semibold">ФИО полностью <span class="text-danger">*</span></label>
+          <input type="text" name="фамилия_имя_отчество" id="fieldФИО"
+                 class="form-control" required
+                 placeholder="Иванов Иван Иванович"
+                 value="{{ судья.фамилия_имя_отчество if судья else '' }}">
         </div>
-
-        {# Пол #}
-        <div class="col-sm-3">
-          <label class="form-label fw-semibold">Пол</label>
-          <div class="d-flex gap-4 mt-2">
-            {% set пол_сейчас = судья.пол if судья else '' %}
-            {% for p, лейбл in [('м', 'Муж.'), ('ж', 'Жен.')] %}
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="пол"
-                     id="pol{{ p }}" value="{{ p }}" data-пол="{{ p }}"
-                     {{ 'checked' if пол_сейчас == p }}>
-              <label class="form-check-label" for="pol{{ p }}">{{ лейбл }}</label>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        {# Действующая категория #}
-        <div class="col-sm-4">
-          <label class="form-label fw-semibold">Статус категории</label>
-          <div class="mt-2">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox"
-                     name="действующая_категория" id="действующая" value="1"
-                     {{ 'checked' if судья and судья.действующая_категория }}>
-              <label class="form-check-label" for="действующая">Действующая категория</label>
-            </div>
-          </div>
+        <div class="col-md-3">
+          <label class="form-label">Дата рождения</label>
+          <input type="date" name="дата_рождения" id="fieldДатаРожд"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_рождения.isoformat() if судья and судья.дата_рождения else '' }}">
         </div>
       </div>
 
-      <div class="row g-3">
-        {# Субъект РФ #}
-        <div class="col-sm-9">
+      {# Строка 2: Субъект РФ + Пол #}
+      <div class="row g-3 mb-3">
+        <div class="col-md-9">
           <label class="form-label fw-semibold">Субъект РФ</label>
           <input type="text" name="субъект_рф" id="fieldСубъект"
                  class="form-control form-control-sm"
@@ -123,11 +81,69 @@
             {% endfor %}
           </datalist>
         </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Пол</label>
+          <div class="d-flex gap-3 mt-2">
+            {% set пол_сейчас = судья.пол if судья else '' %}
+            {% for p, лейбл in [('м', 'Муж.'), ('ж', 'Жен.')] %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="пол"
+                     id="pol{{ p }}" value="{{ p }}" data-пол="{{ p }}"
+                     {{ 'checked' if пол_сейчас == p }}>
+              <label class="form-check-label" for="pol{{ p }}">{{ лейбл }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# Квалификация спортивного судьи #}
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Квалификация спортивного судьи <span class="text-danger">*</span></label>
+        <div class="d-flex gap-4 flex-wrap mt-1">
+          {% set квал_сейчас = судья.квалификация if судья else '' %}
+          {% for к in квалификации %}
+          <div class="form-check form-check-inline me-0">
+            <input class="form-check-input" type="radio" name="квалификация"
+                   id="квал{{ к }}" value="{{ к }}"
+                   {{ 'checked' if квал_сейчас == к }}>
+            <label class="form-check-label" for="квал{{ к }}">{{ к }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Даты и статус категории #}
+      <div class="row g-3">
         <div class="col-sm-3">
-          <label class="form-label">Код субъекта</label>
-          <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
-                 placeholder="77"
-                 value="{{ судья.код_субъекта_рф if судья else '' }}">
+          <label class="form-label">Дата присвоения</label>
+          <input type="date" name="дата_присвоения" id="fieldДатаПрисв"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_присвоения.isoformat() if судья and судья.дата_присвоения else '' }}">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label">Дата подтверждения</label>
+          <input type="date" name="дата_подтверждения" id="fieldДатаПодтв"
+                 class="form-control form-control-sm"
+                 value="{{ судья.дата_подтверждения.isoformat() if судья and судья.дата_подтверждения else '' }}">
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label">Дата переаттестации</label>
+          <input type="date" name="конец_аттестации" id="fieldКонецАтт"
+                 class="form-control form-control-sm"
+                 value="{{ судья.конец_аттестации.isoformat() if судья and судья.конец_аттестации else '' }}">
+          <div class="form-text" id="статусАттестации"></div>
+        </div>
+        <div class="col-sm-3">
+          <label class="form-label fw-semibold">Статус категории</label>
+          <div class="mt-2">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox"
+                     name="действующая_категория" id="действующая" value="1"
+                     {{ 'checked' if судья and судья.действующая_категория }}>
+              <label class="form-check-label" for="действующая">Действующая категория</label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -161,7 +177,7 @@
       ] %}
       {% set кол3 = [
         'Зам. главного судьи по орг. вопросам',
-        'Начальник дистанции',
+        'Начальник дистанций',
         'Старший судья по информации',
         'Старший судья финиша',
         'Судья-информатор',
@@ -188,53 +204,8 @@
     </div>
   </div>
 
-  {# ── БЛОК 3: Даты ── #}
-  <div class="card mb-3">
-    <div class="card-header fw-semibold py-2">Квалификационные даты</div>
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-sm-3">
-          <label class="form-label">Дата рождения</label>
-          <input type="date" name="дата_рождения" id="fieldДатаРожд"
-                 class="form-control form-control-sm"
-                 value="{{ судья.дата_рождения.isoformat() if судья and судья.дата_рождения else '' }}">
-        </div>
-        <div class="col-sm-3">
-          <label class="form-label">Дата присвоения</label>
-          <input type="date" name="дата_присвоения" id="fieldДатаПрисв"
-                 class="form-control form-control-sm"
-                 value="{{ судья.дата_присвоения.isoformat() if судья and судья.дата_присвоения else '' }}">
-        </div>
-        <div class="col-sm-3">
-          <label class="form-label">Дата подтверждения</label>
-          <input type="date" name="дата_подтверждения" id="fieldДатаПодтв"
-                 class="form-control form-control-sm"
-                 value="{{ судья.дата_подтверждения.isoformat() if судья and судья.дата_подтверждения else '' }}">
-        </div>
-        <div class="col-sm-3">
-          <label class="form-label fw-semibold">Конец аттестации</label>
-          <input type="date" name="конец_аттестации" id="fieldКонецАтт"
-                 class="form-control form-control-sm"
-                 value="{{ судья.конец_аттестации.isoformat() if судья and судья.конец_аттестации else '' }}">
-          <div class="form-text" id="статусАттестации"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {# ── Доп. поля (скрыты) ── #}
-  <div class="mb-3">
-    <a class="link-secondary small text-decoration-none" data-bs-toggle="collapse"
-       href="#доп-судья" role="button">▸ Дополнительно (ID в базе)</a>
-    <div class="collapse{% if судья and судья.номер_в_базе %} show{% endif %}" id="доп-судья">
-      <div class="mt-2" style="max-width:200px">
-        <label class="form-label small">Номер в базе судей</label>
-        <input type="number" name="номер_в_базе" id="fieldНомерВБазе"
-               class="form-control form-control-sm"
-               value="{{ судья.номер_в_базе if судья else '' }}">
-      </div>
-    </div>
-  </div>
+  <input type="hidden" name="номер_в_базе" id="fieldНомерВБазе"
+         value="{{ судья.номер_в_базе if судья else '' }}">
 
   {# Кнопки #}
   <div class="d-flex gap-2">

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Жеребьёвка — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}Жеребьёвка и стартовый протокол — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,116 +7,157 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">Жеребьёвка</li>
+    <li class="breadcrumb-item active">Жеребьёвка и стартовый протокол</li>
   </ol>
 {% endblock %}
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3">
-  <div>
-    <h5 class="mb-0">Жеребьёвка</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
-  <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm" target="_blank">Печатная форма</a>
-  <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
-     class="btn btn-outline-warning btn-sm" target="_blank">Нагрудные номера</a>
-</div>
+{% set есть_р4 = (муж_р4 | length + жен_р4 | length) > 0 %}
+{% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
 
-{% if not муж and not жен %}
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('документы.протокол_жеребьёвки', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол жеребьёвки</a>
+    <a href="{{ url_for('документы.нагрудные_номера', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол выдачи номеров</a>
+    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
+    <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">Результаты →</a>
+  </div>
+</div>
+<div class="text-center mb-3"><h5 class="mb-0">Жеребьёвка и стартовый протокол</h5></div>
+
+{% set виды_все = [('R4-м','Спринт – R4, мужчины'),('R4-ж','Спринт – R4, женщины'),('R6-м','Спринт – R6, мужчины'),('R6-ж','Спринт – R6, женщины')] %}
+{% set текущий_порядок = (сор.последовательность_видов or 'R4-м,R4-ж,R6-м,R6-ж').split(',') %}
+
+{% if not есть_р4 and not есть_р6 %}
 <div class="alert alert-warning">
   Нет команд для жеребьёвки.
-  <a href="{{ url_for('команды.список', sor_id=сор.id) }}">Добавьте команды</a>.
+  <a href="{{ url_for('команды.допуск', sor_id=сор.id) }}">Добавьте команды</a>.
 </div>
 {% else %}
 
-<div class="row g-3 mb-3">
-
-  {# ── Мужские экипажи ── #}
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold">Мужские экипажи&nbsp;
-          <span class="badge bg-secondary">{{ муж | length }}</span></span>
-        {% if муж %}
-        <button type="button" class="btn btn-sm btn-outline-primary"
-                onclick="перетасовать(this)">🎲 Перетасовать</button>
-        {% endif %}
-      </div>
-      <ul id="список-м" class="list-group list-group-flush sortable-list">
-        {% for к in муж %}
-        <li class="list-group-item drag-item py-2" data-id="{{ к.id }}" draggable="true">
-          <div class="d-flex align-items-center gap-2">
-            <span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
-            <span class="badge bg-primary num-старт" style="min-width:2.2rem">
-              {{ к.стартовый_номер_спринт or loop.index }}
-            </span>
-            <span class="fw-semibold">№{{ к.нагрудный_номер }}</span>
-            <span class="flex-grow-1 text-truncate">{{ к.название or '—' }}</span>
-            <span class="text-muted small text-end" style="min-width:80px">
-              {{ к.субъект.название | truncate(20) if к.субъект else '' }}
-            </span>
-          </div>
-        </li>
-        {% else %}
-        <li class="list-group-item text-center text-muted py-3">Нет мужских экипажей</li>
-        {% endfor %}
-      </ul>
-    </div>
+{# ── Макрос одной секции ── #}
+{% macro секция(команды, список_id, заг, цвет) %}
+<div class="d-flex justify-content-between align-items-center mb-1">
+  <span class="fw-semibold" style="font-size:1.25rem">{{ заг }}</span>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    {% if команды %}
+    <button type="button" class="btn btn-sm btn-outline-{{ цвет }}"
+            onclick="перетасовать('{{ список_id }}')">🎲 Перетасовать</button>
+    {% endif %}
   </div>
-
-  {# ── Женские экипажи ── #}
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold">Женские экипажи&nbsp;
-          <span class="badge bg-secondary">{{ жен | length }}</span></span>
-        {% if жен %}
-        <button type="button" class="btn btn-sm btn-outline-danger"
-                onclick="перетасовать(this)">🎲 Перетасовать</button>
-        {% endif %}
-      </div>
-      <ul id="список-ж" class="list-group list-group-flush sortable-list">
-        {% for к in жен %}
-        <li class="list-group-item drag-item py-2" data-id="{{ к.id }}" draggable="true">
-          <div class="d-flex align-items-center gap-2">
-            <span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
-            <span class="badge bg-danger num-старт" style="min-width:2.2rem">
-              {{ к.стартовый_номер_спринт or loop.index }}
-            </span>
-            <span class="fw-semibold">№{{ к.нагрудный_номер }}</span>
-            <span class="flex-grow-1 text-truncate">{{ к.название or '—' }}</span>
-            <span class="text-muted small text-end" style="min-width:80px">
-              {{ к.субъект.название | truncate(20) if к.субъект else '' }}
-            </span>
-          </div>
-        </li>
-        {% else %}
-        <li class="list-group-item text-center text-muted py-3">Нет женских экипажей</li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
-
 </div>
+<div class="table-responsive mb-4">
+  <table class="table table-sm table-hover table-bordered align-middle" style="font-size:.9rem">
+    <thead class="table-light">
+      <tr>
+        <th>Команда</th>
+        <th class="text-center" style="width:115px">Нагрудный номер</th>
+        <th>Субъект Российской Федерации</th>
+        <th class="text-center" style="width:130px">Порядковый номер согласно жеребьёвке</th>
+        <th class="text-center" style="width:120px">Время старта</th>
+      </tr>
+    </thead>
+    <tbody id="{{ список_id }}" class="sortable-list">
+      {% for к in команды %}
+      {% set р = к.результат_спринт %}
+      <tr class="drag-item" data-id="{{ к.id }}" draggable="true">
+        <td>
+          <span class="text-muted me-1" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>
+          {{ к.название or '—' }}
+        </td>
+        <td class="text-center">
+          <input type="number" name="номер_{{ к.id }}" value="{{ к.нагрудный_номер }}"
+                 min="1" class="form-control form-control-sm text-center"
+                 style="width:70px;margin:auto">
+        </td>
+        <td>{{ к.субъект.название if к.субъект else '—' }}</td>
+        <td class="text-center num-старт">{{ к.стартовый_номер_спринт or loop.index }}</td>
+        <td class="text-center">
+          <input type="text" name="вс_{{ к.id }}"
+                 value="{{ к.время_старта_спринт_план or '' }}"
+                 placeholder="00:00:00.00"
+                 class="form-control form-control-sm text-center время-ввод font-monospace"
+                 style="width:105px;margin:auto" autocomplete="off">
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-3">Нет экипажей</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
 
-{# ── Форма сохранения ── #}
 <form id="формаСохранения" method="post"
       action="{{ url_for('документы.жеребьёвка_сохранить', sor_id=сор.id) }}">
   <div id="hiddenInputs"></div>
-  <div class="d-flex align-items-center gap-3">
-    <button type="submit" class="btn btn-success">Сохранить порядок</button>
-    <span class="text-muted small">Перетащите строки для ручной корректировки</span>
-  </div>
+
+{% if есть_р4 %}
+{{ секция(муж_р4, 'список-м-р4', 'Спринт — R4, мужчины', 'primary') }}
+{{ секция(жен_р4, 'список-ж-р4', 'Спринт — R4, женщины', 'danger') }}
+{% endif %}
+
+{% if есть_р6 %}
+{{ секция(муж_р6, 'список-м-р6', 'Спринт — R6, мужчины', 'primary') }}
+{{ секция(жен_р6, 'список-ж-р6', 'Спринт — R6, женщины', 'danger') }}
+{% endif %}
+
 </form>
+
+{# ── Параметры стартового протокола ── #}
+<div class="card border-secondary mb-3 mt-2">
+  <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
+    <span class="fw-semibold">Параметры стартового протокола</span>
+  </div>
+  <div class="card-body py-3 px-3">
+    <form method="post" action="{{ url_for('документы.жеребьёвка_параметры', sor_id=сор.id) }}">
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-2">Последовательность видов программ</label>
+        <div class="row g-2" id="порядок-видов">
+          {% for поз in range(1, 5) %}
+          {% set текущее = текущий_порядок[поз-1] if поз-1 < текущий_порядок|length else '' %}
+          <div class="col-6 col-md-3 d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 flex-shrink-0">{{ поз }}.</label>
+            <select name="порядок_{{ поз }}" class="form-select form-select-sm вид-программы"
+                    data-поз="{{ поз }}">
+              {% for код, назв in виды_все %}
+              <option value="{{ код }}" {% if текущее == код %}selected{% endif %}>{{ назв }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <label class="form-label mb-0 fw-semibold">Выводить стартовый протокол по видам программы</label>
+        <select name="вывод_старт_протокола" class="form-select form-select-sm" style="width:auto">
+          <option value="Попарно" {% if (сор.вывод_старт_протокола or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
+          <option value="Раздельно" {% if сор.вывод_старт_протокола == 'Раздельно' %}selected{% endif %}>Раздельно</option>
+        </select>
+        <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="mt-2">
+  <button type="submit" form="формаСохранения" class="btn btn-success">Сохранить порядок</button>
+  <div class="text-muted small mt-1">Перетащите строки для ручной корректировки</div>
+</div>
 
 {% endif %}
 
 <script>
-const urlСлучайная = "{{ url_for('документы.жеребьёвка_случайная', sor_id=сор.id) }}";
-
-// ── Drag-and-drop (event delegation) ─────────────────────────────────────
+// ── Drag-and-drop ─────────────────────────────────────────────────────────
 
 document.querySelectorAll('.sortable-list').forEach(list => {
     let dragging = null;
@@ -138,7 +179,7 @@ document.querySelectorAll('.sortable-list').forEach(list => {
         e.preventDefault();
         if (!dragging) return;
         const target = e.target.closest('.drag-item');
-        if (!target || target === dragging || target.closest('ul') !== list) return;
+        if (!target || target === dragging || target.closest('tbody') !== list) return;
         const rect = target.getBoundingClientRect();
         const after = e.clientY > rect.top + rect.height / 2;
         list.insertBefore(dragging, after ? target.nextSibling : target);
@@ -152,60 +193,68 @@ function updateNumbers(list) {
     });
 }
 
-// ── Случайная перетасовка ─────────────────────────────────────────────────
+// ── Случайная перетасовка (клиентская) ────────────────────────────────────
 
-async function перетасовать(btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '⌛';
-    try {
-        const resp = await fetch(urlСлучайная, {method: 'POST'});
-        const data = await resp.json();
-        if (data.ok) {
-            rebuildList('список-м', data.муж, 'primary');
-            rebuildList('список-ж', data.жен, 'danger');
-        }
-    } catch (err) {
-        alert('Ошибка при перетасовке: ' + err);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = orig;
+function перетасовать(listId) {
+    const tbody = document.getElementById(listId);
+    if (!tbody) return;
+    const rows = [...tbody.querySelectorAll('.drag-item')];
+    for (let i = rows.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        tbody.insertBefore(rows[j], rows[i]);
+        [rows[i], rows[j]] = [rows[j], rows[i]];
     }
+    updateNumbers(tbody);
 }
 
-function rebuildList(listId, данные, цвет) {
-    const list = document.getElementById(listId);
-    list.querySelectorAll('.drag-item').forEach(el => el.remove());
-    данные.forEach((к, i) => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item drag-item py-2';
-        li.dataset.id = к.id;
-        li.draggable = true;
-        li.innerHTML =
-            `<div class="d-flex align-items-center gap-2">` +
-            `<span class="text-muted" style="cursor:grab;user-select:none;font-size:1.1rem">⠿</span>` +
-            `<span class="badge bg-${цвет} num-старт" style="min-width:2.2rem">${i + 1}</span>` +
-            `<span class="fw-semibold">№${к.нагрудный}</span>` +
-            `<span class="flex-grow-1 text-truncate">${к.название || '—'}</span>` +
-            `<span class="text-muted small text-end" style="min-width:80px">${к.субъект || ''}</span>` +
-            `</div>`;
-        list.appendChild(li);
-    });
-}
-
-// ── Подготовка формы сохранения ────────────────────────────────────────────
+// ── Подготовка формы сохранения ───────────────────────────────────────────
 
 document.getElementById('формаСохранения').addEventListener('submit', () => {
     const container = document.getElementById('hiddenInputs');
     container.innerHTML = '';
-    [['список-м', 'порядок_м'], ['список-ж', 'порядок_ж']].forEach(([listId, name]) => {
-        document.querySelectorAll(`#${listId} .drag-item`).forEach(item => {
+    [
+        ['список-м-р4', 'порядок_м_р4'],
+        ['список-ж-р4', 'порядок_ж_р4'],
+        ['список-м-р6', 'порядок_м_р6'],
+        ['список-ж-р6', 'порядок_ж_р6'],
+    ].forEach(([listId, name]) => {
+        const tbody = document.getElementById(listId);
+        if (!tbody) return;
+        tbody.querySelectorAll('.drag-item').forEach(item => {
             const inp = document.createElement('input');
             inp.type = 'hidden';
             inp.name = name;
             inp.value = item.dataset.id;
             container.appendChild(inp);
         });
+    });
+});
+
+// ── Своп видов программ ──────────────────────────────────────────────────
+
+document.querySelectorAll('.вид-программы').forEach(sel => {
+    sel.addEventListener('focus', function() { this._старое = this.value; });
+    sel.addEventListener('change', function() {
+        const новое = this.value;
+        const все = [...document.querySelectorAll('.вид-программы')];
+        const другой = все.find(s => s !== this && s.value === новое);
+        if (другой && this._старое) другой.value = this._старое;
+        this._старое = null;
+    });
+});
+
+// ── Автоформат времени ЧЧ:ММ:СС.сс ──────────────────────────────────────
+
+document.querySelectorAll('.время-ввод').forEach(inp => {
+    inp.addEventListener('input', function () {
+        const raw = this.value.replace(/\D/g, '').slice(0, 8);
+        let out = '';
+        for (let i = 0; i < raw.length; i++) {
+            if (i === 2 || i === 4) out += ':';
+            else if (i === 6) out += '.';
+            out += raw[i];
+        }
+        this.value = out;
     });
 });
 </script>

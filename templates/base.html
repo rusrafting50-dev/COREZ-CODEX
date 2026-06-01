@@ -14,6 +14,7 @@
     .navbar-bc .breadcrumb-item a { color: rgba(255,255,255,.8); text-decoration: none; }
     .navbar-bc .breadcrumb-item a:hover { color: #fff; }
     .navbar-bc .breadcrumb-item.active { color: rgba(255,255,255,.9); }
+    thead th { text-align: center; vertical-align: middle; }
   </style>
   {% block head %}{% endblock %}
 </head>
@@ -29,65 +30,17 @@
             data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('main.index') }}">Главная</a>
-        </li>
-        {% if сор is defined and сор %}
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-            {{ сор.название | truncate(40) }}
-          </a>
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('соревнование.карточка', id=сор.id) }}">
-                Карточка соревнования
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('субъекты.список', sor_id=сор.id) }}">
-                Субъекты РФ
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('команды.список', sor_id=сор.id) }}">
-                Команды (экипажи)
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('спортсмены.список', sor_id=сор.id) }}">
-                Спортсмены
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"
-                 href="{{ url_for('судьи.список', sor_id=сор.id) }}">
-                Судейская коллегия
-              </a>
-            </li>
-          </ul>
-        </li>
+    <div class="collapse navbar-collapse navbar-bc" id="navMenu">
+      <div class="me-auto d-flex align-items-center py-1">
+        {% if self.breadcrumb() | trim %}
+          {% block breadcrumb %}{% endblock %}
+        {% else %}
+          <a class="nav-link py-0" href="{{ url_for('main.index') }}">Главная</a>
         {% endif %}
-      </ul>
-      <button class="btn btn-outline-light btn-sm no-print" onclick="window.print()">
-        Печать
-      </button>
+      </div>
     </div>
   </div>
 </nav>
-{% if self.breadcrumb() | trim %}
-<div class="bg-primary navbar-bc no-print py-1">
-  <div class="container-fluid px-3">
-    {% block breadcrumb %}{% endblock %}
-  </div>
-</div>
-{% endif %}
 
 <!-- Сообщения -->
 <div class="container mt-3 no-print">
@@ -106,13 +59,21 @@
   {% block content %}{% endblock %}
 </main>
 
-<footer class="mt-5 py-3 text-center text-muted small no-print">
-  СЧИТАЛКА &mdash; автоматизация соревнований по рафтингу
+<footer class="{% block footer_margin %}mt-5{% endblock %} py-3 text-center text-muted small no-print">
+  СЧИТАЛКА - система автоматизации соревнований по рафтингу
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmB8F+jKW3pVg0HHTcEbpXrMbTf"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.btn-close[data-bs-dismiss="alert"]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var el = this.closest('.alert');
+      if (el) { el.remove(); }
+    });
+  });
+});
+</script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

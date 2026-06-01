@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Акт утверждения дистанции — {{ сор.название | truncate(50) }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 11pt;
+      color: #000;
+    }
+    @page { size: A4 portrait; margin: 15mm 20mm 15mm 25mm; }
+    @media print {
+      .no-print { display: none !important; }
+      .page-break { page-break-after: always; }
+    }
+    .акт-страница {
+      width: 100%;
+      max-width: 165mm;
+      margin: 0 auto 20mm;
+      padding: 0;
+    }
+    p { margin-bottom: 3pt; text-indent: 0; }
+    .indent { text-indent: 10mm; }
+    .underline-field { border-bottom: 0.75pt solid #000; min-width: 120px; display: inline-block; }
+
+    /* Шапка — как в Итоговом протоколе */
+    .орг-блок { text-align: center; font-size:10pt; margin-bottom:3pt; }
+    .назв-сор  { text-align: center; font-size:11pt; font-weight:bold; margin-bottom:6pt; }
+    .дата-место { display:flex; justify-content:space-between; margin-bottom:8pt; font-size:10pt; }
+    .дата-место .подпись { font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center; }
+
+    h-акт { display: block; font-size: 15pt; font-weight: bold; letter-spacing: 4pt; text-align: center; margin: 8pt 0 2pt; }
+
+    /* Параметры — без подчёркиваний */
+    .param-строка { margin-bottom: 2pt; font-size:11pt; }
+
+    /* Подписи */
+    .sig-block { margin-top: 14pt; }
+    .sig-row   { display:flex; align-items:baseline; margin-bottom:10pt; font-size:11pt; }
+    .sig-pos   { width: 55%; }
+    .sig-fio   { flex: 1; }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="display:flex; justify-content:space-between; padding:10px; background:#f8f8f8; margin-bottom:12px">
+  <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип=тип) }}"
+     style="font-family:sans-serif; font-size:10pt; color:#333; text-decoration:none;
+            border:1px solid #999; border-radius:4px; padding:4px 10px">← Параметры дистанций</a>
+  <button onclick="window.print()"
+          style="font-family:sans-serif; font-size:10pt; border:1px solid #0d6efd;
+                 border-radius:4px; padding:4px 14px; background:#0d6efd; color:#fff; cursor:pointer">
+    Печать
+  </button>
+</div>
+
+{% for д in дистанции %}
+<div class="акт-страница {% if not loop.last %}page-break{% endif %}">
+
+  {# ── Шапка (как в Итоговом протоколе, без строк протокола и дисциплины) ── #}
+  {% if сор.организаторы_блок %}
+  <div class="орг-блок">
+  {%- for строка in сор.организаторы_блок.split('\n') -%}
+    {%- if '"' in строка -%}
+      {%- set ч = строка.split('"', 1) -%}
+      {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+    {%- elif '«' in строка -%}
+      {%- set ч = строка.split('«', 1) -%}
+      {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
+    {%- else -%}
+      {{ строка }}
+    {%- endif -%}
+    {%- if not loop.last %}<br>{% endif %}
+  {%- endfor -%}
+  </div>
+  {% else %}
+  <div class="орг-блок">Министерство спорта Российской Федерации</div>
+  {% endif %}
+
+  <div class="назв-сор">{{ сор.название }}</div>
+
+  <div class="дата-место">
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+      <div class="подпись">Дата проведения</div>
+    </div>
+    <div style="display:inline-block;text-align:center">
+      <div class="underline-field" style="min-width:160px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+      <div class="подпись">Место проведения</div>
+    </div>
+  </div>
+
+  {# ── Заголовок акта ── #}
+  <h-акт>А К Т</h-акт>
+  <p style="text-align:center; font-size:11pt; margin-bottom:2pt">утверждения спортивной дистанции</p>
+  <p style="text-align:center; font-size:11pt; margin-bottom:8pt">
+    для спортивных дисциплин: «{{ д.название or '—' }}»
+  </p>
+
+  {# ── Преамбула ── #}
+  <p class="indent" style="text-align:justify; margin-bottom:6pt">
+    Мы, нижеподписавшиеся, главный судья соревнований
+    {{ сор.главный_судья or '' }},
+    начальник дистанции
+    {{ сор.начальник_дистанции or '' }},
+    начальник спасательной службы
+    {{ сор.начальник_спасательной_службы or '' }}
+    составили настоящий акт о том, что проведён оперативно-технический осмотр спортивной
+    дистанции и определены основные её характеристики.
+  </p>
+
+  <p class="indent" style="margin-bottom:4pt">
+    В результате оперативно-технического осмотра установлено:
+  </p>
+
+  {# ── Параметры (без подчёркиваний и лишних интервалов) ── #}
+  <div style="padding-left:10mm">
+    <p class="param-строка">1. Общая протяжённость дистанции: {{ д.протяженность or '' }}{% if д.протяженность %} м.{% endif %}</p>
+    <p class="param-строка">2. Категория определяющего препятствия: {{ д.категория or '' }}{% if д.категория %} к. с.{% endif %}</p>
+    <p class="param-строка">3. Среднее время прохождения: {{ д.среднее_время or '' }}{% if д.среднее_время %} мин.{% endif %}</p>
+    <p class="param-строка">4. Лимит времени для прохождения дистанции: {{ д.лимит_времени or '' }}{% if д.лимит_времени %} мин.{% endif %}</p>
+    <p class="param-строка">5. Вариант организации старта: {{ д.вариант_старта or '' }}</p>
+    {% if тип == 'слалом' %}
+    <p class="param-строка">6. Количество ворот (в т.ч. обратных): {{ д.кол_ворот or '' }}{% if д.кол_обратных %} ({{ д.кол_обратных }}){% endif %}</p>
+    <p class="param-строка">7. Конструкция и параметры ворот: {{ д.конструкция_ворот or '' }}</p>
+    <p class="param-строка">8. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
+    <p class="param-строка">9. Описание видов страховки:<br><span style="white-space:pre-line">{{ д.страховка or '' }}</span></p>
+    {% elif тип == 'пс' %}
+    <p class="param-строка">6. Конструкция и параметры буев: {{ д.буи or '' }}</p>
+    <p class="param-строка">7. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
+    <p class="param-строка">8. Описание видов страховки:<br><span style="white-space:pre-line">{{ д.страховка or '' }}</span></p>
+    {% elif тип == 'дг' %}
+    <p class="param-строка">6. Количество, конструкция и параметры буев: {{ д.буи or '' }}</p>
+    <p class="param-строка">7. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
+    <p class="param-строка">8. Описание видов страховки:<br><span style="white-space:pre-line">{{ д.страховка or '' }}</span></p>
+    {% else %}
+    <p class="param-строка">6. Вариант организации финиша: {{ д.вариант_финиша or '' }}</p>
+    <p class="param-строка">7. Описание видов страховки:<br><span style="white-space:pre-line">{{ д.страховка or '' }}</span></p>
+    {% endif %}
+  </div>
+
+  <p style="margin-top:18pt; margin-bottom:18pt">Приложение: схема дистанции.</p>
+
+  {# ── Подписи (должность слева, ФИО с 50% ширины, без подчёркивания) ── #}
+  <div class="sig-block">
+    <div class="sig-row">
+      <div class="sig-pos">Главный судья соревнований</div>
+      <div class="sig-fio">{{ сор.главный_судья or '' }}</div>
+    </div>
+    <div class="sig-row">
+      <div class="sig-pos">Начальник дистанции</div>
+      <div class="sig-fio">{{ сор.начальник_дистанции or '' }}</div>
+    </div>
+    <div class="sig-row">
+      <div class="sig-pos">Начальник спасательной службы</div>
+      <div class="sig-fio">{{ сор.начальник_спасательной_службы or '' }}</div>
+    </div>
+  </div>
+
+</div>
+{% else %}
+<p style="text-align:center; margin-top:30mm; font-family:sans-serif; color:#666">
+  Параметры дистанций не заданы.
+  <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}">Добавьте параметры</a>.
+</p>
+{% endfor %}
+
+</body>
+</html>

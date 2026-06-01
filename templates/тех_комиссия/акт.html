@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Акт ТК {{ класс }} — {{ сор.название | truncate(60) }}</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 15mm 10mm 15mm 15mm; }
+    @media print {
+      .no-print { display: none !important; }
+      @page { size: A4 landscape; margin: 10mm 8mm 10mm 12mm; }
+      body { font-size: 9pt; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9pt; margin-bottom: 14pt; }
+    th, td { border: 1px solid #000; padding: 2px 4px; vertical-align: middle; text-align: center; font-weight: bold; overflow: hidden; word-break: break-word; }
+    th { font-weight: bold; text-align: center; }
+    td.tl { text-align: left; }
+    h2 { text-align: center; font-size: 12pt; font-weight: bold; margin: 4px 0; letter-spacing: 0.5px; }
+    .underline-field { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; }
+  </style>
+</head>
+<body>
+
+{# ── Навигация (только на экране) ── #}
+<div class="no-print" style="display:flex; justify-content:space-between; align-items:center;
+     margin-bottom:12px; font-family:system-ui,sans-serif; gap:8px;">
+  <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+     style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
+            color:#6c757d; text-decoration:none; background:transparent;">← Техническая комиссия</a>
+  <div style="display:flex;gap:6px">
+    <button onclick="exportWord()"
+            style="font-size:.875rem; border:1px solid #198754; border-radius:.25rem; padding:.25rem .5rem;
+                   background:#198754; color:#fff; cursor:pointer;">Word</button>
+    <button onclick="window.print()"
+            style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
+                   background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
+  </div>
+</div>
+
+{# ── Шапка ── #}
+{% if сор.организаторы_блок %}
+<div style="text-align:center; font-size:10pt; font-weight:bold; white-space:pre-line; margin-bottom:4px">{{ сор.организаторы_блок }}</div>
+{% endif %}
+
+<div style="text-align:center; font-size:11pt; font-weight:bold; margin-bottom:2px">{{ сор.название }}</div>
+
+<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:bold; margin:6px 0 8px">
+  <div>
+    <span class="underline-field" style="text-align:center; padding:0 4px">{{ сор.даты_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">дата проведения</div>
+  </div>
+  <div style="text-align:center">
+    <span class="underline-field" style="text-align:center; padding:0 4px; min-width:200px">{{ сор.место_проведения or '&nbsp;' }}</span>
+    <div style="font-size:7.5pt; text-align:center">место проведения</div>
+  </div>
+</div>
+
+{# ── Заголовок акта ── #}
+<h2 style="text-transform:none; margin-top:10pt">АКТ</h2>
+<h2>РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ{% if класс %} ({{ класс }}){% endif %}</h2>
+
+{# ── Состав комиссии ── #}
+<p style="font-size:11pt; font-weight:bold; margin:8pt 0; text-align:justify">
+  Техническая комиссия в составе:
+  {%- if ск %}
+    {%- if ск.председатель_фио %} {{ ск.председатель_фио }}{% if ск.председатель_должность %}&nbsp;–&nbsp;{{ ск.председатель_должность }},{% endif %}{% endif %}
+    {%- if ск.член_1_фио %} {{ ск.член_1_фио }}{% if ск.член_1_должность %}&nbsp;–&nbsp;{{ ск.член_1_должность }},{% endif %}{% endif %}
+    {%- if ск.член_2_фио %} {{ ск.член_2_фио }}{% if ск.член_2_должность %}&nbsp;–&nbsp;{{ ск.член_2_должность }},{% endif %}{% endif %}
+  {%- endif %}
+  проверила&nbsp;и&nbsp;промаркировала представленные суда, а&nbsp;также снаряжение&nbsp;—
+  каски, спасательные жилеты на&nbsp;соответствие требованиям правил по&nbsp;виду
+  спорта &laquo;рафтинг&raquo;.
+</p>
+
+{# ── Основная таблица ── #}
+<table>
+  <colgroup>
+    <col style="width:4%">
+    <col style="width:11%">
+    <col style="width:9%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+    <col style="width:10%">
+    <col style="width:5%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="2">№<br>дел</th>
+      <th rowspan="2">Команда</th>
+      <th rowspan="2">Территория</th>
+      <th rowspan="2">Представитель</th>
+      <th colspan="3">Рафты</th>
+      <th colspan="2">Каски</th>
+      <th colspan="2">Спасжилеты</th>
+      <th colspan="2">Весла</th>
+    </tr>
+    <tr>
+      <th>Вид</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+      <th>Марка</th>
+      <th>Кол-во</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for п in проверки %}
+  {% set рафты = [] %}
+  {% set каски = [] %}
+  {% set спасжилеты = [] %}
+  {% set весла = [] %}
+  {% for с in п.снаряжение %}
+    {% if 'Рафт' in с.наименование %}{% if рафты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Каска' %}{% if каски.append(с) %}{% endif %}
+    {% elif с.наименование == 'Спасжилет' %}{% if спасжилеты.append(с) %}{% endif %}
+    {% elif с.наименование == 'Весло' %}{% if весла.append(с) %}{% endif %}
+    {% endif %}
+  {% endfor %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td class="tl">{{ п.наименование_команды or '—' }}</td>
+    <td class="tl">{{ п.субъект_рф or '—' }}</td>
+    <td class="tl">{{ п.тренер_фио or '—' }}</td>
+    <td>{% if рафты %}{{ рафты[0].наименование }}{% else %}—{% endif %}</td>
+    <td>{% if рафты %}{{ рафты[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if рафты %}{{ рафты[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if каски %}{{ каски[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if каски %}{{ каски[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if спасжилеты %}{{ спасжилеты[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if спасжилеты %}{{ спасжилеты[0].количество or 1 }}{% else %}—{% endif %}</td>
+    <td>{% if весла %}{{ весла[0].марка or '—' }}{% else %}—{% endif %}</td>
+    <td>{% if весла %}{{ весла[0].количество or 1 }}{% else %}—{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr>
+    <td colspan="13" style="text-align:center; color:#888; padding:8pt">
+      Нет данных о технических проверках
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{# ── Подписи ── #}
+{% if ск %}
+<div style="margin-top:14pt; font-size:11pt; font-weight:bold">
+  {% set подписанты = [
+    (ск.председатель_должность, ск.председатель_фио, ск.председатель_квалификация, ск.председатель_субъект_рф),
+    (ск.член_1_должность,       ск.член_1_фио,       ск.член_1_квалификация,       ск.член_1_субъект_рф),
+    (ск.член_2_должность,       ск.член_2_фио,       ск.член_2_квалификация,       ск.член_2_субъект_рф),
+  ] %}
+  {% for должность, фио, квал, субъект in подписанты %}
+  {% if фио or должность %}
+  {% set ч = фио.split() if фио else [] %}
+  {% set фио_кр = ч[0] ~ ' ' ~ ч[1][0] ~ '. ' ~ ч[2][0] ~ '.' if ч|length >= 3 else (фио or '') %}
+  <div style="display:flex; align-items:baseline; margin-bottom:10pt">
+    <div style="width:42%">{{ должность or '' }}</div>
+    <div>{{ фио_кр }}{% if квал %}, {{ квал }}{% endif %}{% if субъект %}, {{ субъект }}{% endif %}</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

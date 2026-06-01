@@ -13,26 +13,26 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-  <div>
-    <h5 class="mb-0">Многоборье — Результаты</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
-  <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
-    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
-  </div>
-</div>
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set есть_р6 = (муж_р6_рез | length + жен_р6_рез | length) > 0 %}
 
-<div class="alert alert-info py-2 small mb-3">
-  Очки суммируются по результатам дистанций: Спринт + ПС + Слалом + Длинная гонка.
-  Пересчёт — при каждой загрузке страницы.
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин МНОГОБОРЬЕ</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы</a>
+    <a href="{{ url_for('награждение.диплом_мб', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
+  </div>
+</div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица(рез, разряды, заг, цвет) %}
-<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }} ({{ рез | length }})</h6>
+{% set _норм = (рез | length) >= 6 %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not рез %}
 <div class="text-muted small mb-3">Нет данных — сначала рассчитайте результаты дистанций.</div>
 {% else %}
@@ -40,34 +40,34 @@
   <table class="table table-sm table-hover align-middle" style="font-size:.85rem">
     <thead class="table-light">
       <tr>
-        <th class="text-center" style="width:45px">Место</th>
-        <th class="text-center" style="width:50px">Нагруд.</th>
+        <th class="text-center" style="width:35px">№ п/п</th>
         <th>Команда</th>
-        <th style="min-width:100px">Субъект</th>
+        <th class="text-center" style="width:90px">Номер экипажа</th>
+        <th style="min-width:100px">Территория</th>
         <th class="text-center" style="width:65px">Сп</th>
         <th class="text-center" style="width:65px">ПС</th>
         <th class="text-center" style="width:65px">Сл</th>
         <th class="text-center" style="width:65px">ДГ</th>
         <th class="text-center fw-bold" style="width:75px">Сумма</th>
-        <th class="text-center" style="width:50px">Разряд</th>
-        <th class="text-center" style="width:65px">Очки МБ</th>
+        <th class="text-center" style="width:45px">Место</th>
+        <th class="text-center" style="width:110px">Выполненный норматив</th>
       </tr>
     </thead>
     <tbody>
     {% for р in рез %}
     {% set к = р.команда %}
     <tr class="{{ 'table-warning' if р.место == 1 else ('table-light' if р.место == 2 else ('bg-warning bg-opacity-10' if р.место == 3 else '')) }}">
-      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
-      <td class="text-center">{{ к.нагрудный_номер }}</td>
+      <td class="text-center">{{ loop.index }}</td>
       <td>{{ к.название or '—' }}</td>
+      <td class="text-center">{{ к.нагрудный_номер }}</td>
       <td class="small text-muted">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
       <td class="text-center small">{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
       <td class="text-center small">{{ р.очки_пс | int if р.очки_пс else '—' }}</td>
       <td class="text-center small">{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td class="text-center small">{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td class="text-center fw-bold text-primary">{{ р.сумма_очков | int }}</td>
-      <td class="text-center small">{{ разряды.get(к.id, '—') }}</td>
-      <td class="text-center small">{{ р.очки_многоборье | int if р.очки_многоборье else '—' }}</td>
+      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
+      <td class="text-center small">{{ разряды.get(к.id, '—') if _норм else '—' }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -76,10 +76,22 @@
 {% endif %}
 {% endmacro %}
 
-{{ таблица(муж_рез, муж_разр, 'Мужские экипажи', 'primary') }}
-{{ таблица(жен_рез, жен_разр, 'Женские экипажи', 'danger') }}
+{{ таблица(муж_р4_рез, муж_р4_разр, 'Многоборье — R4, мужчины', 'primary') }}
+{{ таблица(жен_р4_рез, жен_р4_разр, 'Многоборье — R4, женщины', 'danger') }}
+{% if есть_р6 %}
+{{ таблица(муж_р6_рез, муж_р6_разр, 'Многоборье — R6, мужчины', 'primary') }}
+{{ таблица(жен_р6_рез, жен_р6_разр, 'Многоборье — R6, женщины', 'danger') }}
+{% endif %}
 
-<div class="text-muted small mt-2">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+<div class="d-flex justify-content-between align-items-end mt-3">
+  <div class="text-muted small">Дата: {{ сегодня.strftime('%d.%m.%Y') }}</div>
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='наград-мб') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if готов_наград else 'В работе' }}
+    </button>
+  </form>
 </div>
 {% endblock %}

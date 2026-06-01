@@ -2,114 +2,285 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Стартовый протокол — Длинная гонка — {{ сор.название | truncate(60) }}</title>
+  <title>Стартовый протокол — {{ сор.название | truncate(60) }}</title>
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <style>
-    body { font-family: "Times New Roman", serif; font-size: 11pt; }
+    body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 10pt; }
-      @page { margin: 15mm 10mm 15mm 20mm; size: A4 landscape; }
+      body { font-size: 9pt; }
+      .разрыв { page-break-after: always; }
+      table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
-    table th, table td { border: 1px solid #333; padding: 3px 5px; vertical-align: middle; }
-    thead { background: #f0f0f0; font-weight: bold; }
-    h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
+    table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
+    thead tr + tr th, thead tr + tr td { border-top: 0.75pt solid #333; }
+    thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
+    th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .limit-box { border: 1px solid #333; padding: 4px 10px; display: inline-block; font-weight: bold; }
+    .text-center { text-align: center; }
+    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
+    .sig-block { margin-top: 16pt; margin-bottom: 16pt; }
+    .sig-row { display: flex; align-items: baseline; margin-bottom: 10pt; }
+    .sig-pos { width: 38%; font-size: 10pt; }
+    .sig-fio { font-size: 10pt; }
   </style>
+  <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
 </head>
 <body class="px-3 py-3">
 
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('дг.старт', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← Назад</a>
-  <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+     class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+  <div class="d-flex gap-2">
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
 </div>
 
+{# ── Макрос: шапка протокола ── #}
+{% macro шапка() %}
 {% if сор.организаторы_блок %}
-<div class="text-center mb-1" style="font-size:10pt">{{ сор.организаторы_блок }}</div>
-{% endif %}
-
-<div class="text-center mb-2">
-  <h3 class="doc-title mb-1">Стартовый протокол</h3>
-  <div style="font-size:11pt">Дистанция: <strong>ДЛИННАЯ ГОНКА</strong></div>
-  <div style="font-size:11pt"><strong>{{ сор.название }}</strong></div>
-  <div style="font-size:10pt; color:#555">
-    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
-    {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
-  </div>
-</div>
-
-{% if сор.лимит_время_муж or сор.лимит_время_жен %}
-<div class="mb-2" style="font-size:10pt">
-  <strong>Лимит времени:</strong>
-  {% if сор.лимит_время_муж %}Мужские — <span class="limit-box">{{ format_dur(сор.лимит_время_муж) }}</span>{% endif %}
-  {% if сор.лимит_время_жен %}&nbsp;&nbsp;&nbsp;Женские — <span class="limit-box">{{ format_dur(сор.лимит_время_жен) }}</span>{% endif %}
+<div class="text-center" style="font-size:10pt; font-weight:bold; text-align:center">
+{%- for строка in сор.организаторы_блок.split('\n') -%}
+  {%- if '"' in строка -%}
+    {%- set ч = строка.split('"', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
+  {%- elif '«' in строка -%}
+    {%- set ч = строка.split('«', 1) -%}
+    {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
+  {%- else -%}
+    {{ строка }}
+  {%- endif -%}
+  {%- if not loop.last %}<br>{% endif %}
+{%- endfor -%}
 </div>
 {% endif %}
-
-{% for команды, заг in [(муж, 'МУЖСКИЕ ЭКИПАЖИ'), (жен, 'ЖЕНСКИЕ ЭКИПАЖИ')] %}
-{% if команды %}
-<div class="section-title">{{ заг }} ({{ команды | length }})</div>
-<table>
-  <thead>
-    <tr>
-      <th style="width:40px" class="text-center">№ старта</th>
-      <th style="width:55px" class="text-center">Нагруд.</th>
-      <th>Команда</th>
-      <th style="min-width:120px">Субъект РФ</th>
-      <th style="width:110px" class="text-center">Время старта</th>
-      <th style="width:80px" class="text-center">Отметка</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for к in команды %}
-  {% set рез = к.результат_дг %}
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Стартовый протокол</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</div>
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
-    <td class="text-center fw-bold">{{ loop.index }}</td>
-    <td class="text-center">{{ к.нагрудный_номер }}</td>
-    <td>{{ к.название or '—' }}</td>
-    <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-    <td class="text-center" style="font-family:monospace;font-size:8.5pt">
-      {{ format_time(рез.время_старта) if рез and рез.время_старта else '' }}
-    </td>
-    <td></td>
+    <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
-  {% endfor %}
-  </tbody>
+  <tr>
+    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Дата проведения</td>
+    <td style="width:100%;border:none;padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Место проведения</td>
+  </tr>
 </table>
-{% endif %}
+{% endmacro %}
+
+{# ── Макрос: блок подписей ── #}
+{% macro подписи() %}
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
+  <tr>
+    <td style="width:33%;border:none;padding:0 0 10pt 0">Главный судья</td>
+    <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
+  </tr>
+  <tr>
+    <td style="width:33%;border:none;padding:0">Главный секретарь</td>
+    <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
+  </tr>
+</table>
+<div class="w-pb"></div>
+{% endmacro %}
+
+{# ── Макрос: заголовок таблицы (принимает список колонок для конкретного вида) ── #}
+{% macro thead(мб_список) %}
+{% set мб_кол = мб_список | length %}
+{% set один_без_суммы = мб_кол == 1 %}
+<thead>
+  <tr>
+    <th rowspan="2" style="white-space:nowrap">№<br>п/п</th>
+    <th rowspan="2" style="width:15%">Команда</th>
+    <th rowspan="2" style="width:40px">Номер</th>
+    <th rowspan="2" style="width:43%">Фамилия, имя, отчество участников</th>
+    <th rowspan="2" style="min-width:80px">Территория</th>
+    {% if один_без_суммы %}
+    <th rowspan="2" style="width:26px;font-size:7pt;white-space:nowrap">Очки<br>Много&shy;борье<br>{{ мб_список[0].заг | safe }}</th>
+    {% elif мб_кол %}
+    <th colspan="{{ мб_кол }}">Очки Многоборье</th>
+    {% endif %}
+    <th rowspan="2" style="white-space:nowrap">Очередь<br>выбора<br>позиции</th>
+    <th rowspan="2" style="width:56px">Время<br>старта</th>
+  </tr>
+  <tr>
+    {% if not один_без_суммы %}
+    {% for кол in мб_список %}
+    <th style="width:26px;font-size:7pt;white-space:nowrap;vertical-align:bottom;text-align:center;overflow:hidden;border-top:0.75pt solid #333"><div style="writing-mode:vertical-rl;transform:rotate(180deg);text-orientation:mixed;display:inline-block">{{ кол.заг | safe }}</div></th>
+    {% endfor %}
+    {% endif %}
+  </tr>
+</thead>
+{% endmacro %}
+
+{# ── Макрос: строки одного вида программы в tbody ── #}
+{% macro секция(список, метка, мб_список) %}
+{% if список %}
+{% set colspan = 7 + (мб_список | length) %}
+<tr class="section-row"><td colspan="{{ colspan }}" class="text-center">{{ метка }}</td></tr>
+{% set нс = namespace(пп=0) %}
+{% for к in список %}
+{% set нс.пп = нс.пп + 1 %}
+{% set рез = к.результат_дг %}
+{% set рм = к.результат_многоборья %}
+<tr>
+  <td class="text-center">{{ нс.пп }}</td>
+  <td>{{ к.название or '–' }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td style="font-size:8pt">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+  <td>{{ к.субъект.название if к.субъект else '–' }}</td>
+  {% for кол in мб_список %}
+  <td class="text-center">
+    {%- if рм -%}
+      {%- if кол.поле -%}
+        {{ (рм | attr(кол.поле) or 0) | int }}
+      {%- else -%}
+        {%- set _s = namespace(v=0) -%}
+        {%- for к2 in мб_список if к2.поле -%}{%- set _s.v = _s.v + ((рм | attr(к2.поле) or 0) | int) -%}{%- endfor -%}
+        {{ _s.v }}
+      {%- endif -%}
+    {%- else -%}–{%- endif -%}
+  </td>
+  {% endfor %}
+  <td class="text-center">{{ нс.пп }}</td>
+  <td class="text-center" style="font-family:monospace;white-space:nowrap">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
+</tr>
 {% endfor %}
+{% endif %}
+{% endmacro %}
 
-<div class="row mt-4" style="font-size:10pt">
-  <div class="col-5">
-    <div>Главный судья</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
-  </div>
-  <div class="col-2"></div>
-  <div class="col-5">
-    <div>Судья на старте</div>
-    <div class="mt-2">
-      <div class="underline-field">&nbsp;</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
-  </div>
-</div>
-<div class="mt-2" style="font-size:9pt;color:#666">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
-</div>
+{# ── Вспомогательный макрос: отдельная таблица одного вида ── #}
+{% macro таблица_вида(код, margin_top=false) %}
+{% set _мб = мб_по_коду.get(код, []) %}
+{% if код == 'R4-м' %}{% set _сп = муж_р4 %}{% set _мт = 'Длинная гонка – R4, Мужчины' %}
+{% elif код == 'R4-ж' %}{% set _сп = жен_р4 %}{% set _мт = 'Длинная гонка – R4, Женщины' %}
+{% elif код == 'R6-м' %}{% set _сп = муж_р6 %}{% set _мт = 'Длинная гонка – R6, Мужчины' %}
+{% elif код == 'R6-ж' %}{% set _сп = жен_р6 %}{% set _мт = 'Длинная гонка – R6, Женщины' %}
+{% else %}{% set _сп = [] %}{% set _мт = '' %}
+{% endif %}
+{% if _сп %}
+<table{% if margin_top %} style="margin-top:8px"{% endif %}>{{ thead(_мб) }}<tbody>{{ секция(_сп, _мт, _мб) }}</tbody></table>
+{% endif %}
+{% endmacro %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
-        crossorigin="anonymous"></script>
+{# ── Проверка наличия данных ── #}
+{% set есть_данные = (муж_р4 | length + жен_р4 | length + муж_р6 | length + жен_р6 | length) > 0 %}
+
+{% if not есть_данные %}
+<p class="text-center text-muted mt-4">Нет данных для отображения.</p>
+
+{% elif вывод == 'Попарно' %}
+{# ── Попарно: два блока — первые два вида и вторые два вида ── #}
+{# Каждый вид в отдельной таблице со своими колонками мб ── #}
+
+  {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
+  {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
+  {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
+  {% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
+
+  {% macro есть_вид(к) %}{% if (к == 'R4-м' and муж_р4) or (к == 'R4-ж' and жен_р4) or (к == 'R6-м' and муж_р6) or (к == 'R6-ж' and жен_р6) %}1{% endif %}{% endmacro %}
+
+  {% set г1_есть = есть_вид(к0) or есть_вид(к1) %}
+  {% set г2_есть = есть_вид(к2) or есть_вид(к3) %}
+
+  {% if г1_есть %}
+  <div class="{% if г2_есть %}разрыв{% endif %}">
+    {{ шапка() }}
+    {{ таблица_вида(к0) }}
+    {{ таблица_вида(к1, margin_top=true) }}
+    {{ подписи() }}
+  </div>
+  {% endif %}
+
+  {% if г2_есть %}
+  <div>
+    {{ шапка() }}
+    {{ таблица_вида(к2) }}
+    {{ таблица_вида(к3, margin_top=true) }}
+    {{ подписи() }}
+  </div>
+  {% endif %}
+
+{% else %}
+{# ── Раздельно: отдельный блок на каждый вид программы ── #}
+
+  {% set нса = namespace(список=[]) %}
+  {% for код in последовательность %}
+    {% if (код == 'R4-м' and муж_р4) or (код == 'R4-ж' and жен_р4) or (код == 'R6-м' and муж_р6) or (код == 'R6-ж' and жен_р6) %}
+      {% set нса.список = нса.список + [код] %}
+    {% endif %}
+  {% endfor %}
+
+  {% for код in нса.список %}
+  <div class="{% if not loop.last %}разрыв{% endif %}">
+    {{ шапка() }}
+    {{ таблица_вида(код) }}
+    {{ подписи() }}
+  </div>
+  {% endfor %}
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let _landscape = true;
+function toggleOrient() {
+  _landscape = !_landscape;
+  var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
+  document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
+  document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
+}
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  clone.querySelectorAll('.разрыв').forEach(function(div) {
+    var next = div.nextElementSibling;
+    if (next && next.firstElementChild) next.firstElementChild.style.pageBreakBefore = 'always';
+  });
+  clone.querySelectorAll('.w-pb').forEach(function(el){
+    var pb = document.createElement('p');
+    pb.style.cssText = 'margin:0;padding:0;line-height:0;font-size:1px';
+    pb.innerHTML = '<br style="mso-special-character:line-break;page-break-before:always">';
+    el.parentNode.replaceChild(pb, el);
+  });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  var _pgSz = _landscape ? '841.9pt 595.3pt' : '595.3pt 841.9pt';
+  var _pgOr = _landscape ? 'landscape' : 'portrait';
+  css += '@page WordSection1{size:' + _pgSz + ';mso-page-orientation:' + _pgOr + ';margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8">'
+    + '<style>' + css + '</style>'
+    + '</head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

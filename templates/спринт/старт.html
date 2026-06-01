@@ -13,20 +13,28 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-  <div>
-    <h5 class="mb-0">Спринт — Стартовый протокол</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
+{% set _вгр = (' (' + сор.возрастная_группа + ')') if сор.возрастная_группа else '' %}
+{% set муж_р4 = муж | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set жен_р4 = жен | selectattr('класс_судна', 'equalto', 'R4') | list %}
+{% set муж_р6 = муж | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set жен_р6 = жен | selectattr('класс_судна', 'equalto', 'R6') | list %}
+{% set есть_р6 = (муж_р6 | length + жен_р6 | length) > 0 %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('спринт.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">Протокол финиша →</a>
     <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-success btn-sm">Результаты →</a>
+       class="btn btn-outline-primary btn-sm">Результаты →</a>
     <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Печать</a>
+       class="btn btn-outline-secondary btn-sm">Печать</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% for cat, msg in messages %}
@@ -48,9 +56,11 @@
 </div>
 
 <form method="post" id="formСтарт">
-{% for пол, команды, цвет, заг in [('м', муж, 'primary', 'Мужские'), ('ж', жен, 'danger', 'Женские')] %}
+{% set _гр = [('м', муж_р4, 'primary', 'R4'), ('ж', жен_р4, 'danger', 'R4')] %}
+{% if есть_р6 %}{% set _гр = _гр + [('м', муж_р6, 'primary', 'R6'), ('ж', жен_р6, 'danger', 'R6')] %}{% endif %}
+{% for пол, команды, цвет, кл in _гр %}
 {% if команды %}
-<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">{{ заг }} экипажи ({{ команды | length }})</h6>
+<h6 class="fw-semibold mt-3 mb-1 text-{{ цвет }}">Спринт — {{ кл }}, {{ 'мужчины' if пол == 'м' else 'женщины' }}{{ _вгр }} ({{ команды | length }})</h6>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">

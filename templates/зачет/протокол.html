@@ -2,133 +2,230 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Зачёт субъектов — {{ сор.название | truncate(50) }}</title>
+  <title>Протокол командного зачёта субъектов — {{ сор.название | truncate(50) }}</title>
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <style>
-    body { font-family: "Times New Roman", serif; font-size: 11pt; }
+    body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 9pt; }
-      @page { margin: 12mm 8mm; size: A4 landscape; }
+      body { font-size: 8.5pt; }
+      @page { margin: 10mm 10mm 10mm 15mm; size: A4 landscape; }
+      table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
     }
-    table { font-size: 9pt; border-collapse: collapse; width: 100%; }
-    table th, table td { border: 1px solid #333; padding: 3px 4px; vertical-align: middle; }
-    thead { background: #f0f0f0; font-weight: bold; }
-    h3.doc-title { font-size: 13pt; font-weight: bold; text-transform: uppercase; }
-    .section-title { font-size: 11pt; font-weight: bold; margin: 1em 0 0.3em; text-transform: uppercase; }
-    .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
-    .место-1 { background: #fffbe6; font-weight: bold; }
-    .место-2 { background: #f5f5f5; }
-    .место-3 { background: #fdf3e8; }
+    {% if портрет %}
+    @media print {
+      @page { size: A4 portrait; }
+      body { zoom: 0.65; }
+    }
+    {% endif %}
+    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+    th, td { border: 0.75pt solid #333; padding: 2px 3px; vertical-align: middle;
+             text-align: center; font-size: 10pt; background: #fff; }
+    th { font-weight: bold; }
+    td.text-left { text-align: left; }
+    .underline-field { border-bottom: 1px solid #000; display: inline-block; }
+    .fw-bold { font-weight: bold; }
+    .зс-table { width: auto; margin-top: 8px; }
+    .зс-table th, .зс-table td { padding: 2px 4px; width: 38px; font-size: 10pt !important; }
+    @media print {
+      table:has(thead) { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
+      table:has(thead) th, table:has(thead) td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
+      table:has(thead) thead th, table:has(thead) thead td { border-top: none; }
+      table:has(thead) thead tr + tr th, table:has(thead) thead tr + tr td { border-top: 0.75pt solid #333; }
+      thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
+    }
   </style>
 </head>
 <body class="px-3 py-3">
 
+{# ── Навигация (только на экране) ──────────────────────────────────────────── #}
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('зачет.результаты', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">← Назад</a>
+     class="btn btn-outline-secondary btn-sm">← Результаты</a>
+  <div class="d-flex gap-2">
+    {% if портрет %}
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
+       class="btn btn-outline-secondary btn-sm">Альбом</a>
+    {% else %}
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, портрет=1) }}"
+       class="btn btn-outline-secondary btn-sm">Портрет</a>
+    {% endif %}
+    <button onclick="exportWord()" class="btn btn-success btn-sm">Word</button>
   <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
-</div>
-
-{% if сор.организаторы_блок %}
-<div class="text-center mb-1" style="font-size:10pt">{{ сор.организаторы_блок }}</div>
-{% endif %}
-
-<div class="text-center mb-3">
-  <h3 class="doc-title mb-1">
-    {% if итоговый %}Итоговый протокол{% else %}Предварительный протокол{% endif %}
-    командного зачёта субъектов РФ
-  </h3>
-  <div style="font-size:11pt"><strong>{{ сор.название }}</strong></div>
-  <div style="font-size:10pt; color:#555">
-    {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
-    {% if сор.место_проведения %}&nbsp;|&nbsp;{{ сор.место_проведения }}{% endif %}
   </div>
 </div>
 
-{% for пол, назв, кл, итог in таблицы %}
+{# ── Шапка документа ───────────────────────────────────────────────────────── #}
+{% if сор.организаторы_блок %}
+<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+{% endif %}
+
+<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
+  {{ сор.название }}
+</div>
+
+{% if сор.номер_екп %}
+<div class="text-center" style="font-size:10pt; font-weight:bold; margin-top:2px">
+  ЕКП № {{ сор.номер_екп }}
+</div>
+{% endif %}
+
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-transform:uppercase">
+  Протокол
+</div>
+
+<div class="text-center mb-1" style="font-size:11pt; font-weight:bold">
+  командного зачёта среди субъектов Российской Федерации
+</div>
+
+<div class="d-flex justify-content-between mb-3" style="font-size:9pt; font-weight:bold">
+  <div style="text-align:center">
+    <div style="border-bottom:1px solid #000; min-width:180px; display:inline-block; text-align:center; padding:0 6px">{{ сор.даты_проведения or '&nbsp;' }}</div>
+    <div style="font-size:7.5pt">дата проведения</div>
+  </div>
+  <div style="text-align:center">
+    <div style="border-bottom:1px solid #000; min-width:240px; display:inline-block; text-align:center; padding:0 6px">{{ сор.место_проведения or '&nbsp;' }}</div>
+    <div style="font-size:7.5pt">место проведения</div>
+  </div>
+</div>
+
+{# ── Таблица результатов ───────────────────────────────────────────────────── #}
 {% if итог %}
-<div class="section-title">{{ назв }} · {{ кл }} ({{ итог | length }} субъектов)</div>
+
+{% set n_гр = группы | length %}
+
 <table>
+  <colgroup>
+    <col style="width:22px">   {# № п/п #}
+    <col>                      {# Субъект РФ — занимает остаток #}
+    {% for пол, кл in группы %}
+    <col style="width:90px">   {# кол экипажей #}
+    <col style="width:55px">   {# баллы #}
+    {% endfor %}
+    <col style="width:90px">   {# итого кол #}
+    <col style="width:60px">   {# итого баллы #}
+    <col style="width:50px">   {# место #}
+  </colgroup>
   <thead>
     <tr>
-      <th style="width:40px" class="text-center">Место</th>
-      <th>Субъект РФ</th>
-      <th style="width:40px" class="text-center">Экип.</th>
-      <th style="width:52px" class="text-center">Спринт</th>
-      <th style="width:52px" class="text-center">ПС</th>
-      <th style="width:52px" class="text-center">Слалом</th>
-      <th style="width:60px" class="text-center">Дл. гонка</th>
-      <th style="width:60px" class="text-center">Многобор.</th>
-      <th style="width:60px" class="text-center">Сумма</th>
-      <th style="width:50px" class="text-center">Коэф.</th>
-      <th style="width:65px" class="text-center">Итого</th>
+      <th rowspan="2">№<br>п/п</th>
+      <th rowspan="2" style="text-align:left">Субъект Российской Федерации</th>
+      {% for пол, кл in группы %}
+      <th colspan="2">{{ ПОЛ_НАЗВ[пол] }} {{ кл }}</th>
+      {% endfor %}
+      <th colspan="2" style="font-weight:bold">ИТОГО</th>
+      <th rowspan="2" style="font-weight:bold; white-space:nowrap">Место</th>
+    </tr>
+    <tr>
+      {% for пол, кл in группы %}
+      <th>Количество<br>экипажей</th>
+      <th>Баллы</th>
+      {% endfor %}
+      <th>Количество<br>экипажей</th>
+      <th style="font-weight:bold">Баллы</th>
     </tr>
   </thead>
   <tbody>
-  {% for з in итог %}
-  {% set cls = 'место-1' if з.место == 1 else ('место-2' if з.место == 2 else ('место-3' if з.место == 3 else '')) %}
-  <tr class="{{ cls }}">
-    <td class="text-center fw-bold" style="font-size:10pt">{{ з.место }}</td>
-    <td>{{ з.субъект.название }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.кол_команд }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.оч_сп | int if з.оч_сп else '—' }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.оч_пс | int if з.оч_пс else '—' }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.оч_сл | int if з.оч_сл else '—' }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.оч_дг | int if з.оч_дг else '—' }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.оч_мб | int if з.оч_мб else '—' }}</td>
-    <td class="text-center fw-bold" style="font-size:9pt">{{ з.итого | int }}</td>
-    <td class="text-center" style="font-size:8pt">{{ з.коэффициент }}</td>
-    <td class="text-center fw-bold" style="font-size:9.5pt">{{ з.итого_к | int }}</td>
-  </tr>
-  {% endfor %}
+    {% for з in итог %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td class="text-left">{{ з.субъект.название }}</td>
+      {% for пол, кл in группы %}
+      {% set гр = з.группы.get((пол, кл), {'кол': 0, 'баллы': 0.0}) %}
+      <td>{{ гр.кол if гр.кол else '–' }}</td>
+      <td>{{ гр.баллы if гр.баллы else '–' }}</td>
+      {% endfor %}
+      <td>{{ з.итого_кол }}</td>
+      <td>{{ з.итого_баллы }}</td>
+      <td style="font-size:10pt">{{ з.место }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% else %}
+<div class="text-center text-muted py-4">Нет данных для отображения</div>
+{% endif %}
+
+{# ── Подписи ───────────────────────────────────────────────────────────────── #}
+<div class="mt-4" style="font-size:10pt; font-weight:bold">
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный судья</div>
+    <div>{{ сор.главный_судья or '' }}</div>
+  </div>
+  <div style="display:flex; align-items:baseline; margin-bottom:10px">
+    <div style="width:38%">Главный секретарь</div>
+    <div>{{ сор.главный_секретарь or '' }}</div>
+  </div>
+</div>
+
+
+{# ── Таблица ЗС (только в итоговом протоколе) ─────────────────────────────── #}
+{% if итоговый and таблица_зс and таблица_зс.rows %}
+<table class="зс-table" style="width:auto; margin-top:24px">
+  <thead>
+    <tr>
+      <th rowspan="2" style="width:90px; text-align:center">Количество субъектов<br>Российской Федерации</th>
+      <th colspan="{{ таблица_зс.cols|length }}" style="text-align:center">Количество баллов за каждую дисциплину за занятое место</th>
+    </tr>
+    <tr>
+      {% for м in таблица_зс.cols %}
+      <th style="width:76px">{{ таблица_зс.col_labels[м] }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for кол in таблица_зс.rows %}
+    <tr>
+      <td style="text-align:center; font-weight:bold">{{ таблица_зс.row_labels[кол] }}</td>
+      {% for м in таблица_зс.cols %}
+      {% set v = таблица_зс.data.get((кол, м)) %}
+      <td>{% if v is not none %}{% if v == v|int %}{{ v|int }}{% else %}{{ "%.1f"|format(v)|replace(".", ",") }}{% endif %}{% endif %}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
   </tbody>
 </table>
 {% endif %}
-{% endfor %}
 
-{% if итоговый %}
-<div class="row mt-4" style="font-size:10pt">
-  <div class="col-4">
-    <div>Главный судья</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_судья or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
-  </div>
-  <div class="col-4">
-    <div>Главный секретарь</div>
-    <div class="mt-2">
-      <div class="underline-field">{{ сор.главный_секретарь or '&nbsp;' * 25 }}</div>
-      <div style="font-size:8pt">подпись / ФИО</div>
-    </div>
-  </div>
-  <div class="col-4">
-    <div>Протокол утверждён</div>
-    <div class="mt-2">
-      <div class="underline-field">&nbsp;</div>
-      <div style="font-size:8pt">дата</div>
-    </div>
-  </div>
-</div>
-{% else %}
-<div class="mt-4" style="font-size:10pt">
-  Главный секретарь: <span class="underline-field">{{ сор.главный_секретарь or '&nbsp;' * 25 }}</span>
-  <span style="font-size:8pt;margin-left:4px">подпись / ФИО</span>
-</div>
-{% endif %}
-
-<div class="mt-2" style="font-size:9pt;color:#666">
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }} · СЧИТАЛКА
-  {% if not итоговый %} · <em>ПРЕДВАРИТЕЛЬНЫЙ</em>{% endif %}
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmDqSqOrRsLKfnzAFsejKCimRUSs"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  {% if портрет %}
+  css += '@page WordSection1{size:595.3pt 841.9pt;mso-page-orientation:portrait;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  {% else %}
+  css += '@page WordSection1{size:841.9pt 595.3pt;mso-page-orientation:landscape;margin:51.0pt 14.2pt 34.0pt 21.3pt;} div.WordSection1{page:WordSection1;}';
+  {% endif %}
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + '<div class="WordSection1">' + clone.innerHTML + '</div>' + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>

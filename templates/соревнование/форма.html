@@ -21,177 +21,172 @@
   <h4 class="mb-0">{{ 'Новое соревнование' if not сор else 'Редактирование соревнования' }}</h4>
 </div>
 
+{# Общий datalist субъектов РФ — используется в строках 3 и 4 #}
+<datalist id="datalistСубъектыРФ">
+  {% for субъект in субъекты_рф %}
+  <option value="{{ субъект }}">
+  {% endfor %}
+</datalist>
+
 <form method="post" id="formSor">
 
-  {# ── БЛОК 1: Основные сведения ── #}
+  {# ── Наименование ── #}
   <div class="card mb-3">
-    <div class="card-header fw-semibold bg-primary text-white py-2">Основные сведения</div>
+    <div class="card-header fw-semibold bg-primary text-white py-2">
+      Наименование соревнований
+    </div>
     <div class="card-body">
+      <input type="text" name="название" id="fieldНазвание" class="form-control" required
+             placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
+             value="{{ сор.название if сор else '' }}">
+    </div>
+  </div>
 
-      <div class="row g-3 mb-3">
-        {# Статус — главный выбор #}
-        <div class="col-md-4">
+  {# ── 1. Классификация (статус, класс, возраст) ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">1</span> Классификация соревнований
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-5">
           <label class="form-label fw-semibold">
             Статус соревнований <span class="text-danger">*</span>
           </label>
-          <select name="код_соревнований" id="кодСор" class="form-select form-select-sm" required
-                  onchange="обновитьНазвание()">
+          <select name="код_соревнований" id="кодСор" class="form-select form-select-sm" required>
             <option value="">— выберите статус —</option>
             {% for код, info in статусы.items() %}
             <option value="{{ код }}"
               {% if сор and сор.код_соревнований == код %}selected{% endif %}>
-              {{ код }} — {{ info.полное }}
+              {{ info.полное }}
             </option>
             {% endfor %}
           </select>
-          <div class="form-text">ЧР, КР, ПР, ВС, ЧФО…</div>
         </div>
-
-        {# Класс судна — чекбоксы (R4 и/или R6) #}
-        <div class="col-md-2">
-          <label class="form-label fw-semibold">Класс судна <span class="text-danger">*</span></label>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Классы судов <span class="text-danger">*</span></label>
           <div class="d-flex gap-3 mt-1">
             {% set выбр = сор.класс_судна if сор else 'R4' %}
             {% for cls in ['R4', 'R6'] %}
             <div class="form-check">
               <input class="form-check-input" type="checkbox" name="класс_судна"
                      id="cls{{ cls }}" value="{{ cls }}"
-                     onchange="обновитьНазвание()"
                      {{ 'checked' if cls in выбр }}>
               <label class="form-check-label fw-semibold" for="cls{{ cls }}">{{ cls }}</label>
             </div>
             {% endfor %}
           </div>
-          <div class="form-text">R4: 4–5 чел., R6: 6–7 чел.</div>
         </div>
-
-        {# Возрастная группа #}
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label">Возрастная группа</label>
-          <select name="возрастная_группа" class="form-select form-select-sm">
-            {% for гр in ['15 лет и старше', '19 лет и старше', '16–18 лет', '14–15 лет'] %}
-            <option value="{{ гр }}"
-              {{ 'selected' if сор and сор.возрастная_группа == гр }}>{{ гр }}</option>
+          {% set _оп = ['Мужчины, женщины', 'юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 20 лет)', 'юноши, девушки (до 16 лет)'] %}
+          {% set _список = (сор.возрастная_группа.split(' / ') if сор and сор.возрастная_группа else ['']) %}
+          <div id="возрастГруппыКонт">
+            {% for гр_знач in _список %}
+            <div class="d-flex gap-2 mb-1 возраст-строка">
+              <select name="возрастная_группа[]" class="form-select form-select-sm flex-grow-1">
+                <option value="">— не указана —</option>
+                {% for гр in _оп %}
+                <option value="{{ гр }}" {{ 'selected' if гр_знач.strip() == гр }}>{{ гр }}</option>
+                {% endfor %}
+              </select>
+              {% if loop.index > 1 %}
+              <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-возраст">×</button>
+              {% endif %}
+            </div>
             {% endfor %}
-            <option value=""
-              {{ 'selected' if not сор or not сор.возрастная_группа }}>— не указана —</option>
-          </select>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm mt-1" id="btnДобавитьВозраст">
+            + Добавить
+          </button>
         </div>
       </div>
+    </div>
+  </div>
 
-      {# Название — длинная строка #}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">
-          Название соревнований <span class="text-danger">*</span>
-        </label>
-        <input type="text" name="название" id="fieldНазвание" class="form-control" required
-               placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
-               value="{{ сор.название if сор else '' }}">
-        <div class="form-text">
-          Полное официальное название, как в документах.
-          <a href="#" class="link-secondary" onclick="автоНазвание(event)">Сгенерировать автоматически</a>
+  {# ── 2. Сроки и место ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">2</span> Сроки и место проведения
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label fw-semibold">Дата начала</label>
+          <input type="date" name="дата_начала" class="form-control"
+                 value="{{ сор.дата_начала.strftime('%Y-%m-%d') if сор and сор.дата_начала else '' }}">
+          <div class="form-text">для сортировки</div>
         </div>
-      </div>
-
-      <div class="row g-3 mb-3">
-        {# Даты #}
-        <div class="col-md-5">
-          <label class="form-label fw-semibold">Даты проведения</label>
-          <input type="text" name="даты_проведения" class="form-control form-control-sm"
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Сроки проведения соревнований</label>
+          <input type="text" name="даты_проведения" class="form-control"
                  placeholder="16 — 22 сентября 2025 года"
                  value="{{ сор.даты_проведения if сор else '' }}">
         </div>
-        {# Место #}
-        <div class="col-md-7">
-          <label class="form-label fw-semibold">Место проведения</label>
-          <input type="text" name="место_проведения" class="form-control form-control-sm"
-                 placeholder="Ленинградская обл., р. Вуокса"
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Место проведения соревнований</label>
+          <input type="text" name="место_проведения" class="form-control"
+                 placeholder="Ленинградская обл., р. Вуокса, г. Приозерск"
                  value="{{ сор.место_проведения if сор else '' }}">
         </div>
       </div>
-
-      {# Номер ЕКП #}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
-        <input type="text" name="номер_екп" class="form-control form-control-sm"
-               placeholder="0000000011Я"
-               value="{{ сор.номер_екп if сор else '' }}">
-      </div>
-
     </div>
   </div>
 
-  {# ── БЛОК 2: Параметры ── #}
+  {# ── 3. ЕКП и субъект ── #}
   <div class="card mb-3">
     <div class="card-header fw-semibold py-2">
-      <a class="text-dark text-decoration-none" data-bs-toggle="collapse"
-         href="#параметры" role="button">
-        ▸ Параметры соревнований
-      </a>
+      <span class="badge bg-secondary me-1">3</span> Идентификаторы соревнования
     </div>
-    <div class="collapse{% if not сор %} show{% endif %}" id="параметры">
-      <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-2">
-            <label class="form-label">Муж. экипажей</label>
-            <input type="number" name="кол_мужских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_мужских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Жен. экипажей</label>
-            <input type="number" name="кол_женских_экипажей" class="form-control form-control-sm"
-                   min="0" value="{{ сор.кол_женских_экипажей if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Субъектов РФ</label>
-            <input type="number" name="кол_субъектов" class="form-control form-control-sm"
-                   min="1" value="{{ сор.кол_субъектов if сор else '' }}">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Спортсменов в экипаже</label>
-            <select name="кол_спортсменов_в_экипаже" class="form-select form-select-sm">
-              {% for n in [4, 5, 6, 7] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_спортсменов_в_экипаже == n) or (not сор and n == 4) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Попыток слалом</label>
-            <select name="кол_попыток_слалом" class="form-select form-select-sm">
-              {% for n in [1, 2] %}
-              <option value="{{ n }}"
-                {{ 'selected' if (сор and сор.кол_попыток_слалом == n) or (not сор and n == 2) }}>
-                {{ n }}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">Код субъекта-хозяина</label>
-            <input type="number" name="код_субъекта_рф" class="form-control form-control-sm"
-                   placeholder="47" value="{{ сор.код_субъекта_рф if сор else '' }}">
-          </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Номер спортивных соревнований в ЕКП</label>
+          <input type="text" name="номер_екп" class="form-control"
+                 placeholder="0000000000000000"
+                 value="{{ сор.номер_екп if сор else '' }}">
+        </div>
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">Субъект Российской Федерации</label>
+          <input type="text" name="субъект_рф_название" list="datalistСубъектыРФ"
+                 class="form-control"
+                 placeholder="Ленинградская область"
+                 value="{{ сор.субъект_рф_название if сор else '' }}">
         </div>
       </div>
     </div>
   </div>
 
-  {# Кнопки #}
-  <div class="d-flex gap-2">
+  {# ── 4. Главный судья ── #}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2">
+      <span class="badge bg-secondary me-1">4</span> Главный судья соревнований
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-9">
+          <label class="form-label fw-semibold">Фамилия, имя, отчество, квалификация, субъект Российской Федерации</label>
+          <input type="text" name="главный_судья" class="form-control"
+                 placeholder="Иванов Иван Иванович, ССВК, Ленинградская область"
+                 value="{{ сор.главный_судья if сор else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Телефон</label>
+          <input type="tel" name="главный_судья_телефон" class="form-control"
+                 placeholder="+7 (999) 000-00-00"
+                 value="{{ сор.главный_судья_телефон if сор else '' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Кнопки ── #}
+  <div class="d-flex gap-2 mb-4">
     <button type="submit" class="btn btn-primary px-4">
       {{ 'Создать' if not сор else 'Сохранить изменения' }}
     </button>
     <a href="{{ url_for('соревнование.карточка', id=сор.id) if сор else url_for('main.index') }}"
        class="btn btn-outline-secondary">Отмена</a>
-    {% if сор %}
-    <form action="{{ url_for('соревнование.удалить', id=сор.id) }}" method="post" class="ms-auto"
-          onsubmit="return confirm('Удалить соревнование и все связанные данные?')">
-      <button type="submit" class="btn btn-outline-danger btn-sm">Удалить соревнование</button>
-    </form>
-    {% endif %}
   </div>
 
 </form>
@@ -199,27 +194,82 @@
 
 {% block scripts %}
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+
 const СТАТУСЫ = {{ статусы | tojson }};
 
-function обновитьНазвание() {
-  if (document.getElementById('fieldНазвание').dataset.ручное === '1') return;
-  автоНазвание(null);
-}
+// ── Автогенерация названия ────────────────────────────────────────────────
 
-function автоНазвание(e) {
-  if (e) e.preventDefault();
+function автоНазвание() {
   const код = document.getElementById('кодСор').value;
-  const checked = [...document.querySelectorAll('input[name="класс_судна"]:checked')]
-    .map(el => el.value).sort();
-  if (!код || !checked.length) return;
+  if (!код) { return; }
   const полное = СТАТУСЫ[код] ? СТАТУСЫ[код].полное.toUpperCase() : '';
-  document.getElementById('fieldНазвание').value =
-    полное + ' ПО РАФТИНГУ — ' + checked.join('+');
-  document.getElementById('fieldНазвание').dataset.ручное = '0';
+  const field = document.getElementById('fieldНазвание');
+  field.value = полное + ' ПО РАФТИНГУ';
+  field.dataset.ручное = '0';
 }
 
-document.getElementById('fieldНазвание').addEventListener('input', function () {
+document.getElementById('кодСор').addEventListener('change', function() {
+  if (document.getElementById('fieldНазвание').dataset.ручное !== '1') {
+    автоНазвание();
+  }
+});
+document.getElementById('fieldНазвание').addEventListener('input', function() {
   this.dataset.ручное = '1';
 });
+
+// ── Возрастные группы ────────────────────────────────────────────────────
+
+const ВОЗРАСТ_ОПЦИИ = [
+  ['', '— не указана —'],
+  ['Мужчины, женщины', 'Мужчины, женщины'],
+  ['юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 26 лет)'],
+  ['юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 24 лет)'],
+  ['юниоры, юниорки (до 20 лет)', 'юниоры, юниорки (до 20 лет)'],
+  ['юноши, девушки (до 16 лет)', 'юноши, девушки (до 16 лет)'],
+];
+
+function buildSelectВозраст() {
+  const sel = document.createElement('select');
+  sel.name = 'возрастная_группа[]';
+  sel.className = 'form-select form-select-sm flex-grow-1';
+  ВОЗРАСТ_ОПЦИИ.forEach(function(pair) {
+    const opt = document.createElement('option');
+    opt.value = pair[0];
+    opt.textContent = pair[1];
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function обновитьБтнВозраст() {
+  const кол = document.querySelectorAll('.возраст-строка').length;
+  document.getElementById('btnДобавитьВозраст').disabled = (кол >= 3);
+}
+
+document.getElementById('btnДобавитьВозраст').addEventListener('click', function() {
+  if (document.querySelectorAll('.возраст-строка').length >= 3) return;
+  const div = document.createElement('div');
+  div.className = 'd-flex gap-2 mb-1 возраст-строка';
+  div.appendChild(buildSelectВозраст());
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-возраст';
+  btn.textContent = '×';
+  div.appendChild(btn);
+  document.getElementById('возрастГруппыКонт').appendChild(div);
+  обновитьБтнВозраст();
+});
+
+document.getElementById('возрастГруппыКонт').addEventListener('click', function(e) {
+  if (e.target.classList.contains('btn-del-возраст')) {
+    e.target.closest('.возраст-строка').remove();
+    обновитьБтнВозраст();
+  }
+});
+
+обновитьБтнВозраст();
+
+}); // DOMContentLoaded
 </script>
 {% endblock %}

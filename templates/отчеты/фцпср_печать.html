@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчёт ФГБУ ФЦПСР — {{ сор.название | truncate(60) }}</title>
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 11pt; margin: 20mm 15mm; }
+    @media print { body { margin: 0; } }
+    h1 { font-size: 13pt; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 2px; }
+    p  { margin: 3px 0; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
+    table td, table th { border: 1px solid #333; padding: 3px 5px; }
+    table th { font-weight: normal; text-align: center; background: #f0f0f0; }
+    table td, table th { font-weight: normal; }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .sig { display: table; width: 100%; margin-top: 28px; border-collapse: separate; border-spacing: 20px 0; }
+    .sig-col { display: table-cell; width: 50%; vertical-align: top; }
+    .sig-line { border-bottom: 1px solid #000; display: inline-block; min-width: 100px; }
+    .caption { font-size: 8pt; color: #555; display: flex; justify-content: space-between; }
+    .section { margin-top: 12px; }
+    @media print {
+      body { margin: 8mm 12mm; }
+      @page { size: A4 portrait; margin: 3mm 12mm; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="display:flex;justify-content:space-between;margin-bottom:16px;font-family:system-ui">
+  <a href="{{ url_for('отчеты.страница', sor_id=сор.id) }}"
+     style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">← Отчёты</a>
+  <div style="display:flex;gap:6px">
+    <a href="{{ url_for('отчеты.отчет_фрр', sor_id=сор.id) }}"
+       style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">🖨 Отчёт ФРР</a>
+    <a href="{{ url_for('отчеты.отчет_липецк', sor_id=сор.id) }}"
+       style="font-size:.875rem;border:1px solid #6c757d;border-radius:.25rem;padding:.25rem .5rem;color:#6c757d;text-decoration:none">🖨 Отчёт УМФКС Липецк</a>
+    <button onclick="exportWord()"
+            style="font-size:.875rem;border:1px solid #198754;border-radius:.25rem;padding:.25rem .5rem;background:#198754;color:#fff;cursor:pointer">Word</button>
+    <button onclick="window.print()"
+            style="font-size:.875rem;border:1px solid #0d6efd;border-radius:.25rem;padding:.25rem .5rem;background:#0d6efd;color:#fff;cursor:pointer">Печать</button>
+  </div>
+</div>
+
+{# ── Шапка ──────────────────────────────────────────────────────────────── #}
+<h1>ОТЧЁТ ГЛАВНОЙ СУДЕЙСКОЙ КОЛЛЕГИИ</h1>
+<div style="text-align:center;font-size:11pt">
+  о проведении {{ сор.название }}
+  {% if сор.класс_судна %}
+  {% set _дисц = ['спринт', 'параллельный спринт', 'слалом', 'длинная гонка', 'многоборье'] %}
+  {% set _кл = [] %}
+  {% if 'R4' in сор.класс_судна %}{% set _кл = _кл + ['R4'] %}{% endif %}
+  {% if 'R6' in сор.класс_судна %}{% set _кл = _кл + ['R6'] %}{% endif %}
+  {% set _нс = namespace(части=[]) %}
+  {% for кл in _кл %}{% for д in _дисц %}{% set _нс.части = _нс.части + [д ~ '&nbsp;— ' ~ кл] %}{% endfor %}{% endfor %}
+  (дисциплины: {{ _нс.части | join(', ') | safe }})
+  {% endif %}
+</div>
+<div style="text-align:center;font-size:11pt;margin-top:4px">
+  {% set _вгр = сор.возрастная_группа or '' %}
+  среди {% if not _вгр or _вгр | lower in ('мужчины, женщины', 'мужчины и женщины') %}мужчин и женщин{% else %}{{ _вгр | lower }}{% endif %}
+  {% if сор.номер_екп or сор.отч_номер_сметы %}
+  &nbsp;&nbsp;(СМ №&nbsp;{{ сор.номер_екп or '—' }}&nbsp;в ЕКП{% if сор.отч_номер_сметы %}, смета №&nbsp;{{ сор.отч_номер_сметы }}{% endif %})
+  {% endif %}
+</div>
+
+{# ── 1–3 ────────────────────────────────────────────────────────────────── #}
+<div class="section">
+  <p><strong>1. Сроки проведения:</strong> {{ сор.даты_проведения or '—' }}</p>
+  <p><strong>2. Место проведения (субъект РФ, город):</strong> {{ сор.место_проведения or '—' }}</p>
+  <p><strong>3. Наименование объекта спорта</strong> (в соответствии с приказом Минспорта России №754 от 04.10.2021г.): {{ сор.отч_объект_спорта or '—' }}</p>
+</div>
+
+{# ── 4. Участники ────────────────────────────────────────────────────────── #}
+{% set кол_муж_сп = уник_спортсмены | selectattr('команда.пол','eq','м') | list | length %}
+{% set кол_жен_сп = уник_спортсмены | selectattr('команда.пол','eq','ж') | list | length %}
+<div class="section">
+  <p><strong>4. Всего участников соревнований</strong> <strong>{{ кол_спортсменов + кол_тренеров }}</strong>, из <strong>{{ кол_субъектов }}</strong> субъектов Российской Федерации</p>
+  <p style="margin-left:20px">Спортсменов <strong>{{ кол_спортсменов }}</strong> чел., в том числе <strong>{{ кол_муж_сп }}</strong> муж., <strong>{{ кол_жен_сп }}</strong> жен.</p>
+  <p style="margin-left:20px">Представителей, тренеров <strong>{{ кол_тренеров }}</strong> чел.</p>
+</div>
+
+{# ── 5. Судьи ────────────────────────────────────────────────────────────── #}
+{% set вк  = судьи | selectattr('квалификация','in',['СС-ВК','ССВК','ВК']) | list | length %}
+{% set с1к = судьи | selectattr('квалификация','in',['СС-1К','СС1К','1К']) | list | length %}
+{% set с2к = судьи | selectattr('квалификация','in',['СС-2К','СС2К','2К']) | list | length %}
+{% set с3к = судьи | selectattr('квалификация','in',['СС-3К','СС3К','3К']) | list | length %}
+<div class="section">
+  <p><strong>5. Количество судей (всего)</strong> <strong>{{ кол_судей }}</strong> чел., в том числе иногородних судей — <strong>{{ иногородних }}</strong> чел.&nbsp;&nbsp;&nbsp;Уровень подготовки судей по судейским категориям:</p>
+  <p style="margin-left:20px">ВК <strong>{{ вк }}</strong> чел.,&nbsp;&nbsp; 1К <strong>{{ с1к }}</strong> чел.,&nbsp;&nbsp; 2К <strong>{{ с2к }}</strong> чел.,&nbsp;&nbsp; 3К <strong>{{ с3к }}</strong> чел.</p>
+</div>
+
+{# ── 6. Спортивная квалификация ──────────────────────────────────────────── #}
+{% set мсмк = уник_спортсмены | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мс   = уник_спортсмены | selectattr('разряд','eq','МС')   | list | length %}
+{% set кмс  = уник_спортсмены | selectattr('разряд','eq','КМС')  | list | length %}
+{% set р1   = уник_спортсмены | selectattr('разряд','eq','I')    | list | length %}
+{% set р2   = уник_спортсмены | selectattr('разряд','eq','II')   | list | length %}
+{% set р3   = уник_спортсмены | selectattr('разряд','eq','III')  | list | length %}
+{% set мсмк_м = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мсмк_ж = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','in',['МСМК']) | list | length %}
+{% set мс_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','МС')   | list | length %}
+{% set мс_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','МС')   | list | length %}
+{% set кмс_м  = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','КМС')  | list | length %}
+{% set кмс_ж  = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','КМС')  | list | length %}
+{% set р1_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','I')    | list | length %}
+{% set р1_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','I')    | list | length %}
+{% set р2_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','II')   | list | length %}
+{% set р2_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','II')   | list | length %}
+{% set р3_м   = уник_спортсмены | selectattr('команда.пол','eq','м') | selectattr('разряд','eq','III')  | list | length %}
+{% set р3_ж   = уник_спортсмены | selectattr('команда.пол','eq','ж') | selectattr('разряд','eq','III')  | list | length %}
+<div class="section">
+  <p><strong>6. Спортивная квалификация</strong></p>
+  <table>
+    <tr>
+      <th rowspan="2" style="width:60px"></th>
+      <th colspan="6">Возрастные группы в соответствии с ЕВСК</th>
+      <th rowspan="2">Всего</th>
+    </tr>
+    <tr>
+      <th>Юниоры</th>
+      <th>Юниорки</th>
+      <th>Юноши</th>
+      <th>Девушки</th>
+      <th>Мальчики</th>
+      <th>Девочки</th>
+    </tr>
+    <tr>
+      <td>МСМК</td>
+      <td class="center">{{ мсмк_м }}</td><td class="center">{{ мсмк_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ мсмк }}</td>
+    </tr>
+    <tr>
+      <td>МС</td>
+      <td class="center">{{ мс_м }}</td><td class="center">{{ мс_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ мс }}</td>
+    </tr>
+    <tr>
+      <td>КМС</td>
+      <td class="center">{{ кмс_м }}</td><td class="center">{{ кмс_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ кмс }}</td>
+    </tr>
+    <tr>
+      <td>I</td>
+      <td class="center">{{ р1_м }}</td><td class="center">{{ р1_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ р1 }}</td>
+    </tr>
+    <tr>
+      <td>II</td>
+      <td class="center">{{ р2_м }}</td><td class="center">{{ р2_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ р2 }}</td>
+    </tr>
+    <tr>
+      <td>III</td>
+      <td class="center">{{ р3_м }}</td><td class="center">{{ р3_ж }}</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">{{ р3 }}</td>
+    </tr>
+    <tr>
+      <td>I юн.</td>
+      <td class="center">—</td><td class="center">—</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">—</td>
+    </tr>
+    <tr>
+      <td>II юн.</td>
+      <td class="center">—</td><td class="center">—</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">—</td>
+    </tr>
+    <tr>
+      <td>III юн.</td>
+      <td class="center">—</td><td class="center">—</td>
+      <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+      <td class="center bold">—</td>
+    </tr>
+  </table>
+</div>
+
+{# ── 7. Принадлежность к спортивной школе ────────────────────────────────── #}
+<div class="section">
+  <p><strong>7. Принадлежность к спортивной школе:</strong></p>
+  <p style="margin-left:20px">ДЮСШ — {{ школы.ДЮСШ }},&nbsp;&nbsp; СДЮСШОР — {{ школы.СДЮСШОР }},&nbsp;&nbsp; СШ — {{ школы.СШ }},&nbsp;&nbsp; СШОР — {{ школы.СШОР }},&nbsp;&nbsp; ЦСП — {{ школы.ЦСП }},&nbsp;&nbsp; УОР — {{ школы.УОР }},&nbsp;&nbsp; другие организации — {{ школы.другие }}.</p>
+</div>
+
+{# ── 8. Общая характеристика ──────────────────────────────────────────────── #}
+<div class="section">
+  <p><strong>8. Указать общую характеристику организации и проведения соревнований (в соответствии с требованиями официальных правил по виду спорта):</strong></p>
+  <p style="margin-left:20px">{{ сор.отч_характеристика or '—' }}</p>
+</div>
+
+{# ── Приложения ──────────────────────────────────────────────────────────── #}
+<p style="margin-top:14px">Приложения к данному отчёту:</p>
+<ol style="font-size:11pt;margin:4px 0 0 20px">
+  <li>Копия расписания соревнований (по часам и дням).</li>
+  <li>Копия протоколов (результаты) соревнований, подписанные главным судьёй и главным секретарём.</li>
+  <li>Итоговый протокол (по установленной форме).</li>
+</ol>
+
+{# ── Подписи ─────────────────────────────────────────────────────────────── #}
+{# Ширина колонки должности фиксирована — чтобы ФИО обеих строк начинались на одном уровне #}
+{% macro подпись(должность, фио) %}
+<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+  <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
+  <div style="flex:0 0 100px;text-align:center">
+    <div style="border-bottom:1px solid #000">&nbsp;</div>
+    <div style="font-size:8pt">(подпись)</div>
+  </div>
+  <div style="flex:1;text-align:center">
+    <div><span style="border-bottom:1px solid #000;display:inline-block;min-width:150px">{{ фио }}</span></div>
+    <div style="font-size:8pt">(расшифровка подписи)</div>
+  </div>
+</div>
+{% endmacro %}
+<div style="margin-top:28px">
+  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
+  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
+</div>
+
+{% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
+<div style="margin-top:20px;font-size:10pt">
+  {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} г.
+</div>
+
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

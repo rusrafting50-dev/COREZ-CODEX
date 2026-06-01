@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Состав технической комиссии — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('тех.список', sor_id=сор.id) }}">Техническая комиссия</a>
+    </li>
+    <li class="breadcrumb-item active">Состав комиссии</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-1">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Состав технической комиссии</h5>
+  <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+     class="btn btn-outline-primary btn-sm">Техническая комиссия →</a>
+</div>
+
+<form method="post">
+
+  {# Macro for a single member card #}
+  {% macro member_card(заголовок, prefix, фио_val, должность_val, квал_val, субъект_val, is_chair) %}
+  <div class="card mb-3">
+    <div class="card-header fw-semibold py-2 {% if is_chair %}bg-primary text-white{% else %}{% endif %}"
+         {% if not is_chair %}style="background:#e9ecef"{% endif %}>
+      {{ заголовок }}
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Фамилия И.О.</label>
+          <input type="text" name="{{ prefix }}_фио" id="{{ prefix }}_фио"
+                 class="form-control form-control-sm"
+                 placeholder="Иванов И.И."
+                 value="{{ фио_val }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Квалификация спортивного судьи</label>
+          <input type="text" name="{{ prefix }}_квалификация" id="{{ prefix }}_квалификация"
+                 class="form-control form-control-sm"
+                 placeholder="СС1К"
+                 value="{{ квал_val }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Субъект Российской Федерации</label>
+          <input type="text" name="{{ prefix }}_субъект_рф" id="{{ prefix }}_субъект_рф"
+                 class="form-control form-control-sm"
+                 list="субъектыList"
+                 placeholder="Московская область"
+                 value="{{ субъект_val }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Должность в Судейской коллегии</label>
+          <input type="text" name="{{ prefix }}_должность" id="{{ prefix }}_должность"
+                 class="form-control form-control-sm"
+                 placeholder="Судья"
+                 value="{{ должность_val }}">
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endmacro %}
+
+  {{ member_card('Член комиссии №1', 'председатель',
+       ск.председатель_фио          if ск else '',
+       ск.председатель_должность    if ск else '',
+       ск.председатель_квалификация if ск else '',
+       ск.председатель_субъект_рф   if ск else '',
+       true) }}
+
+  {{ member_card('Член комиссии №2', 'член_1',
+       ск.член_1_фио           if ск else '',
+       ск.член_1_должность     if ск else '',
+       ск.член_1_квалификация  if ск else '',
+       ск.член_1_субъект_рф    if ск else '',
+       false) }}
+
+  {{ member_card('Член комиссии №3', 'член_2',
+       ск.член_2_фио           if ск else '',
+       ск.член_2_должность     if ск else '',
+       ск.член_2_квалификация  if ск else '',
+       ск.член_2_субъект_рф    if ск else '',
+       false) }}
+
+  <datalist id="субъектыList">
+    {% for субъект in субъекты_рф %}
+    <option value="{{ субъект }}">
+    {% endfor %}
+  </datalist>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary px-4">Сохранить</button>
+    <a href="{{ url_for('тех.список', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary">← Назад</a>
+  </div>
+</form>
+
+{% endblock %}

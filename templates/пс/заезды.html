@@ -13,56 +13,43 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-  <div>
-    <h5 class="mb-0">Параллельный спринт — Протокол финиша по заездам</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Сетка</a>
+       class="btn btn-outline-info btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('пс.результаты_сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-info btn-sm">Результаты сетка →</a>
     <a href="{{ url_for('пс.результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-success btn-sm">Результаты →</a>
-    <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Печать сетки</a>
+       class="btn btn-outline-info btn-sm">Результаты →</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты заездов</h5></div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
-
-{% if not муж_стадии and not жен_стадии %}
+{% set все_пусто = not муж_р4_стадии and not жен_р4_стадии and not муж_р6_стадии and not жен_р6_стадии %}
+{% if все_пусто %}
 <div class="alert alert-warning">
   Сетка не сформирована. <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}">Сформировать сетку</a>.
 </div>
 {% else %}
 
-<div class="text-muted small mb-3">
-  Формат времени: <code>М:СС.сс</code> или <code>СС.сс</code>&nbsp;&nbsp;·&nbsp;&nbsp;
-  +50с — количество штрафных буёв
-</div>
 
-{% set заг_м = 'Параллельный спринт — ' + класс_осн + ', мужчины' %}
-{% set заг_ж = 'Параллельный спринт — ' + класс_осн + ', женщины' %}
-{% for пол, стадии, данные, завершены, цвет, заг in [
-    ('м', муж_стадии, муж_данные, муж_завершены, 'primary', заг_м),
-    ('ж', жен_стадии, жен_данные, жен_завершены, 'danger',  заг_ж)
-] %}
+{% macro секция(пол, стадии, данные, завершены, предв_сл, цвет, заг) %}
+{% set СЛЕД = {'1/16': '1/8', '1/8': '1/4', '1/4': '1/2', '1/2': 'Финал_А'} %}
+{% set ns = namespace(заезд_н=0) %}{# используется только для предв_сл #}
+{% set реальных_12 = данные.get('1/2', {}).keys() | reject('equalto', 0) | list | length %}
 {% if стадии %}
-
 <h6 class="fw-semibold mt-4 mb-2 text-{{ цвет }}">{{ заг }}</h6>
-
-{# ── Форма ввода результатов (все этапы одной формой) ── #}
 <form method="post">
 {% for стадия in стадии %}
 {% set заезды_этапа = данные[стадия] %}
 {% set реальных_в_этапе = данные[стадия].keys() | reject('equalto', 0) | list | length %}
+
 {% if реальных_в_этапе > 0 %}
+{# ── Сформированная стадия с реальными заездами ── #}
 <div class="card mb-3">
   <div class="card-header d-flex justify-content-between align-items-center py-2">
     <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
@@ -77,42 +64,28 @@
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
-          <th style="width:50px" class="text-center">Дор.</th>
-          <th style="width:55px" class="text-center">Нагруд.</th>
           <th>Команда</th>
-          <th style="min-width:90px">Субъект</th>
-          <th style="width:100px">Время (М:СС.сс)</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
+          <th style="min-width:90px">Территория</th>
+          <th style="width:90px">Время</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
+          <th style="width:90px" class="text-center">Стадия, место</th>
           <th style="width:120px">Статус</th>
         </tr>
       </thead>
       <tbody>
-      {% for номер, пара in заезды_этапа.items() %}
-      {% if номер == 0 %}
-      {# Бай #}
-      {% for з in пара %}
-      <tr class="table-secondary">
-        <td class="text-center text-muted">БАЙ</td>
-        <td class="text-center">—</td>
-        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
-        <td>{{ з.команда.название or '—' }}</td>
-        <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
-        <td colspan="3" class="text-muted text-center">автоматический проход</td>
-        <td class="text-center"><span class="badge bg-secondary">БАЙ</span></td>
-      </tr>
-      {% endfor %}
-      {% else %}
-      {# Реальный заезд #}
+      {% for номер, пара in заезды_этапа.items() | sort %}
+      {% if номер > 0 %}
+      {% if номер > ns.заезд_н %}{% set ns.заезд_н = номер %}{% endif %}
       {% for з in пара %}
       {% set цвет_стр = 'table-success' if з.победитель is true else ('table-danger' if з.статус in ('ДК','НФН','НСТ') else ('table-warning' if з.победитель is false else '')) %}
       <tr class="{{ цвет_стр }}">
         {% if loop.first %}
         <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
         {% endif %}
-        <td class="text-center text-muted small">{{ 'Л' if з.дорожка == 'левая' else 'П' }}</td>
-        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td>{{ з.команда.название or '—' }}</td>
+        <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
         <td class="text-muted small">{{ з.команда.субъект.название | truncate(20) if з.команда.субъект else '—' }}</td>
         <td>
           <input type="text" name="вр_{{ з.id }}"
@@ -130,12 +103,27 @@
           {% if з.результат %}{{ format_dur(з.результат) }}{% else %}—{% endif %}
           {% if з.победитель is true %}<span class="text-success ms-1">&#x2714;</span>{% endif %}
         </td>
+        <td class="text-center small">
+          {%- if з.победитель is true -%}
+            {%- if стадия in ('1/16', '1/8', '1/4', '1/2') -%}
+              → {{ НАЗВАНИЯ.get(СЛЕД.get(стадия, ''), стадия) }}
+            {%- elif стадия == 'Финал_А' -%}1 место
+            {%- elif стадия == 'Финал_Б' -%}3 место
+            {%- else -%}—{%- endif -%}
+          {%- elif з.победитель is false -%}
+            {%- if стадия == '1/2' and реальных_12 == 1 -%}3 место
+            {%- elif стадия == '1/2' -%}→ Финал Б
+            {%- elif стадия == 'Финал_А' -%}2 место
+            {%- elif стадия == 'Финал_Б' -%}4 место
+            {%- else -%}{{ запись_метки.get(з.id, '—') }}{%- endif -%}
+          {%- else -%}—{%- endif -%}
+        </td>
         <td>
           <select name="ст_{{ з.id }}" class="form-select form-select-sm">
-            <option value="ФИН" {{ 'selected' if з.статус == СТАТУС_ФИНИШ }}>Финиш</option>
+            <option value="ФИН" {{ 'selected' if з.статус == СТАТУС_ФИНИШ }}>Фин.</option>
             <option value="ДК"  {{ 'selected' if з.статус == СТАТУС_ДК }}>ДК</option>
-            <option value="НФН" {{ 'selected' if з.статус == 'НФН' }}>НФН</option>
-            <option value="НСТ" {{ 'selected' if з.статус == 'НСТ' }}>НСТ</option>
+            <option value="НФН" {{ 'selected' if з.статус == 'НФН' }}>Не фин.</option>
+            <option value="НСТ" {{ 'selected' if з.статус == 'НСТ' }}>Не старт.</option>
           </select>
         </td>
       </tr>
@@ -146,16 +134,76 @@
     </table>
   </div>
 </div>
-{% endif %}{# реальных_в_этапе > 0 #}
-{% endfor %}{# конец цикла по стадиям #}
 
-<button type="submit" class="btn btn-success px-4 mb-3">
-  Сохранить результаты {{ заг | lower }}
-</button>
-</form>{# ── конец формы сохранения ── #}
-
+{% elif стадия in предв_сл %}
+{# ── Стадия ещё не сформирована: BYE-команда + ожидаемый соперник ── #}
+<div class="card mb-3 border-secondary">
+  <div class="card-header d-flex justify-content-between align-items-center py-2 bg-light">
+    <span class="fw-semibold">{{ НАЗВАНИЯ.get(стадия, стадия) }}</span>
+    <span class="badge bg-secondary">Ожидается</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0 text-muted" style="font-size:.87rem">
+      <thead class="table-light">
+        <tr>
+          <th style="width:55px" class="text-center">Заезд</th>
+          <th>Команда</th>
+          <th style="width:90px" class="text-center">Номер экипажа</th>
+          <th style="min-width:90px">Территория</th>
+          <th colspan="5" class="text-center text-muted small">—</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set уч = предв_сл[стадия] %}
+      {% for i in range(0, уч|length, 2) %}
+      {% set ns.заезд_н = ns.заезд_н + 1 %}
+      {% set к0 = уч[i][0] %}{% set м0 = уч[i][1] %}
+      {% set к1 = уч[i+1][0] if i+1 < уч|length else none %}
+      {% set м1 = уч[i+1][1] if i+1 < уч|length else none %}
+      <tr>
+        <td class="text-center fw-bold" rowspan="2">{{ ns.заезд_н }}</td>
+        {% if к0 %}
+        <td>{{ к0.название or '—' }}</td>
+        <td class="text-center">{{ к0.нагрудный_номер }}</td>
+        <td class="small">{{ к0.субъект.название | truncate(20) if к0.субъект else '—' }}</td>
+        {% else %}
+        <td colspan="2"><em class="text-muted">{{ м0 or 'Ожидается' }}</em></td>
+        <td></td>
+        {% endif %}
+        <td colspan="5"></td>
+      </tr>
+      <tr>
+        {% if к1 %}
+        <td>{{ к1.название or '—' }}</td>
+        <td class="text-center">{{ к1.нагрудный_номер }}</td>
+        <td class="small">{{ к1.субъект.название | truncate(20) if к1.субъект else '—' }}</td>
+        {% else %}
+        <td colspan="2"><em class="text-muted">{{ м1 or 'Ожидается' }}</em></td>
+        <td></td>
+        {% endif %}
+        <td colspan="5"></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endif %}
-{% endfor %}{# конец цикла по полу #}
+
+{% endfor %}
+<button type="submit" class="btn btn-success px-4 mb-3">
+  Сохранить результаты {{ заг }}
+</button>
+</form>
+{% endif %}
+{% endmacro %}
+
+{{ секция('м', муж_р4_стадии, муж_р4_данные, муж_р4_завершены, муж_р4_предв_сл, 'primary', 'Параллельный спринт — R4, мужчины') }}
+{{ секция('ж', жен_р4_стадии, жен_р4_данные, жен_р4_завершены, жен_р4_предв_сл, 'danger',  'Параллельный спринт — R4, женщины') }}
+{% if has_r6 %}
+{{ секция('м', муж_р6_стадии, муж_р6_данные, муж_р6_завершены, муж_р6_предв_сл, 'primary', 'Параллельный спринт — R6, мужчины') }}
+{{ секция('ж', жен_р6_стадии, жен_р6_данные, жен_р6_завершены, жен_р6_предв_сл, 'danger',  'Параллельный спринт — R6, женщины') }}
+{% endif %}
 
 {% endif %}
 

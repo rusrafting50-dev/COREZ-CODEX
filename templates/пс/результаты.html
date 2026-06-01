@@ -13,20 +13,27 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-  <div>
-    <h5 class="mb-0">Параллельный спринт — Результаты</h5>
-    <div class="text-muted small">{{ сор.название | truncate(70) }}</div>
-  </div>
-  <div class="d-flex gap-2 flex-wrap">
+{% set есть_р6 = has_r6 and (муж_р6_итог | length + жен_р6_итог | length) > 0 %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин<br>ПАРАЛЛЕЛЬНЫЙ СПРИНТ</h5>
+  <div class="d-flex gap-2 ms-3 flex-shrink-0">
+    <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-info btn-sm">← Стартовый протокол</a>
     <a href="{{ url_for('пс.заезды', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">← Заезды</a>
+       class="btn btn-outline-info btn-sm">← Результаты заездов</a>
+    <a href="{{ url_for('пс.результаты_сетка', sor_id=сор.id) }}"
+       class="btn btn-outline-info btn-sm">← Результаты сетка</a>
     <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm" target="_blank">Предв. протокол</a>
-    <a href="{{ url_for('пс.протокол_результаты', sor_id=сор.id, итоговый=1) }}"
-       class="btn btn-primary btn-sm" target="_blank">Итоговый протокол</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+    <a href="{{ url_for('награждение.диплом_пс', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
   </div>
 </div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
 {% macro таблица(итог, заг, цвет) %}
 <h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
@@ -37,15 +44,15 @@
   <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
     <thead class="table-light">
       <tr>
-        <th style="width:50px" class="text-center">Место</th>
-        <th style="width:55px" class="text-center">Нагруд.</th>
         <th>Команда</th>
+        <th style="width:90px" class="text-center">Номер экипажа</th>
         <th style="min-width:110px">Субъект</th>
         <th style="width:90px" class="text-center">Стадия</th>
         <th style="width:85px" class="text-center font-monospace">Время</th>
         <th style="width:60px" class="text-center">Штраф</th>
         <th style="width:85px" class="text-center font-monospace fw-bold">Результат</th>
-        <th style="width:55px" class="text-center">Очки</th>
+        <th style="width:50px" class="text-center">Место</th>
+        <th style="width:75px" class="text-center">Очки Многоборье</th>
       </tr>
     </thead>
     <tbody>
@@ -53,9 +60,8 @@
     {% set к = з.команда %}
     {% set место_цвет = 'table-warning' if з.итоговое_место == 1 else ('table-secondary' if з.итоговое_место == 2 else ('table-danger' if з.итоговое_место == 3 else '')) %}
     <tr class="{{ место_цвет }}">
-      <td class="text-center fw-bold fs-6">{{ з.итоговое_место }}</td>
-      <td class="text-center">{{ к.нагрудный_номер }}</td>
       <td>{{ к.название or '—' }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
       <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '—' }}</td>
       <td class="text-center small">
         <span class="badge bg-{{ цвет }}" style="font-size:.7rem">{{ НАЗВАНИЯ.get(з.стадия, з.стадия) }}</span>
@@ -64,7 +70,13 @@
       <td class="text-center small {{ 'text-danger' if з.штрафное_время else '' }}">
         {{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}
       </td>
-      <td class="text-center fw-bold font-monospace">{{ format_dur(з.результат) }}</td>
+      <td class="text-center fw-bold font-monospace">
+        {% if з.статус == 'ДК' %}ДК
+        {% elif з.статус == 'НФН' %}Не фин.
+        {% elif з.статус == 'НСТ' %}Не старт.
+        {% else %}{{ format_dur(з.результат) }}{% endif %}
+      </td>
+      <td class="text-center fw-bold fs-6">{{ з.итоговое_место or '—' }}</td>
       <td class="text-center small">{{ з.очки | int if з.очки else '—' }}</td>
     </tr>
     {% endfor %}
@@ -74,17 +86,23 @@
 {% endif %}
 {% endmacro %}
 
-{{ таблица(муж_итог, 'Параллельный спринт — ' + сор.класс_судна + ', мужчины', 'primary') }}
-{{ таблица(жен_итог, 'Параллельный спринт — ' + сор.класс_судна + ', женщины', 'danger') }}
-
-{% if not муж_итог and not жен_итог %}
-<div class="alert alert-info mt-3">
-  Нет результатов. Сформируйте сетку, введите результаты заездов и завершите все стадии.
-</div>
+{{ таблица(муж_р4_итог, 'Параллельный спринт — R4, мужчины', 'primary') }}
+{{ таблица(жен_р4_итог, 'Параллельный спринт — R4, женщины', 'danger') }}
+{% if есть_р6 %}
+{{ таблица(муж_р6_итог, 'Параллельный спринт — R6, мужчины', 'primary') }}
+{{ таблица(жен_р6_итог, 'Параллельный спринт — R6, женщины', 'danger') }}
 {% endif %}
 
-<div class="text-muted small mt-2">
-  Пересчёт выполняется автоматически при загрузке страницы.
-  Дата: {{ сегодня.strftime('%d.%m.%Y') }}
+{% if not муж_итог and not жен_итог %}{% endif %}
+
+<div class="d-flex justify-content-end mt-3">
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='наград-пс') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if готов_наград else 'В работе' }}
+    </button>
+  </form>
 </div>
 {% endblock %}

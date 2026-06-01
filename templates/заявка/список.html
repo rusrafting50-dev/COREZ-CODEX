@@ -9,17 +9,39 @@
   </ol>
 {% endblock %}
 
+{% macro кнопка_готовности(поле, section) %}
+<form method="post"
+      action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section=section) }}"
+      class="no-print" style="position:fixed;bottom:24px;right:24px;z-index:1050">
+  <button type="submit"
+          class="btn shadow-sm {{ 'btn-success' if поле else 'btn-outline-secondary bg-white' }}"
+          style="min-width:120px;font-size:.95rem">
+    {{ '✓ Готово' if поле else 'В работе' }}
+  </button>
+</form>
+{% endmacro %}
+
 {% block content %}
 
-<div class="text-center mb-1">
+{{ кнопка_готовности(сор.готов_заявки, 'apps') }}
+
+<div class="text-center mb-3">
   <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
 </div>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Предварительные заявки</h5>
-  <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая заявка</a>
+  <a href="{{ url_for('заявка.новая', sor_id=сор.id) }}" class="btn btn-primary btn-sm">+ Новая предварительная заявка</a>
 </div>
 
 {% if заявки %}
+{# Подсчёт уникальных субъектов #}
+{% set субъ = namespace(seen=[]) %}
+{% for з in заявки %}
+  {% if з.субъект_рф and з.субъект_рф not in субъ.seen %}
+    {% set _ = субъ.seen.append(з.субъект_рф) %}
+  {% endif %}
+{% endfor %}
+
 <div class="table-responsive">
   <table class="table table-sm table-hover align-middle">
     <thead class="table-light">
@@ -48,7 +70,7 @@
       <td class="text-center">{{ з.спортсмены | length }}</td>
       <td class="text-end text-nowrap">
         <a href="{{ url_for('заявка.печать', sor_id=сор.id, z_id=з.id) }}"
-           class="btn btn-outline-secondary btn-sm" target="_blank">🖨 Печать</a>
+           class="btn btn-outline-secondary btn-sm">🖨 Печать</a>
         <a href="{{ url_for('заявка.редактировать', sor_id=сор.id, z_id=з.id) }}"
            class="btn btn-outline-primary btn-sm">Изменить</a>
         <form action="{{ url_for('заявка.удалить', sor_id=сор.id, z_id=з.id) }}" method="post"
@@ -68,8 +90,9 @@
                   <th class="text-center" style="width:2.5rem">№</th>
                   <th>Фамилия, Имя, Отчество</th>
                   <th class="text-center">Пол</th>
-                  <th class="text-center">Год рождения</th>
-                  <th>Квалификация</th>
+                  <th class="text-center">Дата рождения</th>
+                  <th style="white-space:nowrap">Спортивная квалификация</th>
+                  <th class="text-center">Возрастная группа</th>
                 </tr>
               </thead>
               <tbody>
@@ -79,9 +102,10 @@
                 <td>{{ [сп.фамилия, сп.имя, сп.отчество] | select | join(' ') or '—' }}</td>
                 <td class="text-center">{{ сп.пол or '—' }}</td>
                 <td class="text-center">
-                  {% if сп.дата_рождения %}{{ сп.дата_рождения.year }}{% else %}—{% endif %}
+                  {% if сп.дата_рождения %}{{ сп.дата_рождения.strftime('%d.%m.%Y') }}{% else %}—{% endif %}
                 </td>
                 <td class="text-center">{{ сп.квалификация or '—' }}</td>
+                <td class="text-center">{{ сп.возрастная_группа or '—' }}</td>
               </tr>
               {% endfor %}
               </tbody>
@@ -92,6 +116,14 @@
     {% endif %}
     {% endfor %}
     </tbody>
+    <tfoot class="table-light">
+      <tr>
+        <td colspan="5" class="text-muted small ps-2">
+          Всего {{ заявки | length }} предварительных заявок, из {{ субъ.seen | length }} субъектов Российской Федерации
+        </td>
+        <td></td>
+      </tr>
+    </tfoot>
   </table>
 </div>
 {% else %}

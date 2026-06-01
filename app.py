@@ -1,7 +1,7 @@
 # app.py — главный Flask-сервер системы учёта соревнований по рафтингу
 import os
 from flask import Flask, redirect, url_for
-from models import db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы
+from models import db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы, заполнить_коэффициенты_субъектов
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -29,6 +29,7 @@ def create_app() -> Flask:
         применить_миграции()
         заполнить_таблицу_очков()
         заполнить_штрафы()
+        заполнить_коэффициенты_субъектов()
 
     # ------------------------------------------------------------------
     # Маршруты (blueprint-ы)
@@ -47,7 +48,10 @@ def create_app() -> Flask:
     from routes.многоборье  import bp_многоборье
     from routes.зачет       import bp_зачет
     from routes.отчеты      import bp_отчеты
-    from routes.заявка      import bp_заявка
+    from routes.заявка           import bp_заявка
+    from routes.тех_комиссия    import bp_тех
+    from routes.дистанция       import bp_дистанция
+    from routes.награждение     import bp_награждение
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -64,6 +68,24 @@ def create_app() -> Flask:
     app.register_blueprint(bp_зачет,        url_prefix='/зачет')
     app.register_blueprint(bp_отчеты,       url_prefix='/отчеты')
     app.register_blueprint(bp_заявка,       url_prefix='/заявка')
+    app.register_blueprint(bp_тех,          url_prefix='/тех-комиссия')
+    app.register_blueprint(bp_дистанция,    url_prefix='/дистанция')
+    app.register_blueprint(bp_награждение,  url_prefix='/награждение')
+
+    # ------------------------------------------------------------------
+    # Заголовки безопасности
+    # ------------------------------------------------------------------
+    @app.after_request
+    def add_csp_header(response):
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "img-src 'self' data:; "
+            "font-src 'self' data: cdn.jsdelivr.net; "
+            "connect-src 'self' https://cdn.jsdelivr.net;"
+        )
+        return response
 
     return app
 

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Новая заявка' if not з else 'Редактировать заявку' }} — {{ сор.название | truncate(30) }}{% endblock %}
+{% block title %}{{ 'Новая предварительная заявка' if not з else 'Редактировать заявку' }} — {{ сор.название | truncate(30) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -55,6 +55,12 @@
           <input type="text" name="орг_фио_руководителя" class="form-control form-control-sm"
                  placeholder="Иванов Иван Иванович"
                  value="{{ з.орг_фио_руководителя if з else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Должность руководителя</label>
+          <input type="text" name="орг_должность_руководителя" class="form-control form-control-sm"
+                 placeholder="Директор"
+                 value="{{ з.орг_должность_руководителя if з else '' }}">
         </div>
         <div class="col-md-4">
           <label class="form-label">Телефон</label>
@@ -115,11 +121,9 @@
               <th class="text-center" style="width:32px">№</th>
               <th style="min-width:220px">Фамилия, Имя, Отчество</th>
               <th style="width:50px" class="text-center">Пол</th>
-              <th style="width:108px">Дата рожд.</th>
-              <th style="width:65px">Квалиф.</th>
+              <th style="width:120px">Дата рождения</th>
+              <th style="min-width:140px;white-space:nowrap">Спортивная квалификация</th>
               <th style="min-width:150px">Возрастная группа</th>
-              <th style="min-width:120px">Номер приказа</th>
-              <th style="min-width:100px">№ страховки</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -143,8 +147,13 @@
                          class="form-control form-control-sm border-0 px-1"
                          onchange="пересчитатьГруппуСтроки(this.closest('tr'))"
                          value="{{ сп.дата_рождения.strftime('%Y-%m-%d') if сп.дата_рождения else '' }}"></td>
-              <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1"
-                         placeholder="КМС" value="{{ сп.квалификация or '' }}"></td>
+              <td>
+                <select name="квалификация[]" class="form-select form-select-sm border-0 px-1">
+                  {% for к in ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'] %}
+                  <option value="{{ к }}" {{ 'selected' if (сп.квалификация or '') == к }}>{{ к }}</option>
+                  {% endfor %}
+                </select>
+              </td>
               <td>
                 <select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">
                   <option value=""></option>
@@ -153,10 +162,6 @@
                   {% endfor %}
                 </select>
               </td>
-              <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.номер_приказа or '' }}"></td>
-              <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"
-                         value="{{ сп.номер_страховки or '' }}"></td>
               <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger px-1 py-0"
                         onclick="удалитьСтроку(this)">×</button>
@@ -179,6 +184,25 @@
   </div>
 
 </form>
+
+{# ── Поиск спортсмена в базе ── #}
+<div class="card mt-3 border-primary">
+  <div class="card-header fw-semibold py-2 bg-primary text-white">
+    Поиск спортсмена в базе прошлых соревнований
+  </div>
+  <div class="card-body">
+    <div class="position-relative">
+      <input type="text" id="поискСпортФИО" class="form-control"
+             placeholder="Начните вводить фамилию…" autocomplete="off">
+      <div id="поискСпортРезультаты"
+           class="position-absolute w-100 bg-white border rounded shadow-sm z-3"
+           style="top:100%;max-height:300px;overflow-y:auto;display:none"></div>
+    </div>
+    <div class="form-text">
+      Выберите спортсмена из базы — новая строка добавится в таблицу с заполненными данными.
+    </div>
+  </div>
+</div>
 
 {% if з %}
 <form action="{{ url_for('заявка.удалить', sor_id=сор.id, z_id=з.id) }}" method="post" class="mt-3"
@@ -204,6 +228,14 @@ function опцииГрупп(выбрана) {
   ).join('');
 }
 
+const КВАЛИФИКАЦИИ = ['', 'МСМК', 'МС', 'КМС', 'I', 'II', 'III', 'б/р'];
+
+function опцииКвал(выбрана) {
+  return КВАЛИФИКАЦИИ.map(к =>
+    `<option value="${к}" ${к === выбрана ? 'selected' : ''}>${к}</option>`
+  ).join('');
+}
+
 const шаблон = `
 <tr>
   <td class="text-center text-muted row-num"></td>
@@ -214,16 +246,14 @@ const шаблон = `
   </select></td>
   <td><input type="date" name="дата_рождения[]" class="form-control form-control-sm border-0 px-1"
              onchange="пересчитатьГруппуСтроки(this.closest('tr'))"></td>
-  <td><input type="text" name="квалификация[]" class="form-control form-control-sm border-0 px-1" placeholder="КМС"></td>
+  <td><select name="квалификация[]" class="form-select form-select-sm border-0 px-1">${опцииКвал('')}</select></td>
   <td><select name="возрастная_группа[]" class="form-select form-select-sm border-0 px-1 group-sel">${опцииГрупп('')}</select></td>
-  <td><input type="text" name="номер_приказа[]" class="form-control form-control-sm border-0 px-1"></td>
-  <td><input type="text" name="номер_страховки[]" class="form-control form-control-sm border-0 px-1"></td>
   <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger px-1 py-0" onclick="удалитьСтроку(this)">×</button></td>
 </tr>`;
 
 function добавитьСтроку() {
   const tbody = document.getElementById('tbodySportsmen');
-  tbody.insertAdjacentHTML('beforeend', шаблон);
+  tbody.insertAdjacentHTML('afterbegin', шаблон);
   обновитьНомера();
 }
 
@@ -261,5 +291,60 @@ function пересчитатьГруппуСтроки(tr) {
 }
 
 if (!document.querySelector('#tbodySportsmen tr')) добавитьСтроку();
+
+// ── Поиск спортсмена в базе ──────────────────────────────────────────────
+const поискСпортВвод  = document.getElementById('поискСпортФИО');
+const поискСпортИтоги = document.getElementById('поискСпортРезультаты');
+
+if (поискСпортВвод) {
+  let таймерСпорт;
+  поискСпортВвод.addEventListener('input', () => {
+    clearTimeout(таймерСпорт);
+    const q = поискСпортВвод.value.trim();
+    if (q.length < 2) { поискСпортИтоги.style.display = 'none'; return; }
+    таймерСпорт = setTimeout(() => загрузитьСпортсменов(q), 250);
+  });
+  поискСпортВвод.addEventListener('blur', () => {
+    setTimeout(() => { поискСпортИтоги.style.display = 'none'; }, 200);
+  });
+}
+
+function загрузитьСпортсменов(q) {
+  fetch(`/спортсмены/поиск?q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(данные => {
+      if (!данные.length) { поискСпортИтоги.style.display = 'none'; return; }
+      поискСпортИтоги.innerHTML = данные.map(с => `
+        <div class="px-3 py-2 border-bottom" style="cursor:pointer"
+             onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
+          <div class="fw-semibold">${с.фио}</div>
+          <div class="text-muted small">
+            ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
+            ${с.дата_рождения ? с.дата_рождения : ''}
+          </div>
+        </div>`).join('');
+      поискСпортИтоги.style.display = 'block';
+    });
+}
+
+function выбратьСпортсмена(с) {
+  поискСпортВвод.value = '';
+  поискСпортИтоги.style.display = 'none';
+
+  const tbody = document.getElementById('tbodySportsmen');
+  tbody.insertAdjacentHTML('afterbegin', шаблон);
+  обновитьНомера();
+
+  const firstRow = tbody.firstElementChild;
+  const fioInp = firstRow.querySelector('input[name="фио[]"]');
+  if (fioInp) fioInp.value = с.фио || '';
+  const polSel = firstRow.querySelector('select[name="пол[]"]');
+  if (polSel && с.пол) polSel.value = с.пол;
+  const dateInp = firstRow.querySelector('input[name="дата_рождения[]"]');
+  if (dateInp && с.дата_рождения) dateInp.value = с.дата_рождения;
+  const kvalSel = firstRow.querySelector('select[name="квалификация[]"]');
+  if (kvalSel && с.разряд) kvalSel.value = с.разряд;
+  пересчитатьГруппуСтроки(firstRow);
+}
 </script>
 {% endblock %}

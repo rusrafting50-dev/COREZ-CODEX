@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Диплом {{ место }} место — {{ дисциплина }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: {{ пар.размер_шрифта_текста }}pt;
+      font-weight: bold;
+      color: #000;
+      background: #fff;
+    }
+    @page {
+      size: A4 portrait;
+      margin: {{ пар.отступ_сверху }}pt {{ пар.отступ_справа }}pt {{ пар.отступ_снизу }}pt {{ пар.отступ_слева }}pt;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .диплом-поле { padding: 0; max-width: none; margin: 0; }
+    }
+    .диплом-поле {
+      max-width: 270mm;
+      margin: 0 auto;
+      padding: {{ пар.отступ_сверху }}pt {{ пар.отступ_справа }}pt {{ пар.отступ_снизу }}pt {{ пар.отступ_слева }}pt;
+    }
+    .стр { line-height: 1.5; text-align: center; }
+    .стр-пуст { line-height: 1.5; }
+    .стр-края { display: flex; justify-content: space-between; align-items: flex-start; line-height: 1.5; }
+    .подп-должность {
+      max-width: 50%;
+      word-break: normal;
+      overflow-wrap: normal;
+      hyphens: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print" style="background:#fff; border-bottom:1px solid #dee2e6; padding:8px 12px; margin-bottom:16px; font-family:system-ui,-apple-system,sans-serif; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+  <a href="{{ назад_url }}"
+     style="font-size:.875rem; font-weight:400; line-height:1.5; color:#6c757d; text-decoration:none;
+            border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
+            background:transparent; white-space:nowrap; flex-shrink:0;">← Результаты</a>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:center;">
+    {% for кл in ['R4', 'R6'] %}
+      {% for п, пн in [('м', 'мужчины'), ('ж', 'женщины')] %}
+      <div style="display:flex; align-items:center; gap:3px;">
+        <span style="font-size:.8rem; color:#6c757d; margin-right:2px; white-space:nowrap;">{{ кл }}, {{ пн }}:</span>
+        {% for м in [1, 2, 3] %}
+        <a href="{{ url_for(маршрут_диплом, sor_id=сор.id, класс=кл, пол=п, место=м) }}"
+           style="font-size:.875rem; font-weight:400; line-height:1.5; text-decoration:none;
+                  border-radius:.25rem; padding:.25rem .5rem; white-space:nowrap; display:inline-block;
+                  {% if кл == класс and п == пол and м == место %}
+                  border:1px solid #6c757d; background:#6c757d; color:#fff;
+                  {% else %}
+                  border:1px solid #6c757d; color:#6c757d; background:transparent;
+                  {% endif %}">
+          🖨 {{ м }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  <button onclick="exportWord()"
+          style="font-size:.875rem; font-weight:400; line-height:1.5; border:1px solid #198754;
+                 border-radius:.25rem; padding:.25rem .5rem; background:#198754; color:#fff;
+                 cursor:pointer; white-space:nowrap; flex-shrink:0;">Word</button>
+    <button onclick="window.print()"
+          style="font-size:.875rem; font-weight:400; line-height:1.5; border:1px solid #0d6efd;
+                 border-radius:.25rem; padding:.25rem .5rem; background:#0d6efd; color:#fff;
+                 cursor:pointer; white-space:nowrap; flex-shrink:0;">Печать</button>
+</div>
+
+<div class="диплом-поле">
+
+  {# 1. НАГРАЖДАЮТСЯ или пустая строка #}
+  {% if пар.использует_награждается %}
+  <div class="стр" style="font-size:18pt; font-weight:bold">НАГРАЖДАЮТСЯ</div>
+  {% else %}
+  <div class="стр-пуст">&nbsp;</div>
+  {% endif %}
+
+  {# 2. Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {% if рез %}
+
+    {# Состав команды — не более 2 ФИО на строке #}
+    {% set спортсмены = рез.команда.спортсмены | sort(attribute='номер_в_экипаже') %}
+    <div class="стр">{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if loop.index % 2 == 0 and not loop.last %},<br>{% elif not loop.last %}, {% endif %}{% endfor %}</div>
+
+    {# Команда + субъект (субъект только если нет "Сборная команда") #}
+    {% set имя_кmd = рез.команда.название or '' %}
+    <div class="стр">{% if 'Сборная команда' not in имя_кmd %}команда {% endif %}{{ имя_кmd }}{% if 'Сборная команда' not in имя_кmd and рез.команда.субъект %}, {{ рез.команда.субъект.название }}{% endif %}</div>
+
+    {# Место в соревнованиях #}
+    <div class="стр">занявшие {{ степень }} место в спортивных соревнованиях по рафтингу</div>
+
+    {# Наименование соревнований #}
+    {% set ном_сор = пар.наименование_соревнований %}
+    {% if ном_сор and ном_сор | length > 55 %}
+    <div class="стр">наименование соревнований:</div>
+    <div class="стр">{{ ном_сор }}</div>
+    {% else %}
+    <div class="стр">наименование соревнований: {{ ном_сор or '' }}</div>
+    {% endif %}
+
+    {# Спортивная дисциплина и вид программы #}
+    <div class="стр">спортивная дисциплина: {{ дисциплина_строка }}</div>
+    <div class="стр">вид программы: {{ пол_название }}</div>
+
+  {% else %}
+
+    <div class="стр">[данные о занявшем {{ место }}-е место ({{ дисциплина }}) не найдены — введите результаты]</div>
+
+    {% set ном_сор = пар.наименование_соревнований %}
+    {% if ном_сор and ном_сор | length > 55 %}
+    <div class="стр">наименование соревнований:</div>
+    <div class="стр">{{ ном_сор }}</div>
+    {% else %}
+    <div class="стр">наименование соревнований: {{ ном_сор or '' }}</div>
+    {% endif %}
+    <div class="стр">спортивная дисциплина: {{ дисциплина_строка }}</div>
+    <div class="стр">вид программы: {{ пол_название }}</div>
+
+  {% endif %}
+
+  {# Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {# Сроки и место проведения #}
+  <div class="стр-края" style="font-size:12pt; font-style:italic">
+    <span>{{ сор.даты_проведения or '' }}</span>
+    <span>{{ сор.место_проведения or '' }}</span>
+  </div>
+
+  {# Две пустые строки #}
+  <div class="стр-пуст">&nbsp;</div>
+  <div class="стр-пуст">&nbsp;</div>
+
+  {# Должность и подпись #}
+  <div class="стр-края">
+    <div class="подп-должность" lang="ru">{{ пар.должность_подписывающего or '' }}</div>
+    <div>{{ пар.ио_фамилия_подписывающего or '' }}</div>
+  </div>
+
+</div>
+<script>
+function exportWord() {
+  var clone = document.body.cloneNode(true);
+  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  var css = '';
+  try {
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      try {
+        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
+        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
+    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
+    + ' xmlns="http://www.w3.org/TR/REC-html40">'
+    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
+  var post = '</body></html>';
+  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (document.title || 'document') + '.doc';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
