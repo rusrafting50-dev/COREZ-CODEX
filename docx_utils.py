@@ -42,6 +42,13 @@ def _make_base_doc(portrait=False):
         sec.right_margin  = Cm(1.0)
         sec.top_margin    = Cm(1.5)
         sec.bottom_margin = Cm(1.5)
+    # Explicitly set w:orient so Word doesn't have to infer from dimensions
+    pgSz = sec._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if portrait:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
     doc.styles['Normal'].font.name = 'Times New Roman'
     doc.styles['Normal'].font.size = Pt(10)
     return doc
@@ -549,16 +556,11 @@ def send_docx(html_string, filename, portrait=None):
     doc = _make_base_doc(portrait=portrait)
     HtmlToDocx().add_html_to_document(str(soup), doc)
 
-    # 5. Apply column widths
-    _apply_table_widths(doc, table_widths, page_width_cm,
-                        scale_factor=(18.5/27.2 if portrait else 1.0))
+    # 5. Apply column widths (page_width_cm already reflects orientation)
+    _apply_table_widths(doc, table_widths, page_width_cm)
 
     # 5b. Restore vertical text lost by HtmlToDocx (writing-mode:vertical-*)
     _apply_vertical_text(doc, soup)
-
-    # 5d. Scale table fonts for portrait mode
-    if portrait:
-        _scale_table_fonts(doc, 18.5/27.2)
 
     # 6. Post-process: date/place table borders and alignment
     _post_process_date_place_tables(doc)
