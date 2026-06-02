@@ -943,6 +943,34 @@ def _apply_para_font_sizes(doc, size_map):
                 el.set(qn('w:val'), str(half_pts))
 
 
+def _apply_section_row_font_size(doc, section_row_texts, font_half_pts):
+    """Final-pass: force font size on every merged section-row cell.
+    Runs after all other post-processing so nothing can overwrite it."""
+    if not font_half_pts or not section_row_texts:
+        return
+    for table in doc.tables:
+        for tr in table._tbl.findall(qn('w:tr')):
+            tcs = tr.findall(qn('w:tc'))
+            if not tcs:
+                continue
+            first_text = ''.join(
+                (t.text or '') for t in tcs[0].iter(qn('w:t'))
+            ).strip()
+            if first_text not in section_row_texts:
+                continue
+            for w_r in tcs[0].iter(qn('w:r')):
+                rPr = w_r.find(qn('w:rPr'))
+                if rPr is None:
+                    rPr = OxmlElement('w:rPr')
+                    w_r.insert(0, rPr)
+                for tag_name in ('w:sz', 'w:szCs'):
+                    el = rPr.find(qn(tag_name))
+                    if el is None:
+                        el = OxmlElement(tag_name)
+                        rPr.append(el)
+                    el.set(qn('w:val'), str(font_half_pts))
+
+
 def _apply_table_cell_font_sizes(doc, col_sizes, skip_first_row=False, only_first_row=False):
     """Apply font sizes to specific table cells by (table_idx, col_idx) → half_pts."""
     for t_idx, table in enumerate(doc.tables):
@@ -1156,7 +1184,7 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     })
 
     # 5f. noWrap on specific header cells that must stay on one line
-    _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников'})
+    _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников', '№ п/п'})
 
     # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
     _post_process_date_place_tables(doc, border_size=date_place_border_size)
@@ -1186,6 +1214,9 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
 
     # 12. Remove trailing page-break paragraph (artifact when sig table is last element)
     _remove_trailing_page_break(doc)
+
+    # 13. Final-pass font size on section-row merged cells (runs after all other steps)
+    _apply_section_row_font_size(doc, section_row_texts, section_row_font_half_pts)
 
     buf = BytesIO()
     doc.save(buf)
