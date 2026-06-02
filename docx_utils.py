@@ -277,15 +277,10 @@ def _divs_to_paragraphs(soup):
         if has_block:
             div.unwrap()
         else:
-            # Wrap content in a <span> carrying font-size so HtmlToDocx
-            # applies it at run level (paragraph-level font-size is ignored).
+            # Tag with font-size for post-conversion processing (htmldocx ignores CSS font-size).
             fs = _css(div, 'font-size')
             if fs:
-                span = soup.new_tag('span', style=f'font-size:{fs}')
-                for child in list(div.children):
-                    child.extract()
-                    span.append(child)
-                div.append(span)
+                div['data-docx-fs'] = fs
             div.name = 'p'
     for p in soup.find_all('p'):
         _apply_bold(p, soup)
@@ -872,6 +867,31 @@ def _left_align_all_in_tables(doc, table_indices):
                     jc.set(qn('w:val'), 'left')
 
 
+# ─── Post-processing: apply font sizes to paragraphs (htmldocx ignores CSS font-size) ──
+
+def _apply_para_font_sizes(doc, size_map):
+    """Set w:sz/w:szCs on runs in paragraphs whose normalised text matches size_map."""
+    def _norm(text):
+        return ' '.join(text.split())[:80]
+
+    for para in doc.paragraphs:
+        key = _norm(para.text)
+        if not key or key not in size_map:
+            continue
+        half_pts = size_map[key]
+        for run in para.runs:
+            rPr = run._r.find(qn('w:rPr'))
+            if rPr is None:
+                rPr = OxmlElement('w:rPr')
+                run._r.insert(0, rPr)
+            for tag_name in ('w:sz', 'w:szCs'):
+                el = rPr.find(qn(tag_name))
+                if el is None:
+                    el = OxmlElement(tag_name)
+                    rPr.append(el)
+                el.set(qn('w:val'), str(half_pts))
+
+
 # ─── Post-processing: remove leading empty paragraphs from document body ──────
 
 def _remove_leading_empty_paragraphs(doc, max_remove=5):
@@ -907,6 +927,24 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     _process_sig_blocks(soup)
     _process_flex_between(soup)
     _divs_to_paragraphs(soup)
+
+    # 2b. Collect font-size hints from paragraphs tagged by _divs_to_paragraphs.
+    # HtmlToDocx ignores CSS font-size, so we apply it via OOXML after conversion.
+    def _norm_text(text):
+        return ' '.join(text.split())[:80]
+
+    font_size_map = {}  # normalised_text -> half_points
+    for p in soup.find_all(attrs={'data-docx-fs': True}):
+        fs_str = p.get('data-docx-fs', '')
+        try:
+            pt = float(fs_str.replace('pt', '').replace('px', '').strip())
+            key = _norm_text(p.get_text())
+            if key:
+                font_size_map[key] = int(pt * 2)
+        except ValueError:
+            pass
+        del p['data-docx-fs']
+
     # Collect section-row texts before normalization so we can re-merge later
     section_row_texts = {
         tr.get_text(strip=True)
@@ -974,6 +1012,10 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
 
     # 9. Remove empty paragraphs HtmlToDocx leaves at the top of the document
     _remove_leading_empty_paragraphs(doc)
+
+    # 10. Apply font sizes collected before conversion (htmldocx ignores CSS font-size)
+    if font_size_map:
+        _apply_para_font_sizes(doc, font_size_map)
 
     buf = BytesIO()
     doc.save(buf)
