@@ -2174,6 +2174,20 @@ def create_старт_слалом_docx(сор, секции, filename):
         trH.set(qn('w:val'), str(val))
         trH.set(qn('w:hRule'), 'exact')
 
+    def _row_h_min(row, cm):
+        """Minimum row height (hRule=atLeast) — allows row to grow for btLr text."""
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(val))
+        trH.set(qn('w:hRule'), 'atLeast')
+
     def add_row(tbl):
         return tbl.add_row()
 
@@ -2324,7 +2338,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[11], 'Время\nпопытка 2',                          align=C, pt=8, bold=True)
 
         # Row 3 — header row 2 (Очки sub-split, Номер and Территория still merged)
-        r = add_row(тbl)
+        r = add_row(тbl); _row_h_min(r, 3.0)
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
