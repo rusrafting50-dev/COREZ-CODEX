@@ -270,6 +270,7 @@ def протокол_старт_word(sor_id):
     from docx_utils import create_старт_спринт_docx
     сор = Соревнование.query.get_or_404(sor_id)
     последовательность = (сор.последовательность_видов or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
+    вывод = сор.вывод_старт_протокола or 'Попарно'
     LABELS = {
         'R4-м': 'Спринт – R4, Мужчины',
         'R4-ж': 'Спринт – R4, Женщины',
@@ -283,7 +284,15 @@ def протокол_старт_word(sor_id):
         'R6-ж': _по_старту_класс(sor_id, 'ж', 'R6'),
     }
     секции = [(LABELS[код], DATA[код]) for код in последовательность if код in LABELS]
-    return create_старт_спринт_docx(сор, секции, f'протокол_старт_спринт_{sor_id}.docx')
+    if вывод == 'Раздельно':
+        # Each section gets its own protocol block
+        группы = [[с] for с in секции]
+    else:
+        # "Попарно": R4 sections → first protocol, R6 sections → second protocol
+        r4 = [с for с in секции if 'R4' in с[0]]
+        r6 = [с for с in секции if 'R6' in с[0]]
+        группы = [g for g in [r4, r6] if g]
+    return create_старт_спринт_docx(сор, группы, f'протокол_старт_спринт_{sor_id}.docx')
 
 
 @bp_спринт.route('/<int:sor_id>/протокол-финиш')

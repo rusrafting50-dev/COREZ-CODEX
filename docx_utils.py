@@ -1649,16 +1649,27 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_старт_спринт_docx(сор, секции, filename):
-    """Generate Sprint start protocol DOCX matching the official sample layout."""
+def create_старт_спринт_docx(сор, группы, filename):
+    """Generate Sprint start protocol DOCX.
+
+    группы — list of sections groups; each group produces one complete protocol
+    block (header + table). Typically two groups: R4 and R6.
+    Each group is a list of (метка, команды) pairs.
+    """
     from docx.shared import Mm, Pt
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    # Column grid widths (dxa) from sample — 8 columns
     GRID  = [675, 1843, 808, 1055, 2531, 1370, 1387, 928]
     NC    = len(GRID)
-    TW    = sum(GRID)   # 10597 dxa ≈ 185 mm
+    TW    = sum(GRID)
+
+    W01   = GRID[0] + GRID[1]
+    W234  = GRID[2] + GRID[3] + GRID[4]
+    W567  = GRID[5] + GRID[6] + GRID[7]
+    W34   = GRID[3] + GRID[4]
+    W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
+    W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
@@ -1686,6 +1697,14 @@ def create_старт_спринт_docx(сор, секции, filename):
     def _line_br(p):
         p.add_run()._r.append(OxmlElement('w:br'))
 
+    def _page_br(doc):
+        p = doc.add_paragraph()
+        _sp(p)
+        run = p.add_run()
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        run._r.append(br)
+
     def _tcpr(cell):
         tc = cell._tc
         pr = tc.find(qn('w:tcPr'))
@@ -1708,15 +1727,40 @@ def create_старт_спринт_docx(сор, секции, filename):
             b.append(el)
         pr.append(b)
 
-    def _no_border_inside(cell):
-        """Remove insideH/insideV (used after merge to avoid phantom inner lines)."""
+    def _bottom_border(cell, sz=6):
+        """Only bottom underline, no other borders."""
         pr = _tcpr(cell)
-        b = pr.find(qn('w:tcBorders'))
-        if b is not None:
-            for side in ('insideH', 'insideV'):
-                el = b.find(qn(f'w:{side}'))
-                if el is not None:
-                    b.remove(el)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        bot = OxmlElement('w:bottom')
+        bot.set(qn('w:val'), 'single')
+        bot.set(qn('w:sz'), str(sz))
+        bot.set(qn('w:space'), '0')
+        bot.set(qn('w:color'), 'auto')
+        b.append(bot)
+        pr.append(b)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
 
     def _cw(cell, w):
         pr = _tcpr(cell)
@@ -1777,6 +1821,133 @@ def create_старт_спринт_docx(сор, секции, filename):
         for cell in row.cells:
             _borders(cell, sz)
 
+    # ── builders ──────────────────────────────────────────────────────────────
+
+    def _add_header(doc):
+        """Add org block + competition name + protocol titles."""
+        if сор.организаторы_блок:
+            lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
+            p = _para(doc, align=C)
+            for i, line in enumerate(lines):
+                if i > 0:
+                    _line_br(p)
+                qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+                if qi is None:
+                    _run(p, line, pt=10, bold=True)
+                else:
+                    before  = line[:qi].strip()
+                    quoted  = line[qi:]
+                    combined = (before + ' ' + quoted) if before else quoted
+                    if len(combined) <= 80:
+                        _run(p, combined, pt=10, bold=True)
+                    else:
+                        if before:
+                            _run(p, before, pt=10, bold=True)
+                            _line_br(p)
+                        _run(p, quoted, pt=10, bold=True)
+            _para(doc)  # blank line after org block
+
+        _para(doc, сор.название or '', align=C, pt=12, bold=True)
+        _para(doc)  # blank line
+        _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True)
+        _para(doc)  # blank line
+        _para(doc, 'Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True)
+
+    def _add_table(doc, секции):
+        """Add the start protocol table for one group of sections."""
+        tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(tbl)
+        _set_grid(tbl)
+
+        # Row 0 — date / venue values: bottom border only, no box
+        r = add_row(tbl)
+        cs = list(r.cells)
+        cs[0].merge(cs[1]);  _cw(cs[0], W01)
+        cs[2].merge(cs[4]);  _cw(cs[2], W234)
+        cs[5].merge(cs[7]);  _cw(cs[5], W567)
+        _bottom_border(cs[0])
+        _no_border(cs[2])
+        _bottom_border(cs[5])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[2], '')
+        _fill(cs[5], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        # Row 1 — date / venue labels: no borders
+        r = add_row(tbl)
+        cs = list(r.cells)
+        cs[0].merge(cs[1]);  _cw(cs[0], W01)
+        cs[2].merge(cs[4]);  _cw(cs[2], W234)
+        cs[5].merge(cs[7]);  _cw(cs[5], W567)
+        _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[5])
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[2], '')
+        _fill(cs[5], 'Место проведения', align=C, pt=8, bold=True)
+
+        # Row 2 — column headers: full borders
+        r = add_row(tbl)
+        cs = list(r.cells)
+        cs[3].merge(cs[4]);  _cw(cs[3], W34)
+        for i, w in enumerate(GRID):
+            if i != 4:
+                _cw(cs[i], w)
+        border_row(r)
+        p = cs[0].paragraphs[0]
+        p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
+        _run(p, '№', pt=8, bold=True)
+        _line_br(p)
+        _run(p, 'п/п', pt=8, bold=True)
+        _fill(cs[1], 'Команда',                              align=C, pt=8, bold=True)
+        _fill(cs[2], 'Номер',                                align=C, pt=8, bold=True)
+        _fill(cs[3], 'Фамилия, имя, отчество участников',   align=C, pt=8, bold=True)
+        _fill(cs[5], 'Территория',                           align=C, pt=8, bold=True)
+        _fill(cs[6], 'Порядковый номер согласно жеребьёвке', align=C, pt=8, bold=True)
+        _fill(cs[7], 'Время старта',                         align=C, pt=8, bold=True)
+
+        # Sections
+        for метка, команды in секции:
+            if not команды:
+                continue
+
+            r = add_row(tbl)
+            cs = list(r.cells)
+            cs[0].merge(cs[NC - 1]);  _cw(cs[0], TW)
+            _borders(cs[0])
+            _fill(cs[0], метка, align=C, pt=9, bold=True)
+
+            for пп, к in enumerate(команды, 1):
+                r = add_row(tbl)
+                cs = list(r.cells)
+                cs[3].merge(cs[4]);  _cw(cs[3], W34)
+                for i, w in enumerate(GRID):
+                    if i != 4:
+                        _cw(cs[i], w)
+                border_row(r)
+
+                спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+                фио  = ', '.join(
+                    с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество
+                )
+                время = (к.время_старта_спринт_план or '').split('.')[0]
+
+                _fill(cs[0], str(пп),                                            align=C)
+                _fill(cs[1], к.название or '—')
+                _fill(cs[2], str(к.нагрудный_номер or ''),                       align=C)
+                _fill(cs[3], фио)
+                _fill(cs[5], к.субъект.название if к.субъект else '—')
+                _fill(cs[6], str(к.стартовый_номер_спринт or ''),                align=C)
+                _fill(cs[7], время,                                               align=C)
+
+        # Signatures: no borders
+        for pos, fio in (('Главный судья', сор.главный_судья or ''),
+                         ('Главный секретарь', сор.главный_секретарь or '')):
+            r = add_row(tbl)
+            cs = list(r.cells)
+            cs[0].merge(cs[3]);  _cw(cs[0], W0123)
+            cs[4].merge(cs[7]);  _cw(cs[4], W4567)
+            _no_border(cs[0]); _no_border(cs[4])
+            _fill(cs[0], pos, pt=10)
+            _fill(cs[4], fio, pt=10)
+
     # ── document ──────────────────────────────────────────────────────────────
 
     doc  = Document()
@@ -1793,136 +1964,11 @@ def create_старт_спринт_docx(сор, секции, filename):
         if child.tag == qn('w:p'):
             body.remove(child)
 
-    # ── Organisations header ───────────────────────────────────────────────────
-    if сор.организаторы_блок:
-        lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
-        p = _para(doc, align=C)
-        for i, line in enumerate(lines):
-            if i > 0:
-                _line_br(p)
-            qi = next((line.index(q) for q in ('"', '«') if q in line), None)
-            if qi is None:
-                _run(p, line, pt=10, bold=True)
-            else:
-                before  = line[:qi].strip()
-                quoted  = line[qi:]
-                combined = (before + ' ' + quoted) if before else quoted
-                if len(combined) <= 80:
-                    _run(p, combined, pt=10, bold=True)
-                else:
-                    if before:
-                        _run(p, before, pt=10, bold=True)
-                        _line_br(p)
-                    _run(p, quoted, pt=10, bold=True)
-
-    _para(doc, сор.название or '',                      align=C, pt=12, bold=True)
-    _para(doc, 'Стартовый протокол',                    align=C, pt=12, bold=True)
-    _para(doc, 'Группа спортивных дисциплин СПРИНТ',    align=C, pt=10, bold=True)
-
-    # ── Main table ─────────────────────────────────────────────────────────────
-    tbl = doc.add_table(rows=0, cols=NC)
-    _tbl_w(tbl)
-    _set_grid(tbl)
-
-    # Pre-compute cumulative widths for merged spans
-    W01   = GRID[0] + GRID[1]
-    W234  = GRID[2] + GRID[3] + GRID[4]
-    W567  = GRID[5] + GRID[6] + GRID[7]
-    W34   = GRID[3] + GRID[4]
-    W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
-    W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
-
-    # Row 0 — date / venue values
-    r = add_row(tbl)
-    cs = list(r.cells)
-    cs[0].merge(cs[1]);  _cw(cs[0], W01)
-    cs[2].merge(cs[4]);  _cw(cs[2], W234)
-    cs[5].merge(cs[7]);  _cw(cs[5], W567)
-    for c in (cs[0], cs[2], cs[5]):
-        _borders(c)
-    _fill(cs[0], сор.даты_проведения   or '', align=C, pt=10, bold=True)
-    _fill(cs[2], '')
-    _fill(cs[5], сор.место_проведения  or '', align=C, pt=10, bold=True)
-
-    # Row 1 — date / venue labels
-    r = add_row(tbl)
-    cs = list(r.cells)
-    cs[0].merge(cs[1]);  _cw(cs[0], W01)
-    cs[2].merge(cs[4]);  _cw(cs[2], W234)
-    cs[5].merge(cs[7]);  _cw(cs[5], W567)
-    for c in (cs[0], cs[2], cs[5]):
-        _borders(c)
-    _fill(cs[0], 'Дата проведения',   align=C, pt=8, bold=True)
-    _fill(cs[2], '')
-    _fill(cs[5], 'Место проведения',  align=C, pt=8, bold=True)
-
-    # Row 2 — column headers
-    r = add_row(tbl)
-    cs = list(r.cells)
-    cs[3].merge(cs[4]);  _cw(cs[3], W34)
-    for i, w in enumerate(GRID):
-        if i not in (4,):   # col 4 absorbed into merged cs[3]
-            _cw(cs[i], w)
-    border_row(r)
-    # №\nп/п — two runs separated by a line-break
-    p = cs[0].paragraphs[0]
-    p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
-    _run(p, '№', pt=8, bold=True)
-    _line_br(p)
-    _run(p, 'п/п', pt=8, bold=True)
-    _fill(cs[1], 'Команда',                                 align=C, pt=8, bold=True)
-    _fill(cs[2], 'Номер',                                   align=C, pt=8, bold=True)
-    _fill(cs[3], 'Фамилия, имя, отчество участников',       align=C, pt=8, bold=True)
-    _fill(cs[5], 'Территория',                              align=C, pt=8, bold=True)
-    _fill(cs[6], 'Порядковый номер согласно жеребьёвке',    align=C, pt=8, bold=True)
-    _fill(cs[7], 'Время старта',                            align=C, pt=8, bold=True)
-
-    # ── Sections ───────────────────────────────────────────────────────────────
-    for метка, команды in секции:
-        if not команды:
-            continue
-
-        # Section header — all 8 cols merged
-        r = add_row(tbl)
-        cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]);  _cw(cs[0], TW)
-        _borders(cs[0])
-        _fill(cs[0], метка, align=C, pt=9, bold=True)
-
-        # Data rows
-        for пп, к in enumerate(команды, 1):
-            r = add_row(tbl)
-            cs = list(r.cells)
-            cs[3].merge(cs[4]);  _cw(cs[3], W34)
-            for i, w in enumerate(GRID):
-                if i not in (4,):
-                    _cw(cs[i], w)
-            border_row(r)
-
-            спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
-            фио  = ', '.join(
-                с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество
-            )
-            время = (к.время_старта_спринт_план or '').split('.')[0]
-
-            _fill(cs[0], str(пп),                                               align=C)
-            _fill(cs[1], к.название or '—')
-            _fill(cs[2], str(к.нагрудный_номер or ''),                          align=C)
-            _fill(cs[3], фио)
-            _fill(cs[5], к.субъект.название if к.субъект else '—')
-            _fill(cs[6], str(к.стартовый_номер_спринт or ''),                   align=C)
-            _fill(cs[7], время,                                                  align=C)
-
-    # ── Signatures ─────────────────────────────────────────────────────────────
-    for pos, fio in (('Главный судья', сор.главный_судья or ''),
-                     ('Главный секретарь', сор.главный_секретарь or '')):
-        r = add_row(tbl)
-        cs = list(r.cells)
-        cs[0].merge(cs[3]);  _cw(cs[0], W0123)
-        cs[4].merge(cs[7]);  _cw(cs[4], W4567)
-        _borders(cs[0]); _borders(cs[4])
-        _fill(cs[0], pos, pt=10)
-        _fill(cs[4], fio, pt=10)
+    for i, секции in enumerate(группы):
+        if i > 0:
+            _page_br(doc)
+        _add_header(doc)
+        _add_table(doc, секции)
 
     buf = BytesIO()
     doc.save(buf)
