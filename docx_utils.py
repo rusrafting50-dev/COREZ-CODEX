@@ -1536,7 +1536,7 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
         _cell_borders(c_v1, top=3)
         _cell_borders(c_s1)
         _cell_text(c_d1, 'Дата проведения', align=C, pt=8)
-        _cell_text(c_v1, 'Место проведения', align=WD_ALIGN_PARAGRAPH.RIGHT, pt=8)
+        _cell_text(c_v1, 'Место проведения', align=C, pt=8)
         _cell_text(c_s1, '')
 
         _p(doc)  # empty line
