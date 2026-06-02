@@ -1824,12 +1824,20 @@ def create_старт_спринт_docx(сор, секции, filename):
     _tbl_w(tbl)
     _set_grid(tbl)
 
+    # Pre-compute cumulative widths for merged spans
+    W01   = GRID[0] + GRID[1]
+    W234  = GRID[2] + GRID[3] + GRID[4]
+    W567  = GRID[5] + GRID[6] + GRID[7]
+    W34   = GRID[3] + GRID[4]
+    W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
+    W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
+
     # Row 0 — date / venue values
     r = add_row(tbl)
     cs = list(r.cells)
-    cs[0].merge(cs[1])          # date: cols 0+1
-    cs[2].merge(cs[4])          # spacer: cols 2+3+4
-    cs[5].merge(cs[7])          # venue: cols 5+6+7
+    cs[0].merge(cs[1]);  _cw(cs[0], W01)
+    cs[2].merge(cs[4]);  _cw(cs[2], W234)
+    cs[5].merge(cs[7]);  _cw(cs[5], W567)
     for c in (cs[0], cs[2], cs[5]):
         _borders(c)
     _fill(cs[0], сор.даты_проведения   or '', align=C, pt=10, bold=True)
@@ -1839,9 +1847,9 @@ def create_старт_спринт_docx(сор, секции, filename):
     # Row 1 — date / venue labels
     r = add_row(tbl)
     cs = list(r.cells)
-    cs[0].merge(cs[1])
-    cs[2].merge(cs[4])
-    cs[5].merge(cs[7])
+    cs[0].merge(cs[1]);  _cw(cs[0], W01)
+    cs[2].merge(cs[4]);  _cw(cs[2], W234)
+    cs[5].merge(cs[7]);  _cw(cs[5], W567)
     for c in (cs[0], cs[2], cs[5]):
         _borders(c)
     _fill(cs[0], 'Дата проведения',   align=C, pt=8, bold=True)
@@ -1851,7 +1859,10 @@ def create_старт_спринт_docx(сор, секции, filename):
     # Row 2 — column headers
     r = add_row(tbl)
     cs = list(r.cells)
-    cs[3].merge(cs[4])          # ФИО header: cols 3+4
+    cs[3].merge(cs[4]);  _cw(cs[3], W34)
+    for i, w in enumerate(GRID):
+        if i not in (4,):   # col 4 absorbed into merged cs[3]
+            _cw(cs[i], w)
     border_row(r)
     # №\nп/п — two runs separated by a line-break
     p = cs[0].paragraphs[0]
@@ -1874,7 +1885,7 @@ def create_старт_спринт_docx(сор, секции, filename):
         # Section header — all 8 cols merged
         r = add_row(tbl)
         cs = list(r.cells)
-        cs[0].merge(cs[NC - 1])
+        cs[0].merge(cs[NC - 1]);  _cw(cs[0], TW)
         _borders(cs[0])
         _fill(cs[0], метка, align=C, pt=9, bold=True)
 
@@ -1882,7 +1893,10 @@ def create_старт_спринт_docx(сор, секции, filename):
         for пп, к in enumerate(команды, 1):
             r = add_row(tbl)
             cs = list(r.cells)
-            cs[3].merge(cs[4])
+            cs[3].merge(cs[4]);  _cw(cs[3], W34)
+            for i, w in enumerate(GRID):
+                if i not in (4,):
+                    _cw(cs[i], w)
             border_row(r)
 
             спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
@@ -1904,8 +1918,8 @@ def create_старт_спринт_docx(сор, секции, filename):
                      ('Главный секретарь', сор.главный_секретарь or '')):
         r = add_row(tbl)
         cs = list(r.cells)
-        cs[0].merge(cs[3])
-        cs[4].merge(cs[7])
+        cs[0].merge(cs[3]);  _cw(cs[0], W0123)
+        cs[4].merge(cs[7]);  _cw(cs[4], W4567)
         _borders(cs[0]); _borders(cs[4])
         _fill(cs[0], pos, pt=10)
         _fill(cs[4], fio, pt=10)
