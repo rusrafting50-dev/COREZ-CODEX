@@ -89,25 +89,25 @@
   </div>
 
   {# ── Заголовок акта ── #}
-  <div style="font-size:15pt; font-weight:bold; letter-spacing:4pt; text-align:center; margin:8pt 0 2pt">А К Т</div>
+  <div style="font-size:15pt; font-weight:bold; text-align:center; margin:8pt 0 2pt">АКТ</div>
   <p style="text-align:center; font-size:11pt; margin-bottom:2pt">утверждения спортивной дистанции</p>
   <p style="text-align:center; font-size:11pt; margin-bottom:8pt">
     для спортивных дисциплин: «{{ д.название or '—' }}»
   </p>
 
   {# ── Преамбула ── #}
-  <p class="indent" style="text-align:justify; margin-bottom:6pt">
+  <p style="text-align:justify; margin-bottom:6pt">
     Мы, нижеподписавшиеся, главный судья соревнований
     {{ сор.главный_судья or '' }},
-    начальник дистанций
+    начальник дистанции
     {{ сор.начальник_дистанции or '' }},
     начальник спасательной службы
     {{ сор.начальник_спасательной_службы or '' }}
-    составили настоящий акт о том, что проведен оперативно-технический осмотр спортивной
-    дистанции и определены основные характеристики дистанции.
+    составили настоящий акт о том, что проведён оперативно-технический осмотр спортивной
+    дистанции и определены основные её характеристики.
   </p>
 
-  <p class="indent" style="margin-bottom:4pt">
+  <p style="text-align:justify; margin-bottom:4pt">
     В результате оперативно-технического осмотра установлено:
   </p>
 

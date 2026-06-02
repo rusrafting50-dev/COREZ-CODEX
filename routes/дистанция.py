@@ -87,4 +87,4 @@ def акт_word(sor_id):
                            сор=сор, дистанции=дистанции, тип=тип, сегодня=date.today())
     return send_docx(html, f'акт_дистанции_{тип}_{sor_id}.docx',
                      date_place_border_size=3, date_place_bold=False,
-                     font_after_pt=14, font_after_marker='А К Т')
+                     font_after_pt=14, font_after_marker='АКТ')
