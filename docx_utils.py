@@ -2220,6 +2220,18 @@ def create_старт_слалом_docx(сор, секции, filename):
             return f'{m:02d}:{sec:05.2f}'
         return ''
 
+    def _vert_cell(cell):
+        """Vertical text top-to-bottom (tbRl), valign bottom, para centered."""
+        pr = _tcpr(cell)
+        td = pr.find(qn('w:textDirection'))
+        if td is None:
+            td = OxmlElement('w:textDirection')
+            pr.append(td)
+        td.set(qn('w:val'), 'tbRl')
+        _valign(cell, 'bottom')
+        for p in cell.paragraphs:
+            p.alignment = C
+
     # ── builders ──────────────────────────────────────────────────────────────
 
     def _add_header(doc):
@@ -2319,9 +2331,9 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[2],  '',                align=C, pt=8, bold=True)
         _fill(cs[4],  '',                align=C, pt=8, bold=True)
         _fill(cs[5],  '',                align=C, pt=8, bold=True)
-        _fill(cs[7],  кол1_заг,          align=C, pt=7, bold=True)
-        _fill(cs[8],  кол2_заг,          align=C, pt=7, bold=True)
-        _fill(cs[9],  'Сумма',           align=C, pt=7, bold=True)
+        _fill(cs[7],  кол1_заг, align=C, pt=7, bold=True); _vert_cell(cs[7])
+        _fill(cs[8],  кол2_заг, align=C, pt=7, bold=True); _vert_cell(cs[8])
+        _fill(cs[9],  'Сумма',  align=C, pt=7, bold=True); _vert_cell(cs[9])
         _fill(cs[10], '',                align=C, pt=8, bold=True)
         _fill(cs[11], '',                align=C, pt=8, bold=True)
 
