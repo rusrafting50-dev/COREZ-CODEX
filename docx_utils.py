@@ -1992,3 +1992,420 @@ def create_старт_спринт_docx(сор, группы, filename):
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_старт_слалом_docx(сор, секции, filename):
+    """Generate Slalom start protocol DOCX matching the official sample layout.
+
+    секции: list of (метка, команды, мб_колонки) — one page per section.
+      мб_колонки: list of {'заг': label, 'поле': field_name} (1 or 2 entries).
+    """
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+
+    # 12-column grid (dxa) from sample
+    GRID = [410, 1580, 137, 562, 3827, 997, 505, 452, 452, 452, 907, 915]
+    NC   = len(GRID)
+    TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
+
+    # Pre-computed merged widths
+    W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2127 cols 0-2
+    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 5386 cols 3-5
+    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 3683 cols 6-11
+    W_НОМ   = GRID[2]+GRID[3]                                        # 699  cols 2-3
+    W_ТЕРР  = GRID[5]+GRID[6]                                        # 1502 cols 5-6
+    W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1356 cols 7-9
+    W_SIG1  = 3905                                                    # signature left
+    W_SIG2  = TW - W_SIG1                                            # signature right
+
+    # ── micro-helpers ─────────────────────────────────────────────────────────
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=8, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        if bold:
+            r.font.bold = True
+        return r
+
+    def _para(doc, text='', align=None, pt=10, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        return p
+
+    def _line_br(p):
+        p.add_run()._r.append(OxmlElement('w:br'))
+
+    def _page_br(doc):
+        p = doc.add_paragraph()
+        _sp(p)
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        p.add_run()._r.append(br)
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr')
+            tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single')
+            el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
+
+    def _bottom_border(cell, sz=6):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        bot = OxmlElement('w:bottom')
+        bot.set(qn('w:val'), 'single')
+        bot.set(qn('w:sz'), str(sz))
+        bot.set(qn('w:space'), '0')
+        bot.set(qn('w:color'), 'auto')
+        b.append(bot)
+        pr.append(b)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None:
+            el = OxmlElement('w:tcW')
+            pr.append(el)
+        el.set(qn('w:w'), str(w))
+        el.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        v = pr.find(qn('w:vAlign'))
+        if v is None:
+            v = OxmlElement('w:vAlign')
+            pr.append(v)
+        v.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=None, pt=8, bold=False):
+        p = cell.paragraphs[0]
+        p.clear()
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        _valign(cell)
+
+    def _set_grid(tbl_obj):
+        tbl = tbl_obj._tbl
+        for old in tbl.findall(qn('w:tblGrid')):
+            tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in GRID:
+            col = OxmlElement('w:gridCol')
+            col.set(qn('w:w'), str(w))
+            grid.append(col)
+        tblPr = tbl.find(qn('w:tblPr'))
+        tblPr.addnext(grid) if tblPr is not None else tbl.insert(0, grid)
+
+    def _tbl_w(tbl_obj):
+        tbl = tbl_obj._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl.insert(0, tblPr)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None:
+            el = OxmlElement('w:tblW')
+            tblPr.append(el)
+        el.set(qn('w:w'), str(TW))
+        el.set(qn('w:type'), 'dxa')
+
+    def _row_h(row, cm):
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(val))
+        trH.set(qn('w:hRule'), 'exact')
+
+    def add_row(tbl):
+        return tbl.add_row()
+
+    def border_row(row, sz=4):
+        for cell in row.cells:
+            _borders(cell, sz)
+
+    # ── score helpers ─────────────────────────────────────────────────────────
+
+    def _fmt_score(v):
+        if v is None or v == 0:
+            return ''
+        return str(int(v)) if float(v) == int(v) else f'{v:.1f}'
+
+    def _score(к, поле):
+        if поле == 'очки_спринт':
+            р = к.результат_спринт
+            return _fmt_score(р.очки if р else None)
+        elif поле == 'очки_пс':
+            р = next((r for r in к.результат_пс if r.итоговое_место is not None), None)
+            return _fmt_score(р.очки if р else None)
+        elif поле == 'очки_дг':
+            р = к.результат_дг
+            return _fmt_score(р.очки if р else None)
+        return ''
+
+    def _sum_scores(к, колонки):
+        total = 0.0
+        has = False
+        for кол in колонки:
+            s = _score(к, кол['поле'])
+            if s:
+                try:
+                    total += float(s); has = True
+                except ValueError:
+                    pass
+        return _fmt_score(total) if has else ''
+
+    def _time(к, попытка):
+        рез = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
+        if рез and рез.результат is not None:
+            s = float(рез.результат)
+            m = int(s // 60); sec = s % 60
+            return f'{m:02d}:{sec:05.2f}'
+        return ''
+
+    # ── builders ──────────────────────────────────────────────────────────────
+
+    def _add_header(doc):
+        if сор.организаторы_блок:
+            lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
+            p = _para(doc, align=C)
+            for i, line in enumerate(lines):
+                if i > 0:
+                    _line_br(p)
+                qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+                if qi is None:
+                    _run(p, line, pt=10, bold=True)
+                else:
+                    before  = line[:qi].strip()
+                    quoted  = line[qi:]
+                    combined = (before + ' ' + quoted) if before else quoted
+                    if len(combined) <= 80:
+                        _run(p, combined, pt=10, bold=True)
+                    else:
+                        if before:
+                            _run(p, before, pt=10, bold=True)
+                            _line_br(p)
+                        _run(p, quoted, pt=10, bold=True)
+            _para(doc)
+
+        _para(doc, сор.название or '', align=C, pt=12, bold=True)
+        _para(doc)
+        _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True)
+        _para(doc)
+        _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True)
+
+    def _add_table(doc, метка, команды, мб_колонки):
+        тbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(тbl)
+        _set_grid(тbl)
+
+        # Pad/truncate мб_колонки to exactly 2 entries
+        кол1_заг  = мб_колонки[0]['заг']  if len(мб_колонки) > 0 else ''
+        кол1_поле = мб_колонки[0]['поле'] if len(мб_колонки) > 0 else None
+        кол2_заг  = мб_колонки[1]['заг']  if len(мб_колонки) > 1 else ''
+        кол2_поле = мб_колонки[1]['поле'] if len(мб_колонки) > 1 else None
+
+        # Row 0 — date/venue values: bottom border only, h=0.6cm
+        r = add_row(тbl); _row_h(r, 0.6)
+        cs = list(r.cells)
+        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
+        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
+        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
+        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[6])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[3], '')
+        _fill(cs[6], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        # Row 1 — date/venue labels: no borders, h=0.6cm
+        r = add_row(тbl); _row_h(r, 0.6)
+        cs = list(r.cells)
+        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
+        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
+        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
+        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[6])
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[3], '')
+        _fill(cs[6], 'Место проведения', align=C, pt=8, bold=True)
+
+        # Row 2 — header row 1 (Очки Многоборье merged over cols 7-9)
+        r = add_row(тbl)
+        cs = list(r.cells)
+        cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
+        cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
+        cs[7].merge(cs[9]);  _cw(cs[7], W_МБ)
+        for i, w in enumerate(GRID):
+            if i not in (3, 6, 8, 9):
+                _cw(cs[i], w)
+        border_row(r)
+        # №\nп/п
+        p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
+        _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
+        _fill(cs[1],  'Команда',                                   align=C, pt=8, bold=True)
+        _fill(cs[2],  'Номер',                                     align=C, pt=8, bold=True)
+        _fill(cs[4],  'Фамилия, имя, отчество участников',         align=C, pt=8, bold=True)
+        _fill(cs[5],  'Территория',                                align=C, pt=8, bold=True)
+        _fill(cs[7],  'Очки Многоборье',                           align=C, pt=8, bold=True)
+        _fill(cs[10], 'Время\nпопытка 1',                          align=C, pt=8, bold=True)
+        _fill(cs[11], 'Время\nпопытка 2',                          align=C, pt=8, bold=True)
+
+        # Row 3 — header row 2 (Очки sub-split, Номер and Территория still merged)
+        r = add_row(тbl)
+        cs = list(r.cells)
+        cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
+        cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
+        for i, w in enumerate(GRID):
+            if i not in (3, 6):
+                _cw(cs[i], w)
+        border_row(r)
+        _fill(cs[0],  '',                align=C, pt=8, bold=True)
+        _fill(cs[1],  '',                align=C, pt=8, bold=True)
+        _fill(cs[2],  '',                align=C, pt=8, bold=True)
+        _fill(cs[4],  '',                align=C, pt=8, bold=True)
+        _fill(cs[5],  '',                align=C, pt=8, bold=True)
+        _fill(cs[7],  кол1_заг,          align=C, pt=7, bold=True)
+        _fill(cs[8],  кол2_заг,          align=C, pt=7, bold=True)
+        _fill(cs[9],  'Сумма',           align=C, pt=7, bold=True)
+        _fill(cs[10], '',                align=C, pt=8, bold=True)
+        _fill(cs[11], '',                align=C, pt=8, bold=True)
+
+        # Section header row — all cols merged, h=0.6cm
+        r = add_row(тbl); _row_h(r, 0.6)
+        cs = list(r.cells)
+        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        _borders(cs[0])
+        _fill(cs[0], метка, align=C, pt=9, bold=True)
+
+        # Data rows
+        for пп, к in enumerate(команды, 1):
+            r = add_row(тbl)
+            cs = list(r.cells)
+            cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
+            cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
+            for i, w in enumerate(GRID):
+                if i not in (3, 6):
+                    _cw(cs[i], w)
+            border_row(r)
+
+            спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+            фио = ', '.join(
+                с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество
+            )
+
+            s1 = _score(к, кол1_поле) if кол1_поле else ''
+            s2 = _score(к, кол2_поле) if кол2_поле else ''
+            sm = _sum_scores(к, мб_колонки)
+
+            _fill(cs[0],  str(пп),                                        align=C)
+            _fill(cs[1],  к.название or '—')
+            _fill(cs[2],  str(к.нагрудный_номер or ''),                   align=C)
+            _fill(cs[4],  фио)
+            _fill(cs[5],  к.субъект.название if к.субъект else '—')
+            _fill(cs[7],  s1,                                              align=C)
+            _fill(cs[8],  s2,                                              align=C)
+            _fill(cs[9],  sm,                                              align=C)
+            _fill(cs[10], _time(к, 1),                                    align=C)
+            _fill(cs[11], _time(к, 2),                                    align=C)
+
+        # Signature rows (no borders, h=1.2cm), 2 merged columns
+        for pos, fio in (('Главный судья', сор.главный_судья or ''),
+                         ('Главный секретарь', сор.главный_секретарь or '')):
+            r = add_row(тbl); _row_h(r, 1.2)
+            cs = list(r.cells)
+            # Merge to match signature table grid [3905, 7291]
+            # Find split point: sum GRID until ≥ W_SIG1
+            acc = 0
+            split = 0
+            for idx, w in enumerate(GRID):
+                acc += w
+                if acc >= W_SIG1:
+                    split = idx
+                    break
+            cs[0].merge(cs[split]);      _cw(cs[0], W_SIG1)
+            cs[split+1].merge(cs[NC-1]); _cw(cs[split+1], W_SIG2)
+            _no_border(cs[0]); _no_border(cs[split+1])
+            _fill(cs[0],       pos, pt=10)
+            _fill(cs[split+1], fio, pt=10)
+
+    # ── document ──────────────────────────────────────────────────────────────
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_height   = Mm(297)
+    sect.page_width    = Mm(210)
+    sect.top_margin    = Mm(18)
+    sect.bottom_margin = Mm(12)
+    sect.left_margin   = Mm(7)
+    sect.right_margin  = Mm(5)
+
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    for i, (метка, команды, мб_колонки) in enumerate(секции):
+        if i > 0:
+            _page_br(doc)
+        _add_header(doc)
+        _add_table(doc, метка, команды, мб_колонки)
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
