@@ -275,6 +275,15 @@ def _divs_to_paragraphs(soup):
         if has_block:
             div.unwrap()
         else:
+            # Wrap content in a <span> carrying font-size so HtmlToDocx
+            # applies it at run level (paragraph-level font-size is ignored).
+            fs = _css(div, 'font-size')
+            if fs:
+                span = soup.new_tag('span', style=f'font-size:{fs}')
+                for child in list(div.children):
+                    child.extract()
+                    span.append(child)
+                div.append(span)
             div.name = 'p'
     for p in soup.find_all('p'):
         _apply_bold(p, soup)
