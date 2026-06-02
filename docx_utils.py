@@ -508,15 +508,16 @@ def _post_process_date_place_tables(doc, border_size=6):
 
 
 def _add_page_breaks_after_sig_tables(doc):
-    """Insert a page-break paragraph after each table that contains 'Главный'."""
-    for table in doc.tables:
-        has_sig = any(
+    """Insert a page-break paragraph after each sig table except the last one."""
+    sig_tables = [
+        table for table in doc.tables
+        if any(
             'Главный секретарь' in cell.text
             for row in table.rows
             for cell in row.cells
         )
-        if not has_sig:
-            continue
+    ]
+    for table in sig_tables[:-1]:  # skip the last — no page break needed after final sig
         p = OxmlElement('w:p')
         r = OxmlElement('w:r')
         br = OxmlElement('w:br')
