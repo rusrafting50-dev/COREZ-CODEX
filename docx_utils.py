@@ -1620,8 +1620,22 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
             ('Начальник дистанции',            сор.начальник_дистанции or ''),
             ('Начальник спасательной службы',  сор.начальник_спасательной_службы or ''),
         ]
+        ROW_H = 680  # 1.2 cm in twips (1.2 × 1440 / 2.54 ≈ 680)
         for ri, (pos, fio) in enumerate(sig_rows):
-            c0, c1 = sig.rows[ri].cells
+            row = sig.rows[ri]
+            # Set row height = 1.2 cm (exact)
+            trPr = row._tr.find(qn('w:trPr'))
+            if trPr is None:
+                trPr = OxmlElement('w:trPr')
+                row._tr.insert(0, trPr)
+            trH = trPr.find(qn('w:trHeight'))
+            if trH is None:
+                trH = OxmlElement('w:trHeight')
+                trPr.append(trH)
+            trH.set(qn('w:val'), str(ROW_H))
+            trH.set(qn('w:hRule'), 'exact')
+
+            c0, c1 = row.cells
             _cell_w(c0, COL1)
             _cell_w(c1, COL2)
             _cell_borders(c0)
