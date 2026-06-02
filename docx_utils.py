@@ -1037,19 +1037,24 @@ def _remove_empty_paragraphs_after_tables(doc):
 # ─── Post-processing: remove trailing page-break paragraph ──────────────────
 
 def _remove_trailing_page_break(doc):
-    """Remove the last paragraph if it consists only of a page break."""
+    """Remove the last w:p that consists only of a page break (skip trailing w:sectPr)."""
     body = doc.element.body
-    children = list(body)
-    if not children:
+    # body always ends with w:sectPr; find the last w:p before it
+    last_p = None
+    for child in reversed(list(body)):
+        if child.tag == qn('w:p'):
+            last_p = child
+            break
+        if child.tag == qn('w:sectPr'):
+            continue
+        break  # hit a table or other block — stop
+    if last_p is None:
         return
-    last = children[-1]
-    if last.tag != qn('w:p'):
-        return
-    has_text = any((t.text or '').strip() for t in last.iter(qn('w:t')))
-    page_breaks = [b for b in last.iter(qn('w:br'))
+    has_text = any((t.text or '').strip() for t in last_p.iter(qn('w:t')))
+    page_breaks = [b for b in last_p.iter(qn('w:br'))
                    if b.get(qn('w:type')) == 'page']
     if page_breaks and not has_text:
-        body.remove(last)
+        body.remove(last_p)
 
 
 # ─── Post-processing: remove leading empty paragraphs from document body ──────
