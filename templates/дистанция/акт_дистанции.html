@@ -77,21 +77,19 @@
   </div>
   {% endif %}
   <div style="font-size:11pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
-  <table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:normal;margin-bottom:8px">
-    <tr>
-      <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.375pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
-      <td style="width:100%;border:none;padding:0"></td>
-      <td style="white-space:nowrap;text-align:center;border:none;border-bottom:0.375pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
-    </tr>
-    <tr>
-      <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Дата проведения</td>
-      <td style="width:100%;border:none;padding:0"></td>
-      <td style="white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:normal">Место проведения</td>
-    </tr>
-  </table>
+  <div class="d-flex justify-content-between mb-2" style="font-size:10pt; font-weight:normal;">
+    <div style="display:inline-block;text-align:center">
+      <div style="border-bottom:0.375pt solid #000;min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
+      <div style="font-size:8pt">Дата проведения</div>
+    </div>
+    <div style="display:inline-block;text-align:center">
+      <div style="border-bottom:0.375pt solid #000;min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
+      <div style="font-size:8pt">Место проведения</div>
+    </div>
+  </div>
 
   {# ── Заголовок акта ── #}
-  <h-акт>А К Т</h-акт>
+  <div style="font-size:15pt; font-weight:bold; letter-spacing:4pt; text-align:center; margin:8pt 0 2pt">А К Т</div>
   <p style="text-align:center; font-size:11pt; margin-bottom:2pt">утверждения спортивной дистанции</p>
   <p style="text-align:center; font-size:11pt; margin-bottom:8pt">
     для спортивных дисциплин: «{{ д.название or '—' }}»

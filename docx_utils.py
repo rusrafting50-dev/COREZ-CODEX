@@ -1033,6 +1033,48 @@ def _apply_table_cell_font_sizes(doc, col_sizes, skip_first_row=False, only_firs
 
 # ─── Post-processing: remove empty paragraphs directly after tables ──────────
 
+def _apply_font_after(doc, after_text, font_half_pts):
+    """Apply font_half_pts to all body children (paragraphs + tables) that come
+    AFTER the first body paragraph containing after_text.
+    Also removes space-before/after on those body paragraphs (Без интервала).
+    """
+    body = doc.element.body
+    found = False
+    for child in list(body):
+        if child.tag == qn('w:sectPr'):
+            continue
+        if not found:
+            if child.tag == qn('w:p'):
+                text = ''.join((t.text or '') for t in child.iter(qn('w:t')))
+                if after_text in text:
+                    found = True
+            continue  # skip everything up to and including the marker paragraph
+        # ── font size on all runs ────────────────────────────────────────────
+        for w_r in child.iter(qn('w:r')):
+            rPr = w_r.find(qn('w:rPr'))
+            if rPr is None:
+                rPr = OxmlElement('w:rPr')
+                w_r.insert(0, rPr)
+            for tag_name in ('w:sz', 'w:szCs'):
+                el = rPr.find(qn(tag_name))
+                if el is None:
+                    el = OxmlElement(tag_name)
+                    rPr.append(el)
+                el.set(qn('w:val'), str(font_half_pts))
+        # ── no-spacing on direct body paragraphs ────────────────────────────
+        if child.tag == qn('w:p'):
+            pPr = child.find(qn('w:pPr'))
+            if pPr is None:
+                pPr = OxmlElement('w:pPr')
+                child.insert(0, pPr)
+            spacing = pPr.find(qn('w:spacing'))
+            if spacing is None:
+                spacing = OxmlElement('w:spacing')
+                pPr.append(spacing)
+            spacing.set(qn('w:before'), '0')
+            spacing.set(qn('w:after'), '0')
+
+
 def _remove_empty_paragraphs_after_tables(doc):
     """Remove empty paragraphs that appear immediately after a table (e.g., between
     the date/venue layout table and the main data table)."""
@@ -1094,7 +1136,7 @@ def _remove_leading_empty_paragraphs(doc, max_remove=5):
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
-def send_docx(html_string, filename, portrait=None, date_place_border_size=6, date_place_bold=True):
+def send_docx(html_string, filename, portrait=None, date_place_border_size=6, date_place_bold=True, font_after_pt=None, font_after_marker=None):
     # Detect page orientation from CSS (can be overridden by caller)
     if portrait is None:
         portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
@@ -1247,6 +1289,10 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6, da
         _apply_table_cell_font_sizes(doc, body_cell_sizes, skip_first_row=True)
     if header_cell_sizes:
         _apply_table_cell_font_sizes(doc, header_cell_sizes, only_first_row=True)
+
+    # 10.5. After-marker font: apply given pt size to all body children after the marker paragraph
+    if font_after_pt and font_after_marker:
+        _apply_font_after(doc, font_after_marker, int(font_after_pt * 2))
 
     # 11. Remove empty paragraphs directly after tables (e.g., between date/venue and data table)
     _remove_empty_paragraphs_after_tables(doc)
