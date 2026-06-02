@@ -76,15 +76,11 @@ def акт(sor_id):
 
 @bp_дистанция.route('/<int:sor_id>/дистанция/акт/word')
 def акт_word(sor_id):
-    from docx_utils import send_docx
+    from docx_utils import create_акт_дистанции_docx
     сор = Соревнование.query.get_or_404(sor_id)
     тип = request.args.get('тип', 'спринт')
     if тип not in ТИПЫ:
         тип = 'спринт'
     дистанции = [д for д in сор.параметры_дистанций if д.тип == тип]
-    from datetime import date
-    html = render_template('дистанция/акт_дистанции.html',
-                           сор=сор, дистанции=дистанции, тип=тип, сегодня=date.today())
-    return send_docx(html, f'акт_дистанции_{тип}_{sor_id}.docx',
-                     date_place_border_size=3, date_place_bold=False,
-                     font_after_pt=14, font_after_marker='АКТ')
+    return create_акт_дистанции_docx(сор, дистанции, тип,
+                                     f'акт_дистанции_{тип}_{sor_id}.docx')

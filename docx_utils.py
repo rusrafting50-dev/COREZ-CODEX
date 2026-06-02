@@ -1307,3 +1307,306 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6, da
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_акт_дистанции_docx(сор, дистанции, тип, filename):
+    """Generate акт дистанции DOCX directly via python-docx, matching the official sample layout."""
+    from docx.shared import Mm, Pt, Inches
+
+    TNR = 'Times New Roman'
+    C = WD_ALIGN_PARAGRAPH.CENTER
+    J = WD_ALIGN_PARAGRAPH.JUSTIFY
+    HALF_IN = Inches(0.5)   # first-line indent (457 200 EMU) — matches sample
+    TW = 10488              # text width in dxa (185 mm)
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+
+    def _sp(p, before=0, after=0):
+        p.paragraph_format.space_before = Pt(before)
+        p.paragraph_format.space_after = Pt(after)
+
+    def _run(p, text, pt=12, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        if bold:
+            r.font.bold = True
+        return r
+
+    def _p(doc, text='', align=None, pt=12, bold=False, fi=None, li=None):
+        para = doc.add_paragraph()
+        _sp(para)
+        if align is not None:
+            para.alignment = align
+        if fi is not None:
+            para.paragraph_format.first_line_indent = fi
+        if li is not None:
+            para.paragraph_format.left_indent = li
+        if text:
+            _run(para, text, pt, bold)
+        return para
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr')
+            tc.insert(0, pr)
+        return pr
+
+    def _cell_borders(cell, bottom=None, top=None):
+        pr = _tcpr(cell)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            sz = bottom if side == 'bottom' and bottom else (top if side == 'top' and top else None)
+            if sz:
+                el.set(qn('w:val'), 'single')
+                el.set(qn('w:sz'), str(sz))
+                el.set(qn('w:space'), '0')
+                el.set(qn('w:color'), 'auto')
+            else:
+                el.set(qn('w:val'), 'nil')
+            b.append(el)
+        pr.append(b)
+
+    def _cell_w(cell, w, wtype='dxa'):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None:
+            el = OxmlElement('w:tcW')
+            pr.append(el)
+        el.set(qn('w:w'), str(w))
+        el.set(qn('w:type'), wtype)
+
+    def _no_wrap(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _cell_text(cell, text, align=None, pt=12, bold=False):
+        para = cell.paragraphs[0]
+        para.clear()
+        _sp(para)
+        if align:
+            para.alignment = align
+        if text:
+            _run(para, text, pt, bold)
+
+    def _tbl_no_borders(tbl_obj):
+        tblPr = tbl_obj._tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl_obj._tbl.insert(0, tblPr)
+        for old in tblPr.findall(qn('w:tblBorders')):
+            tblPr.remove(old)
+        b = OxmlElement('w:tblBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        tblPr.append(b)
+
+    def _tbl_width(tbl_obj, w):
+        tblPr = tbl_obj._tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl_obj._tbl.insert(0, tblPr)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None:
+            el = OxmlElement('w:tblW')
+            tblPr.append(el)
+        el.set(qn('w:w'), str(w))
+        el.set(qn('w:type'), 'dxa')
+
+    def _tbl_grid(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        for old in tbl.findall(qn('w:tblGrid')):
+            tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in widths:
+            col = OxmlElement('w:gridCol')
+            col.set(qn('w:w'), str(w))
+            grid.append(col)
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None:
+            tblPr.addnext(grid)
+        else:
+            tbl.insert(0, grid)
+
+    def _page_break(doc):
+        para = doc.add_paragraph()
+        _sp(para)
+        r = para.add_run()
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        r._r.append(br)
+
+    # ── document setup ────────────────────────────────────────────────────────
+
+    doc = Document()
+    sect = doc.sections[0]
+    sect.page_height = Mm(297)
+    sect.page_width = Mm(210)
+    sect.top_margin = Mm(12)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin = Mm(15)
+    sect.right_margin = Mm(10)
+    sect.header_distance = Mm(10)
+    sect.footer_distance = Mm(10)
+
+    # Remove the default empty paragraph that python-docx creates
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    # ── pages ─────────────────────────────────────────────────────────────────
+
+    for idx, д in enumerate(дистанции):
+        if idx > 0:
+            _page_break(doc)
+
+        # ── Organisations ──
+        if сор.организаторы_блок:
+            lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
+            para = _p(doc, align=C)
+            for i, line in enumerate(lines):
+                if i > 0:
+                    br = OxmlElement('w:br')
+                    para.add_run()._r.append(br)
+                _run(para, line, pt=12)
+
+        _p(doc)  # empty line
+
+        # ── Competition name ──
+        _p(doc, сор.название or '', align=C, pt=14, bold=True)
+
+        # ── Date / Venue table ──
+        dv = doc.add_table(rows=2, cols=3)
+        _tbl_width(dv, TW)
+        _tbl_grid(dv, [2061, 5015, 3412])
+        _tbl_no_borders(dv)
+
+        c_d0, c_s0, c_v0 = dv.rows[0].cells
+        for c in (c_d0, c_s0, c_v0):
+            _cell_w(c, 0, 'auto')
+        _no_wrap(c_d0)
+        _no_wrap(c_v0)
+        _cell_borders(c_d0, bottom=4)
+        _cell_borders(c_v0, bottom=4)
+        _cell_borders(c_s0)
+        _cell_text(c_d0, сор.даты_проведения or '', align=C)
+        _cell_text(c_v0, сор.место_проведения or '', align=C)
+        _cell_text(c_s0, '')
+
+        c_d1, c_s1, c_v1 = dv.rows[1].cells
+        _cell_w(c_d1, 10)
+        _cell_w(c_s1, 10467)
+        _cell_w(c_v1, 11)
+        _no_wrap(c_d1)
+        _no_wrap(c_v1)
+        _cell_borders(c_d1, top=4)
+        _cell_borders(c_v1, top=4)
+        _cell_borders(c_s1)
+        _cell_text(c_d1, 'Дата проведения', align=C, pt=8)
+        _cell_text(c_v1, 'Место проведения', align=C, pt=8)
+        _cell_text(c_s1, '')
+
+        _p(doc)  # empty line
+
+        # ── АКТ ──
+        _p(doc, 'АКТ', align=C, bold=True)
+        _p(doc, 'утверждения спортивной дистанции', align=C)
+        _p(doc, f'для спортивных дисциплин: «{д.название or "—"}»', align=C)
+
+        _p(doc, align=J, fi=HALF_IN)  # empty with fi
+
+        # ── Preambula ──
+        судья = сор.главный_судья or ''
+        нач_д = сор.начальник_дистанции or ''
+        нач_сп = сор.начальник_спасательной_службы or ''
+        preambula = (
+            f'Мы, нижеподписавшиеся, главный судья соревнований {судья}, '
+            f'начальник дистанции {нач_д}, '
+            f'начальник спасательной службы {нач_сп} '
+            'составили настоящий акт о том, что проведён оперативно-технический осмотр '
+            'спортивной дистанции и определены основные её характеристики.'
+        )
+        _p(doc, preambula, align=J, fi=HALF_IN)
+        _p(doc, 'В результате оперативно-технического осмотра установлено:', align=J, fi=HALF_IN)
+
+        # ── Parameters ──
+        def прот(n, text):
+            _p(doc, text, align=J, fi=HALF_IN)
+
+        протяж   = д.протяженность or ''
+        катег    = д.категория or ''
+        ср_вр    = д.среднее_время or ''
+        лимит    = д.лимит_времени or ''
+        старт    = д.вариант_старта or ''
+        финиш    = д.вариант_финиша or ''
+        страхов  = д.страховка or ''
+
+        прот(1, f'1. Общая протяжённость дистанции: {протяж + " м." if протяж else ""}')
+        прот(2, f'2. Категория определяющего препятствия: {катег + " к. с." if катег else ""}')
+        прот(3, f'3. Среднее время прохождения: {ср_вр + " мин." if ср_вр else ""}')
+        прот(4, f'4. Лимит времени для прохождения дистанции: {лимит + " мин." if лимит else ""}')
+        прот(5, f'5. Вариант организации старта: {старт}')
+
+        if тип == 'слалом':
+            обр = f' ({д.кол_обратных})' if д.кол_обратных else ''
+            прот(6, f'6. Количество ворот (в т.ч. обратных): {д.кол_ворот or ""}{обр}')
+            прот(7, f'7. Конструкция и параметры ворот: {д.конструкция_ворот or ""}')
+            прот(8, f'8. Вариант организации финиша: {финиш}')
+            n_стр = 9
+        elif тип == 'пс':
+            прот(6, f'6. Конструкция и параметры буев: {д.буи or ""}')
+            прот(7, f'7. Вариант организации финиша: {финиш}')
+            n_стр = 8
+        elif тип == 'дг':
+            прот(6, f'6. Количество, конструкция и параметры буев: {д.буи or ""}')
+            прот(7, f'7. Вариант организации финиша: {финиш}')
+            n_стр = 8
+        else:  # спринт
+            прот(6, f'6. Вариант организации финиша: {финиш}')
+            n_стр = 7
+
+        _p(doc, f'{n_стр}. Описание видов страховки:', align=J, li=HALF_IN)
+        if страхов:
+            for line in страхов.split('\n'):
+                line = line.strip()
+                if line:
+                    _p(doc, line, align=J, li=HALF_IN)
+
+        _p(doc, align=J)
+        _p(doc, 'Приложение: схема дистанции.', align=J)
+        _p(doc, align=J)
+
+        # ── Signature table ──
+        sig = doc.add_table(rows=3, cols=2)
+        _tbl_no_borders(sig)
+        COL1 = 5920
+        COL2 = TW - COL1
+
+        sig_rows = [
+            ('Главный судья соревнований',    сор.главный_судья or ''),
+            ('Начальник дистанции',            сор.начальник_дистанции or ''),
+            ('Начальник спасательной службы',  сор.начальник_спасательной_службы or ''),
+        ]
+        for ri, (pos, fio) in enumerate(sig_rows):
+            c0, c1 = sig.rows[ri].cells
+            _cell_w(c0, COL1)
+            _cell_w(c1, COL2)
+            _cell_borders(c0)
+            _cell_borders(c1)
+            _cell_text(c0, pos, pt=12)
+            _cell_text(c1, fio, pt=12)
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
