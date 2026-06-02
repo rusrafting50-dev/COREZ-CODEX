@@ -2228,8 +2228,8 @@ def create_старт_слалом_docx(сор, секции, filename):
 
     def _time(к, попытка):
         рез = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
-        if рез and рез.результат is not None:
-            s = float(рез.результат)
+        if рез and рез.результат_попытки is not None:
+            s = float(рез.результат_попытки)
             m = int(s // 60); sec = s % 60
             return f'{m:02d}:{sec:05.2f}'
         return ''
