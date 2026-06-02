@@ -201,6 +201,10 @@ def _process_flex_between(soup):
         left_value, left_label   = _extract_value_label(block_children[0])
         right_value, right_label = _extract_value_label(block_children[-1])
 
+        if _css(div, 'font-weight') in ('bold', '700', '800', '900'):
+            left_value  = f'<b>{left_value}</b>'
+            right_value = f'<b>{right_value}</b>'
+
         if left_label or right_label:
             # Structured 2-row, 3-column table with value row and label row.
             # Date/venue cells get near-zero width (1px) so _apply_table_widths
@@ -892,6 +896,46 @@ def _apply_para_font_sizes(doc, size_map):
                 el.set(qn('w:val'), str(half_pts))
 
 
+def _apply_table_cell_font_sizes(doc, col_sizes):
+    """Apply font sizes to specific table cells by (table_idx, col_idx) → half_pts."""
+    for t_idx, table in enumerate(doc.tables):
+        for row in table.rows:
+            for c_idx, cell in enumerate(row.cells):
+                half_pts = col_sizes.get((t_idx, c_idx))
+                if half_pts is None:
+                    continue
+                for para in cell.paragraphs:
+                    for run in para.runs:
+                        rPr = run._r.find(qn('w:rPr'))
+                        if rPr is None:
+                            rPr = OxmlElement('w:rPr')
+                            run._r.insert(0, rPr)
+                        for tag_name in ('w:sz', 'w:szCs'):
+                            el = rPr.find(qn(tag_name))
+                            if el is None:
+                                el = OxmlElement(tag_name)
+                                rPr.append(el)
+                            el.set(qn('w:val'), str(half_pts))
+
+
+# ─── Post-processing: remove trailing page-break paragraph ──────────────────
+
+def _remove_trailing_page_break(doc):
+    """Remove the last paragraph if it consists only of a page break."""
+    body = doc.element.body
+    children = list(body)
+    if not children:
+        return
+    last = children[-1]
+    if last.tag != qn('w:p'):
+        return
+    has_text = any((t.text or '').strip() for t in last.iter(qn('w:t')))
+    page_breaks = [b for b in last.iter(qn('w:br'))
+                   if b.get(qn('w:type')) == 'page']
+    if page_breaks and not has_text:
+        body.remove(last)
+
+
 # ─── Post-processing: remove leading empty paragraphs from document body ──────
 
 def _remove_leading_empty_paragraphs(doc, max_remove=5):
@@ -944,6 +988,23 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
         except ValueError:
             pass
         del p['data-docx-fs']
+
+    # 2c. Collect per-column font sizes from <td> style before normalization.
+    # Scans only <td> (not <th>) so header rows are unaffected.
+    cell_font_size_map = {}  # (table_idx, col_idx) -> half_pts
+    for t_idx, table_tag in enumerate(soup.find_all('table')):
+        for row in table_tag.find_all('tr'):
+            if 'section-row' in (row.get('class') or []):
+                continue
+            cells = row.find_all('td')
+            for c_idx, cell in enumerate(cells):
+                fs = _css(cell, 'font-size')
+                if fs and (t_idx, c_idx) not in cell_font_size_map:
+                    try:
+                        pt = float(fs.replace('pt', '').replace('px', '').strip())
+                        cell_font_size_map[(t_idx, c_idx)] = int(pt * 2)
+                    except ValueError:
+                        pass
 
     # Collect section-row texts before normalization so we can re-merge later
     section_row_texts = {
@@ -1016,6 +1077,11 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # 10. Apply font sizes collected before conversion (htmldocx ignores CSS font-size)
     if font_size_map:
         _apply_para_font_sizes(doc, font_size_map)
+    if cell_font_size_map:
+        _apply_table_cell_font_sizes(doc, cell_font_size_map)
+
+    # 11. Remove trailing page-break paragraph (artifact when sig table is last element)
+    _remove_trailing_page_break(doc)
 
     buf = BytesIO()
     doc.save(buf)
