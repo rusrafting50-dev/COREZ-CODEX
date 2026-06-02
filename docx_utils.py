@@ -202,19 +202,21 @@ def _process_flex_between(soup):
         right_value, right_label = _extract_value_label(block_children[-1])
 
         if left_label or right_label:
-            # Structured 2-row, 3-column table with value row and label row
-            # widths in px: 280+140+280 = 700 (proportional to portrait page)
+            # Structured 2-row, 3-column table with value row and label row.
+            # Date/venue cells get near-zero width (1px) so _apply_table_widths
+            # maps them to ~0 twips in ALL rows; combined with autofit+noWrap in
+            # _post_process_date_place_tables this gives true minimum-content width.
             tbl_html = (
                 '<table class="date-place-table" style="width:100%;border:none">'
                 '<tr>'
-                f'<td style="border:none;text-align:center;width:280px">{left_value}</td>'
-                '<td style="border:none;width:140px"></td>'
-                f'<td style="border:none;text-align:center;width:280px">{right_value}</td>'
+                f'<td style="border:none;text-align:center;width:1px">{left_value}</td>'
+                '<td style="border:none;width:1000px"></td>'
+                f'<td style="border:none;text-align:center;width:1px">{right_value}</td>'
                 '</tr>'
                 '<tr>'
-                f'<td style="border:none;text-align:center;font-size:8pt">{left_label}</td>'
-                '<td style="border:none"></td>'
-                f'<td style="border:none;text-align:center;font-size:8pt">{right_label}</td>'
+                f'<td style="border:none;text-align:center;font-size:8pt;width:1px">{left_label}</td>'
+                '<td style="border:none;width:1000px"></td>'
+                f'<td style="border:none;text-align:center;font-size:8pt;width:1px">{right_label}</td>'
                 '</tr>'
                 '</table>'
             )
