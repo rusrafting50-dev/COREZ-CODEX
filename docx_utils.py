@@ -1474,11 +1474,32 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
         if сор.организаторы_блок:
             lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
             para = _p(doc, align=C)
+
+            def _line_break(p):
+                p.add_run()._r.append(OxmlElement('w:br'))
+
             for i, line in enumerate(lines):
                 if i > 0:
-                    br = OxmlElement('w:br')
-                    para.add_run()._r.append(br)
-                _run(para, line, pt=12)
+                    _line_break(para)
+                # Split at opening quote char if present
+                quote_idx = next(
+                    (line.index(q) for q in ('"', '«') if q in line), None
+                )
+                if quote_idx is None:
+                    _run(para, line, pt=12)
+                else:
+                    before  = line[:quote_idx].strip()
+                    quoted  = line[quote_idx:]
+                    combined = (before + ' ' + quoted) if before else quoted
+                    if len(combined) <= 80:
+                        # Fits on one line — output together
+                        _run(para, combined, pt=12)
+                    else:
+                        # Doesn't fit — before-quote on one line, quoted part on next
+                        if before:
+                            _run(para, before, pt=12)
+                            _line_break(para)
+                        _run(para, quoted, pt=12)
 
         _p(doc)  # empty line
 
