@@ -302,9 +302,18 @@ def _normalize_tables(soup):
 # ─── Width extraction (after normalize) ──────────────────────────────────────
 
 def _extract_table_widths(soup):
-    """For each table return list of (px_width | None) per column from header row."""
+    """For each table return list of (px_width | None) per column.
+
+    Prefers <colgroup><col> widths when present — handles colspan/rowspan
+    headers where first-row cell count doesn't match actual column count.
+    Falls back to first header-row cell widths.
+    """
     result = []
     for table in soup.find_all('table'):
+        cols = table.find_all('col')
+        if cols:
+            result.append([_px(c) for c in cols])
+            continue
         first_row = table.find('tr')
         if not first_row:
             result.append([])
