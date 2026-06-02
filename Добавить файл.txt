@@ -2,4 +2,3 @@ cd /d "D:\Projects Claude Code\COREZ"
 git add .
 git commit -m "добавлен новый файл"
 git push
-claude
