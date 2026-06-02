@@ -870,6 +870,36 @@ def _post_process_sig_tables(doc, row_height_twips=500):
 
 # ─── Post-processing: left-align ALL cells in specified tables ───────────────
 
+def _center_table_header_rows(doc, table_indices):
+    """Re-center the first (header) row — h+v — after all-left override."""
+    for t_idx, table in enumerate(doc.tables):
+        if t_idx not in table_indices:
+            continue
+        rows = table._tbl.findall(qn('w:tr'))
+        if not rows:
+            continue
+        for tc in rows[0].findall(qn('w:tc')):
+            tcPr = tc.find(qn('w:tcPr'))
+            if tcPr is None:
+                tcPr = OxmlElement('w:tcPr')
+                tc.insert(0, tcPr)
+            vAlign = tcPr.find(qn('w:vAlign'))
+            if vAlign is None:
+                vAlign = OxmlElement('w:vAlign')
+                tcPr.append(vAlign)
+            vAlign.set(qn('w:val'), 'center')
+            for w_p in tc.findall('.//' + qn('w:p')):
+                pPr = w_p.find(qn('w:pPr'))
+                if pPr is None:
+                    pPr = OxmlElement('w:pPr')
+                    w_p.insert(0, pPr)
+                jc = pPr.find(qn('w:jc'))
+                if jc is None:
+                    jc = OxmlElement('w:jc')
+                    pPr.append(jc)
+                jc.set(qn('w:val'), 'center')
+
+
 def _left_align_all_in_tables(doc, table_indices):
     """Override horizontal alignment to left for every cell in the given tables."""
     for t_idx, table in enumerate(doc.tables):
@@ -1162,9 +1192,11 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # 5d. Center all cells + No Spacing + Times New Roman (overridden where needed below)
     _center_all_cells(doc)
 
-    # 5d2. Override to left-align ALL cells in tables marked with class="all-left"
+    # 5d2. Override to left-align ALL cells in tables marked with class="all-left",
+    # then restore center alignment in header row (row 0) of those tables.
     if all_left_table_indices:
         _left_align_all_in_tables(doc, all_left_table_indices)
+        _center_table_header_rows(doc, all_left_table_indices & data_table_indices)
 
     # 5e. Left-align columns that should not be centered
     _left_align_data_columns(doc, {
