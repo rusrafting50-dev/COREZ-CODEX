@@ -218,9 +218,9 @@ def _process_flex_between(soup):
                 f'<td style="border:none;text-align:center;width:1px">{right_value}</td>'
                 '</tr>'
                 '<tr>'
-                f'<td style="border:none;text-align:center;font-size:8pt;width:1px">{left_label}</td>'
+                f'<td style="border:none;text-align:center;font-size:8pt;width:1px"><b>{left_label}</b></td>'
                 '<td style="border:none;width:1000px"></td>'
-                f'<td style="border:none;text-align:center;font-size:8pt;width:1px">{right_label}</td>'
+                f'<td style="border:none;text-align:center;font-size:8pt;width:1px"><b>{right_label}</b></td>'
                 '</tr>'
                 '</table>'
             )
@@ -704,7 +704,7 @@ def _nowrap_cells_by_text(doc, texts):
 
 # ─── Post-processing: merge section-row cells HtmlToDocx expands ─────────────
 
-def _merge_section_rows(doc, section_row_texts):
+def _merge_section_rows(doc, section_row_texts, font_half_pts=None):
     """
     HtmlToDocx expands colspan into N separate empty cells instead of a merged cell.
     For each row whose first cell text matches a known section-row label and
@@ -748,7 +748,7 @@ def _merge_section_rows(doc, section_row_texts):
             first_tcPr.append(gs)
             for tc in tcs[1:]:
                 tr.remove(tc)
-            # Bold the merged cell text
+            # Apply bold and optional font size to merged cell runs
             for w_r in tcs[0].iter(qn('w:r')):
                 rPr = w_r.find(qn('w:rPr'))
                 if rPr is None:
@@ -758,6 +758,13 @@ def _merge_section_rows(doc, section_row_texts):
                     rPr.append(OxmlElement('w:b'))
                 if rPr.find(qn('w:bCs')) is None:
                     rPr.append(OxmlElement('w:bCs'))
+                if font_half_pts:
+                    for tag_name in ('w:sz', 'w:szCs'):
+                        el = rPr.find(qn(tag_name))
+                        if el is None:
+                            el = OxmlElement(tag_name)
+                            rPr.append(el)
+                        el.set(qn('w:val'), str(font_half_pts))
 
 
 # ─── Post-processing: left-align specific data-table columns ─────────────────
@@ -781,7 +788,7 @@ def _left_align_data_columns(doc, header_texts):
                 left_cols.add(col_idx)
         if not left_cols:
             continue
-        for tr in trs:
+        for tr in trs[1:]:  # skip header row — it stays centered
             for col_idx, tc in enumerate(tr.findall(qn('w:tc'))):
                 if col_idx not in left_cols:
                     continue
@@ -926,10 +933,14 @@ def _apply_para_font_sizes(doc, size_map):
                 el.set(qn('w:val'), str(half_pts))
 
 
-def _apply_table_cell_font_sizes(doc, col_sizes):
+def _apply_table_cell_font_sizes(doc, col_sizes, skip_first_row=False, only_first_row=False):
     """Apply font sizes to specific table cells by (table_idx, col_idx) → half_pts."""
     for t_idx, table in enumerate(doc.tables):
-        for row in table.rows:
+        for r_idx, row in enumerate(table.rows):
+            if skip_first_row and r_idx == 0:
+                continue
+            if only_first_row and r_idx > 0:
+                break
             for c_idx, cell in enumerate(row.cells):
                 half_pts = col_sizes.get((t_idx, c_idx))
                 if half_pts is None:
@@ -946,6 +957,27 @@ def _apply_table_cell_font_sizes(doc, col_sizes):
                                 el = OxmlElement(tag_name)
                                 rPr.append(el)
                             el.set(qn('w:val'), str(half_pts))
+
+
+# ─── Post-processing: remove empty paragraphs directly after tables ──────────
+
+def _remove_empty_paragraphs_after_tables(doc):
+    """Remove empty paragraphs that appear immediately after a table (e.g., between
+    the date/venue layout table and the main data table)."""
+    body = doc.element.body
+    children = list(body)
+    to_remove = []
+    for i, child in enumerate(children):
+        if child.tag != qn('w:p'):
+            continue
+        if i == 0 or children[i - 1].tag != qn('w:tbl'):
+            continue
+        has_text = any((t.text or '').strip() for t in child.iter(qn('w:t')))
+        has_break = child.find('.//' + qn('w:br')) is not None
+        if not has_text and not has_break:
+            to_remove.append(child)
+    for p in to_remove:
+        body.remove(p)
 
 
 # ─── Post-processing: remove trailing page-break paragraph ──────────────────
@@ -1019,22 +1051,47 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
             pass
         del p['data-docx-fs']
 
-    # 2c. Collect per-column font sizes from <td> style before normalization.
-    # Scans only <td> (not <th>) so header rows are unaffected.
-    cell_font_size_map = {}  # (table_idx, col_idx) -> half_pts
+    # 2c. Collect per-column font sizes from <th>/<td> style before normalization.
+    # Only scans data tables (those with <thead>). <th> → header_cell_sizes (row 0),
+    # <td> → body_cell_sizes (rows 1+). Keeps them separate to avoid collisions.
+    header_cell_sizes = {}  # (table_idx, col_idx) -> half_pts  (from <th>)
+    body_cell_sizes   = {}  # (table_idx, col_idx) -> half_pts  (from <td>)
     for t_idx, table_tag in enumerate(soup.find_all('table')):
+        if not table_tag.find('thead'):
+            continue
         for row in table_tag.find_all('tr'):
             if 'section-row' in (row.get('class') or []):
                 continue
-            cells = row.find_all('td')
-            for c_idx, cell in enumerate(cells):
+            for c_idx, cell in enumerate(row.find_all('th')):
                 fs = _css(cell, 'font-size')
-                if fs and (t_idx, c_idx) not in cell_font_size_map:
+                if fs and (t_idx, c_idx) not in header_cell_sizes:
                     try:
-                        pt = float(fs.replace('pt', '').replace('px', '').strip())
-                        cell_font_size_map[(t_idx, c_idx)] = int(pt * 2)
+                        header_cell_sizes[(t_idx, c_idx)] = int(float(
+                            fs.replace('pt', '').replace('px', '').strip()) * 2)
                     except ValueError:
                         pass
+            for c_idx, cell in enumerate(row.find_all('td')):
+                fs = _css(cell, 'font-size')
+                if fs and (t_idx, c_idx) not in body_cell_sizes:
+                    try:
+                        body_cell_sizes[(t_idx, c_idx)] = int(float(
+                            fs.replace('pt', '').replace('px', '').strip()) * 2)
+                    except ValueError:
+                        pass
+
+    # Collect section-row font size (first section-row td inline style)
+    section_row_font_half_pts = None
+    first_sr = soup.find(class_='section-row')
+    if first_sr:
+        sr_td = first_sr.find('td')
+        if sr_td:
+            fs = _css(sr_td, 'font-size')
+            if fs:
+                try:
+                    section_row_font_half_pts = int(float(
+                        fs.replace('pt', '').replace('px', '').strip()) * 2)
+                except ValueError:
+                    pass
 
     # Collect section-row texts before normalization so we can re-merge later
     section_row_texts = {
@@ -1070,7 +1127,7 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     _apply_vertical_text(doc, soup)
 
     # 5c. Re-merge section-row cells that HtmlToDocx expands into N empty cells
-    _merge_section_rows(doc, section_row_texts)
+    _merge_section_rows(doc, section_row_texts, font_half_pts=section_row_font_half_pts)
 
     # 5d. Center all cells + No Spacing + Times New Roman (overridden where needed below)
     _center_all_cells(doc)
@@ -1109,10 +1166,15 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # 10. Apply font sizes collected before conversion (htmldocx ignores CSS font-size)
     if font_size_map:
         _apply_para_font_sizes(doc, font_size_map)
-    if cell_font_size_map:
-        _apply_table_cell_font_sizes(doc, cell_font_size_map)
+    if body_cell_sizes:
+        _apply_table_cell_font_sizes(doc, body_cell_sizes, skip_first_row=True)
+    if header_cell_sizes:
+        _apply_table_cell_font_sizes(doc, header_cell_sizes, only_first_row=True)
 
-    # 11. Remove trailing page-break paragraph (artifact when sig table is last element)
+    # 11. Remove empty paragraphs directly after tables (e.g., between date/venue and data table)
+    _remove_empty_paragraphs_after_tables(doc)
+
+    # 12. Remove trailing page-break paragraph (artifact when sig table is last element)
     _remove_trailing_page_break(doc)
 
     buf = BytesIO()

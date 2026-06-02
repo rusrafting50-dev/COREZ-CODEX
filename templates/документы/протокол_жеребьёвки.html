@@ -119,7 +119,7 @@
       <th>№<br>п/п</th>
       <th>Команда</th>
       <th>Номер</th>
-      <th>Фамилия, имя, отчество участников</th>
+      <th style="font-size:10pt">Фамилия, имя, отчество участников</th>
       <th>Территория</th>
       <th>Порядковый номер согласно жеребьёвке</th>
     </tr>
@@ -127,7 +127,7 @@
   <tbody>
 
   {% for код in нс.виды %}
-  <tr class="section-row"><td colspan="6" class="text-center">{{ _метки[код] }}</td></tr>
+  <tr class="section-row"><td colspan="6" class="text-center" style="font-size:10pt">{{ _метки[код] }}</td></tr>
   {% set нс2 = namespace(пп=0) %}
   {% for к in _карта[код] %}
   {% set нс2.пп = нс2.пп + 1 %}
