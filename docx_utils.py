@@ -2441,3 +2441,538 @@ def create_старт_слалом_docx(сор, секции, filename):
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_результаты_слалом_docx(
+    сор, кл, кол_ворот, итоговый,
+    муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2,
+    жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2,
+    filename
+):
+    """Generate Slalom results protocol DOCX (preliminary with gate columns, or final)."""
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+
+    кол_ворот = max(кол_ворот, 1)
+
+    # ── micro-helpers ─────────────────────────────────────────────────────────
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=8, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        if bold:
+            r.font.bold = True
+        return r
+
+    def _para(doc, text='', align=None, pt=10, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        return p
+
+    def _line_br(p):
+        p.add_run()._r.append(OxmlElement('w:br'))
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr')
+            tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single')
+            el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')):
+            pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None:
+            el = OxmlElement('w:tcW')
+            pr.append(el)
+        el.set(qn('w:w'), str(w))
+        el.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        v = pr.find(qn('w:vAlign'))
+        if v is None:
+            v = OxmlElement('w:vAlign')
+            pr.append(v)
+        v.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=None, pt=8, bold=False):
+        p = cell.paragraphs[0]
+        p.clear()
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        _valign(cell)
+
+    def _vert_cell(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:textDirection')):
+            pr.remove(old)
+        td = OxmlElement('w:textDirection')
+        td.set(qn('w:val'), 'btLr')
+        va = pr.find(qn('w:vAlign'))
+        if va is not None:
+            va.addprevious(td)
+        else:
+            pr.append(td)
+        _valign(cell, 'bottom')
+        for p in cell.paragraphs:
+            p.alignment = C
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')):
+            pr.remove(old)
+        vm = OxmlElement('w:vMerge')
+        vm.set(qn('w:val'), 'restart')
+        pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')):
+            pr.remove(old)
+        vm = OxmlElement('w:vMerge')
+        pr.append(vm)
+        for para in cell.paragraphs:
+            para.clear()
+
+    def _row_h(row, cm):
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(val))
+        trH.set(qn('w:hRule'), 'exact')
+
+    def _row_h_min(row, cm):
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(val))
+        trH.set(qn('w:hRule'), 'atLeast')
+
+    def _border_row(row, sz=4):
+        for cell in row.cells:
+            _borders(cell, sz)
+
+    def _set_grid(tbl_obj, grid):
+        tbl = tbl_obj._tbl
+        for old in tbl.findall(qn('w:tblGrid')):
+            tbl.remove(old)
+        g = OxmlElement('w:tblGrid')
+        for w in grid:
+            col = OxmlElement('w:gridCol')
+            col.set(qn('w:w'), str(w))
+            g.append(col)
+        tblPr = tbl.find(qn('w:tblPr'))
+        tblPr.addnext(g) if tblPr is not None else tbl.insert(0, g)
+
+    def _tbl_w(tbl_obj, tw):
+        tbl = tbl_obj._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl.insert(0, tblPr)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None:
+            el = OxmlElement('w:tblW')
+            tblPr.append(el)
+        el.set(qn('w:w'), str(tw))
+        el.set(qn('w:type'), 'dxa')
+
+    # ── data format helpers ────────────────────────────────────────────────────
+
+    def _fmt_dur(val):
+        if val is None:
+            return '–'
+        s = float(val)
+        m = int(s // 60)
+        sec = s % 60
+        return f'{m:02d}:{sec:05.2f}'
+
+    def _fmt_шт(val):
+        if not val:
+            return '00:00'
+        v = int(val)
+        return f'{v//60:02d}:{v%60:02d}'
+
+    # ── document header ────────────────────────────────────────────────────────
+
+    def _add_doc_header(doc):
+        if сор.организаторы_блок:
+            lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
+            p = _para(doc, align=C)
+            for i, line in enumerate(lines):
+                if i > 0:
+                    _line_br(p)
+                _run(p, line, pt=10, bold=True)
+            _para(doc)
+        _para(doc, сор.название or '', align=C, pt=12, bold=True)
+        if итоговый and сор.номер_екп:
+            _para(doc, f'ЕКП № {сор.номер_екп}', align=C, pt=11, bold=True)
+        заг = 'ПРОТОКОЛ РЕЗУЛЬТАТОВ' if итоговый else 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ'
+        _para(doc, заг, align=C, pt=12, bold=True)
+        if кл == 'R4':
+            дисц = 'СЛАЛОМ – R4, код ВРВС 1740031811Я'
+        elif кл == 'R6':
+            дисц = 'СЛАЛОМ – R6, код ВРВС 1740041811Я'
+        else:
+            дисц = f'СЛАЛОМ{" – " + кл if кл else ""}'
+        _para(doc, f'Спортивная дисциплина: {дисц}', align=C, pt=10, bold=True)
+
+    # ── signatures ────────────────────────────────────────────────────────────
+
+    def _add_sigs(doc):
+        for pos, fio in (('Главный судья', сор.главный_судья or ''),
+                         ('Главный секретарь', сор.главный_секретарь or '')):
+            p = doc.add_paragraph()
+            _sp(p)
+            p.paragraph_format.space_before = Pt(12)
+            _run(p, pos + '   ' + fio, pt=10, bold=True)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PRELIMINARY PROTOCOL  (two rows per team, gate columns, vertical text)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def _build_pred(doc):
+        # Landscape A4 usable ≈ 16155 dxa
+        FIXED_LEFT  = [300, 1700, 450, 2700, 1270, 300, 300]
+        FIXED_RIGHT = [300, 600, 740, 800, 800, 350, 500, 800]
+        FIXED_SUM   = sum(FIXED_LEFT) + sum(FIXED_RIGHT)
+        gate_w      = max(250, (16155 - FIXED_SUM) // кол_ворот)
+        GRID        = FIXED_LEFT + [gate_w] * кол_ворот + FIXED_RIGHT
+        NC          = len(GRID)
+        TW          = sum(GRID)
+
+        I_ПОП   = 5
+        I_СТАРТ = 6
+        I_ВОР0  = 7
+        I_ФИН   = 7  + кол_ворот
+        I_ШТ    = 8  + кол_ворот
+        I_ВР    = 9  + кол_ворот
+        I_ИТ    = 10 + кол_ворот
+        I_ЛУЧ   = 11 + кол_ворот
+        I_МЕС   = 12 + кол_ворот
+        I_ОЧК   = 13 + кол_ворот
+        I_НОР   = 14 + кол_ворот
+
+        ROWSPAN_H = [0, 1, 2, 3, 4, I_ПОП, I_ЛУЧ, I_МЕС, I_ОЧК, I_НОР]
+        ROWSPAN_D = [0, 1, 2, 3, 4, I_ЛУЧ, I_МЕС, I_ОЧК, I_НОР]
+
+        def _fill_поп(cs, рез, ш):
+            ст = (рез.кол_штраф_с10 or 0) * 10 + (рез.кол_штраф_старт or 0) * 50 if рез else 0
+            _fill(cs[I_СТАРТ], str(ст) if ст else '0', align=C)
+            for g in range(1, кол_ворот + 1):
+                v = ш.get(g, 0) if ш else 0
+                _fill(cs[I_ВОР0 + g - 1], str(v) if v else '0', align=C)
+            фш = (рез.кол_штраф_финиш or 0) * 50 if рез else 0
+            _fill(cs[I_ФИН], str(фш) if фш else '0', align=C)
+            if рез is None:
+                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], '–', align=C); _fill(cs[I_ИТ], '–', align=C)
+            elif рез.статус_попытки == 'НСТ':
+                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Не старт.', align=C); _fill(cs[I_ИТ], '–', align=C)
+            elif рез.статус_попытки == 'НФН':
+                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Не фин.', align=C); _fill(cs[I_ИТ], '–', align=C)
+            elif рез.статус_попытки == 'ПЛВ':
+                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Прев. ЛВ', align=C); _fill(cs[I_ИТ], '–', align=C)
+            elif рез.статус_попытки == 'ДК':
+                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
+                _fill(cs[I_ИТ], 'ДК', align=C, bold=True)
+            else:
+                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
+                _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True)
+
+        tbl = doc.add_table(rows=0, cols=NC)
+        _set_grid(tbl, GRID)
+        _tbl_w(tbl, TW)
+
+        # Header row 1
+        rh1 = tbl.add_row()
+        _row_h_min(rh1, 3.5)
+        cs = list(rh1.cells)
+        for i, w in enumerate(GRID):
+            _cw(cs[i], w)
+        _border_row(rh1)
+        cs[I_СТАРТ].merge(cs[I_ФИН])
+        cs[I_ШТ].merge(cs[I_ИТ])
+        p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C
+        _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
+        _valign(cs[0])
+        _fill(cs[1], 'Команда', align=C, bold=True)
+        _fill(cs[2], 'Номер', align=C, bold=True)
+        _fill(cs[3], 'Фамилия, имя, отчество участников', align=C, bold=True)
+        _fill(cs[4], 'Субъект РФ', align=C, bold=True)
+        _fill(cs[I_ПОП], 'Попытка', align=C, bold=True); _vert_cell(cs[I_ПОП])
+        _fill(cs[I_СТАРТ], 'Прохождение дистанции (штрафные баллы)', align=C, bold=True)
+        _fill(cs[I_ШТ], 'Результат попытки', align=C, bold=True)
+        _fill(cs[I_ЛУЧ], 'Результат лучшей попытки', align=C, bold=True)
+        _fill(cs[I_МЕС], 'Место', align=C, bold=True); _vert_cell(cs[I_МЕС])
+        _fill(cs[I_ОЧК], 'Очки', align=C, bold=True)
+        _fill(cs[I_НОР], 'Выполнение разряда', align=C, bold=True); _vert_cell(cs[I_НОР])
+        for col in ROWSPAN_H:
+            _vmerge_restart(cs[col])
+
+        # Header row 2 (vertical gate numbers)
+        rh2 = tbl.add_row()
+        _row_h_min(rh2, 3.0)
+        cs2 = list(rh2.cells)
+        for i, w in enumerate(GRID):
+            _cw(cs2[i], w)
+        _border_row(rh2)
+        for col in ROWSPAN_H:
+            _vmerge_cont(cs2[col])
+        _fill(cs2[I_СТАРТ], 'Старт', align=C, bold=True);  _vert_cell(cs2[I_СТАРТ])
+        for g in range(1, кол_ворот + 1):
+            _fill(cs2[I_ВОР0 + g - 1], str(g), align=C, bold=True)
+            _vert_cell(cs2[I_ВОР0 + g - 1])
+        _fill(cs2[I_ФИН], 'Финиш', align=C, bold=True);   _vert_cell(cs2[I_ФИН])
+        _fill(cs2[I_ШТ], 'Штраф', align=C, bold=True)
+        _fill(cs2[I_ВР], 'Время', align=C, bold=True)
+        _fill(cs2[I_ИТ], 'Итоговый', align=C, bold=True)
+
+        def _add_section(рез_list, без_list, разряды, поп, ш1_d, ш2_d, заг_пол):
+            if not рез_list and not без_list:
+                return
+            норм_флаг = (len(рез_list) + len(без_list)) >= 6
+            rg = tbl.add_row(); _row_h(rg, 0.6)
+            cg = list(rg.cells)
+            cg[0].merge(cg[NC - 1])
+            _border_row(rg)
+            _fill(list(rg.cells)[0], заг_пол, align=C, pt=9, bold=True)
+
+            idx = 0
+            for рез in рез_list:
+                к = рез.команда; idx += 1
+                р1 = поп.get(к.id, {}).get(1)
+                р2 = поп.get(к.id, {}).get(2)
+                _add_team_rows(к, idx, р1, р2, ш1_d.get(к.id, {}), ш2_d.get(к.id, {}),
+                               рез.лучший_результат, рез.место, рез.очки,
+                               разряды.get(к.id, '–') if норм_флаг else '–')
+            for рез_б in без_list:
+                к = рез_б.команда; idx += 1
+                р1 = поп.get(к.id, {}).get(1)
+                р2 = поп.get(к.id, {}).get(2)
+                _add_team_rows(к, idx, р1, р2, ш1_d.get(к.id, {}), ш2_d.get(к.id, {}),
+                               None, None, None, '–')
+
+        def _add_team_rows(к, пп, р1, р2, ш1, ш2, лучший, место, очки, норм):
+            спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+            фио = ', '.join(с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество)
+            rd1 = tbl.add_row(); rd2 = tbl.add_row()
+            _row_h(rd1, 0.55); _row_h(rd2, 0.55)
+            cd1 = list(rd1.cells); cd2 = list(rd2.cells)
+            for i, w in enumerate(GRID):
+                _cw(cd1[i], w); _cw(cd2[i], w)
+            _border_row(rd1); _border_row(rd2)
+            for col in ROWSPAN_D:
+                _vmerge_restart(cd1[col])
+                _vmerge_cont(cd2[col])
+            _fill(cd1[0], str(пп), align=C)
+            _fill(cd1[1], к.название or '—')
+            _fill(cd1[2], str(к.нагрудный_номер or ''), align=C)
+            _fill(cd1[3], фио, pt=7)
+            _fill(cd1[4], к.субъект.название if к.субъект else '—', pt=7)
+            _fill(cd1[I_ПОП], '1', align=C)
+            _fill(cd2[I_ПОП], '2', align=C)
+            _fill_поп(cd1, р1, ш1)
+            _fill_поп(cd2, р2, ш2)
+            _fill(cd1[I_ЛУЧ], _fmt_dur(лучший), align=C, bold=True)
+            _fill(cd1[I_МЕС], str(место) if место else '–', align=C, bold=True)
+            _fill(cd1[I_ОЧК], str(int(очки)) if очки else '–', align=C)
+            _fill(cd1[I_НОР], норм, align=C)
+
+        _add_section(муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2, 'Мужчины')
+        _add_section(жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2, 'Женщины')
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # FINAL PROTOCOL  (one row per team, no gate columns)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def _build_итог(doc):
+        GRID = [300, 1700, 450, 2700, 1200,
+                680, 520, 760,
+                680, 520, 760,
+                850, 360, 500, 850]
+        NC = len(GRID)
+        TW = sum(GRID)
+
+        def _init_r(row, borders=True):
+            cs = list(row.cells)
+            for i, w in enumerate(GRID):
+                _cw(cs[i], w)
+            if borders:
+                _border_row(row)
+            return cs
+
+        tbl = doc.add_table(rows=0, cols=NC)
+        _set_grid(tbl, GRID)
+        _tbl_w(tbl, TW)
+
+        rh1 = tbl.add_row(); _row_h_min(rh1, 1.0)
+        cs = _init_r(rh1)
+        cs[5].merge(cs[7])
+        cs[8].merge(cs[10])
+        p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C
+        _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True); _valign(cs[0])
+        _fill(cs[1], 'Команда', align=C, bold=True)
+        _fill(cs[2], 'Номер', align=C, bold=True)
+        _fill(cs[3], 'Состав', align=C, bold=True)
+        _fill(cs[4], 'Субъект РФ', align=C, bold=True)
+        _fill(cs[5], '1-я попытка', align=C, bold=True)
+        _fill(cs[8], '2-я попытка', align=C, bold=True)
+        _fill(cs[11], 'Лучшая попытка', align=C, bold=True)
+        _fill(cs[12], 'Место', align=C, bold=True)
+        _fill(cs[13], 'Очки', align=C, bold=True)
+        _fill(cs[14], 'Выполнение разряда', align=C, bold=True)
+        for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
+            _vmerge_restart(cs[col])
+
+        rh2 = tbl.add_row(); _row_h_min(rh2, 0.8)
+        cs2 = _init_r(rh2)
+        for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
+            _vmerge_cont(cs2[col])
+        for i, lbl in enumerate(['Время', 'Штраф', 'Результат', 'Время', 'Штраф', 'Результат']):
+            _fill(cs2[5 + i], lbl, align=C, bold=True)
+
+        def _поп_cells(cs, рез, base):
+            if рез is None:
+                for i in range(3): _fill(cs[base + i], '–', align=C)
+            elif рез.статус_попытки == 'НСТ':
+                _fill(cs[base], 'Не старт.', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], '–', align=C)
+            elif рез.статус_попытки == 'НФН':
+                _fill(cs[base], 'Не фин.', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], '–', align=C)
+            elif рез.статус_попытки == 'ПЛВ':
+                _fill(cs[base], '–', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], 'Прев. ЛВ', align=C)
+            elif рез.статус_попытки == 'ДК':
+                _fill(cs[base], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
+                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C)
+                _fill(cs[base+2], 'ДК', align=C, bold=True)
+            else:
+                _fill(cs[base], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
+                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C)
+                _fill(cs[base+2], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True)
+
+        def _add_sect(рез_list, без_list, разряды, поп, заг_пол):
+            if not рез_list and not без_list:
+                return
+            норм_флаг = (len(рез_list) + len(без_list)) >= 6
+            rg = tbl.add_row(); _row_h(rg, 0.6)
+            cg = list(rg.cells); cg[0].merge(cg[NC - 1])
+            _border_row(rg)
+            _fill(list(rg.cells)[0], заг_пол, align=C, pt=9, bold=True)
+            idx = 0
+            for is_без, entries in ((False, рез_list), (True, без_list)):
+                for рез in entries:
+                    к = рез.команда; idx += 1
+                    р1 = поп.get(к.id, {}).get(1)
+                    р2 = поп.get(к.id, {}).get(2)
+                    спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+                    состав = ', '.join(
+                        f'{с.фамилия_имя_отчество} ({с.дата_рождения.strftime("%d.%m.%Y") if с.дата_рождения else "б/д"}, {с.разряд or "б/р"})'
+                        for с in спортсмены
+                    )
+                    dr = tbl.add_row(); _row_h(dr, 0.55)
+                    cs = _init_r(dr)
+                    _fill(cs[0], str(idx), align=C)
+                    _fill(cs[1], к.название or '—')
+                    _fill(cs[2], str(к.нагрудный_номер or ''), align=C)
+                    _fill(cs[3], состав, pt=7)
+                    _fill(cs[4], к.субъект.название if к.субъект else '—', pt=7)
+                    _поп_cells(cs, р1, 5)
+                    _поп_cells(cs, р2, 8)
+                    if is_без:
+                        for i in range(11, 15): _fill(cs[i], '–', align=C)
+                    else:
+                        _fill(cs[11], _fmt_dur(рез.лучший_результат), align=C, bold=True)
+                        _fill(cs[12], str(рез.место), align=C, bold=True)
+                        _fill(cs[13], str(int(рез.очки)) if рез.очки else '–', align=C)
+                        _fill(cs[14], разряды.get(к.id, '–') if норм_флаг else '–', align=C)
+
+        _add_sect(муж_рез, муж_без, муж_разр, муж_поп, 'Мужчины')
+        _add_sect(жен_рез, жен_без, жен_разр, жен_поп, 'Женщины')
+
+    # ── Build document ────────────────────────────────────────────────────────
+
+    doc = Document()
+    sect = doc.sections[0]
+    sect.page_height   = Mm(210)
+    sect.page_width    = Mm(297)
+    sect.top_margin    = Mm(12)
+    sect.bottom_margin = Mm(10)
+    sect.left_margin   = Mm(7)
+    sect.right_margin  = Mm(5)
+
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    _add_doc_header(doc)
+    _para(doc)
+
+    if итоговый:
+        _build_итог(doc)
+    else:
+        _build_pred(doc)
+
+    _add_sigs(doc)
+
+    buf2 = BytesIO()
+    doc.save(buf2)
+    buf2.seek(0)
+    return send_file(buf2, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
