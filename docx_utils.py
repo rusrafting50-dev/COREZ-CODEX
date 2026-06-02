@@ -1485,6 +1485,8 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
         # ── Competition name ──
         _p(doc, сор.название or '', align=C, pt=14, bold=True)
 
+        _p(doc)  # empty line between name and date/venue table
+
         # ── Date / Venue table ──
         dv = doc.add_table(rows=2, cols=3)
         _tbl_width(dv, TW)
@@ -1496,11 +1498,11 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
             _cell_w(c, 0, 'auto')
         _no_wrap(c_d0)
         _no_wrap(c_v0)
-        _cell_borders(c_d0, bottom=4)
-        _cell_borders(c_v0, bottom=4)
+        _cell_borders(c_d0, bottom=3)
+        _cell_borders(c_v0, bottom=3)
         _cell_borders(c_s0)
         _cell_text(c_d0, сор.даты_проведения or '', align=C)
-        _cell_text(c_v0, сор.место_проведения or '', align=C)
+        _cell_text(c_v0, сор.место_проведения or '', align=WD_ALIGN_PARAGRAPH.RIGHT)
         _cell_text(c_s0, '')
 
         c_d1, c_s1, c_v1 = dv.rows[1].cells
@@ -1509,11 +1511,11 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
         _cell_w(c_v1, 11)
         _no_wrap(c_d1)
         _no_wrap(c_v1)
-        _cell_borders(c_d1, top=4)
-        _cell_borders(c_v1, top=4)
+        _cell_borders(c_d1, top=3)
+        _cell_borders(c_v1, top=3)
         _cell_borders(c_s1)
         _cell_text(c_d1, 'Дата проведения', align=C, pt=8)
-        _cell_text(c_v1, 'Место проведения', align=C, pt=8)
+        _cell_text(c_v1, 'Место проведения', align=WD_ALIGN_PARAGRAPH.RIGHT, pt=8)
         _cell_text(c_s1, '')
 
         _p(doc)  # empty line
