@@ -2221,13 +2221,19 @@ def create_старт_слалом_docx(сор, секции, filename):
         return ''
 
     def _vert_cell(cell):
-        """Vertical text top-to-bottom (tbRl), valign bottom, para centered."""
+        """Vertical text btLr (bottom-to-top rotation), valign bottom, para centered."""
         pr = _tcpr(cell)
-        td = pr.find(qn('w:textDirection'))
-        if td is None:
-            td = OxmlElement('w:textDirection')
+        # Remove any existing textDirection
+        for old in pr.findall(qn('w:textDirection')):
+            pr.remove(old)
+        td = OxmlElement('w:textDirection')
+        td.set(qn('w:val'), 'btLr')
+        # Must appear before w:vAlign in tcPr per OOXML spec
+        va = pr.find(qn('w:vAlign'))
+        if va is not None:
+            va.addprevious(td)
+        else:
             pr.append(td)
-        td.set(qn('w:val'), 'tbRl')
         _valign(cell, 'bottom')
         for p in cell.paragraphs:
             p.alignment = C
