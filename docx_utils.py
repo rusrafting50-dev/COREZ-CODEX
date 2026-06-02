@@ -944,20 +944,36 @@ def _apply_para_font_sizes(doc, size_map):
 
 
 def _apply_section_row_font_size(doc, section_row_texts, font_half_pts):
-    """Final-pass: force font size on every merged section-row cell.
-    Runs after all other post-processing so nothing can overwrite it."""
-    if not font_half_pts or not section_row_texts:
+    """Final-pass: force font size on merged section-row cells.
+
+    Detection uses structure, not text: a section-row has exactly ONE tc whose
+    gridSpan equals the table's total column count.  This is immune to any
+    Unicode / whitespace mismatch between the HTML and the converted DOCX.
+    Runs last so nothing else can overwrite the size.
+    """
+    if not font_half_pts:
         return
     for table in doc.tables:
-        for tr in table._tbl.findall(qn('w:tr')):
+        tbl = table._tbl
+        tbl_grid = tbl.find(qn('w:tblGrid'))
+        if tbl_grid is None:
+            continue
+        n_cols = len(tbl_grid.findall(qn('w:gridCol')))
+        if n_cols < 2:
+            continue
+        for tr in tbl.findall(qn('w:tr')):
             tcs = tr.findall(qn('w:tc'))
-            if not tcs:
+            if len(tcs) != 1:
                 continue
-            first_text = ''.join(
-                (t.text or '') for t in tcs[0].iter(qn('w:t'))
-            ).strip()
-            if first_text not in section_row_texts:
+            tcPr = tcs[0].find(qn('w:tcPr'))
+            if tcPr is None:
                 continue
+            gs = tcPr.find(qn('w:gridSpan'))
+            if gs is None:
+                continue
+            if int(gs.get(qn('w:val'), '1')) != n_cols:
+                continue
+            # This row spans all columns — it is a section-row merged cell
             for w_r in tcs[0].iter(qn('w:r')):
                 rPr = w_r.find(qn('w:rPr'))
                 if rPr is None:
@@ -1215,8 +1231,8 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     # 12. Remove trailing page-break paragraph (artifact when sig table is last element)
     _remove_trailing_page_break(doc)
 
-    # 13. Final-pass font size on section-row merged cells (runs after all other steps)
-    _apply_section_row_font_size(doc, section_row_texts, section_row_font_half_pts)
+    # 13. Final-pass font size on section-row merged cells (structure-based, not text-based)
+    _apply_section_row_font_size(doc, None, section_row_font_half_pts)
 
     buf = BytesIO()
     doc.save(buf)
