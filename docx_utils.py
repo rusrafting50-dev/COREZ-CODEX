@@ -410,7 +410,7 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
 
 # ─── Post-processing: date/place table borders and alignment ─────────────────
 
-def _post_process_date_place_tables(doc, border_size=6):
+def _post_process_date_place_tables(doc, border_size=6, bold=True):
     """
     Find date/place header tables by label text ('Дата проведения' / 'Место проведения')
     instead of column count, which is unreliable after direct XML edits.
@@ -476,7 +476,7 @@ def _post_process_date_place_tables(doc, border_size=6):
             except Exception:
                 pass
 
-        # Label row — first and last TC: top align, center, bold
+        # Label row — first and last TC: top align, center, bold (or explicit remove bold)
         label_tcs = trs[1].findall(qn('w:tc'))
         for tc in ([label_tcs[0], label_tcs[-1]] if len(label_tcs) >= 2 else label_tcs):
             tcPr = tc.find(qn('w:tcPr'))
@@ -495,16 +495,33 @@ def _post_process_date_place_tables(doc, border_size=6):
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception:
                 pass
-            # Bold via OOXML (more reliable than relying on htmldocx <b> handling)
             for w_r in tc.iter(qn('w:r')):
                 rPr = w_r.find(qn('w:rPr'))
                 if rPr is None:
                     rPr = OxmlElement('w:rPr')
                     w_r.insert(0, rPr)
-                if rPr.find(qn('w:b')) is None:
-                    rPr.append(OxmlElement('w:b'))
-                if rPr.find(qn('w:bCs')) is None:
-                    rPr.append(OxmlElement('w:bCs'))
+                if bold:
+                    if rPr.find(qn('w:b')) is None:
+                        rPr.append(OxmlElement('w:b'))
+                    if rPr.find(qn('w:bCs')) is None:
+                        rPr.append(OxmlElement('w:bCs'))
+                else:
+                    for tag in ('w:b', 'w:bCs'):
+                        el = rPr.find(qn(tag))
+                        if el is not None:
+                            rPr.remove(el)
+
+        # When bold=False also strip bold from value cells (may have been set by htmldocx)
+        if not bold:
+            for tc in [value_tcs[0], value_tcs[-1]]:
+                for w_r in tc.iter(qn('w:r')):
+                    rPr = w_r.find(qn('w:rPr'))
+                    if rPr is None:
+                        continue
+                    for tag in ('w:b', 'w:bCs'):
+                        el = rPr.find(qn(tag))
+                        if el is not None:
+                            rPr.remove(el)
 
 
 def _add_page_breaks_after_sig_tables(doc):
@@ -1077,7 +1094,7 @@ def _remove_leading_empty_paragraphs(doc, max_remove=5):
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
 
-def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
+def send_docx(html_string, filename, portrait=None, date_place_border_size=6, date_place_bold=True):
     # Detect page orientation from CSS (can be overridden by caller)
     if portrait is None:
         portrait = ('size: A4 portrait' in html_string or 'size:A4 portrait' in html_string)
@@ -1209,7 +1226,7 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6):
     _nowrap_cells_by_text(doc, {'Фамилия, имя, отчество участников', '№ п/п'})
 
     # 6. Post-process: date/place table — bottom-align value cells, border, noWrap
-    _post_process_date_place_tables(doc, border_size=date_place_border_size)
+    _post_process_date_place_tables(doc, border_size=date_place_border_size, bold=date_place_bold)
 
     # 6b. Signature tables: left-align + 2× row height
     _post_process_sig_tables(doc)
