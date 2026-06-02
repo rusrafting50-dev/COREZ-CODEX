@@ -1814,6 +1814,20 @@ def create_старт_спринт_docx(сор, группы, filename):
         el.set(qn('w:w'), str(TW))
         el.set(qn('w:type'), 'dxa')
 
+    def _row_h(row, cm):
+        """Set exact row height in cm."""
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(val))
+        trH.set(qn('w:hRule'), 'exact')
+
     def add_row(tbl):
         return tbl.add_row()
 
@@ -1859,8 +1873,9 @@ def create_старт_спринт_docx(сор, группы, filename):
         _tbl_w(tbl)
         _set_grid(tbl)
 
-        # Row 0 — date / venue values: bottom border only, no box
+        # Row 0 — date / venue values: bottom border only, no box, h=0.6cm
         r = add_row(tbl)
+        _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[1]);  _cw(cs[0], W01)
         cs[2].merge(cs[4]);  _cw(cs[2], W234)
@@ -1872,8 +1887,9 @@ def create_старт_спринт_docx(сор, группы, filename):
         _fill(cs[2], '')
         _fill(cs[5], сор.место_проведения or '', align=C, pt=10, bold=True)
 
-        # Row 1 — date / venue labels: no borders
+        # Row 1 — date / venue labels: no borders, h=0.6cm
         r = add_row(tbl)
+        _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[1]);  _cw(cs[0], W01)
         cs[2].merge(cs[4]);  _cw(cs[2], W234)
@@ -1909,6 +1925,7 @@ def create_старт_спринт_docx(сор, группы, filename):
                 continue
 
             r = add_row(tbl)
+            _row_h(r, 0.6)
             cs = list(r.cells)
             cs[0].merge(cs[NC - 1]);  _cw(cs[0], TW)
             _borders(cs[0])
@@ -1937,10 +1954,11 @@ def create_старт_спринт_docx(сор, группы, filename):
                 _fill(cs[6], str(к.стартовый_номер_спринт or ''),                align=C)
                 _fill(cs[7], время,                                               align=C)
 
-        # Signatures: no borders
+        # Signatures: no borders, h=1.2cm
         for pos, fio in (('Главный судья', сор.главный_судья or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
             r = add_row(tbl)
+            _row_h(r, 1.2)
             cs = list(r.cells)
             cs[0].merge(cs[3]);  _cw(cs[0], W0123)
             cs[4].merge(cs[7]);  _cw(cs[4], W4567)
