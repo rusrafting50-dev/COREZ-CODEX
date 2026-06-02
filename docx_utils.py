@@ -440,6 +440,15 @@ def _post_process_date_place_tables(doc, border_size=6):
             if tcPr is None:
                 tcPr = OxmlElement('w:tcPr')
                 tc.insert(0, tcPr)
+            # Replace any fixed tcW with type="auto" so Word sizes column to
+            # content — combined with noWrap this gives minimum width, no wrap
+            old_tcW = tcPr.find(qn('w:tcW'))
+            if old_tcW is not None:
+                tcPr.remove(old_tcW)
+            tcW = OxmlElement('w:tcW')
+            tcW.set(qn('w:w'), '0')
+            tcW.set(qn('w:type'), 'auto')
+            tcPr.append(tcW)
             if tcPr.find(qn('w:noWrap')) is None:
                 tcPr.append(OxmlElement('w:noWrap'))
             vAlign = tcPr.find(qn('w:vAlign'))
