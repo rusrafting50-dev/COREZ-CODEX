@@ -476,7 +476,7 @@ def _post_process_date_place_tables(doc, border_size=6):
             except Exception:
                 pass
 
-        # Label row — first and last TC: top align, center
+        # Label row — first and last TC: top align, center, bold
         label_tcs = trs[1].findall(qn('w:tc'))
         for tc in ([label_tcs[0], label_tcs[-1]] if len(label_tcs) >= 2 else label_tcs):
             tcPr = tc.find(qn('w:tcPr'))
@@ -495,6 +495,16 @@ def _post_process_date_place_tables(doc, border_size=6):
                     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             except Exception:
                 pass
+            # Bold via OOXML (more reliable than relying on htmldocx <b> handling)
+            for w_r in tc.iter(qn('w:r')):
+                rPr = w_r.find(qn('w:rPr'))
+                if rPr is None:
+                    rPr = OxmlElement('w:rPr')
+                    w_r.insert(0, rPr)
+                if rPr.find(qn('w:b')) is None:
+                    rPr.append(OxmlElement('w:b'))
+                if rPr.find(qn('w:bCs')) is None:
+                    rPr.append(OxmlElement('w:bCs'))
 
 
 def _add_page_breaks_after_sig_tables(doc):
