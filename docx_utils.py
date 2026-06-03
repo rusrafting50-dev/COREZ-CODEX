@@ -2005,8 +2005,8 @@ def create_старт_слалом_docx(сор, секции, filename):
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
-    # 12-column grid (dxa) from sample
-    GRID = [410, 1580, 137, 562, 3827, 997, 505, 452, 452, 452, 907, 915]
+    # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
+    GRID = [410, 1580, 137, 562, 4249, 997, 505, 452, 452, 452, 700, 700]
     NC   = len(GRID)
     TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
 
@@ -2351,6 +2351,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[4],  'Фамилия, имя, отчество участников',         align=C, pt=8, bold=True)
         _fill(cs[5],  'Территория',                                align=C, pt=8, bold=True)
         _fill(cs[7],  'Очки Многоборье',                           align=C, pt=8, bold=True)
+        _valign(cs[7], 'bottom')
         _fill(cs[10], 'Время\nпопытка 1',                          align=C, pt=8, bold=True)
         _fill(cs[11], 'Время\nпопытка 2',                          align=C, pt=8, bold=True)
         # All columns except Очки Многоборье span both header rows
