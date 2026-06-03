@@ -2162,6 +2162,12 @@ def create_старт_слалом_docx(сор, секции, filename):
             tblPr.append(el)
         el.set(qn('w:w'), str(TW))
         el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd')
+            tblPr.append(ind)
+        ind.set(qn('w:w'), '0')
+        ind.set(qn('w:type'), 'dxa')
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None:
             lay = OxmlElement('w:tblLayout')
@@ -2337,6 +2343,12 @@ def create_старт_слалом_docx(сор, секции, filename):
                 tblPr.append(el)
             el.set(qn('w:w'), str(sum(cols_w)))
             el.set(qn('w:type'), 'dxa')
+            ind = tblPr.find(qn('w:tblInd'))
+            if ind is None:
+                ind = OxmlElement('w:tblInd')
+                tblPr.append(ind)
+            ind.set(qn('w:w'), '0')
+            ind.set(qn('w:type'), 'dxa')
             lay = tblPr.find(qn('w:tblLayout'))
             if lay is None:
                 lay = OxmlElement('w:tblLayout')
