@@ -2165,7 +2165,11 @@ def create_старт_слалом_docx(сор, секции, filename):
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None:
             lay = OxmlElement('w:tblLayout')
-            tblPr.append(lay)
+            tblLook = tblPr.find(qn('w:tblLook'))
+            if tblLook is not None:
+                tblLook.addprevious(lay)
+            else:
+                tblPr.append(lay)
         lay.set(qn('w:type'), 'fixed')
 
     def _row_h(row, cm):
@@ -2329,7 +2333,11 @@ def create_старт_слалом_docx(сор, секции, filename):
             lay = tblPr.find(qn('w:tblLayout'))
             if lay is None:
                 lay = OxmlElement('w:tblLayout')
-                tblPr.append(lay)
+                tblLook = tblPr.find(qn('w:tblLook'))
+                if tblLook is not None:
+                    tblLook.addprevious(lay)
+                else:
+                    tblPr.append(lay)
             lay.set(qn('w:type'), 'fixed')
             for old in tbl.findall(qn('w:tblGrid')):
                 tbl.remove(old)
@@ -2390,7 +2398,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
         cs[7].merge(cs[9]);  _cw(cs[7], W_МБ)
         for i, w in enumerate(GRID):
-            if i not in (3, 6, 8, 9):
+            if i not in (2, 3, 5, 6, 7, 8, 9):
                 _cw(cs[i], w)
         border_row(r)
         # №\nп/п
@@ -2414,7 +2422,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
         for i, w in enumerate(GRID):
-            if i not in (3, 6):
+            if i not in (2, 3, 5, 6):
                 _cw(cs[i], w)
         border_row(r)
         _vmerge_cont(cs[0])
@@ -2442,7 +2450,7 @@ def create_старт_слалом_docx(сор, секции, filename):
             cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
             cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
             for i, w in enumerate(GRID):
-                if i not in (3, 6):
+                if i not in (2, 3, 5, 6):
                     _cw(cs[i], w)
             border_row(r)
 
