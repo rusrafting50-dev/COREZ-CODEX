@@ -2006,17 +2006,18 @@ def create_старт_слалом_docx(сор, секции, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
-    GRID = [410, 1580, 137, 562, 3689, 997, 505, 452, 452, 452, 980, 980]
+    # Visible ratios: 4/14/6/33/13/12/9/9 %
+    GRID = [448, 1567, 336, 336, 3694, 728, 727, 448, 448, 448, 1008, 1008]
     NC   = len(GRID)
     TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
 
     # Pre-computed merged widths
-    W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2127 cols 0-2
-    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 5248 cols 3-5
-    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 3821 cols 6-11
-    W_НОМ   = GRID[2]+GRID[3]                                        # 699  cols 2-3
-    W_ТЕРР  = GRID[5]+GRID[6]                                        # 1502 cols 5-6
-    W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1356 cols 7-9
+    W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2351 cols 0-2
+    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 4758 cols 3-5
+    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 4087 cols 6-11
+    W_НОМ   = GRID[2]+GRID[3]                                        # 672  cols 2-3
+    W_ТЕРР  = GRID[5]+GRID[6]                                        # 1455 cols 5-6
+    W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1344 cols 7-9
     W_SIG1  = 3905                                                    # signature left
     W_SIG2  = TW - W_SIG1                                            # signature right
 
@@ -2342,7 +2343,15 @@ def create_старт_слалом_docx(сор, секции, filename):
         def _sep():
             p = doc.add_paragraph()
             p.style = 'No Spacing'
-            _sp(p)
+            pPr = p._p.get_or_add_pPr()
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None:
+                sp = OxmlElement('w:spacing')
+                pPr.append(sp)
+            sp.set(qn('w:before'), '0')
+            sp.set(qn('w:after'), '0')
+            sp.set(qn('w:line'), '20')
+            sp.set(qn('w:lineRule'), 'exact')
             p.add_run().font.size = Pt(1)
 
         # ── Table A: date / venue (auto-sized rows) ───────────────────────────
