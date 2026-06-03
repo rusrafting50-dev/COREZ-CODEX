@@ -2006,18 +2006,18 @@ def create_старт_слалом_docx(сор, секции, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
-    # Visible ratios: 4/14/6/33/13/12/9/9 %
-    GRID = [448, 1567, 336, 336, 3694, 728, 727, 448, 448, 448, 1008, 1008]
+    # Visible ratios: 4/14/6/33/12/15/8/8 %
+    GRID = [448, 1567, 336, 336, 3693, 672, 672, 560, 560, 560, 896, 896]
     NC   = len(GRID)
     TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
 
     # Pre-computed merged widths
     W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2351 cols 0-2
-    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 4758 cols 3-5
-    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 4087 cols 6-11
+    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 4701 cols 3-5
+    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 4144 cols 6-11
     W_НОМ   = GRID[2]+GRID[3]                                        # 672  cols 2-3
-    W_ТЕРР  = GRID[5]+GRID[6]                                        # 1455 cols 5-6
-    W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1344 cols 7-9
+    W_ТЕРР  = GRID[5]+GRID[6]                                        # 1344 cols 5-6
+    W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1680 cols 7-9
     W_SIG1  = 3905                                                    # signature left
     W_SIG2  = TW - W_SIG1                                            # signature right
 
@@ -2305,11 +2305,19 @@ def create_старт_слалом_docx(сор, секции, filename):
                         _run(p, quoted, pt=10, bold=True)
             _para(doc)
 
-        _para(doc, сор.название or '', align=C, pt=12, bold=True)
-        _para(doc)
-        _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True)
-        _para(doc)
-        _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True)
+        def _spacing_15(p):
+            pPr = p._p.get_or_add_pPr()
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None:
+                sp = OxmlElement('w:spacing')
+                pPr.append(sp)
+            sp.set(qn('w:line'), '360')
+            sp.set(qn('w:lineRule'), 'auto')
+
+        p4 = doc.add_paragraph(); p4.style = 'No Spacing'; _sp(p4); p4.add_run().font.size = Pt(4)
+        p = _para(doc, сор.название or '', align=C, pt=12, bold=True); _spacing_15(p)
+        p = _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True); _spacing_15(p)
+        p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _spacing_15(p)
 
     def _add_table(doc, метка, команды, мб_колонки):
         # Pad/truncate мб_колонки to exactly 2 entries
@@ -2362,14 +2370,33 @@ def create_старт_слалом_docx(сор, секции, filename):
             sp.set(qn('w:lineRule'), 'exact')
             p.add_run().font.size = Pt(1)
 
-        # ── Table A: date / venue (auto-sized rows) ───────────────────────────
+        def _hdr_cell_margins(row, dxa=28):
+            for tc in row._tr.findall(qn('w:tc')):
+                pr = tc.find(qn('w:tcPr'))
+                if pr is None:
+                    pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+                for old in pr.findall(qn('w:tcMar')):
+                    pr.remove(old)
+                mar = OxmlElement('w:tcMar')
+                for side in ('left', 'right'):
+                    el = OxmlElement(f'w:{side}')
+                    el.set(qn('w:w'), str(dxa))
+                    el.set(qn('w:type'), 'dxa')
+                    mar.append(el)
+                pr.append(mar)
+
+        # ── Table A: date / venue (autofit columns to content) ───────────────
         tA = doc.add_table(rows=0, cols=3)
-        _set_fixed(tA, [W_DATE, W_MID, W_VENUE])
+        # Set total width = TW; let autofit size columns to text content
+        _tA = tA._tbl; _tApr = _tA.find(qn('w:tblPr'))
+        _el = _tApr.find(qn('w:tblW'))
+        if _el is None:
+            _el = OxmlElement('w:tblW'); _tApr.append(_el)
+        _el.set(qn('w:w'), str(TW)); _el.set(qn('w:type'), 'dxa')
 
         # Row 0 — date/venue values: bottom border only
         r = add_row(tA)
         cs = list(r.cells)
-        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
@@ -2378,7 +2405,6 @@ def create_старт_слалом_docx(сор, секции, filename):
         # Row 1 — date/venue labels: no borders
         r = add_row(tA)
         cs = list(r.cells)
-        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
@@ -2400,7 +2426,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         for i, w in enumerate(GRID):
             if i not in (2, 3, 5, 6, 7, 8, 9):
                 _cw(cs[i], w)
-        border_row(r)
+        border_row(r); _hdr_cell_margins(r)
         # №\nп/п
         p = cs[0].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p); p.alignment = C; _valign(cs[0])
         _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
@@ -2424,7 +2450,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         for i, w in enumerate(GRID):
             if i not in (2, 3, 5, 6):
                 _cw(cs[i], w)
-        border_row(r)
+        border_row(r); _hdr_cell_margins(r)
         _vmerge_cont(cs[0])
         _vmerge_cont(cs[1])
         _vmerge_cont(cs[2])
