@@ -2129,6 +2129,7 @@ def create_старт_слалом_docx(сор, секции, filename):
     def _fill(cell, text, align=None, pt=8, bold=False):
         p = cell.paragraphs[0]
         p.clear()
+        p.style = 'No Spacing'
         _sp(p)
         if align:
             p.alignment = align
@@ -2344,7 +2345,7 @@ def create_старт_слалом_docx(сор, секции, filename):
                 _cw(cs[i], w)
         border_row(r)
         # №\nп/п
-        p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
+        p = cs[0].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p); p.alignment = C; _valign(cs[0])
         _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
         _fill(cs[1],  'Команда',                                   align=C, pt=8, bold=True)
         _fill(cs[2],  'Номер',                                     align=C, pt=8, bold=True)
