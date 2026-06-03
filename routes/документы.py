@@ -427,12 +427,10 @@ def нагрудные_номера(sor_id):
 
 @bp_документы.route('/<int:sor_id>/нагрудные-номера/word')
 def нагрудные_номера_word(sor_id):
-    from docx_utils import send_docx
+    from docx_utils import create_нагрудные_номера_docx
     сор = Соревнование.query.get_or_404(sor_id)
     команды = _команды_сор(sor_id)
-    html = render_template('документы/нагрудные_номера.html',
-                           сор=сор, команды=команды, сегодня=date.today())
-    return send_docx(html, f'нагрудные_номера_{sor_id}.docx')
+    return create_нагрудные_номера_docx(сор, команды, f'нагрудные_номера_{sor_id}.docx')
 
 
 # ── Акт технической комиссии ────────────────────────────────────────────────
