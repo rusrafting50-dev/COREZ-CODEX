@@ -2161,6 +2161,11 @@ def create_старт_слалом_docx(сор, секции, filename):
             tblPr.append(el)
         el.set(qn('w:w'), str(TW))
         el.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None:
+            lay = OxmlElement('w:tblLayout')
+            tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
 
     def _row_h(row, cm):
         val = round(cm * 1440 / 2.54)
