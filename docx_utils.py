@@ -2303,7 +2303,6 @@ def create_старт_слалом_docx(сор, секции, filename):
                             _run(p, before, pt=10, bold=True)
                             _line_br(p)
                         _run(p, quoted, pt=10, bold=True)
-            _para(doc)
 
         def _spacing_15(p):
             pPr = p._p.get_or_add_pPr()
@@ -2385,18 +2384,14 @@ def create_старт_слалом_docx(сор, секции, filename):
                     mar.append(el)
                 pr.append(mar)
 
-        # ── Table A: date / venue (autofit columns to content) ───────────────
+        # ── Table A: date / venue (fixed width, same total as Table B) ─────────
         tA = doc.add_table(rows=0, cols=3)
-        # Set total width = TW; let autofit size columns to text content
-        _tA = tA._tbl; _tApr = _tA.find(qn('w:tblPr'))
-        _el = _tApr.find(qn('w:tblW'))
-        if _el is None:
-            _el = OxmlElement('w:tblW'); _tApr.append(_el)
-        _el.set(qn('w:w'), str(TW)); _el.set(qn('w:type'), 'dxa')
+        _set_fixed(tA, [W_DATE, W_MID, W_VENUE])
 
         # Row 0 — date/venue values: bottom border only
         r = add_row(tA)
         cs = list(r.cells)
+        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
@@ -2405,6 +2400,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         # Row 1 — date/venue labels: no borders
         r = add_row(tA)
         cs = list(r.cells)
+        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
