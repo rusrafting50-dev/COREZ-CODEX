@@ -2006,9 +2006,9 @@ def create_старт_слалом_docx(сор, секции, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
-    GRID = [410, 1580, 137, 562, 4249, 997, 505, 452, 452, 452, 960, 960]
+    GRID = [410, 1580, 137, 562, 4249, 997, 505, 452, 452, 452, 700, 700]
     NC   = len(GRID)
-    TW   = sum(GRID)   # 11516 dxa ≈ 203.2 mm
+    TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
 
     # Pre-computed merged widths
     W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2127 cols 0-2
@@ -2265,9 +2265,9 @@ def create_старт_слалом_docx(сор, секции, filename):
             va.addprevious(td)
         else:
             pr.append(td)
-        _valign(cell, 'center')
+        _valign(cell, 'bottom')
         for p in cell.paragraphs:
-            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # ── builders ──────────────────────────────────────────────────────────────
 
