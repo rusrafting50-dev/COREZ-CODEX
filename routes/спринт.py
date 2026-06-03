@@ -288,10 +288,10 @@ def протокол_старт_word(sor_id):
         # Each section gets its own protocol block
         группы = [[с] for с in секции]
     else:
-        # "Попарно": R4 sections → first protocol, R6 sections → second protocol
-        r4 = [с for с in секции if 'R4' in с[0]]
-        r6 = [с for с in секции if 'R6' in с[0]]
-        группы = [g for g in [r4, r6] if g]
+        # "Попарно": positions 0+1 → first block, 2+3 → second block (mirrors HTML template)
+        group1 = секции[:2]
+        group2 = секции[2:]
+        группы = [g for g in [group1, group2] if g]
     return create_старт_спринт_docx(сор, группы, f'протокол_старт_спринт_{sor_id}.docx')
 
 
