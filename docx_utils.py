@@ -2006,14 +2006,14 @@ def create_старт_слалом_docx(сор, секции, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
-    GRID = [410, 1580, 137, 562, 3609, 997, 505, 452, 452, 452, 1020, 1020]
+    GRID = [410, 1580, 137, 562, 3689, 997, 505, 452, 452, 452, 980, 980]
     NC   = len(GRID)
     TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
 
     # Pre-computed merged widths
     W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2127 cols 0-2
-    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 5168 cols 3-5
-    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 3901 cols 6-11
+    W_MID   = GRID[3]+GRID[4]+GRID[5]                               # 5248 cols 3-5
+    W_VENUE = GRID[6]+GRID[7]+GRID[8]+GRID[9]+GRID[10]+GRID[11]    # 3821 cols 6-11
     W_НОМ   = GRID[2]+GRID[3]                                        # 699  cols 2-3
     W_ТЕРР  = GRID[5]+GRID[6]                                        # 1502 cols 5-6
     W_МБ    = GRID[7]+GRID[8]+GRID[9]                                # 1356 cols 7-9
