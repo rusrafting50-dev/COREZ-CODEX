@@ -2307,37 +2307,72 @@ def create_старт_слалом_docx(сор, секции, filename):
         _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True)
 
     def _add_table(doc, метка, команды, мб_колонки):
-        тbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(тbl)
-        _set_grid(тbl)
-
         # Pad/truncate мб_колонки to exactly 2 entries
         кол1_заг  = мб_колонки[0]['заг']  if len(мб_колонки) > 0 else ''
         кол1_поле = мб_колонки[0]['поле'] if len(мб_колонки) > 0 else None
         кол2_заг  = мб_колонки[1]['заг']  if len(мб_колонки) > 1 else ''
         кол2_поле = мб_колонки[1]['поле'] if len(мб_колонки) > 1 else None
 
-        # Row 0 — date/venue values: bottom border only, h=0.6cm
-        r = add_row(тbl); _row_h(r, 0.6)
-        cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[6])
-        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], сор.место_проведения or '', align=C, pt=10, bold=True)
+        def _set_fixed(tbl_obj, cols_w):
+            tbl = tbl_obj._tbl
+            tblPr = tbl.find(qn('w:tblPr'))
+            if tblPr is None:
+                tblPr = OxmlElement('w:tblPr')
+                tbl.insert(0, tblPr)
+            el = tblPr.find(qn('w:tblW'))
+            if el is None:
+                el = OxmlElement('w:tblW')
+                tblPr.append(el)
+            el.set(qn('w:w'), str(sum(cols_w)))
+            el.set(qn('w:type'), 'dxa')
+            lay = tblPr.find(qn('w:tblLayout'))
+            if lay is None:
+                lay = OxmlElement('w:tblLayout')
+                tblPr.append(lay)
+            lay.set(qn('w:type'), 'fixed')
+            for old in tbl.findall(qn('w:tblGrid')):
+                tbl.remove(old)
+            grid = OxmlElement('w:tblGrid')
+            for w in cols_w:
+                gc = OxmlElement('w:gridCol')
+                gc.set(qn('w:w'), str(w))
+                grid.append(gc)
+            tblPr.addnext(grid)
 
-        # Row 1 — date/venue labels: no borders, h=0.6cm
-        r = add_row(тbl); _row_h(r, 0.6)
+        def _sep():
+            p = doc.add_paragraph()
+            p.style = 'No Spacing'
+            _sp(p)
+            p.add_run().font.size = Pt(1)
+
+        # ── Table A: date / venue (auto-sized rows) ───────────────────────────
+        tA = doc.add_table(rows=0, cols=3)
+        _set_fixed(tA, [W_DATE, W_MID, W_VENUE])
+
+        # Row 0 — date/venue values: bottom border only
+        r = add_row(tA)
         cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[6])
+        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        # Row 1 — date/venue labels: no borders
+        r = add_row(tA)
+        cs = list(r.cells)
+        _cw(cs[0], W_DATE); _cw(cs[1], W_MID); _cw(cs[2], W_VENUE)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], 'Место проведения', align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
+
+        _sep()
+
+        # ── Table B: headers + data (fixed layout) ────────────────────────────
+        тbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(тbl)
+        _set_grid(тbl)
 
         # Row 2 — header row 1 (Очки Многоборье merged over cols 7-9)
         r = add_row(тbl)
@@ -2358,8 +2393,8 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[5],  'Территория',                                align=C, pt=8, bold=True)
         _fill(cs[7],  'Очки Многоборье',                           align=C, pt=8, bold=True)
         _valign(cs[7], 'bottom')
-        _fill(cs[10], 'Время\nпопытка 1',                        align=C, pt=8, bold=True)
-        _fill(cs[11], 'Время\nпопытка 2',                        align=C, pt=8, bold=True)
+        _fill(cs[10], 'Время\nпопытка 1',                        align=C, pt=8, bold=True)
+        _fill(cs[11], 'Время\nпопытка 2',                        align=C, pt=8, bold=True)
         # All columns except Очки Многоборье span both header rows
         for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
             _vmerge_restart(cell)
@@ -2422,25 +2457,20 @@ def create_старт_слалом_docx(сор, секции, filename):
             _fill(cs[10], _time(к, 1),                                    align=C)
             _fill(cs[11], _time(к, 2),                                    align=C)
 
-        # Signature rows (no borders, h=1.2cm), 2 merged columns
+        _sep()
+
+        # ── Table C: signatures (auto-sized rows) ─────────────────────────────
+        tC = doc.add_table(rows=0, cols=2)
+        _set_fixed(tC, [W_SIG1, W_SIG2])
+
         for pos, fio in (('Главный судья', сор.главный_судья or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = add_row(тbl); _row_h(r, 1.2)
+            r = add_row(tC); _row_h_min(r, 1.2)
             cs = list(r.cells)
-            # Merge to match signature table grid [3905, 7291]
-            # Find split point: sum GRID until ≥ W_SIG1
-            acc = 0
-            split = 0
-            for idx, w in enumerate(GRID):
-                acc += w
-                if acc >= W_SIG1:
-                    split = idx
-                    break
-            cs[0].merge(cs[split]);      _cw(cs[0], W_SIG1)
-            cs[split+1].merge(cs[NC-1]); _cw(cs[split+1], W_SIG2)
-            _no_border(cs[0]); _no_border(cs[split+1])
-            _fill(cs[0],       pos, pt=10)
-            _fill(cs[split+1], fio, pt=10)
+            _cw(cs[0], W_SIG1); _cw(cs[1], W_SIG2)
+            _no_border(cs[0]); _no_border(cs[1])
+            _fill(cs[0], pos, pt=10)
+            _fill(cs[1], fio, pt=10)
 
     # ── document ──────────────────────────────────────────────────────────────
 
