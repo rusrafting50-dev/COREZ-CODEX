@@ -2195,6 +2195,23 @@ def create_старт_слалом_docx(сор, секции, filename):
         for cell in row.cells:
             _borders(cell, sz)
 
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')):
+            pr.remove(old)
+        vm = OxmlElement('w:vMerge')
+        vm.set(qn('w:val'), 'restart')
+        pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')):
+            pr.remove(old)
+        vm = OxmlElement('w:vMerge')
+        pr.append(vm)
+        for para in cell.paragraphs:
+            para.clear()
+
     # ── score helpers ─────────────────────────────────────────────────────────
 
     def _fmt_score(v):
@@ -2336,6 +2353,9 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[7],  'Очки Многоборье',                           align=C, pt=8, bold=True)
         _fill(cs[10], 'Время\nпопытка 1',                          align=C, pt=8, bold=True)
         _fill(cs[11], 'Время\nпопытка 2',                          align=C, pt=8, bold=True)
+        # All columns except Очки Многоборье span both header rows
+        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
+            _vmerge_restart(cell)
 
         # Row 3 — header row 2 (Очки sub-split, Номер and Территория still merged)
         r = add_row(тbl); _row_h_min(r, 3.0)
@@ -2346,16 +2366,16 @@ def create_старт_слалом_docx(сор, секции, filename):
             if i not in (3, 6):
                 _cw(cs[i], w)
         border_row(r)
-        _fill(cs[0],  '',                align=C, pt=8, bold=True)
-        _fill(cs[1],  '',                align=C, pt=8, bold=True)
-        _fill(cs[2],  '',                align=C, pt=8, bold=True)
-        _fill(cs[4],  '',                align=C, pt=8, bold=True)
-        _fill(cs[5],  '',                align=C, pt=8, bold=True)
+        _vmerge_cont(cs[0])
+        _vmerge_cont(cs[1])
+        _vmerge_cont(cs[2])
+        _vmerge_cont(cs[4])
+        _vmerge_cont(cs[5])
         _fill(cs[7],  кол1_заг, align=C, pt=7, bold=True); _vert_cell(cs[7])
         _fill(cs[8],  кол2_заг, align=C, pt=7, bold=True); _vert_cell(cs[8])
         _fill(cs[9],  'Сумма',  align=C, pt=7, bold=True); _vert_cell(cs[9])
-        _fill(cs[10], '',                align=C, pt=8, bold=True)
-        _fill(cs[11], '',                align=C, pt=8, bold=True)
+        _vmerge_cont(cs[10])
+        _vmerge_cont(cs[11])
 
         # Section header row — all cols merged, h=0.6cm
         r = add_row(тbl); _row_h(r, 0.6)
