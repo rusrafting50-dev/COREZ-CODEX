@@ -1665,7 +1665,7 @@ def create_старт_спринт_docx(сор, группы, filename, порт
 
     # Main-table column proportions 4/19/6/37/13/13/8
     # ФИО (37 %) is split evenly across two grid columns (3 and 4)
-    _PCTS = [4, 19, 6, 18.5, 18.5, 13, 13, 8]   # sum = 100
+    _PCTS = [5, 19, 7, 18.5, 18.5, 13, 11, 8]   # sum = 100
     GRID  = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)                    # fix rounding remainder
     NC    = len(GRID)
