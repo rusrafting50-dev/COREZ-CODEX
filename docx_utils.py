@@ -1907,33 +1907,51 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         p2 = _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True);            _ls15(p2)
         p3 = _para(doc, 'Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True); _ls15(p3)
 
+    def _make_tbl(ncols):
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
+
+    def _set_grid_sp(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        old = tbl.find(qn('w:tblGrid'))
+        if old is not None: tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(grid)
+        else: tbl.insert(0, grid)
+
+    def _tiny_para_sp():
+        p = doc.add_paragraph()
+        p.style = 'No Spacing'
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
+
     def _add_table(doc, секции):
         """Add the start protocol table for one group of sections."""
 
         # ── Header table (date/location) ──────────────────────────────────────
-        # Separate 3-col table so its right border is independent from data cols
-        hdr = doc.add_table(rows=0, cols=3)
-        hpr = hdr._tbl.find(qn('w:tblPr'))
-        if hpr is None:
-            hpr = OxmlElement('w:tblPr'); hdr._tbl.insert(0, hpr)
-        for s in hpr.findall(qn('w:tblStyle')): hpr.remove(s)
-        for tl in hpr.findall(qn('w:tblLook')): hpr.remove(tl)
-        htw = hpr.find(qn('w:tblW'))
-        if htw is None:
-            htw = OxmlElement('w:tblW'); hpr.append(htw)
-        htw.set(qn('w:w'), str(TW)); htw.set(qn('w:type'), 'dxa')
-        hind = hpr.find(qn('w:tblInd'))
-        if hind is None:
-            hind = OxmlElement('w:tblInd'); hpr.append(hind)
-        hind.set(qn('w:w'), '0'); hind.set(qn('w:type'), 'dxa')
-        htl = hpr.find(qn('w:tblLayout'))
-        if htl is None:
-            htl = OxmlElement('w:tblLayout'); hpr.append(htl)
-        htl.set(qn('w:type'), 'fixed')
-        hgr = OxmlElement('w:tblGrid')
-        for w in (W01, HDR_MID, HDR_LOC):
-            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); hgr.append(gc)
-        hpr.addnext(hgr)
+        hdr = _make_tbl(3)
+        _set_grid_sp(hdr, [W01, HDR_MID, HDR_LOC])
 
         # Row 0 — date/location values
         r = add_row(hdr); _row_h(r, 0.6)
@@ -1953,22 +1971,10 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
-        # Minimize the auto-paragraph python-docx inserts between tables
-        p_sep = doc.add_paragraph()
-        p_sep.paragraph_format.space_before = Pt(0)
-        p_sep.paragraph_format.space_after  = Pt(0)
-        pPr = p_sep._p.get_or_add_pPr()
-        sp = OxmlElement('w:spacing')
-        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
-        sp.set(qn('w:line'), '20');  sp.set(qn('w:lineRule'), 'exact')
-        pPr.append(sp)
-        rPr = OxmlElement('w:rPr')
-        sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '2'); rPr.append(sz)
-        pPr.append(rPr)
+        _tiny_para_sp()
 
-        # ── Data table (column headers + sections + signatures) ───────────────
-        tbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(tbl)
+        # ── Data table (column headers + sections) ────────────────────────────
+        tbl = _make_tbl(NC)
         _set_grid(tbl)
 
         # Column headers: full borders
@@ -2026,17 +2032,20 @@ def create_старт_спринт_docx(сор, группы, filename, порт
                 _fill(cs[6], str(к.стартовый_номер_спринт or ''),                align=C)
                 _fill(cs[7], время,                                               align=C)
 
-        # Signatures: no borders, h=1.2cm
+        # ── Подписи — отдельная таблица 1:2 ─────────────────────────────────
+        _tiny_para_sp()
+        W_SIG_L = TW // 3
+        W_SIG_R = TW - W_SIG_L
+        sig = _make_tbl(2)
+        _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
         for pos, fio in (('Главный судья', сор.главный_судья or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = add_row(tbl)
-            _row_h(r, 1.2)
+            r = add_row(sig); _row_h(r, 1.2)
             cs = list(r.cells)
-            cs[0].merge(cs[3]);  _cw(cs[0], W0123)
-            cs[4].merge(cs[7]);  _cw(cs[4], W4567)
-            _no_border(cs[0]); _no_border(cs[4])
+            _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+            _no_border(cs[0]); _no_border(cs[1])
             _fill(cs[0], pos, pt=10)
-            _fill(cs[4], fio, pt=10)
+            _fill(cs[1], fio, pt=10)
 
     # ── document ──────────────────────────────────────────────────────────────
 
