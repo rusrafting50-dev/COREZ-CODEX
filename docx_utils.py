@@ -2510,24 +2510,13 @@ def create_старт_слалом_docx(сор, секции, filename):
 
 
 def create_старт_дг_docx(сор, секции, filename):
-    """Стартовый протокол Длинной гонки – та же форма, что и у Слалома."""
+    """Стартовый протокол Длинной гонки — динамическая сетка, все МБ-колонки, Очередь."""
     from docx.shared import Mm, Pt
 
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
-    GRID    = [448, 1567, 336, 336, 3693, 672, 672, 560, 560, 560, 896, 896]
-    NC      = len(GRID)
-    TW      = sum(GRID)
-    W_DATE  = GRID[0] + GRID[1] + GRID[2]
-    W_MID   = GRID[3] + GRID[4] + GRID[5]
-    W_VENUE = GRID[6] + GRID[7] + GRID[8] + GRID[9] + GRID[10] + GRID[11]
-    W_НОМ   = GRID[2] + GRID[3]
-    W_ТЕРР  = GRID[5] + GRID[6]
-    W_МБ    = GRID[7] + GRID[8] + GRID[9]
-    W_TIME  = GRID[10] + GRID[11]          # единственная колонка «Время старта»
-    W_SIG_L = sum(GRID[:5])
-    W_SIG_R = TW - W_SIG_L
+    TW = 11196   # total table width dxa (≈ 197.5 mm at A4 portrait with 12 mm margins)
 
     def _sp(p):
         p.paragraph_format.space_before = Pt(0)
@@ -2637,13 +2626,13 @@ def create_старт_дг_docx(сор, секции, filename):
         if text:
             _run(p, text, pt, bold)
 
-    def _set_grid(tbl):
+    def _set_grid(tbl, grid_list):
         tbl_el = tbl._tbl
         old = tbl_el.find(qn('w:tblGrid'))
         if old is not None:
             tbl_el.remove(old)
         grid = OxmlElement('w:tblGrid')
-        for w in GRID:
+        for w in grid_list:
             gc = OxmlElement('w:gridCol')
             gc.set(qn('w:w'), str(w))
             grid.append(gc)
@@ -2803,12 +2792,30 @@ def create_старт_дг_docx(сор, секции, filename):
         p = _para(doc, 'Группа спортивных дисциплин ДЛИННАЯ ГОНКА', align=C, pt=10, bold=True); _spacing_15(p)
 
     def _add_table(doc, метка, команды, мб_колонки):
-        кол1_заг  = мб_колонки[0]['заг']  if len(мб_колонки) > 0 else ''
-        кол1_поле = мб_колонки[0]['поле'] if len(мб_колонки) > 0 else None
-        кол2_заг  = мб_колонки[1]['заг']  if len(мб_колонки) > 1 else ''
-        кол2_поле = мб_колонки[1]['поле'] if len(мб_колонки) > 1 else None
+        N = len(мб_колонки)
+        один_без_суммы = (N == 1)
 
-        def _hdr_cell_margins(row, dxa=28):
+        # ── Dynamic column widths ──────────────────────────────────────────────
+        W_НПП  = 448;  W_КОМ  = 1567; W_НОМ  = 672
+        W_ТЕРР = 1200; W_ОЧ   = 560;  W_ВС   = 900; W_МБ = 560
+        W_ФИО  = TW - W_НПП - W_КОМ - W_НОМ - W_ТЕРР - N * W_МБ - W_ОЧ - W_ВС
+        NC     = 7 + N
+        GRID   = [W_НПП, W_КОМ, W_НОМ, W_ФИО, W_ТЕРР] + [W_МБ] * N + [W_ОЧ, W_ВС]
+
+        # Column indices
+        I_НПП = 0; I_КОМ = 1; I_НОМ = 2; I_ФИО = 3; I_ТЕРР = 4
+        I_МБ0 = 5; I_ОЧ = 5 + N; I_ВС = 6 + N
+
+        # Date/venue layout widths
+        W_DATE = W_НПП + W_КОМ + W_НОМ          # cols 0-2
+        W_MID  = W_ФИО                            # col 3 (spacer)
+        W_VEN  = TW - W_DATE - W_MID             # cols 4..NC-1
+
+        # Signature split: left = cols 0-4, right = rest
+        W_SIG_L = W_НПП + W_КОМ + W_НОМ + W_ФИО + W_ТЕРР
+        W_SIG_R = TW - W_SIG_L
+
+        def _hdr_margins(row, dxa=28):
             for tc in row._tr.findall(qn('w:tc')):
                 pr = tc.find(qn('w:tcPr'))
                 if pr is None:
@@ -2821,120 +2828,132 @@ def create_старт_дг_docx(сор, секции, filename):
                     mar.append(el)
                 pr.append(mar)
 
-        тbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(тbl); _set_grid(тbl)
+        def _mb_margins(cell):
+            pr = _tcpr(cell)
+            for old in pr.findall(qn('w:tcMar')): pr.remove(old)
+            mar = OxmlElement('w:tcMar')
+            for side in ('left', 'right'):
+                el = OxmlElement(f'w:{side}')
+                el.set(qn('w:w'), '108'); el.set(qn('w:type'), 'dxa')
+                mar.append(el)
+            pr.append(mar)
 
-        # Date / venue row 0
+        тbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(тbl); _set_grid(тbl, GRID)
+
+        # ── Date / venue row 0 ────────────────────────────────────────────────
         r = тbl.add_row(); cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[6])
+        cs[0].merge(cs[2]);        _cw(cs[0], W_DATE)
+        _cw(cs[3], W_MID)
+        cs[4].merge(cs[NC - 1]);   _cw(cs[4], W_VEN)
+        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[4])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[3], '')
-        _fill(cs[6], сор.место_проведения or '', align=C, pt=10, bold=True)
+        _fill(cs[4], сор.место_проведения or '', align=C, pt=10, bold=True)
 
-        # Date / venue row 1
+        # ── Date / venue row 1 ────────────────────────────────────────────────
         r = тbl.add_row(); cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[6])
+        cs[0].merge(cs[2]);        _cw(cs[0], W_DATE)
+        _cw(cs[3], W_MID)
+        cs[4].merge(cs[NC - 1]);   _cw(cs[4], W_VEN)
+        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[4])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[3], '')
-        _fill(cs[6], 'Место проведения', align=C, pt=8, bold=True)
+        _fill(cs[4], 'Место проведения', align=C, pt=8, bold=True)
 
-        # Header row 1
+        # ── Header row 1 ─────────────────────────────────────────────────────
         r = тbl.add_row(); cs = list(r.cells)
-        cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
-        cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
-        cs[7].merge(cs[9]);  _cw(cs[7], W_МБ)
-        cs[10].merge(cs[11]); _cw(cs[10], W_TIME)
-        for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6, 7, 8, 9, 10, 11):
-                _cw(cs[i], w)
-        border_row(r); _hdr_cell_margins(r)
-        p = cs[0].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p); p.alignment = C; _valign(cs[0])
+        for i, w in enumerate(GRID): _cw(cs[i], w)
+        border_row(r); _hdr_margins(r)
+
+        p = cs[I_НПП].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
+        p.alignment = C; _valign(cs[I_НПП])
         _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
-        _fill(cs[1],  'Команда',                           align=C, pt=8, bold=True)
-        _fill(cs[2],  'Номер',                             align=C, pt=8, bold=True)
-        _fill(cs[4],  'Фамилия, имя, отчество участников', align=C, pt=8, bold=True)
-        _fill(cs[5],  'Территория',                        align=C, pt=8, bold=True)
-        _fill(cs[7],  'Очки Многоборье',                   align=C, pt=8, bold=True)
-        _valign(cs[7], 'bottom')
-        _fill(cs[10], 'Время\nстарта',                     align=C, pt=8, bold=True)
-        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10]]:
+        _fill(cs[I_КОМ],  'Команда',                           align=C, pt=8, bold=True)
+        _fill(cs[I_НОМ],  'Номер',                             align=C, pt=8, bold=True)
+        _fill(cs[I_ФИО],  'Фамилия, имя, отчество участников', align=C, pt=8, bold=True)
+        _fill(cs[I_ТЕРР], 'Территория',                        align=C, pt=8, bold=True)
+        _fill(cs[I_ОЧ],   'Очередь\nвыбора\nпозиции',         align=C, pt=8, bold=True)
+        _fill(cs[I_ВС],   'Время\nстарта',                    align=C, pt=8, bold=True)
+
+        for cell in [cs[I_НПП], cs[I_КОМ], cs[I_НОМ], cs[I_ФИО], cs[I_ТЕРР], cs[I_ОЧ], cs[I_ВС]]:
             _vmerge_restart(cell)
 
-        # Header row 2
-        _h2 = max(len(кол1_заг), len(кол2_заг), len('Сумма')) * 0.13 + 0.1
-        r = тbl.add_row(); _row_h_min(r, max(1.0, _h2))
-        cs = list(r.cells)
-        cs[2].merge(cs[3]);   _cw(cs[2],  W_НОМ)
-        cs[5].merge(cs[6]);   _cw(cs[5],  W_ТЕРР)
-        cs[10].merge(cs[11]); _cw(cs[10], W_TIME)
-        for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6, 10, 11):
-                _cw(cs[i], w)
-        border_row(r); _hdr_cell_margins(r)
-        _vmerge_cont(cs[0]); _vmerge_cont(cs[1]); _vmerge_cont(cs[2])
-        _vmerge_cont(cs[4]); _vmerge_cont(cs[5])
-        _fill(cs[7], кол1_заг, align=C, pt=7, bold=True); _vert_cell(cs[7])
-        _fill(cs[8], кол2_заг, align=C, pt=7, bold=True); _vert_cell(cs[8])
-        _fill(cs[9], 'Сумма',  align=C, pt=7, bold=True); _vert_cell(cs[9])
-        for _vc in (cs[7], cs[8], cs[9]):
-            _pr = _tcpr(_vc)
-            for _old in _pr.findall(qn('w:tcMar')): _pr.remove(_old)
-            _mar = OxmlElement('w:tcMar')
-            for _side in ('left', 'right'):
-                _el = OxmlElement(f'w:{_side}')
-                _el.set(qn('w:w'), '108'); _el.set(qn('w:type'), 'dxa')
-                _mar.append(_el)
-            _pr.append(_mar)
-        _vmerge_cont(cs[10])
+        if N == 0:
+            pass   # no MB section
+        elif один_без_суммы:
+            # Single MB cell rowspan=2: "Очки\nМногоборье\n{дисц}"
+            _fill(cs[I_МБ0],
+                  f'Очки\nМного-\nборье\n{мб_колонки[0]["заг"]}',
+                  align=C, pt=7, bold=True)
+            _vmerge_restart(cs[I_МБ0])
+        else:
+            # Merged MB header spanning N columns
+            if N > 1:
+                cs[I_МБ0].merge(cs[I_ОЧ - 1])
+            _cw(cs[I_МБ0], N * W_МБ)
+            _fill(cs[I_МБ0], 'Очки Многоборье', align=C, pt=8, bold=True)
+            _valign(cs[I_МБ0], 'bottom')
 
-        # Section header
+        # ── Header row 2 ─────────────────────────────────────────────────────
+        if N > 1:
+            _h2 = max(len(к['заг']) for к in мб_колонки) * 0.13 + 0.1
+            r = тbl.add_row(); _row_h_min(r, max(1.0, _h2))
+        else:
+            r = тbl.add_row()
+        cs = list(r.cells)
+        for i, w in enumerate(GRID): _cw(cs[i], w)
+
+        for i in [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_ТЕРР, I_ОЧ, I_ВС]:
+            _vmerge_cont(cs[i])
+
+        if N == 0:
+            pass
+        elif один_без_суммы:
+            _vmerge_cont(cs[I_МБ0])
+        else:
+            border_row(r); _hdr_margins(r)
+            for j, кол in enumerate(мб_колонки):
+                ci = I_МБ0 + j
+                _fill(cs[ci], кол['заг'], align=C, pt=7, bold=True)
+                _vert_cell(cs[ci]); _mb_margins(cs[ci])
+
+        # ── Section header ────────────────────────────────────────────────────
         r = тbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0])
         _fill(cs[0], метка, align=C, pt=9, bold=True)
 
-        # Data rows
+        # ── Data rows ─────────────────────────────────────────────────────────
         for пп, к in enumerate(команды, 1):
             r = тbl.add_row(); cs = list(r.cells)
-            cs[2].merge(cs[3]);   _cw(cs[2],  W_НОМ)
-            cs[5].merge(cs[6]);   _cw(cs[5],  W_ТЕРР)
-            cs[10].merge(cs[11]); _cw(cs[10], W_TIME)
-            for i, w in enumerate(GRID):
-                if i not in (2, 3, 5, 6, 10, 11):
-                    _cw(cs[i], w)
+            for i, w in enumerate(GRID): _cw(cs[i], w)
             border_row(r)
             спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
             фио = ', '.join(с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество)
-            s1 = _score(к, кол1_поле) if кол1_поле else ''
-            s2 = _score(к, кол2_поле) if кол2_поле else ''
-            sm = _sum_scores(к, мб_колонки)
-            _fill(cs[0],  str(пп),                                      align=C)
-            _fill(cs[1],  к.название or '—')
-            _fill(cs[2],  str(к.нагрудный_номер or ''),                 align=C)
-            _fill(cs[4],  фио)
-            _fill(cs[5],  к.субъект.название if к.субъект else '—')
-            _fill(cs[7],  s1,             align=C)
-            _fill(cs[8],  s2,             align=C)
-            _fill(cs[9],  sm,             align=C)
-            _fill(cs[10], _time_старт(к), align=C)
+            _fill(cs[I_НПП],  str(пп),                                     align=C)
+            _fill(cs[I_КОМ],  к.название or '—')
+            _fill(cs[I_НОМ],  str(к.нагрудный_номер or ''),                align=C)
+            _fill(cs[I_ФИО],  фио)
+            _fill(cs[I_ТЕРР], к.субъект.название if к.субъект else '—')
+            for j, кол in enumerate(мб_колонки):
+                ci = I_МБ0 + j
+                val = _sum_scores(к, мб_колонки) if not кол.get('поле') else _score(к, кол['поле'])
+                _fill(cs[ci], val, align=C)
+            _fill(cs[I_ОЧ],  str(пп),         align=C)
+            _fill(cs[I_ВС],  _time_старт(к),  align=C)
 
-        # Signatures
+        # ── Signatures ────────────────────────────────────────────────────────
         for pos, fio in (('Главный судья',    сор.главный_судья     or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
             r = тbl.add_row(); _row_h_min(r, 1.2)
             cs = list(r.cells)
-            cs[0].merge(cs[4]);  _cw(cs[0], W_SIG_L)
-            cs[5].merge(cs[11]); _cw(cs[5], W_SIG_R)
-            _no_border(cs[0]); _no_border(cs[5])
+            cs[0].merge(cs[I_ТЕРР]);  _cw(cs[0], W_SIG_L)
+            cs[I_МБ0].merge(cs[NC - 1]); _cw(cs[I_МБ0], W_SIG_R)
+            _no_border(cs[0]); _no_border(cs[I_МБ0])
             _fill(cs[0], pos, pt=10)
-            _fill(cs[5], fio, pt=10)
+            _fill(cs[I_МБ0], fio, pt=10)
 
     doc  = Document()
     sect = doc.sections[0]
