@@ -1660,7 +1660,8 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    GRID  = [675, 1843, 808,  464,  464, 1370, 1387, 3586]  # W34 ↔ GRID[7] swapped
+    # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa
+    GRID  = [636, 2012, 742, 1802, 1801, 1378, 1378, 848]
     NC    = len(GRID)
     TW    = sum(GRID)
 
@@ -1671,10 +1672,9 @@ def create_старт_спринт_docx(сор, группы, filename):
     W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
     W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
 
-    # Header table (дата/место) keeps the ORIGINAL column proportions
-    # so that «Место проведения» doesn't expand to fill the new GRID[7] width
-    HDR_MID = 4394   # original W234 = cols 2+3+4
-    HDR_LOC = 3685   # original W567 = cols 5+6+7
+    # Header table (дата/место) columns — derived from GRID for consistency
+    HDR_MID = W234
+    HDR_LOC = W567
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
