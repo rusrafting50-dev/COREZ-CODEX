@@ -80,11 +80,7 @@
         {% endif %}
         <td class="text-center align-middle">{{ уч.позиция }}</td>
         <td colspan="2" class="align-middle">
-          {% if уч.команда %}
-          {{ уч.команда.название or '—' }}
-          {% else %}
-          <span class="fst-italic">{{ уч.метка or 'Ожидается' }}</span>
-          {% endif %}
+          {{ уч.команда.название if уч.команда else '' }}
         </td>
         <td class="text-center align-middle">{{ уч.команда.нагрудный_номер if уч.команда else '' }}</td>
         {% if i == 0 %}
@@ -99,10 +95,8 @@
     </tbody>
   </table>
 </div>
-{% endfor %}
 
-{% if секции %}
-<table class="table table-sm table-borderless mt-2" style="width:auto">
+<table class="table table-sm table-borderless mb-0" style="width:auto">
   <tbody>
     {% for роль, инфо in судьи %}
     <tr>
@@ -112,6 +106,10 @@
     {% endfor %}
   </tbody>
 </table>
+
+{% if not loop.last %}
+<div style="page-break-after: always;"></div>
 {% endif %}
+{% endfor %}
 
 {% endblock %}
