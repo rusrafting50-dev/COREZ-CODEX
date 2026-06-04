@@ -2994,10 +2994,14 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
-    # 10-column grid (dxa) — A4 landscape, L=15mm R=10mm → usable ≈ 272mm = 15420 dxa
-    GRID = [1200, 900, 2500, 1860, 1860, 1200, 1500, 1500, 900, 2000]
+    # 10-column grid (dxa)
+    # A4 landscape L=15 R=10 → usable 272mm = 15420 dxa
+    # A4 portrait  L=15 R=10 → usable 185mm = 10488 dxa  (proportional scale ≈ 0.68)
+    _LANDSCAPE = [1200, 900, 2500, 1860, 1860, 1200, 1500, 1500, 900, 2000]
+    _PORTRAIT  = [ 816, 613, 1701, 1263, 1263,  816, 1021, 1021, 613, 1361]
+    GRID = _PORTRAIT if portrait else _LANDSCAPE
     NC   = len(GRID)
-    TW   = sum(GRID)   # 15420 dxa ≈ 272 mm
+    TW   = sum(GRID)
 
     I_СТ, I_ЗН, I_ПО = 0, 1, 2
     I_К1, I_К2, I_НО = 3, 4, 5
@@ -3208,10 +3212,10 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
             _cw(cs[i], w)
         _fill(cs[I_СТ], 'Стадия',                       align=C, pt=12, bold=True)
         _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=12, bold=True)
-        _fill(cs[I_ПО], 'Место спринт,\nпозиция в заезде', align=C, pt=12, bold=True)
+        _fill(cs[I_ПО], 'Место\nспринт,\nпозиция\nв заезде', align=C, pt=12, bold=True)
         cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
-        _fill(cs[I_К1], 'Команда',                      align=C, pt=12, bold=True)
-        _fill(cs[I_НО], 'Номер\nэкипажа',               align=C, pt=12, bold=True)
+        _fill(cs[I_К1], 'Команда',                        align=C, pt=12, bold=True)
+        _fill(cs[I_НО], 'Номер',                          align=C, pt=12, bold=True)
         _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=12, bold=True)
         _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=12, bold=True)
         _fill(cs[I_ШТ], 'Штраф',                        align=C, pt=12, bold=True)
