@@ -1869,37 +1869,63 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     def _add_table(doc, секции):
         """Add the start protocol table for one group of sections."""
+
+        # ── Header table (date/location) ──────────────────────────────────────
+        # Separate 3-col table so its right border is independent from data cols
+        hdr = doc.add_table(rows=0, cols=3)
+        hpr = hdr._tbl.find(qn('w:tblPr'))
+        if hpr is None:
+            hpr = OxmlElement('w:tblPr'); hdr._tbl.insert(0, hpr)
+        htw = hpr.find(qn('w:tblW'))
+        if htw is None:
+            htw = OxmlElement('w:tblW'); hpr.append(htw)
+        htw.set(qn('w:w'), str(TW)); htw.set(qn('w:type'), 'dxa')
+        htl = hpr.find(qn('w:tblLayout'))
+        if htl is None:
+            htl = OxmlElement('w:tblLayout'); hpr.append(htl)
+        htl.set(qn('w:type'), 'fixed')
+        hgr = OxmlElement('w:tblGrid')
+        for w in (W01, W234, W567):
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); hgr.append(gc)
+        hdr._tbl.insert(0, hgr)
+
+        # Row 0 — date/location values
+        r = add_row(hdr); _row_h(r, 0.6)
+        cs = list(r.cells)
+        _cw(cs[0], W01); _cw(cs[1], W234); _cw(cs[2], W567)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        # Row 1 — date/location labels
+        r = add_row(hdr); _row_h(r, 0.6)
+        cs = list(r.cells)
+        _cw(cs[0], W01); _cw(cs[1], W234); _cw(cs[2], W567)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
+
+        # Minimize the auto-paragraph python-docx inserts between tables
+        p_sep = doc.add_paragraph()
+        p_sep.paragraph_format.space_before = Pt(0)
+        p_sep.paragraph_format.space_after  = Pt(0)
+        pPr = p_sep._p.get_or_add_pPr()
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        sp.set(qn('w:line'), '20');  sp.set(qn('w:lineRule'), 'exact')
+        pPr.append(sp)
+        rPr = OxmlElement('w:rPr')
+        sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '2'); rPr.append(sz)
+        pPr.append(rPr)
+
+        # ── Data table (column headers + sections + signatures) ───────────────
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl)
         _set_grid(tbl)
 
-        # Row 0 — date / venue values: bottom border only, no box, h=0.6cm
-        r = add_row(tbl)
-        _row_h(r, 0.6)
-        cs = list(r.cells)
-        cs[0].merge(cs[1]);  _cw(cs[0], W01)
-        cs[2].merge(cs[4]);  _cw(cs[2], W234)
-        cs[5].merge(cs[7]);  _cw(cs[5], W567)
-        _bottom_border(cs[0])
-        _no_border(cs[2])
-        _bottom_border(cs[5])
-        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[2], '')
-        _fill(cs[5], сор.место_проведения or '', align=C, pt=10, bold=True)
-
-        # Row 1 — date / venue labels: no borders, h=0.6cm
-        r = add_row(tbl)
-        _row_h(r, 0.6)
-        cs = list(r.cells)
-        cs[0].merge(cs[1]);  _cw(cs[0], W01)
-        cs[2].merge(cs[4]);  _cw(cs[2], W234)
-        cs[5].merge(cs[7]);  _cw(cs[5], W567)
-        _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[5])
-        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[2], '')
-        _fill(cs[5], 'Место проведения', align=C, pt=8, bold=True)
-
-        # Row 2 — column headers: full borders
+        # Column headers: full borders
         r = add_row(tbl)
         cs = list(r.cells)
         cs[3].merge(cs[4]);  _cw(cs[3], W34)
