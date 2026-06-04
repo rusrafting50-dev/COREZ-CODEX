@@ -2507,16 +2507,11 @@ def create_старт_слалом_docx(сор, секции, filename, порт
                 pr.append(mar)
 
         # ── Дата / место — отдельная таблица ──────────────────────────────────
-        W_DT = 2500   # достаточно для любой даты (noWrap)
-        W_VN = 4500   # достаточно для большинства мест (noWrap)
-        W_SP = TW - W_DT - W_VN   # спейсер
+        W_DT = 2500   # дата — noWrap, одна строка
+        W_VN = 2500   # место — noWrap, одна строка (минимум)
+        W_SP = TW - W_DT - W_VN   # спейсер (центр)
 
         hdr = _make_tbl(3)
-        # Переключаем на autofit: колонки сжимаются до содержимого (noWrap = одна строка)
-        _hpr = hdr._tbl.find(qn('w:tblPr'))
-        _lay = _hpr.find(qn('w:tblLayout'))
-        if _lay is not None:
-            _lay.set(qn('w:type'), 'autofit')
         _set_grid_custom(hdr, [W_DT, W_SP, W_VN])
 
         r = add_row(hdr); _row_h(r, 0.6)
