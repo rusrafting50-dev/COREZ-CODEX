@@ -1775,6 +1775,12 @@ def create_старт_спринт_docx(сор, группы, filename, порт
             b.append(el)
         pr.append(b)
 
+
+    def _no_wrap(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
     def _cw(cell, w):
         pr = _tcpr(cell)
         el = pr.find(qn('w:tcW'))
@@ -1950,14 +1956,19 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         """Add the start protocol table for one group of sections."""
 
         # ── Header table (date/location) ──────────────────────────────────────
+        # W_DT/W_VN фиксированы с noWrap — ширина по содержимому без переносов
+        W_DT = 2500   # достаточно для любой даты
+        W_VN = 4500   # достаточно для большинства мест
+        W_SP = TW - W_DT - W_VN
         hdr = _make_tbl(3)
-        _set_grid_sp(hdr, [W01, HDR_MID, HDR_LOC])
+        _set_grid_sp(hdr, [W_DT, W_SP, W_VN])
 
         # Row 0 — date/location values
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
+        _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _no_wrap(cs[0]); _no_wrap(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
@@ -1965,8 +1976,9 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         # Row 1 — date/location labels
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
+        _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _no_wrap(cs[0]); _no_wrap(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
