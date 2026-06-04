@@ -1503,7 +1503,12 @@ def протокол_ход_word(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     секции = _ход_секции(sor_id)
     portrait = request.args.get('portrait') == '1'
-    return create_ход_пс_docx(сор, секции, f'протокол_ход_пс_{sor_id}.docx', portrait=portrait)
+    судьи = [
+        ('Старший судья старта', _судья_строка(_судья_должность(sor_id, 'старта'))),
+        ('Старший судья финиша', _судья_строка(_судья_должность(sor_id, 'финиша'))),
+    ]
+    return create_ход_пс_docx(сор, секции, f'протокол_ход_пс_{sor_id}.docx',
+                               portrait=portrait, судьи=судьи)
 
 
 @bp_пс.route('/<int:sor_id>/протокол-результаты-сетка')

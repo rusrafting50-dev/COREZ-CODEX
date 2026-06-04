@@ -2981,7 +2981,7 @@ def create_старт_дг_docx(сор, секции, filename):
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_ход_пс_docx(сор, секции, filename, portrait=False):
+def create_ход_пс_docx(сор, секции, filename, portrait=False, судьи=None):
     """Протокол хода Параллельного спринта.
 
     секции: list of {'метка': str, 'заезды': list}
@@ -3189,14 +3189,15 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
 
     # ── header paragraphs ─────────────────────────────────────────────────────
 
-    def _add_header(doc, дисциплина):
+    def _add_header(doc, дисциплина, пол_рус):
         _para(doc, сор.название, align=C, pt=12, bold=True)
         _para(doc, 'ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ', align=C, pt=12, bold=True)
         _para(doc, f'Спортивная дисциплина «{дисциплина}»', align=C, pt=12, bold=True)
+        _para(doc, пол_рус, align=C, pt=12, bold=True)
 
     # ── table builder ─────────────────────────────────────────────────────────
 
-    def _add_table(doc, пол_рус, заезды):
+    def _add_table(doc, заезды):
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl); _set_grid(tbl)
 
@@ -3218,13 +3219,6 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
         for cell in cs:
             _borders(cell); _valign(cell)
 
-        # ── Gender row ────────────────────────────────────────────────────────
-        r = tbl.add_row(); _row_h_min(r, 0.6)
-        cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
-        _borders(cs[0]); _valign(cs[0])
-        _fill(cs[0], пол_рус, align=C, pt=12, bold=True)
-
         # ── Heat rows ─────────────────────────────────────────────────────────
         for заезд in заезды:
             вс = _fmt_time(заезд['время_старта'])
@@ -3238,14 +3232,14 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
 
                 # Col 0: Стадия (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=12, bold=True)
+                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=12, bold=False)
                     _vmerge_restart(cs[I_СТ])
                 else:
                     _vmerge_cont(cs[I_СТ])
 
                 # Col 1: Заезд № (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=12, bold=True)
+                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=12, bold=False)
                     _vmerge_restart(cs[I_ЗН])
                 else:
                     _vmerge_cont(cs[I_ЗН])
@@ -3257,8 +3251,6 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
                 cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
                 if уч['команда']:
                     _fill(cs[I_К1], уч['команда'].название or '—', pt=12)
-                elif уч['метка']:
-                    _fill(cs[I_К1], уч['метка'], pt=12)
 
                 # Col 5: Номер
                 ном = str(уч['команда'].нагрудный_номер) if уч['команда'] else ''
@@ -3277,15 +3269,14 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
                 _fill(cs[I_МС], '', pt=12)
 
         # ── Signature rows ────────────────────────────────────────────────────
-        for pos, fio in (('Старший судья старта',  сор.главный_судья     or ''),
-                         ('Старший судья финиша', сор.главный_секретарь or '')):
-            r = tbl.add_row(); _row_h(r, 1.4)
+        for pos, инфо in (судьи or []):
+            r = tbl.add_row(); _row_h(r, 1.0)
             cs = list(r.cells)
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
             cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
             _no_border(cs[0]); _no_border(cs[5])
             _fill(cs[0], pos, pt=12)
-            _fill(cs[5], fio, pt=12)
+            _fill(cs[5], инфо, pt=12)
 
     # ── Document assembly ─────────────────────────────────────────────────────
 
@@ -3317,8 +3308,8 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False):
     for i, секция in enumerate(секции):
         if i > 0:
             _page_br(doc)
-        _add_header(doc, секция['дисциплина'])
-        _add_table(doc, секция['пол_рус'], секция['заезды'])
+        _add_header(doc, секция['дисциплина'], секция['пол_рус'])
+        _add_table(doc, секция['заезды'])
 
     buf = BytesIO()
     doc.save(buf)
