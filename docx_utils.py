@@ -3280,6 +3280,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
             cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
             _no_border(cs[0]); _no_border(cs[5])
+            _valign(cs[0]); _valign(cs[5])
             _fill(cs[0], pos, pt=PT)
             _fill(cs[5], инфо, pt=PT)
 
