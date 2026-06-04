@@ -3169,8 +3169,14 @@ def create_ход_пс_docx(сор, секции, filename):
     def _fmt_time(t):
         if t is None:
             return ''
-        cs = t.microsecond // 10000
-        return f'{t.hour:02d}:{t.minute:02d}:{t.second:02d}.{cs:02d}'
+        t = float(t)
+        h = int(t // 3600)
+        rest = t % 3600
+        m = int(rest // 60)
+        sv = rest % 60
+        si = int(sv)
+        cc = min(99, round((sv - si) * 100))
+        return f'{h:02d}:{m:02d}:{si:02d}.{cc:02d}'
 
     def _fmt_dur(secs):
         if secs is None:
