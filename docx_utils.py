@@ -1844,6 +1844,14 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     def _add_header(doc):
         """Add org block + competition name + protocol titles."""
+
+        def _ls15(p):
+            pPr = p._p.get_or_add_pPr()
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None:
+                sp = OxmlElement('w:spacing'); pPr.append(sp)
+            sp.set(qn('w:line'), '360'); sp.set(qn('w:lineRule'), 'auto')
+
         if сор.организаторы_блок:
             lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
             p = _para(doc, align=C)
@@ -1864,13 +1872,18 @@ def create_старт_спринт_docx(сор, группы, filename):
                             _run(p, before, pt=10, bold=True)
                             _line_br(p)
                         _run(p, quoted, pt=10, bold=True)
-            _para(doc)  # blank line after org block
+            # Blank gap after org block — exact 4 pt height
+            p_gap = doc.add_paragraph()
+            pPr4 = p_gap._p.get_or_add_pPr()
+            sp4 = OxmlElement('w:spacing')
+            sp4.set(qn('w:before'), '0'); sp4.set(qn('w:after'), '0')
+            sp4.set(qn('w:line'), '80');  sp4.set(qn('w:lineRule'), 'exact')
+            pPr4.append(sp4)
+            r4 = p_gap.add_run(); r4.font.size = Pt(4)
 
-        _para(doc, сор.название or '', align=C, pt=12, bold=True)
-        _para(doc)  # blank line
-        _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True)
-        _para(doc)  # blank line
-        _para(doc, 'Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True)
+        p1 = _para(doc, сор.название or '', align=C, pt=12, bold=True);              _ls15(p1)
+        p2 = _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True);            _ls15(p2)
+        p3 = _para(doc, 'Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True); _ls15(p3)
 
     def _add_table(doc, секции):
         """Add the start protocol table for one group of sections."""
