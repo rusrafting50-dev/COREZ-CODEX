@@ -1481,7 +1481,8 @@ def протокол_ход(sor_id):
 def протокол_ход_word(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     секции = _ход_секции(sor_id)
-    return create_ход_пс_docx(сор, секции, f'протокол_ход_пс_{sor_id}.docx')
+    portrait = request.args.get('portrait') == '1'
+    return create_ход_пс_docx(сор, секции, f'протокол_ход_пс_{sor_id}.docx', portrait=portrait)
 
 
 @bp_пс.route('/<int:sor_id>/протокол-результаты-сетка')
@@ -1560,22 +1561,13 @@ def _ход_данные(sor_id, пол, класс=None):
                 время_старта = загл.время_старта
 
         участники = []
-        for part, rec in [(parts[0], левая), (parts[1], правая)]:
-            if rec is not None:
-                команда = rec.команда
-                метка_уч = None
-            else:
-                team, label = _разрешить_часть_для_предв(
-                    part, посев, local_to_db, по_db, стадии_т, позиции)
-                команда = team
-                метка_уч = label
-
+        for part in [parts[0], parts[1]]:
+            team, label = _разрешить_часть_для_предв(
+                part, посев, local_to_db, {}, стадии_т, позиции)
             участники.append({
                 'позиция': _поз(part),
-                'команда': команда,
-                'метка': метка_уч,
-                'запись': rec,
-                'метка_стадии': метки.get(rec.id) if rec else None,
+                'команда': team,
+                'метка': label,
             })
 
         заезды.append({

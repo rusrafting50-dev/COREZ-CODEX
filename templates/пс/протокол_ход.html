@@ -12,25 +12,37 @@
     tr { page-break-inside: avoid; }
   }
 </style>
-<style id="style-landscape">@media print { @page { size: A4 landscape; } }</style>
-<style id="style-portrait" disabled>@media print { @page { size: A4 portrait; } }</style>
-
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
   <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
+    <a id="word-btn"
+       data-href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}"
+       href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}"
+       class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
 <script>
   var _landscape = true;
+  var _printStyle = null;
+
+  function _applyOrient() {
+    if (_printStyle) _printStyle.remove();
+    _printStyle = document.createElement('style');
+    _printStyle.textContent = '@media print { @page { size: A4 ' + (_landscape ? 'landscape' : 'portrait') + '; } }';
+    document.head.appendChild(_printStyle);
+  }
+
   function toggleOrient() {
     _landscape = !_landscape;
-    document.getElementById('style-landscape').disabled = !_landscape;
-    document.getElementById('style-portrait').disabled =  _landscape;
+    _applyOrient();
+    var base = document.getElementById('word-btn').getAttribute('data-href');
+    document.getElementById('word-btn').href = _landscape ? base : base + '?portrait=1';
     document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
   }
+
+  _applyOrient();
 </script>
 
 {% if not секции %}

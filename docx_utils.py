@@ -2981,7 +2981,7 @@ def create_старт_дг_docx(сор, секции, filename):
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_ход_пс_docx(сор, секции, filename):
+def create_ход_пс_docx(сор, секции, filename, portrait=False):
     """Протокол хода Параллельного спринта.
 
     секции: list of {'метка': str, 'заезды': list}
@@ -3291,8 +3291,12 @@ def create_ход_пс_docx(сор, секции, filename):
 
     doc  = Document()
     sect = doc.sections[0]
-    sect.page_width    = Mm(297)
-    sect.page_height   = Mm(210)
+    if portrait:
+        sect.page_width    = Mm(210)
+        sect.page_height   = Mm(297)
+    else:
+        sect.page_width    = Mm(297)
+        sect.page_height   = Mm(210)
     sect.left_margin   = Mm(15)
     sect.right_margin  = Mm(10)
     sect.top_margin    = Mm(15)
@@ -3300,7 +3304,10 @@ def create_ход_пс_docx(сор, секции, filename):
 
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
-        pgSz.set(qn('w:orient'), 'landscape')
+        if portrait:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
 
     body = doc.element.body
     for child in list(body):
