@@ -2885,12 +2885,16 @@ def create_старт_дг_docx(сор, секции, filename):
                 pr.append(OxmlElement('w:noWrap'))
 
         def _make_tbl(ncols):
-            """Create a fixed-layout table spanning TW."""
+            """Create a fixed-layout table spanning TW, no inherited style offset."""
             t = doc.add_table(rows=0, cols=ncols)
             tbl = t._tbl
             tblPr = tbl.find(qn('w:tblPr'))
             if tblPr is None:
                 tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+            # Remove inherited table style — prevents style-derived indent
+            ts = tblPr.find(qn('w:tblStyle'))
+            if ts is not None:
+                tblPr.remove(ts)
             el = tblPr.find(qn('w:tblW'))
             if el is None:
                 el = OxmlElement('w:tblW'); tblPr.append(el)
@@ -2979,19 +2983,10 @@ def create_старт_дг_docx(сор, секции, filename):
         for cell in [cs[I_НПП], cs[I_КОМ], cs[I_НОМ], cs[I_ФИО], cs[I_ТЕРР], cs[I_ОЧ], cs[I_ВС]]:
             _vmerge_restart(cell)
 
-        if N == 0:
-            pass
-        elif один_без_суммы:
-            _fill(cs[I_МБ0],
-                  f'Очки\nМного-\nборье\n{мб_колонки[0]["заг"]}',
-                  align=C, pt=7, bold=True)
-            _vmerge_restart(cs[I_МБ0])
-        else:
-            if N > 1:
-                cs[I_МБ0].merge(cs[I_ОЧ - 1])
-            _cw(cs[I_МБ0], N * W_МБ)
-            _fill(cs[I_МБ0], 'Очки Многоборье', align=C, pt=8, bold=True)
-            _valign(cs[I_МБ0], 'bottom')
+        # MB в строке 1: без vMerge и hMerge — иначе Word скрывает внутренние границы.
+        # «Очки\nМного-\nборье» — в первой ячейке; остальные пустые, но с рамками.
+        if N > 0:
+            _fill(cs[I_МБ0], 'Очки\nМного-\nборье', align=C, pt=7, bold=True)
 
         # Header row 2 — все границы 0.75 pt (sz=6)
         if N > 1:
@@ -3006,10 +3001,11 @@ def create_старт_дг_docx(сор, секции, filename):
             _vmerge_cont(cs[i])
         border_row(r, sz=6)
 
+        # MB в строке 2: названия дисциплин (вертикальный текст при N>1)
         if N == 0:
             pass
-        elif один_без_суммы:
-            _vmerge_cont(cs[I_МБ0])
+        elif N == 1:
+            _fill(cs[I_МБ0], мб_колонки[0]['заг'], align=C, pt=8, bold=True)
         else:
             _hdr_margins(r)
             for j, кол in enumerate(мб_колонки):
