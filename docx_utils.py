@@ -2856,9 +2856,7 @@ def create_старт_дг_docx(сор, секции, filename):
         I_МБ0 = 5; I_ОЧ = 5 + N; I_ВС = 6 + N
 
         # Date/venue layout widths
-        W_DATE = W_НПП + W_КОМ + W_НОМ          # cols 0-2
-        W_MID  = W_ФИО                            # col 3 (spacer)
-        W_VEN  = TW - W_DATE - W_MID             # cols 4..NC-1
+        W_DATE = W_НПП + W_КОМ + W_НОМ          # cols 0-2; Место проведения = cols 3..NC-1
 
         # Signature split: left = cols 0-4, right = rest
         W_SIG_L = W_НПП + W_КОМ + W_НОМ + W_ФИО + W_ТЕРР
@@ -2891,24 +2889,22 @@ def create_старт_дг_docx(сор, секции, filename):
         _tbl_w(тbl); _set_grid(тbl, GRID)
 
         # ── Date / venue row 0 ────────────────────────────────────────────────
+        # Граница между «Дата» и «Место проведения» — на стыке НОМ/ФИО (cols 2/3),
+        # не на стыке ФИО/Территория, чтобы границы не зависели друг от друга.
         r = тbl.add_row(); cs = list(r.cells)
-        cs[0].merge(cs[2]);        _cw(cs[0], W_DATE)
-        _cw(cs[3], W_MID)
-        cs[4].merge(cs[NC - 1]);   _cw(cs[4], W_VEN)
-        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[4])
+        cs[0].merge(cs[2]);          _cw(cs[0], W_DATE)
+        cs[3].merge(cs[NC - 1]);     _cw(cs[3], TW - W_DATE)
+        _bottom_border(cs[0]); _bottom_border(cs[3])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[4], сор.место_проведения or '', align=C, pt=10, bold=True)
+        _fill(cs[3], сор.место_проведения or '', align=C, pt=10, bold=True)
 
         # ── Date / venue row 1 ────────────────────────────────────────────────
         r = тbl.add_row(); cs = list(r.cells)
-        cs[0].merge(cs[2]);        _cw(cs[0], W_DATE)
-        _cw(cs[3], W_MID)
-        cs[4].merge(cs[NC - 1]);   _cw(cs[4], W_VEN)
-        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[4])
+        cs[0].merge(cs[2]);          _cw(cs[0], W_DATE)
+        cs[3].merge(cs[NC - 1]);     _cw(cs[3], TW - W_DATE)
+        _no_border(cs[0]); _no_border(cs[3])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[4], 'Место проведения', align=C, pt=8, bold=True)
+        _fill(cs[3], 'Место проведения', align=C, pt=8, bold=True)
 
         # ── Header row 1 ─────────────────────────────────────────────────────
         r = тbl.add_row(); cs = list(r.cells)
@@ -2955,13 +2951,14 @@ def create_старт_дг_docx(сор, секции, filename):
 
         for i in [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_ТЕРР, I_ОЧ, I_ВС]:
             _vmerge_cont(cs[i])
+        border_row(r)  # все границы шапки видимые всегда
 
         if N == 0:
             pass
         elif один_без_суммы:
             _vmerge_cont(cs[I_МБ0])
         else:
-            border_row(r); _hdr_margins(r)
+            _hdr_margins(r)
             for j, кол in enumerate(мб_колонки):
                 ci = I_МБ0 + j
                 _fill(cs[ci], кол['заг'], align=C, pt=7, bold=True)
