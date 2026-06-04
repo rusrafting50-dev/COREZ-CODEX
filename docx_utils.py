@@ -2106,8 +2106,8 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     TNR = 'Times New Roman'
     C = WD_ALIGN_PARAGRAPH.CENTER
 
-    # ── Сетка столбцов 5/11/7/33/11/4/4/4/9/9 ───────────────────────────────
-    _PCTS = [5, 11, 7, 33, 11, 4, 4, 4, 9, 9]   # sum=97
+    # ── Сетка столбцов 5/12/6/33/11/4/4/4/9/9 ───────────────────────────────
+    _PCTS = [5, 12, 6, 33, 11, 4, 4, 4, 9, 9]   # sum=97
     _SUM_P = sum(_PCTS)
     # Текстовая область: 210/297 мм − 7.5 мм − 5 мм
     TW = round(((210 if портрет else 297) - 7.5 - 5) * 1440 / 25.4)
@@ -2255,6 +2255,12 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         pr = _tcpr(cell)
         if pr.find(qn('w:noWrap')) is None:
             pr.append(OxmlElement('w:noWrap'))
+
+    def _auto_w(cell):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None: el = OxmlElement('w:tcW'); pr.append(el)
+        el.set(qn('w:w'), '0'); el.set(qn('w:type'), 'auto')
 
     # ── Скор/время ───────────────────────────────────────────────────────────
 
@@ -2409,7 +2415,8 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         r = dv.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
-        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _no_wrap(cs[0]); _auto_w(cs[0])
+        _no_wrap(cs[2]); _auto_w(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
@@ -2417,6 +2424,8 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         r = dv.add_row(); _row_h(r, 0.5)
         cs = list(r.cells)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _no_wrap(cs[0]); _auto_w(cs[0])
+        _no_wrap(cs[2]); _auto_w(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
