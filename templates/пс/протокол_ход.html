@@ -1,18 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}ПС: Протокол хода — {{ сор.название | truncate(40) }}{% endblock %}
 
-{% block breadcrumb %}
-  <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-    <li class="breadcrumb-item">
-      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
-    </li>
-    <li class="breadcrumb-item active">ПС — Протокол хода</li>
-  </ol>
-{% endblock %}
-
 {% block content %}
 <style>
+  nav.navbar { display: none !important; }
   body, table, th, td { font-family: 'Times New Roman', Times, serif; font-size: 14pt; }
   @media print {
     .no-print { display: none !important; }
@@ -26,11 +17,11 @@
 </style>
 
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
-  <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+  <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">Word</a>
-    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">Печать</button>
+    <a href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
 <script>
@@ -43,8 +34,9 @@
   }
 </script>
 
-<div class="text-center mb-2 fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
-<div class="text-center mb-3 fw-bold">Протокол хода — Параллельный спринт</div>
+<div class="text-center mb-1 fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+<div class="text-center mb-1 fw-bold">ПРОТОКОЛ ХОДА</div>
+<div class="text-center mb-3 fw-bold">группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ</div>
 
 {% if not секции %}
 <div class="alert alert-warning">Нет данных для протокола хода.</div>
