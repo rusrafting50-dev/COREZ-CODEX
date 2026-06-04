@@ -4,7 +4,7 @@
 {% block content %}
 <style>
   nav.navbar { display: none !important; }
-  body, table, th, td { font-family: 'Times New Roman', Times, serif; font-size: 14pt; }
+  body, table, th, td { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
   @media print {
     .no-print { display: none !important; }
     @page { margin: 10mm 8mm; }
@@ -12,9 +12,8 @@
     tr { page-break-inside: avoid; }
   }
 </style>
-<style id="orientation-style">
-  @media print { @page { size: A4 landscape; } }
-</style>
+<style id="style-landscape">@media print { @page { size: A4 landscape; } }</style>
+<style id="style-portrait" disabled>@media print { @page { size: A4 portrait; } }</style>
 
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
   <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
@@ -28,8 +27,8 @@
   var _landscape = true;
   function toggleOrient() {
     _landscape = !_landscape;
-    document.getElementById('orientation-style').textContent =
-      '@media print { @page { size: A4 ' + (_landscape ? 'landscape' : 'portrait') + '; } }';
+    document.getElementById('style-landscape').disabled = !_landscape;
+    document.getElementById('style-portrait').disabled =  _landscape;
     document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
   }
 </script>
