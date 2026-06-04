@@ -2982,6 +2982,22 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                 mar.append(el)
             pr.append(mar)
 
+        def _hspan(cells, start, end):
+            """Горизонтально объединить cells[start..end] через gridSpan (удалить satellite TC)."""
+            c0 = cells[start]
+            span = end - start + 1
+            if span < 2:
+                return
+            pr = _tcpr(c0)
+            gs = pr.find(qn('w:gridSpan'))
+            if gs is None: gs = OxmlElement('w:gridSpan'); pr.append(gs)
+            gs.set(qn('w:val'), str(span))
+            for ci in range(start + 1, end + 1):
+                tc = cells[ci]._tc
+                parent = tc.getparent()
+                if parent is not None:
+                    parent.remove(tc)
+
         def _merge_span(cells, start, end, width):
             """Объединить ячейки start..end через gridSpan и установить ширину."""
             c0 = cells[start]
@@ -3053,41 +3069,24 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             else:
                 _vmerge_cont(cs[I_НПП])
 
-            # Команда (span при N>3)
+            # Команда (span при N>3: два физических столбца)
             if N > 3:
-                # cols I_КОМ..I_КОМ+1 объединены
-                _cw(cs[I_КОМ], W_КОМ)
-                if vmerge_mode == 'restart':
-                    _vmerge_restart(cs[I_КОМ])
-                    _fill(cs[I_КОМ], 'Команда', align=C, pt=8, bold=True)
-                else:
-                    _vmerge_cont(cs[I_КОМ])
-                # следующий подкол (I_КОМ+1) — тоже vmerge
-                _cw(cs[I_КОМ + 1], 0)
-                if vmerge_mode == 'restart':
-                    _vmerge_restart(cs[I_КОМ + 1])
-                else:
-                    _vmerge_cont(cs[I_КОМ + 1])
+                _hspan(cs, I_КОМ, I_КОМ + 1)
+            _cw(cs[I_КОМ], W_КОМ)
+            if vmerge_mode == 'restart':
+                _vmerge_restart(cs[I_КОМ])
+                _fill(cs[I_КОМ], 'Команда', align=C, pt=8, bold=True)
             else:
-                _cw(cs[I_КОМ], W_КОМ)
-                if vmerge_mode == 'restart':
-                    _vmerge_restart(cs[I_КОМ])
-                    _fill(cs[I_КОМ], 'Команда', align=C, pt=8, bold=True)
-                else:
-                    _vmerge_cont(cs[I_КОМ])
+                _vmerge_cont(cs[I_КОМ])
 
-            # Номер (span 2 cols)
+            # Номер (span 2 cols: горизонтальное объединение)
+            _hspan(cs, I_НОМ, I_НОМ_END)
             _cw(cs[I_НОМ], W_НОМ)
             if vmerge_mode == 'restart':
                 _vmerge_restart(cs[I_НОМ])
                 _fill(cs[I_НОМ], 'Номер', align=C, pt=8, bold=True)
             else:
                 _vmerge_cont(cs[I_НОМ])
-            _cw(cs[I_НОМ_END], 0)
-            if vmerge_mode == 'restart':
-                _vmerge_restart(cs[I_НОМ_END])
-            else:
-                _vmerge_cont(cs[I_НОМ_END])
 
             # ФИО
             _cw(cs[I_ФИО], W_ФИО)
@@ -3098,18 +3097,14 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                 _vmerge_cont(cs[I_ФИО])
 
             # Территория (span 2 cols или 1 col)
+            if I_ТЕРР_END is not None:
+                _hspan(cs, I_ТЕРР, I_ТЕРР_END)
             _cw(cs[I_ТЕРР], W_ТЕРР)
             if vmerge_mode == 'restart':
                 _vmerge_restart(cs[I_ТЕРР])
                 _fill(cs[I_ТЕРР], 'Территория', align=C, pt=8, bold=True)
             else:
                 _vmerge_cont(cs[I_ТЕРР])
-            if I_ТЕРР_END is not None:
-                _cw(cs[I_ТЕРР_END], 0)
-                if vmerge_mode == 'restart':
-                    _vmerge_restart(cs[I_ТЕРР_END])
-                else:
-                    _vmerge_cont(cs[I_ТЕРР_END])
 
             # Очередь выбора позиции
             _cw(cs[I_ОЧ], W_ОЧ)
@@ -3149,16 +3144,16 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             _cw(cs[I_КОМ], W_КОМ)
             _fill(cs[I_КОМ], 'Команда', align=C, pt=8, bold=True)
 
+            _hspan(cs, I_НОМ, I_НОМ_END)
             _cw(cs[I_НОМ], W_НОМ)
             _fill(cs[I_НОМ], 'Номер', align=C, pt=8, bold=True)
-            _cw(cs[I_НОМ_END], 0)
 
             _cw(cs[I_ФИО], W_ФИО)
             _fill(cs[I_ФИО], 'Фамилия, имя, отчество участников', align=C, pt=8, bold=True)
 
+            _hspan(cs, I_ТЕРР, I_ТЕРР_END)
             _cw(cs[I_ТЕРР], W_ТЕРР)
             _fill(cs[I_ТЕРР], 'Территория', align=C, pt=8, bold=True)
-            _cw(cs[I_ТЕРР_END], 0)
 
             # МБ-столбец: «Очки Многоборье [дисц]» — одной строкой
             _cw(cs[I_МБ0], W_МБ1)
