@@ -2401,7 +2401,9 @@ def create_старт_слалом_docx(сор, секции, filename):
             _vmerge_restart(cell)
 
         # ── Header row 2 (Очки sub-split) ────────────────────────────────────────
-        r = add_row(тbl)
+        # For btLr text row height = available text width; 0.20cm/char + 0.5cm margin
+        _h2 = max(len(кол1_заг), len(кол2_заг), len('Сумма')) * 0.20 + 0.5
+        r = add_row(тbl); _row_h_min(r, max(2.0, _h2))
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
