@@ -1818,6 +1818,11 @@ def create_старт_спринт_docx(сор, группы, filename):
             tblPr.append(el)
         el.set(qn('w:w'), str(TW))
         el.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None:
+            lay = OxmlElement('w:tblLayout')
+            tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
 
     def _row_h(row, cm):
         """Set exact row height in cm."""
