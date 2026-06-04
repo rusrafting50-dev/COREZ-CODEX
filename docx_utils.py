@@ -1822,6 +1822,8 @@ def create_старт_спринт_docx(сор, группы, filename, порт
             tbl.insert(0, tblPr)
         for s in tblPr.findall(qn('w:tblStyle')):
             tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')):
+            tblPr.remove(tl)
         el = tblPr.find(qn('w:tblW'))
         if el is None:
             el = OxmlElement('w:tblW')
@@ -1915,6 +1917,7 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         if hpr is None:
             hpr = OxmlElement('w:tblPr'); hdr._tbl.insert(0, hpr)
         for s in hpr.findall(qn('w:tblStyle')): hpr.remove(s)
+        for tl in hpr.findall(qn('w:tblLook')): hpr.remove(tl)
         htw = hpr.find(qn('w:tblW'))
         if htw is None:
             htw = OxmlElement('w:tblW'); hpr.append(htw)
@@ -2419,6 +2422,7 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         ts = tblPr.find(qn('w:tblStyle'))
         if ts is not None:
             tblPr.remove(ts)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
         el = tblPr.find(qn('w:tblW'))
         if el is None:
             el = OxmlElement('w:tblW'); tblPr.append(el)
@@ -3003,6 +3007,7 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             ts = tblPr.find(qn('w:tblStyle'))
             if ts is not None:
                 tblPr.remove(ts)
+            for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
             el = tblPr.find(qn('w:tblW'))
             if el is None:
                 el = OxmlElement('w:tblW'); tblPr.append(el)
