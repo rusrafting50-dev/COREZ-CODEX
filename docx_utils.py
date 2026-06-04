@@ -2106,24 +2106,17 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     TNR = 'Times New Roman'
     C = WD_ALIGN_PARAGRAPH.CENTER
 
-    # ── Сетка столбцов (пропорции из образца Протокол_сл_старт.docx) ────────
-    _GRID_P = [410, 1580, 137, 562, 3827, 997, 505, 452, 452, 452, 907, 915]
-    _TW_P   = sum(_GRID_P)   # 11196 dxa
+    # ── Сетка столбцов 5/11/7/33/11/4/4/4/9/9 ───────────────────────────────
+    _PCTS = [5, 11, 7, 33, 11, 4, 4, 4, 9, 9]   # sum=97
+    _SUM_P = sum(_PCTS)
     # Текстовая область: 210/297 мм − 7.5 мм − 5 мм
     TW = round(((210 if портрет else 297) - 7.5 - 5) * 1440 / 25.4)
-    GRID = [round(g * TW / _TW_P) for g in _GRID_P]
+    GRID = [round(TW * p / _SUM_P) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
-    NC = len(GRID)   # 12
+    NC = len(GRID)   # 10
 
     # Объединённые ширины
-    W_НОМ  = GRID[2] + GRID[3]                                       # Номер  cols 2-3
-    W_ТЕРР = GRID[5] + GRID[6]                                       # Терр.  cols 5-6
-    W_МБ   = GRID[7] + GRID[8] + GRID[9]                             # МБ     cols 7-9
-    W_DATE = GRID[0] + GRID[1] + GRID[2]                             # Дата   cols 0-2
-    W_MID  = GRID[3] + GRID[4] + GRID[5]                             # спейсер cols 3-5
-    W_VEN  = GRID[6] + GRID[7] + GRID[8] + GRID[9] + GRID[10] + GRID[11]  # Место cols 6-11
-    W_SIG_L = round(TW * 3921 / 11196)   # ~35 %  подписи левый столбец
-    W_SIG_R = TW - W_SIG_L               # ~65 %  подписи правый столбец
+    W_МБ   = GRID[5] + GRID[6] + GRID[7]   # «Очки Многоборье» cols 5-7
 
     # ── Хелперы ──────────────────────────────────────────────────────────────
 
@@ -2347,7 +2340,63 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         p = _para(doc, 'Стартовый протокол', align=C, pt=11, bold=True); _sp15(p)
         p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _sp15(p)
 
-    # ── Построить одну секцию (одна таблица на страницу) ─────────────────────
+    # ── Разделитель 1 пт между таблицами ────────────────────────────────────
+
+    def _tiny_para():
+        p = doc.add_paragraph(); p.style = 'No Spacing'
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
+
+    # ── Таблица дата/место (autofit, 3 cols) ─────────────────────────────────
+
+    def _make_dv_tbl():
+        t = doc.add_table(rows=0, cols=3)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None: tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'autofit')
+        return t
+
+    # ── Таблица подписей (fixed, 2 cols 1:2) ─────────────────────────────────
+
+    def _make_sig_tbl():
+        W_L = TW // 3; W_R = TW - W_L
+        t = doc.add_table(rows=0, cols=2)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None: tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        for old in tbl.findall(qn('w:tblGrid')): tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in (W_L, W_R):
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tblPr.addnext(grid)
+        return t, W_L, W_R
+
+    # ── Построить одну секцию ─────────────────────────────────────────────────
 
     def _build_section(метка, команды, мб_колонки):
         кол1_заг  = мб_колонки[0]['заг']        if len(мб_колонки) > 0 else ''
@@ -2355,120 +2404,106 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         кол1_поле = мб_колонки[0].get('поле')   if len(мб_колонки) > 0 else None
         кол2_поле = мб_колонки[1].get('поле')   if len(мб_колонки) > 1 else None
 
+        # ── Таблица 1: дата / место ──────────────────────────────────────────
+        dv = _make_dv_tbl()
+        r = dv.add_row(); _row_h(r, 0.6)
+        cs = list(r.cells)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        r = dv.add_row(); _row_h(r, 0.5)
+        cs = list(r.cells)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
+
+        _tiny_para()
+
+        # ── Таблица 2: шапка + данные ────────────────────────────────────────
         tbl = _make_tbl()
 
-        # ── Строка 1: значения даты и места ─────────────────────────────────
-        r = tbl.add_row(); _row_h(r, 0.6)
-        cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VEN)
-        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[6])
-        _no_wrap(cs[0]); _no_wrap(cs[6])
-        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], сор.место_проведения or '', align=C, pt=10, bold=True)
-
-        # ── Строка 2: подписи дата/место ────────────────────────────────────
-        r = tbl.add_row(); _row_h(r, 0.5)
-        cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VEN)
-        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[6])
-        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], 'Место проведения', align=C, pt=8, bold=True)
-
-        # ── Строка 3: шапка строка 1 ────────────────────────────────────────
+        # Шапка строка 1
         r = tbl.add_row()
         _tbl_header_row(r)
         cs = list(r.cells)
-        cs[2].merge(cs[3]); _cw(cs[2], W_НОМ)
-        cs[5].merge(cs[6]); _cw(cs[5], W_ТЕРР)
-        cs[7].merge(cs[9]); _cw(cs[7], W_МБ)   # «Очки Многоборье»
+        cs[5].merge(cs[7]); _cw(cs[5], W_МБ)
         for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6, 7, 8, 9):
+            if i not in (5, 6, 7):
                 _cw(cs[i], w)
-        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
+        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9]]:
             _borders(cell); _vmerge_restart(cell)
-        _borders(cs[7])   # МБ — горизонт. merge, vMerge не нужен
-        # Заголовки
+        _borders(cs[5])
         p0 = cs[0].paragraphs[0]; p0.clear(); p0.style = 'No Spacing'; _sp(p0)
         p0.alignment = C; _valign(cs[0])
         _run(p0, '№', pt=8, bold=True); _line_br(p0); _run(p0, 'п/п', pt=8, bold=True)
-        _fill(cs[1],  'Команда',                             align=C, pt=8, bold=True)
-        _fill(cs[2],  'Номер',                               align=C, pt=8, bold=True)
-        _fill(cs[4],  'Фамилия, имя, отчество участников',   align=C, pt=8, bold=True)
-        _fill(cs[5],  'Территория',                          align=C, pt=8, bold=True)
-        _fill(cs[7],  'Очки Многоборье',                     align=C, pt=8, bold=True)
-        _fill(cs[10], 'Время\nстарта\nпопытка 1',            align=C, pt=8, bold=True)
-        _fill(cs[11], 'Время\nстарта\nпопытка 2',            align=C, pt=8, bold=True)
+        _fill(cs[1], 'Команда',                            align=C, pt=8, bold=True)
+        _fill(cs[2], 'Номер',                              align=C, pt=8, bold=True)
+        _fill(cs[3], 'Фамилия, имя, отчество участников',  align=C, pt=8, bold=True)
+        _fill(cs[4], 'Территория',                         align=C, pt=8, bold=True)
+        _fill(cs[5], 'Очки Многоборье',                    align=C, pt=8, bold=True)
+        _fill(cs[8], 'Время\nстарта\nпопытка 1',           align=C, pt=8, bold=True)
+        _fill(cs[9], 'Время\nстарта\nпопытка 2',           align=C, pt=8, bold=True)
 
-        # ── Строка 4: шапка строка 2 — вертикальный текст МБ ────────────────
-        # Высота 1690 dxa = 3.0 cm (из образца)
+        # Шапка строка 2 — вертикальный текст МБ
         r = tbl.add_row(); _row_h_min(r, 1690 * 2.54 / 1440)
         _tbl_header_row(r)
         cs = list(r.cells)
-        cs[2].merge(cs[3]); _cw(cs[2], W_НОМ)
-        cs[5].merge(cs[6]); _cw(cs[5], W_ТЕРР)
         for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6):
-                _cw(cs[i], w)
-        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
+            _cw(cs[i], w)
+        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9]]:
             _borders(cell); _vmerge_cont(cell)
-        # Вертикальный текст МБ-подстолбцов
-        for col_i, заг in ((7, кол1_заг), (8, кол2_заг), (9, 'Сумма')):
+        for col_i, заг in ((5, кол1_заг), (6, кол2_заг), (7, 'Сумма')):
             _borders(cs[col_i])
             _fill(cs[col_i], заг, pt=7, bold=True)
             _vert_cell(cs[col_i])
 
-        # ── Строка-заголовок секции ──────────────────────────────────────────
+        # Строка-заголовок секции
         r = tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0])
         _fill(cs[0], метка, align=C, pt=9, bold=True)
 
-        # ── Строки данных ────────────────────────────────────────────────────
+        # Строки данных
         for пп, к in enumerate(команды, 1):
             r = tbl.add_row()
             cs = list(r.cells)
-            cs[2].merge(cs[3]); _cw(cs[2], W_НОМ)
-            cs[5].merge(cs[6]); _cw(cs[5], W_ТЕРР)
             for i, w in enumerate(GRID):
-                if i not in (2, 3, 5, 6):
-                    _cw(cs[i], w)
-            for cell in cs[:2] + [cs[2], cs[4], cs[5]] + cs[7:]:
+                _cw(cs[i], w)
+            for cell in cs:
                 _borders(cell)
-
             спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
             фио = ', '.join(с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество)
             s1 = _score(к, кол1_поле) if кол1_поле else ''
             s2 = _score(к, кол2_поле) if кол2_поле else ''
             sm = _sum_scores(к, мб_колонки)
+            _fill(cs[0], str(пп),                                       align=C, pt=8)
+            _fill(cs[1], к.название or '—',                                      pt=8)
+            _fill(cs[2], str(к.нагрудный_номер or ''),                  align=C, pt=8)
+            _fill(cs[3], фио,                                                     pt=8)
+            _fill(cs[4], к.субъект.название if к.субъект else '—',               pt=8)
+            _fill(cs[5], s1,                                             align=C, pt=8)
+            _fill(cs[6], s2,                                             align=C, pt=8)
+            _fill(cs[7], sm,                                             align=C, pt=8)
+            _fill(cs[8], _time(к, 1),                                    align=C, pt=8)
+            _fill(cs[9], _time(к, 2),                                    align=C, pt=8)
 
-            _fill(cs[0],  str(пп),                                      align=C, pt=8)
-            _fill(cs[1],  к.название or '—',                                     pt=8)
-            _fill(cs[2],  str(к.нагрудный_номер or ''),                 align=C, pt=8)
-            _fill(cs[4],  фио,                                                    pt=8)
-            _fill(cs[5],  к.субъект.название if к.субъект else '—',              pt=8)
-            _fill(cs[7],  s1,                                            align=C, pt=8)
-            _fill(cs[8],  s2,                                            align=C, pt=8)
-            _fill(cs[9],  sm,                                            align=C, pt=8)
-            _fill(cs[10], _time(к, 1),                                   align=C, pt=8)
-            _fill(cs[11], _time(к, 2),                                   align=C, pt=8)
+        _tiny_para()
 
-        # ── Подписи (в конце той же таблицы) ────────────────────────────────
+        # ── Таблица 3: подписи (1:2) ─────────────────────────────────────────
+        sig, W_L, W_R = _make_sig_tbl()
         for pos, fio in (('Главный судья',     сор.главный_судья     or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = tbl.add_row(); _row_h(r, 663 * 2.54 / 1440)  # 663 dxa ≈ 1.17 cm
+            r = sig.add_row(); _row_h_min(r, 1.2)
             cs = list(r.cells)
-            cs[0].merge(cs[3]);  _cw(cs[0], W_SIG_L)
-            cs[4].merge(cs[11]); _cw(cs[4], W_SIG_R)
-            _no_border(cs[0]); _no_border(cs[4])
+            _cw(cs[0], W_L); _cw(cs[1], W_R)
+            _no_border(cs[0]); _no_border(cs[1])
             _fill(cs[0], pos, pt=10)
-            _fill(cs[4], fio, pt=10)
+            _fill(cs[1], fio, pt=10)
 
     # ── Document ──────────────────────────────────────────────────────────────
 
