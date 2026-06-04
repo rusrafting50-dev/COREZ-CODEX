@@ -3189,23 +3189,16 @@ def create_ход_пс_docx(сор, секции, filename):
 
     # ── header paragraphs ─────────────────────────────────────────────────────
 
-    def _add_header(doc):
+    def _add_header(doc, дисциплина):
         _para(doc, сор.название, align=C, pt=14, bold=True)
-        _para(doc, 'Протокол хода', align=C, pt=14, bold=True)
-        _para(doc, 'Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ', align=C, pt=14, bold=True)
+        _para(doc, 'ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ', align=C, pt=14, bold=True)
+        _para(doc, f'Спортивная дисциплина «{дисциплина}»', align=C, pt=14, bold=True)
 
     # ── table builder ─────────────────────────────────────────────────────────
 
-    def _add_table(doc, метка, заезды):
+    def _add_table(doc, пол_рус, заезды):
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl); _set_grid(tbl)
-
-        # ── Section header row ────────────────────────────────────────────────
-        r = tbl.add_row(); _row_h_min(r, 0.75)
-        cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
-        _borders(cs[0])
-        _fill(cs[0], метка, align=C, pt=14, bold=True)
 
         # ── Column header row ─────────────────────────────────────────────────
         r = tbl.add_row(); _row_h_min(r, 1.4)
@@ -3224,6 +3217,13 @@ def create_ход_пс_docx(сор, секции, filename):
         _fill(cs[I_МС], 'Место, стадия',                align=C, pt=12, bold=True)
         for cell in cs:
             _borders(cell); _valign(cell)
+
+        # ── Gender row ────────────────────────────────────────────────────────
+        r = tbl.add_row(); _row_h_min(r, 0.6)
+        cs = list(r.cells)
+        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        _borders(cs[0]); _valign(cs[0])
+        _fill(cs[0], пол_рус, align=C, pt=14, bold=True)
 
         # ── Heat rows ─────────────────────────────────────────────────────────
         for заезд in заезды:
@@ -3310,8 +3310,8 @@ def create_ход_пс_docx(сор, секции, filename):
     for i, секция in enumerate(секции):
         if i > 0:
             _page_br(doc)
-        _add_header(doc)
-        _add_table(doc, секция['метка'], секция['заезды'])
+        _add_header(doc, секция['дисциплина'])
+        _add_table(doc, секция['пол_рус'], секция['заезды'])
 
     buf = BytesIO()
     doc.save(buf)
