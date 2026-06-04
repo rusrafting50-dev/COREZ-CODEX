@@ -3002,6 +3002,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
     GRID = _PORTRAIT if portrait else _LANDSCAPE
     NC   = len(GRID)
     TW   = sum(GRID)
+    PT   = 10 if portrait else 12
 
     I_СТ, I_ЗН, I_ПО = 0, 1, 2
     I_К1, I_К2, I_НО = 3, 4, 5
@@ -3194,10 +3195,10 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
     # ── header paragraphs ─────────────────────────────────────────────────────
 
     def _add_header(doc, дисциплина, пол_рус):
-        _para(doc, сор.название, align=C, pt=12, bold=True)
-        _para(doc, 'ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ', align=C, pt=12, bold=True)
-        _para(doc, f'Спортивная дисциплина «{дисциплина}»', align=C, pt=12, bold=True)
-        _para(doc, пол_рус, align=C, pt=12, bold=True)
+        _para(doc, сор.название, align=C, pt=PT, bold=True)
+        _para(doc, 'ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ', align=C, pt=PT, bold=True)
+        _para(doc, f'Спортивная дисциплина «{дисциплина}»', align=C, pt=PT, bold=True)
+        _para(doc, пол_рус, align=C, pt=PT, bold=True)
 
     # ── table builder ─────────────────────────────────────────────────────────
 
@@ -3210,16 +3211,16 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
         cs = list(r.cells)
         for i, w in enumerate(GRID):
             _cw(cs[i], w)
-        _fill(cs[I_СТ], 'Стадия',                       align=C, pt=12, bold=True)
-        _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=12, bold=True)
-        _fill(cs[I_ПО], 'Место\nспринт,\nпозиция\nв заезде', align=C, pt=12, bold=True)
+        _fill(cs[I_СТ], 'Стадия',                       align=C, pt=PT, bold=True)
+        _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=PT, bold=True)
+        _fill(cs[I_ПО], 'Место\nспринт,\nпозиция\nв заезде', align=C, pt=PT, bold=True)
         cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
-        _fill(cs[I_К1], 'Команда',                        align=C, pt=12, bold=True)
-        _fill(cs[I_НО], 'Номер',                          align=C, pt=12, bold=True)
-        _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=12, bold=True)
-        _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=12, bold=True)
-        _fill(cs[I_ШТ], 'Штраф',                        align=C, pt=12, bold=True)
-        _fill(cs[I_МС], 'Место, стадия',                align=C, pt=12, bold=True)
+        _fill(cs[I_К1], 'Команда',                        align=C, pt=PT, bold=True)
+        _fill(cs[I_НО], 'Номер',                          align=C, pt=PT, bold=True)
+        _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=PT, bold=True)
+        _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=PT, bold=True)
+        _fill(cs[I_ШТ], 'Штраф',                        align=C, pt=PT, bold=True)
+        _fill(cs[I_МС], 'Место, стадия',                align=C, pt=PT, bold=True)
         for cell in cs:
             _borders(cell); _valign(cell)
 
@@ -3236,41 +3237,41 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
 
                 # Col 0: Стадия (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=12, bold=False)
+                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=PT, bold=False)
                     _vmerge_restart(cs[I_СТ])
                 else:
                     _vmerge_cont(cs[I_СТ])
 
                 # Col 1: Заезд № (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=12, bold=False)
+                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=PT, bold=False)
                     _vmerge_restart(cs[I_ЗН])
                 else:
                     _vmerge_cont(cs[I_ЗН])
 
                 # Col 2: Позиция
-                _fill(cs[I_ПО], уч['позиция'], align=C, pt=12)
+                _fill(cs[I_ПО], уч['позиция'], align=C, pt=PT)
 
                 # Col 3+4: Команда (merged)
                 cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
                 if уч['команда']:
-                    _fill(cs[I_К1], уч['команда'].название or '—', pt=12)
+                    _fill(cs[I_К1], уч['команда'].название or '—', pt=PT)
 
                 # Col 5: Номер
                 ном = str(уч['команда'].нагрудный_номер) if уч['команда'] else ''
-                _fill(cs[I_НО], ном, align=C, pt=12)
+                _fill(cs[I_НО], ном, align=C, pt=PT)
 
                 # Col 6: Время старта (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_ВС], вс, align=C, pt=12)
+                    _fill(cs[I_ВС], вс, align=C, pt=PT)
                     _vmerge_restart(cs[I_ВС])
                 else:
                     _vmerge_cont(cs[I_ВС])
 
                 # Cols 7, 8, 9: empty — judges fill manually
-                _fill(cs[I_ВФ], '', pt=12)
-                _fill(cs[I_ШТ], '', pt=12)
-                _fill(cs[I_МС], '', pt=12)
+                _fill(cs[I_ВФ], '', pt=PT)
+                _fill(cs[I_ШТ], '', pt=PT)
+                _fill(cs[I_МС], '', pt=PT)
 
         # ── Signature rows ────────────────────────────────────────────────────
         for pos, инфо in (судьи or []):
@@ -3279,8 +3280,8 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
             cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
             _no_border(cs[0]); _no_border(cs[5])
-            _fill(cs[0], pos, pt=12)
-            _fill(cs[5], инфо, pt=12)
+            _fill(cs[0], pos, pt=PT)
+            _fill(cs[5], инфо, pt=PT)
 
     # ── Document assembly ─────────────────────────────────────────────────────
 
