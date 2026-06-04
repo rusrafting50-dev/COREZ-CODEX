@@ -1660,7 +1660,7 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    GRID  = [675, 1843, 808, 1055, 2531, 1370, 1387, 928]
+    GRID  = [675, 1843, 808,  464,  464, 1370, 1387, 3586]  # W34 ↔ GRID[7] swapped
     NC    = len(GRID)
     TW    = sum(GRID)
 
@@ -1670,6 +1670,11 @@ def create_старт_спринт_docx(сор, группы, filename):
     W34   = GRID[3] + GRID[4]
     W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
     W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
+
+    # Header table (дата/место) keeps the ORIGINAL column proportions
+    # so that «Место проведения» doesn't expand to fill the new GRID[7] width
+    HDR_MID = 4394   # original W234 = cols 2+3+4
+    HDR_LOC = 3685   # original W567 = cols 5+6+7
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
@@ -1885,14 +1890,14 @@ def create_старт_спринт_docx(сор, группы, filename):
             htl = OxmlElement('w:tblLayout'); hpr.append(htl)
         htl.set(qn('w:type'), 'fixed')
         hgr = OxmlElement('w:tblGrid')
-        for w in (W01, W234, W567):
+        for w in (W01, HDR_MID, HDR_LOC):
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); hgr.append(gc)
         hdr._tbl.insert(0, hgr)
 
         # Row 0 — date/location values
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W01); _cw(cs[1], W234); _cw(cs[2], W567)
+        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
@@ -1901,7 +1906,7 @@ def create_старт_спринт_docx(сор, группы, filename):
         # Row 1 — date/location labels
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W01); _cw(cs[1], W234); _cw(cs[2], W567)
+        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
