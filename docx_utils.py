@@ -2280,7 +2280,7 @@ def create_старт_слалом_docx(сор, секции, filename):
             va.addprevious(td)
         else:
             pr.append(td)
-        _valign(cell, 'center')
+        _valign(cell, 'bottom')
         for p in cell.paragraphs:
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
