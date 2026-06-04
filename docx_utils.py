@@ -3202,15 +3202,10 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             _fill_fixed_hdr_cells(cs, with_borders=True, vmerge_mode='restart')
 
             # МБ-строка 1: «Очки Многоборье» объединяет все N МБ-столбцов
+            _hspan(cs, I_МБ0, I_МБ0 + N - 1)
             _cw(cs[I_МБ0], N * W_МБ)
             _fill(cs[I_МБ0], 'Очки Многоборье', align=C, pt=8, bold=True)
             _borders(cs[I_МБ0], sz=6)
-            # Остальные МБ-ячейки в этой строке скрыты объединением (gridSpan уже задан GRID)
-            # Но у нас нет реального gridSpan в шапке — надо его применить:
-            # Объединяем cs[I_МБ0]..cs[I_МБ0+N-1] горизонтально через merge()
-            if N > 1:
-                for j in range(1, N):
-                    cs[I_МБ0].merge(cs[I_МБ0 + j])
 
             # Строка 2 (cont), высота 1772 dxa ≈ 3.12 cm
             r2 = тbl.add_row(); _row_h(r2, round(1772 * 2.54 / 1440, 2)); cs2 = list(r2.cells)
