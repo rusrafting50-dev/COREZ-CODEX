@@ -1652,30 +1652,29 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
 def create_старт_спринт_docx(сор, группы, filename):
     """Generate Sprint start protocol DOCX.
 
-    группы — list of section groups; each group produces one protocol page.
-    Each group is a list of (метка, команды, мб_колонки) triples.
-    мб_колонки: list of {'заг': label, 'поле': field_name or None} — МБ score columns.
-    Backward-compatible: (метка, команды) pairs also accepted (мб_колонки=[]).
+    группы — list of sections groups; each group produces one complete protocol
+    block (header + table). Typically two groups: R4 and R6.
+    Each group is a list of (метка, команды) pairs.
     """
     from docx.shared import Mm, Pt
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
+    # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa
+    GRID  = [636, 2012, 742, 1802, 1801, 1378, 1378, 848]
+    NC    = len(GRID)
+    TW    = sum(GRID)
 
-    # Fixed column widths (dxa). TW = 10597.
-    # Proportions at N=1 МБ: 4/19/6/39/13/5/6/8 %
-    TW     = 10597
-    W_НПП  = 424    # 4%
-    W_КОМ  = 2013   # 19%
-    W_НОМ  = 636    # 6%
-    W_ТЕРР = 1378   # 13%
-    W_МБ   = 530    # 5% per MB column
-    W_ОЧ   = 636    # 6%
-    W_ВС   = 848    # 8%
-    # W_ФИО = TW - fixed - N*W_МБ  →  39% at N=1, 44% at N=0
+    W01   = GRID[0] + GRID[1]
+    W234  = GRID[2] + GRID[3] + GRID[4]
+    W567  = GRID[5] + GRID[6] + GRID[7]
+    W34   = GRID[3] + GRID[4]
+    W0123 = GRID[0] + GRID[1] + GRID[2] + GRID[3]
+    W4567 = GRID[4] + GRID[5] + GRID[6] + GRID[7]
 
-    # Header table date/venue split: Дата = cols 0-2, Место = cols 3..NC-1
-    W_HDR_L = W_НПП + W_КОМ + W_НОМ
+    # Header table (дата/место) columns — derived from GRID for consistency
+    HDR_MID = W234
+    HDR_LOC = W567
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
@@ -1846,17 +1845,6 @@ def create_старт_спринт_docx(сор, группы, filename):
         for cell in row.cells:
             _borders(cell, sz)
 
-    def _vmerge_restart(cell):
-        pr = _tcpr(cell)
-        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
-        vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart'); pr.append(vm)
-
-    def _vmerge_cont(cell):
-        pr = _tcpr(cell)
-        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
-        vm = OxmlElement('w:vMerge'); pr.append(vm)
-        for para in cell.paragraphs: para.clear()
-
     # ── builders ──────────────────────────────────────────────────────────────
 
     def _add_header(doc):
@@ -1902,60 +1890,12 @@ def create_старт_спринт_docx(сор, группы, filename):
         p2 = _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True);            _ls15(p2)
         p3 = _para(doc, 'Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True); _ls15(p3)
 
-    def _fmt_score(v):
-        if v is None or v == 0:
-            return ''
-        return str(int(v)) if float(v) == int(v) else f'{v:.1f}'
-
-    def _score(к, поле):
-        рм = к.результат_многоборья
-        if not рм:
-            return ''
-        v = getattr(рм, поле, None)
-        return _fmt_score(float(v or 0))
-
-    def _sum_scores(к, мб_колонки):
-        total = 0.0; has = False
-        for кол in мб_колонки:
-            if not кол.get('поле'):
-                continue
-            s = _score(к, кол['поле'])
-            if s:
-                try: total += float(s); has = True
-                except ValueError: pass
-        return _fmt_score(total) if has else ''
-
     def _add_table(doc, секции):
-        """Add the start protocol table for one group of sections.
+        """Add the start protocol table for one group of sections."""
 
-        секции: list of (метка, команды, мб_колонки).
-        N is determined by the max мб_колонки length across sections.
-        """
-        N = max((len(мб) for _, _, мб in секции), default=0)
-        один_без_суммы = (N == 1)
-
-        # Dynamic grid (single ФИО column, N MB columns)
-        W_ФИО = TW - W_НПП - W_КОМ - W_НОМ - W_ТЕРР - N * W_МБ - W_ОЧ - W_ВС
-        NC    = 7 + N
-        GRID  = [W_НПП, W_КОМ, W_НОМ, W_ФИО, W_ТЕРР] + [W_МБ] * N + [W_ОЧ, W_ВС]
-
-        I_НПП = 0; I_КОМ = 1; I_НОМ = 2; I_ФИО = 3; I_ТЕРР = 4
-        I_МБ0 = 5; I_ОЧ = 5 + N; I_ВС = 6 + N
-
-        W_SIG_L = W_НПП + W_КОМ + W_НОМ + W_ФИО + W_ТЕРР
-        W_SIG_R = TW - W_SIG_L
-
-        def _set_grid_local(tbl_obj):
-            tbl = tbl_obj._tbl
-            for old in tbl.findall(qn('w:tblGrid')): tbl.remove(old)
-            grid = OxmlElement('w:tblGrid')
-            for w in GRID:
-                col = OxmlElement('w:gridCol'); col.set(qn('w:w'), str(w)); grid.append(col)
-            tblPr = tbl.find(qn('w:tblPr'))
-            tblPr.addnext(grid) if tblPr is not None else tbl.insert(0, grid)
-
-        # ── Header table (date/location) — separate table, independent borders ──
-        hdr = doc.add_table(rows=0, cols=2)
+        # ── Header table (date/location) ──────────────────────────────────────
+        # Separate 3-col table so its right border is independent from data cols
+        hdr = doc.add_table(rows=0, cols=3)
         hpr = hdr._tbl.find(qn('w:tblPr'))
         if hpr is None:
             hpr = OxmlElement('w:tblPr'); hdr._tbl.insert(0, hpr)
@@ -1968,25 +1908,27 @@ def create_старт_спринт_docx(сор, группы, filename):
             htl = OxmlElement('w:tblLayout'); hpr.append(htl)
         htl.set(qn('w:type'), 'fixed')
         hgr = OxmlElement('w:tblGrid')
-        for w in (W_HDR_L, TW - W_HDR_L):
+        for w in (W01, HDR_MID, HDR_LOC):
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); hgr.append(gc)
         hdr._tbl.insert(0, hgr)
 
         # Row 0 — date/location values
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W_HDR_L); _cw(cs[1], TW - W_HDR_L)
-        _bottom_border(cs[0]); _bottom_border(cs[1])
+        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[1], сор.место_проведения or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
 
         # Row 1 — date/location labels
         r = add_row(hdr); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W_HDR_L); _cw(cs[1], TW - W_HDR_L)
-        _no_border(cs[0]); _no_border(cs[1])
+        _cw(cs[0], W01); _cw(cs[1], HDR_MID); _cw(cs[2], HDR_LOC)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[1], 'Место проведения', align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
         # Minimize the auto-paragraph python-docx inserts between tables
         p_sep = doc.add_paragraph()
@@ -2001,77 +1943,50 @@ def create_старт_спринт_docx(сор, группы, filename):
         sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '2'); rPr.append(sz)
         pPr.append(rPr)
 
-        # ── Data table ────────────────────────────────────────────────────────
+        # ── Data table (column headers + sections + signatures) ───────────────
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl)
-        _set_grid_local(tbl)
+        _set_grid(tbl)
 
-        # ── Column header row 1 ───────────────────────────────────────────────
+        # Column headers: full borders
         r = add_row(tbl)
         cs = list(r.cells)
-        for i, w in enumerate(GRID): _cw(cs[i], w)
+        cs[3].merge(cs[4]);  _cw(cs[3], W34)
+        for i, w in enumerate(GRID):
+            if i != 4:
+                _cw(cs[i], w)
         border_row(r)
+        p = cs[0].paragraphs[0]
+        p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
+        _run(p, '№', pt=8, bold=True)
+        _line_br(p)
+        _run(p, 'п/п', pt=8, bold=True)
+        _fill(cs[1], 'Команда',                              align=C, pt=8, bold=True)
+        _fill(cs[2], 'Номер',                                align=C, pt=8, bold=True)
+        _fill(cs[3], 'Фамилия, имя, отчество участников',   align=C, pt=8, bold=True)
+        _fill(cs[5], 'Территория',                           align=C, pt=8, bold=True)
+        _fill(cs[6], 'Порядковый номер согласно жеребьёвке', align=C, pt=8, bold=True)
+        _fill(cs[7], 'Время старта',                         align=C, pt=8, bold=True)
 
-        p = cs[I_НПП].paragraphs[0]
-        p.clear(); _sp(p); p.alignment = C; _valign(cs[I_НПП])
-        _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
-        _fill(cs[I_КОМ],  'Команда',                              align=C, pt=8, bold=True)
-        _fill(cs[I_НОМ],  'Номер',                                align=C, pt=8, bold=True)
-        _fill(cs[I_ФИО],  'Фамилия, имя, отчество участников',   align=C, pt=8, bold=True)
-        _fill(cs[I_ТЕРР], 'Территория',                           align=C, pt=8, bold=True)
-        _fill(cs[I_ОЧ],   'Порядковый номер\nсогласно жеребьёвке', align=C, pt=8, bold=True)
-        _fill(cs[I_ВС],   'Время\nстарта',                        align=C, pt=8, bold=True)
-
-        for ci in [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_ТЕРР, I_ОЧ, I_ВС]:
-            _vmerge_restart(cs[ci])
-
-        if N == 0:
-            pass
-        elif один_без_суммы:
-            _fill(cs[I_МБ0],
-                  f'Очки\nМного-\nборье\n{секции[0][2][0]["заг"]}',
-                  align=C, pt=7, bold=True)
-            _vmerge_restart(cs[I_МБ0])
-        else:
-            if N > 1:
-                cs[I_МБ0].merge(cs[I_ОЧ - 1])
-            _cw(cs[I_МБ0], N * W_МБ)
-            _fill(cs[I_МБ0], 'Очки Многоборье', align=C, pt=8, bold=True)
-            _valign(cs[I_МБ0], 'bottom')
-
-        # ── Column header row 2 ───────────────────────────────────────────────
-        r = add_row(tbl)
-        cs = list(r.cells)
-        for i, w in enumerate(GRID): _cw(cs[i], w)
-
-        for ci in [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_ТЕРР, I_ОЧ, I_ВС]:
-            _vmerge_cont(cs[ci])
-        border_row(r)
-
-        if N == 0:
-            pass
-        elif один_без_суммы:
-            _vmerge_cont(cs[I_МБ0])
-        else:
-            for j, кол in enumerate(секции[0][2]):
-                ci = I_МБ0 + j
-                _fill(cs[ci], кол['заг'], align=C, pt=7, bold=True)
-
-        # ── Sections ──────────────────────────────────────────────────────────
-        for метка, команды, мб_колонки in секции:
+        # Sections
+        for метка, команды in секции:
             if not команды:
                 continue
 
-            r = add_row(tbl); _row_h(r, 0.6)
+            r = add_row(tbl)
+            _row_h(r, 0.6)
             cs = list(r.cells)
-            cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+            cs[0].merge(cs[NC - 1]);  _cw(cs[0], TW)
             _borders(cs[0])
             _fill(cs[0], метка, align=C, pt=9, bold=True)
 
             for пп, к in enumerate(команды, 1):
                 r = add_row(tbl)
                 cs = list(r.cells)
-                for i, w in enumerate(GRID): _cw(cs[i], w)
+                cs[3].merge(cs[4]);  _cw(cs[3], W34)
+                for i, w in enumerate(GRID):
+                    if i != 4:
+                        _cw(cs[i], w)
                 border_row(r)
 
                 спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
@@ -2080,29 +1995,25 @@ def create_старт_спринт_docx(сор, группы, filename):
                 )
                 время = (к.время_старта_спринт_план or '').split('.')[0]
 
-                _fill(cs[I_НПП],  str(пп),                                     align=C)
-                _fill(cs[I_КОМ],  к.название or '—')
-                _fill(cs[I_НОМ],  str(к.нагрудный_номер or ''),                align=C)
-                _fill(cs[I_ФИО],  фио)
-                _fill(cs[I_ТЕРР], к.субъект.название if к.субъект else '—')
-                for j, кол in enumerate(мб_колонки):
-                    ci = I_МБ0 + j
-                    val = (_sum_scores(к, мб_колонки)
-                           if not кол.get('поле') else _score(к, кол['поле']))
-                    _fill(cs[ci], val, align=C)
-                _fill(cs[I_ОЧ],  str(к.стартовый_номер_спринт or ''),          align=C)
-                _fill(cs[I_ВС],  время,                                         align=C)
+                _fill(cs[0], str(пп),                                            align=C)
+                _fill(cs[1], к.название or '—')
+                _fill(cs[2], str(к.нагрудный_номер or ''),                       align=C)
+                _fill(cs[3], фио)
+                _fill(cs[5], к.субъект.название if к.субъект else '—')
+                _fill(cs[6], str(к.стартовый_номер_спринт or ''),                align=C)
+                _fill(cs[7], время,                                               align=C)
 
-        # ── Signatures ────────────────────────────────────────────────────────
+        # Signatures: no borders, h=1.2cm
         for pos, fio in (('Главный судья', сор.главный_судья or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = add_row(tbl); _row_h(r, 1.2)
+            r = add_row(tbl)
+            _row_h(r, 1.2)
             cs = list(r.cells)
-            cs[0].merge(cs[I_ТЕРР]);     _cw(cs[0], W_SIG_L)
-            cs[I_МБ0].merge(cs[NC - 1]); _cw(cs[I_МБ0], W_SIG_R)
-            _no_border(cs[0]); _no_border(cs[I_МБ0])
+            cs[0].merge(cs[3]);  _cw(cs[0], W0123)
+            cs[4].merge(cs[7]);  _cw(cs[4], W4567)
+            _no_border(cs[0]); _no_border(cs[4])
             _fill(cs[0], pos, pt=10)
-            _fill(cs[I_МБ0], fio, pt=10)
+            _fill(cs[4], fio, pt=10)
 
     # ── document ──────────────────────────────────────────────────────────────
 
@@ -2124,8 +2035,7 @@ def create_старт_спринт_docx(сор, группы, filename):
         if i > 0:
             _page_br(doc)
         _add_header(doc)
-        нормированные = [(s[0], s[1], s[2] if len(s) > 2 else []) for s in секции]
-        _add_table(doc, нормированные)
+        _add_table(doc, секции)
 
     buf = BytesIO()
     doc.save(buf)
