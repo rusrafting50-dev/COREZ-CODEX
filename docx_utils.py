@@ -1989,10 +1989,11 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         # Column headers: full borders
         r = add_row(tbl)
         cs = list(r.cells)
-        cs[3].merge(cs[4]);  _cw(cs[3], W34)
+        cs[3].merge(cs[4])
         for i, w in enumerate(GRID):
-            if i != 4:
+            if i not in (3, 4):
                 _cw(cs[i], w)
+        _cw(cs[3], W34)
         border_row(r)
         p = cs[0].paragraphs[0]
         p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
@@ -2021,10 +2022,11 @@ def create_старт_спринт_docx(сор, группы, filename, порт
             for пп, к in enumerate(команды, 1):
                 r = add_row(tbl)
                 cs = list(r.cells)
-                cs[3].merge(cs[4]);  _cw(cs[3], W34)
+                cs[3].merge(cs[4])
                 for i, w in enumerate(GRID):
-                    if i != 4:
+                    if i not in (3, 4):
                         _cw(cs[i], w)
+                _cw(cs[3], W34)
                 border_row(r)
 
                 спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
