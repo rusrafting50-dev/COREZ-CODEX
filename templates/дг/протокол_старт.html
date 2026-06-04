@@ -37,7 +37,7 @@
      class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a href="{{ url_for('дг.протокол_старт_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
+    <a id="btn-word" href="{{ url_for('дг.протокол_старт_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -237,6 +237,8 @@ function toggleOrient() {
   var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
   document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
+  var _wordBase = '{{ url_for("дг.протокол_старт_word", sor_id=сор.id) }}';
+  document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '');
 }
 function exportWord() {
   var clone = document.body.cloneNode(true);
