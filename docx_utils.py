@@ -1660,16 +1660,14 @@ def create_старт_спринт_docx(сор, группы, filename, порт
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa (portrait)
+    # Proportions 4/19/6/37/13/13/8 % — scaled to exact page text-area width
     _GRID_P = [424, 2013, 636, 1960, 1960, 1378, 1378, 848]
     _TW_P   = sum(_GRID_P)
-    if портрет:
-        GRID = _GRID_P
-    else:
-        _TW_L = round((297 - 15 - 10) * 1440 / 25.4)   # landscape A4
-        GRID = [round(v * _TW_L / _TW_P) for v in _GRID_P]
-        # fix rounding so sum == _TW_L exactly
-        GRID[-1] += _TW_L - sum(GRID)
+    _TW_portrait  = round((210 - 15 - 10) * 1440 / 25.4)   # portrait A4, left=15 right=10
+    _TW_landscape = round((297 - 15 - 10) * 1440 / 25.4)   # landscape A4, same margins
+    _TW_target = _TW_portrait if портрет else _TW_landscape
+    GRID = [round(v * _TW_target / _TW_P) for v in _GRID_P]
+    GRID[-1] += _TW_target - sum(GRID)
     NC    = len(GRID)
     TW    = sum(GRID)
 
@@ -2109,13 +2107,12 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
     # Visible ratios: 4/14/6/33/12/15/8/8 %
     _GRID_P = [448, 1567, 336, 336, 3693, 672, 672, 560, 560, 560, 896, 896]
-    _TW_P   = sum(_GRID_P)   # 11196 dxa ≈ 197.5 mm
-    if портрет:
-        GRID = _GRID_P
-    else:
-        _TW_L = round((297 - 7 - 5) * 1440 / 25.4)   # landscape A4, same margins
-        GRID  = [round(v * _TW_L / _TW_P) for v in _GRID_P]
-        GRID[-1] += _TW_L - sum(GRID)
+    _TW_P   = sum(_GRID_P)
+    _TW_portrait  = round((210 - 7 - 5) * 1440 / 25.4)   # portrait A4, left=7 right=5
+    _TW_landscape = round((297 - 7 - 5) * 1440 / 25.4)   # landscape A4, same margins
+    _TW_target = _TW_portrait if портрет else _TW_landscape
+    GRID = [round(v * _TW_target / _TW_P) for v in _GRID_P]
+    GRID[-1] += _TW_target - sum(GRID)
     NC   = len(GRID)
     TW   = sum(GRID)
 
