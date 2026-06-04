@@ -2458,12 +2458,13 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     def _tiny_para():
         """1 pt high paragraph to separate tables."""
         p = doc.add_paragraph()
-        _sp(p); p.style = 'No Spacing'
+        p.style = 'No Spacing'
         pPr = p._p.get_or_add_pPr()
-        sp = OxmlElement('w:spacing')
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
         sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
         sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
-        pPr.append(sp)
 
     def _add_table(doc, метка, команды, мб_колонки):
         кол1_заг  = мб_колонки[0]['заг']  if len(мб_колонки) > 0 else ''
@@ -3038,13 +3039,13 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
         def _tiny_para(doc):
             """1 pt high paragraph to separate tables."""
             p = doc.add_paragraph()
-            _sp(p)
             p.style = 'No Spacing'
             pPr = p._p.get_or_add_pPr()
-            sp = OxmlElement('w:spacing')
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None:
+                sp = OxmlElement('w:spacing'); pPr.append(sp)
             sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
             sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
-            pPr.append(sp)
 
         # ── Date / venue — отдельная таблица ──────────────────────────────────
         # Левый и правый столбцы: минимальная ширина с noWrap (без переносов).
