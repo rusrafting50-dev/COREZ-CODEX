@@ -2269,7 +2269,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         return ''
 
     def _vert_cell(cell):
-        """Vertical text btLr (bottom-to-top rotation), valign center, para left."""
+        """Vertical text btLr; noWrap so row auto-expands to fit longest text."""
         pr = _tcpr(cell)
         for old in pr.findall(qn('w:textDirection')):
             pr.remove(old)
@@ -2280,6 +2280,9 @@ def create_старт_слалом_docx(сор, секции, filename):
             va.addprevious(td)
         else:
             pr.append(td)
+        if pr.find(qn('w:noWrap')) is None:
+            nw = OxmlElement('w:noWrap')
+            pr.append(nw)
         _valign(cell, 'center')
         for p in cell.paragraphs:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
