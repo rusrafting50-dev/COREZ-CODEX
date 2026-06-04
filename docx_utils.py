@@ -2398,7 +2398,7 @@ def create_старт_слалом_docx(сор, секции, filename):
             _vmerge_restart(cell)
 
         # ── Header row 2 (Очки sub-split) ────────────────────────────────────────
-        r = add_row(тbl); _row_h_min(r, 3.0)
+        r = add_row(тbl)
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
