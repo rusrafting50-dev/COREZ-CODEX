@@ -2976,14 +2976,14 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             if trPr.find(qn('w:tblHeader')) is None:
                 th = OxmlElement('w:tblHeader'); trPr.append(th)
 
-        def _mb_margins(cell):
+        def _mb_margins(cell, lr=108):
             """Узкие отступы для btLr-ячеек МБ."""
             pr = _tcpr(cell)
             for old in pr.findall(qn('w:tcMar')): pr.remove(old)
             mar = OxmlElement('w:tcMar')
             for side in ('left', 'right'):
                 el = OxmlElement(f'w:{side}')
-                el.set(qn('w:w'), '108'); el.set(qn('w:type'), 'dxa')
+                el.set(qn('w:w'), str(lr)); el.set(qn('w:type'), 'dxa')
                 mar.append(el)
             pr.append(mar)
 
@@ -3218,7 +3218,7 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                 ci = I_МБ0 + j
                 _cw(cs2[ci], W_МБ)
                 _fill(cs2[ci], кол['заг'], align=C, pt=8, bold=True)
-                _vert_cell(cs2[ci]); _mb_margins(cs2[ci])
+                _vert_cell(cs2[ci]); _mb_margins(cs2[ci], lr=28 if N <= 3 else 108)
                 _borders(cs2[ci], sz=6)
 
         # ── Секционная строка ──────────────────────────────────────────────────
