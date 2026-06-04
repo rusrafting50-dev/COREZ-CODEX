@@ -75,8 +75,8 @@
       {% set i = loop.index0 %}
       <tr>
         {% if i == 0 %}
-        <td rowspan="2" class="text-center fw-semibold align-middle" style="white-space:nowrap">{{ заезд.стадия }}</td>
-        <td rowspan="2" class="text-center fw-semibold align-middle">{{ заезд.local }}</td>
+        <td rowspan="2" class="text-center align-middle" style="white-space:nowrap">{{ заезд.стадия }}</td>
+        <td rowspan="2" class="text-center align-middle">{{ заезд.local }}</td>
         {% endif %}
         <td class="text-center align-middle">{{ уч.позиция }}</td>
         <td colspan="2" class="align-middle">
@@ -100,7 +100,7 @@
   <tbody>
     {% for роль, инфо in судьи %}
     <tr>
-      <td class="fw-semibold pe-3" style="white-space:nowrap; border:none">{{ роль }}</td>
+      <td class="pe-3" style="white-space:nowrap; border:none">{{ роль }}</td>
       <td style="min-width:250px; border:none">{{ инфо }}</td>
     </tr>
     {% endfor %}
