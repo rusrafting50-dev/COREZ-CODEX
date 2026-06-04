@@ -268,6 +268,7 @@ def протокол_старт(sor_id):
 @bp_спринт.route('/<int:sor_id>/протокол-старт-word')
 def протокол_старт_word(sor_id):
     from docx_utils import create_старт_спринт_docx
+    портрет = request.args.get('портрет', '1') == '1'
     сор = Соревнование.query.get_or_404(sor_id)
     последовательность = (сор.последовательность_видов or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
     вывод = сор.вывод_старт_протокола or 'Попарно'
@@ -292,7 +293,7 @@ def протокол_старт_word(sor_id):
         group1 = секции[:2]
         group2 = секции[2:]
         группы = [g for g in [group1, group2] if g]
-    return create_старт_спринт_docx(сор, группы, f'протокол_старт_спринт_{sor_id}.docx')
+    return create_старт_спринт_docx(сор, группы, f'протокол_старт_спринт_{sor_id}.docx', портрет=портрет)
 
 
 @bp_спринт.route('/<int:sor_id>/протокол-финиш')

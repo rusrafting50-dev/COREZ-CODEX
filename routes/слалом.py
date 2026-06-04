@@ -508,6 +508,7 @@ def протокол_старт(sor_id):
 @bp_слалом.route('/<int:sor_id>/протокол-старт-word')
 def протокол_старт_word(sor_id):
     from docx_utils import create_старт_слалом_docx
+    портрет = request.args.get('портрет', '1') == '1'
     сор = Соревнование.query.get_or_404(sor_id)
     последовательность = (сор.последовательность_слалом or 'R4-м,R4-ж,R6-м,R6-ж').split(',')
     LABELS = {
@@ -528,7 +529,7 @@ def протокол_старт_word(sor_id):
         for код in последовательность
         if код in LABELS
     ]
-    return create_старт_слалом_docx(сор, секции, f'протокол_старт_слалом_{sor_id}.docx')
+    return create_старт_слалом_docx(сор, секции, f'протокол_старт_слалом_{sor_id}.docx', портрет=портрет)
 
 
 @bp_слалом.route('/<int:sor_id>/протокол-финиш')

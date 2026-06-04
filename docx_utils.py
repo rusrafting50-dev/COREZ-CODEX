@@ -1649,7 +1649,7 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_старт_спринт_docx(сор, группы, filename):
+def create_старт_спринт_docx(сор, группы, filename, портрет=True):
     """Generate Sprint start protocol DOCX.
 
     группы — list of sections groups; each group produces one complete protocol
@@ -1660,8 +1660,16 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa
-    GRID  = [636, 2012, 742, 1802, 1801, 1378, 1378, 848]
+    # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa (portrait)
+    _GRID_P = [636, 2012, 742, 1802, 1801, 1378, 1378, 848]
+    _TW_P   = sum(_GRID_P)
+    if портрет:
+        GRID = _GRID_P
+    else:
+        _TW_L = round((297 - 15 - 10) * 1440 / 25.4)   # landscape A4
+        GRID = [round(v * _TW_L / _TW_P) for v in _GRID_P]
+        # fix rounding so sum == _TW_L exactly
+        GRID[-1] += _TW_L - sum(GRID)
     NC    = len(GRID)
     TW    = sum(GRID)
 
@@ -2031,12 +2039,20 @@ def create_старт_спринт_docx(сор, группы, filename):
 
     doc  = Document()
     sect = doc.sections[0]
-    sect.page_height    = Mm(297)
-    sect.page_width     = Mm(210)
-    sect.top_margin     = Mm(12)
-    sect.bottom_margin  = Mm(15)
-    sect.left_margin    = Mm(15)
-    sect.right_margin   = Mm(10)
+    if портрет:
+        sect.page_height   = Mm(297); sect.page_width    = Mm(210)
+    else:
+        sect.page_height   = Mm(210); sect.page_width    = Mm(297)
+    sect.top_margin    = Mm(12)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
 
     body = doc.element.body
     for child in list(body):
@@ -2055,7 +2071,7 @@ def create_старт_спринт_docx(сор, группы, filename):
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_старт_слалом_docx(сор, секции, filename):
+def create_старт_слалом_docx(сор, секции, filename, портрет=True):
     """Generate Slalom start protocol DOCX matching the official sample layout.
 
     секции: list of (метка, команды, мб_колонки) — one page per section.
@@ -2068,9 +2084,16 @@ def create_старт_слалом_docx(сор, секции, filename):
 
     # 12-column grid (dxa) — cols 0-11: №, Команда, Номер(2+3), ФИО, Территория(5+6), Оч1, Оч2, Сумма, Врем1, Врем2
     # Visible ratios: 4/14/6/33/12/15/8/8 %
-    GRID = [448, 1567, 336, 336, 3693, 672, 672, 560, 560, 560, 896, 896]
+    _GRID_P = [448, 1567, 336, 336, 3693, 672, 672, 560, 560, 560, 896, 896]
+    _TW_P   = sum(_GRID_P)   # 11196 dxa ≈ 197.5 mm
+    if портрет:
+        GRID = _GRID_P
+    else:
+        _TW_L = round((297 - 7 - 5) * 1440 / 25.4)   # landscape A4, same margins
+        GRID  = [round(v * _TW_L / _TW_P) for v in _GRID_P]
+        GRID[-1] += _TW_L - sum(GRID)
     NC   = len(GRID)
-    TW   = sum(GRID)   # 11196 dxa ≈ 197.5 mm
+    TW   = sum(GRID)
 
     # Pre-computed merged widths
     W_DATE  = GRID[0]+GRID[1]+GRID[2]                               # 2351 cols 0-2
@@ -2604,12 +2627,20 @@ def create_старт_слалом_docx(сор, секции, filename):
 
     doc  = Document()
     sect = doc.sections[0]
-    sect.page_height   = Mm(297)
-    sect.page_width    = Mm(210)
+    if портрет:
+        sect.page_height = Mm(297); sect.page_width = Mm(210)
+    else:
+        sect.page_height = Mm(210); sect.page_width = Mm(297)
     sect.top_margin    = Mm(18)
     sect.bottom_margin = Mm(12)
     sect.left_margin   = Mm(7)
     sect.right_margin  = Mm(5)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
 
     body = doc.element.body
     for child in list(body):
@@ -2628,14 +2659,17 @@ def create_старт_слалом_docx(сор, секции, filename):
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_старт_дг_docx(сор, секции, filename):
+def create_старт_дг_docx(сор, секции, filename, портрет=True):
     """Стартовый протокол Длинной гонки — динамическая сетка, все МБ-колонки, Очередь."""
     from docx.shared import Mm, Pt
 
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
-    TW = 11196   # total table width dxa (≈ 197.5 mm at A4 portrait with 12 mm margins)
+    if портрет:
+        TW = round((210 - 7 - 5) * 1440 / 25.4)   # portrait A4, left=7 right=5 → 11196 dxa
+    else:
+        TW = round((297 - 7 - 5) * 1440 / 25.4)   # landscape A4, same margins → 16157 dxa
 
     def _sp(p):
         p.paragraph_format.space_before = Pt(0)
@@ -3137,12 +3171,20 @@ def create_старт_дг_docx(сор, секции, filename):
 
     doc  = Document()
     sect = doc.sections[0]
-    sect.page_height   = Mm(297)
-    sect.page_width    = Mm(210)
+    if портрет:
+        sect.page_height = Mm(297); sect.page_width = Mm(210)
+    else:
+        sect.page_height = Mm(210); sect.page_width = Mm(297)
     sect.top_margin    = Mm(18)
     sect.bottom_margin = Mm(12)
     sect.left_margin   = Mm(7)
     sect.right_margin  = Mm(5)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
 
     body = doc.element.body
     for child in list(body):
