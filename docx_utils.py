@@ -3191,13 +3191,9 @@ def create_ход_пс_docx(сор, секции, filename):
     # ── header paragraphs ─────────────────────────────────────────────────────
 
     def _add_header(doc):
-        _para(doc, сор.название, align=C, pt=11, bold=True)
-        if сор.организаторы_блок:
-            for line in сор.организаторы_блок.split('\n'):
-                if line.strip():
-                    _para(doc, line.strip(), align=C, pt=9)
-        _para(doc, 'Протокол хода', align=C, pt=10, bold=True)
-        _para(doc, 'Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ', align=C, pt=9)
+        _para(doc, сор.название, align=C, pt=14, bold=True)
+        _para(doc, 'Протокол хода', align=C, pt=14, bold=True)
+        _para(doc, 'Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ', align=C, pt=14, bold=True)
 
     # ── table builder ─────────────────────────────────────────────────────────
 
@@ -3206,27 +3202,27 @@ def create_ход_пс_docx(сор, секции, filename):
         _tbl_w(tbl); _set_grid(tbl)
 
         # ── Section header row ────────────────────────────────────────────────
-        r = tbl.add_row(); _row_h(r, 0.65)
+        r = tbl.add_row(); _row_h_min(r, 0.75)
         cs = list(r.cells)
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0])
-        _fill(cs[0], метка, align=C, pt=9, bold=True)
+        _fill(cs[0], метка, align=C, pt=14, bold=True)
 
         # ── Column header row ─────────────────────────────────────────────────
-        r = tbl.add_row(); _row_h_min(r, 0.8)
+        r = tbl.add_row(); _row_h_min(r, 1.4)
         cs = list(r.cells)
         for i, w in enumerate(GRID):
             _cw(cs[i], w)
-        _fill(cs[I_СТ], 'Стадия',                      align=C, pt=7, bold=True)
-        _fill(cs[I_ЗН], 'Заезд\n№',                    align=C, pt=7, bold=True)
-        _fill(cs[I_ПО], 'Место спринт./\nпозиция',     align=C, pt=7, bold=True)
+        _fill(cs[I_СТ], 'Стадия',                       align=C, pt=12, bold=True)
+        _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=12, bold=True)
+        _fill(cs[I_ПО], 'Место спринт,\nпозиция в заезде', align=C, pt=12, bold=True)
         cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
-        _fill(cs[I_К1], 'Команда',                     align=C, pt=7, bold=True)
-        _fill(cs[I_НО], 'Номер\nэкипажа',              align=C, pt=7, bold=True)
-        _fill(cs[I_ВС], 'Время\nстарта',               align=C, pt=7, bold=True)
-        _fill(cs[I_ВФ], 'Время\nфиниша',               align=C, pt=7, bold=True)
-        _fill(cs[I_ШТ], 'Штраф',                       align=C, pt=7, bold=True)
-        _fill(cs[I_МС], 'Место, стадия',               align=C, pt=7, bold=True)
+        _fill(cs[I_К1], 'Команда',                      align=C, pt=12, bold=True)
+        _fill(cs[I_НО], 'Номер\nэкипажа',               align=C, pt=12, bold=True)
+        _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=12, bold=True)
+        _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=12, bold=True)
+        _fill(cs[I_ШТ], 'Штраф',                        align=C, pt=12, bold=True)
+        _fill(cs[I_МС], 'Место, стадия',                align=C, pt=12, bold=True)
         for cell in cs:
             _borders(cell); _valign(cell)
 
@@ -3234,7 +3230,7 @@ def create_ход_пс_docx(сор, секции, filename):
         for заезд in заезды:
             вс = _fmt_time(заезд['время_старта'])
             for row_i, уч in enumerate(заезд['участники'][:2]):
-                r = tbl.add_row(); _row_h_min(r, 0.55)
+                r = tbl.add_row(); _row_h_min(r, 0.7)
                 cs = list(r.cells)
                 for i, w in enumerate(GRID):
                     _cw(cs[i], w)
@@ -3243,70 +3239,54 @@ def create_ход_пс_docx(сор, секции, filename):
 
                 # Col 0: Стадия (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=8, bold=True)
+                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=14, bold=True)
                     _vmerge_restart(cs[I_СТ])
                 else:
                     _vmerge_cont(cs[I_СТ])
 
                 # Col 1: Заезд № (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=8, bold=True)
+                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=14, bold=True)
                     _vmerge_restart(cs[I_ЗН])
                 else:
                     _vmerge_cont(cs[I_ЗН])
 
                 # Col 2: Позиция
-                _fill(cs[I_ПО], уч['позиция'], align=C, pt=8)
+                _fill(cs[I_ПО], уч['позиция'], align=C, pt=14)
 
                 # Col 3+4: Команда (merged)
                 cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
                 if уч['команда']:
-                    _fill(cs[I_К1], уч['команда'].название or '—', pt=8)
+                    _fill(cs[I_К1], уч['команда'].название or '—', pt=14)
                 elif уч['метка']:
-                    _fill(cs[I_К1], уч['метка'], pt=7)
+                    _fill(cs[I_К1], уч['метка'], pt=12)
 
                 # Col 5: Номер
                 ном = str(уч['команда'].нагрудный_номер) if уч['команда'] else ''
-                _fill(cs[I_НО], ном, align=C, pt=8)
+                _fill(cs[I_НО], ном, align=C, pt=14)
 
                 # Col 6: Время старта (vmerge across 2 rows)
                 if row_i == 0:
-                    _fill(cs[I_ВС], вс, align=C, pt=8)
+                    _fill(cs[I_ВС], вс, align=C, pt=14)
                     _vmerge_restart(cs[I_ВС])
                 else:
                     _vmerge_cont(cs[I_ВС])
 
-                # Col 7: Время финиша
-                з = уч['запись']
-                вф = ''
-                if з:
-                    if з.статус == 'ДК':
-                        вф = 'ДК'
-                    elif з.статус == 'НФН':
-                        вф = 'Не фин.'
-                    elif з.статус == 'НСТ':
-                        вф = 'Не старт.'
-                    elif з.время:
-                        вф = _fmt_dur(з.время)
-                _fill(cs[I_ВФ], вф, align=C, pt=8)
-
-                # Col 8: Штраф
-                штр = str(з.штрафное_время) if з and з.штрафное_время else ''
-                _fill(cs[I_ШТ], штр, align=C, pt=8)
-
-                # Col 9: Место, стадия
-                _fill(cs[I_МС], уч['метка_стадии'] or '', align=C, pt=8)
+                # Cols 7, 8, 9: empty — judges fill manually
+                _fill(cs[I_ВФ], '', pt=14)
+                _fill(cs[I_ШТ], '', pt=14)
+                _fill(cs[I_МС], '', pt=14)
 
         # ── Signature rows ────────────────────────────────────────────────────
         for pos, fio in (('Главный судья',     сор.главный_судья     or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = tbl.add_row(); _row_h(r, 1.2)
+            r = tbl.add_row(); _row_h(r, 1.4)
             cs = list(r.cells)
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
             cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
             _no_border(cs[0]); _no_border(cs[5])
-            _fill(cs[0], pos, pt=10)
-            _fill(cs[5], fio, pt=10)
+            _fill(cs[0], pos, pt=14)
+            _fill(cs[5], fio, pt=14)
 
     # ── Document assembly ─────────────────────────────────────────────────────
 

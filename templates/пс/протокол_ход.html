@@ -13,39 +13,52 @@
 
 {% block content %}
 <style>
+  body, table, th, td { font-family: 'Times New Roman', Times, serif; font-size: 14pt; }
   @media print {
     .no-print { display: none !important; }
-    body { font-size: 8pt; }
-    @page { margin: 10mm 8mm; size: A4 landscape; }
+    @page { margin: 10mm 8mm; }
     table { page-break-inside: auto; }
     tr { page-break-inside: avoid; }
   }
+</style>
+<style id="orientation-style">
+  @media print { @page { size: A4 landscape; } }
 </style>
 
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
   <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
+    <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
     <a href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">Печать</button>
   </div>
 </div>
+<script>
+  var _landscape = true;
+  function toggleOrient() {
+    _landscape = !_landscape;
+    document.getElementById('orientation-style').textContent =
+      '@media print { @page { size: A4 ' + (_landscape ? 'landscape' : 'portrait') + '; } }';
+    document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
+  }
+</script>
 
 <div class="text-center mb-2 fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
-<div class="text-center mb-3 fw-semibold">Протокол хода — Параллельный спринт</div>
+<div class="text-center mb-3 fw-bold">Протокол хода — Параллельный спринт</div>
 
 {% if not секции %}
 <div class="alert alert-warning">Нет данных для протокола хода.</div>
 {% endif %}
 
 {% for секция in секции %}
-<h6 class="fw-semibold mt-3 mb-1">{{ секция.метка }}</h6>
+<h6 class="fw-bold mt-3 mb-1">{{ секция.метка }}</h6>
 <div class="table-responsive mb-3">
-  <table class="table table-sm table-bordered align-middle" style="font-size:.82rem">
+  <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
       <tr>
         <th class="text-center align-middle" style="min-width:60px">Стадия</th>
         <th class="text-center align-middle" style="width:48px">Заезд<br>№</th>
-        <th class="text-center align-middle" style="min-width:70px">Место спринт./<br>позиция в заезде</th>
+        <th class="text-center align-middle" style="min-width:70px">Место спринт,<br>позиция в заезде</th>
         <th colspan="2" class="text-center align-middle">Команда</th>
         <th class="text-center align-middle" style="width:50px">Номер</th>
         <th class="text-center align-middle" style="width:90px">Время<br>старта</th>
@@ -63,31 +76,21 @@
         <td rowspan="2" class="text-center fw-semibold align-middle" style="white-space:nowrap">{{ заезд.стадия }}</td>
         <td rowspan="2" class="text-center fw-semibold align-middle">{{ заезд.local }}</td>
         {% endif %}
-        <td class="text-center align-middle text-muted small">{{ уч.позиция }}</td>
+        <td class="text-center align-middle">{{ уч.позиция }}</td>
         <td colspan="2" class="align-middle">
           {% if уч.команда %}
           {{ уч.команда.название or '—' }}
           {% else %}
-          <span class="text-muted fst-italic small">{{ уч.метка or 'Ожидается' }}</span>
+          <span class="fst-italic">{{ уч.метка or 'Ожидается' }}</span>
           {% endif %}
         </td>
         <td class="text-center align-middle">{{ уч.команда.нагрудный_номер if уч.команда else '' }}</td>
         {% if i == 0 %}
-        <td rowspan="2" class="text-center font-monospace align-middle small">{{ format_time(заезд.время_старта) if заезд.время_старта else '' }}</td>
+        <td rowspan="2" class="text-center font-monospace align-middle">{{ format_time(заезд.время_старта) if заезд.время_старта else '' }}</td>
         {% endif %}
-        <td class="text-center font-monospace align-middle small">
-          {%- if уч.запись -%}
-            {%- if уч.запись.статус == 'ДК' -%}ДК
-            {%- elif уч.запись.статус == 'НФН' -%}Не фин.
-            {%- elif уч.запись.статус == 'НСТ' -%}Не старт.
-            {%- elif уч.запись.время -%}{{ format_dur(уч.запись.время) }}
-            {%- endif -%}
-          {%- endif -%}
-        </td>
-        <td class="text-center align-middle small">
-          {%- if уч.запись and уч.запись.штрафное_время -%}{{ уч.запись.штрафное_время }}{%- endif -%}
-        </td>
-        <td class="text-center small align-middle">{{ уч.метка_стадии or '' }}</td>
+        <td></td>
+        <td></td>
+        <td></td>
       </tr>
       {% endfor %}
       {% endfor %}
