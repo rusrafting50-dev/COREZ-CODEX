@@ -2997,8 +2997,8 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
     # 10-column grid (dxa)
     # A4 landscape L=15 R=10 → usable 272mm = 15420 dxa
     # A4 portrait  L=15 R=10 → usable 185mm = 10488 dxa  (proportional scale ≈ 0.68)
-    _LANDSCAPE = [1200,  900, 1200, 2510, 2510, 1200, 1500, 1500,  900, 2000]
-    _PORTRAIT  = [ 900,  800, 1000, 1384, 1385,  816, 1021, 1021,  800, 1361]
+    _LANDSCAPE = [1200,  900, 1200, 2510, 2510, 1200, 1500, 1500, 1080, 1820]
+    _PORTRAIT  = [ 900,  800, 1000, 1384, 1385,  816, 1021, 1021,  900, 1261]
     GRID = _PORTRAIT if portrait else _LANDSCAPE
     NC   = len(GRID)
     TW   = sum(GRID)
@@ -3275,7 +3275,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
 
         # ── Signature rows ────────────────────────────────────────────────────
         for pos, инфо in (судьи or []):
-            r = tbl.add_row(); _row_h(r, 1.0)
+            r = tbl.add_row(); _row_h(r, 1.2)
             cs = list(r.cells)
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
             cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
