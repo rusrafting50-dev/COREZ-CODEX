@@ -2512,6 +2512,11 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         W_SP = TW - W_DT - W_VN   # спейсер
 
         hdr = _make_tbl(3)
+        # Переключаем на autofit: колонки сжимаются до содержимого (noWrap = одна строка)
+        _hpr = hdr._tbl.find(qn('w:tblPr'))
+        _lay = _hpr.find(qn('w:tblLayout'))
+        if _lay is not None:
+            _lay.set(qn('w:type'), 'autofit')
         _set_grid_custom(hdr, [W_DT, W_SP, W_VN])
 
         r = add_row(hdr); _row_h(r, 0.6)
@@ -2543,9 +2548,11 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
+        cs[7].merge(cs[9])   # «Очки Многоборье» spans cols 7-8-9
         for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6):
+            if i not in (2, 3, 5, 6, 7, 8, 9):
                 _cw(cs[i], w)
+        _cw(cs[7], W_МБ)
         border_row(r); _hdr_cell_margins(r)
         p = cs[0].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p); p.alignment = C; _valign(cs[0])
         _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
@@ -2554,10 +2561,10 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _fill(cs[4],  'Фамилия, имя, отчество участников',  align=C, pt=8, bold=True)
         _fill(cs[5],  'Территория',                         align=C, pt=8, bold=True)
         p7 = cs[7].paragraphs[0]; p7.clear(); p7.style = 'No Spacing'; _sp(p7); p7.alignment = C
-        _run(p7, 'Очки\nМного-\nборье', pt=8, bold=True); _valign(cs[7], 'bottom')
+        _run(p7, 'Очки Многоборье', pt=8, bold=True); _valign(cs[7], 'center')
         _fill(cs[10], 'Время\nпопытка 1',                  align=C, pt=8, bold=True)
         _fill(cs[11], 'Время\nпопытка 2',                  align=C, pt=8, bold=True)
-        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[7], cs[8], cs[9], cs[10], cs[11]]:
+        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
             _vmerge_restart(cell)
 
         # ── Header row 2 ──────────────────────────────────────────────────────
