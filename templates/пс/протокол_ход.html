@@ -40,23 +40,21 @@
 {% for секция in секции %}
 <div class="text-center fw-bold mt-4 mb-0">{{ сор.название }}</div>
 <div class="text-center fw-bold mb-0">ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ</div>
-<div class="text-center fw-bold mb-2">Спортивная дисциплина «{{ секция.дисциплина }}»</div>
+<div class="text-center fw-bold mb-0">Спортивная дисциплина «{{ секция.дисциплина }}»</div>
+<div class="text-center fw-bold mb-2">{{ секция.пол_рус }}</div>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
       <tr>
-        <th colspan="10" class="text-center fw-bold">{{ секция.пол_рус }}</th>
-      </tr>
-      <tr>
-        <th class="text-center align-middle" style="white-space:nowrap">Стадия</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Заезд №</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Место спринт,<br>позиция в заезде</th>
-        <th colspan="2" class="text-center align-middle" style="white-space:nowrap">Команда</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Номер</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Время старта</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Время финиша</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Штраф</th>
-        <th class="text-center align-middle" style="white-space:nowrap">Место, стадия</th>
+        <th class="text-center align-middle">Стадия</th>
+        <th class="text-center align-middle">Заезд<br>№</th>
+        <th class="text-center align-middle">Место<br>спринт,<br>позиция<br>в<br>заезде</th>
+        <th colspan="2" class="text-center align-middle">Команда</th>
+        <th class="text-center align-middle">Номер</th>
+        <th class="text-center align-middle">Время<br>старта</th>
+        <th class="text-center align-middle">Время<br>финиша</th>
+        <th class="text-center align-middle">Штраф</th>
+        <th class="text-center align-middle">Место,<br>стадия</th>
       </tr>
     </thead>
     <tbody>
@@ -90,5 +88,20 @@
   </table>
 </div>
 {% endfor %}
+
+{% if секции %}
+<table class="table table-sm table-bordered mt-2" style="width:auto">
+  <tbody>
+    {% for роль, судья in [('Старший судья старта', судья_старта), ('Старший судья финиша', судья_финиша)] %}
+    <tr>
+      <td class="fw-semibold" style="white-space:nowrap">{{ роль }}</td>
+      <td style="min-width:200px">{{ судья.фамилия_имя_отчество if судья else '' }}</td>
+      <td style="white-space:nowrap">{{ судья.квалификация if судья else '' }}</td>
+      <td>{{ судья.субъект_рф if судья else '' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 
 {% endblock %}

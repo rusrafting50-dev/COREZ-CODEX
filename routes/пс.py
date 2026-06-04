@@ -3,7 +3,7 @@ import re
 from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from models import (db, Соревнование, Команда, РезультатПараллельногоСпринта,
-                    ТаблицаОчков,
+                    ТаблицаОчков, Судья,
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
 from routes.спринт import parse_time, format_time, format_time_hms
 from нормативы import получить_норматив
@@ -1457,12 +1457,22 @@ def _ход_секции(sor_id):
     return секции
 
 
+def _судья_должность(sor_id, фрагмент):
+    return (Судья.query
+            .filter_by(соревнование_id=sor_id)
+            .filter(Судья.должность.ilike(f'%{фрагмент}%'))
+            .first())
+
 @bp_пс.route('/<int:sor_id>/протокол-ход')
 def протокол_ход(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
     секции = _ход_секции(sor_id)
+    судья_старта  = _судья_должность(sor_id, 'старта')
+    судья_финиша  = _судья_должность(sor_id, 'финиша')
     return render_template('пс/протокол_ход.html',
                            сор=сор, секции=секции,
+                           судья_старта=судья_старта,
+                           судья_финиша=судья_финиша,
                            format_time=format_time,
                            format_dur=_format_dur)
 
