@@ -2806,7 +2806,8 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
         if рез and рез.время_старта is not None:
             s = float(рез.время_старта)
             m = int(s // 60); sec = s % 60
-            return f'{m:02d}:{sec:05.2f}'
+            hun = round((sec % 1) * 100)
+            return f'{m:02d}:{int(sec):02d}:{hun:02d}'
         return ''
 
     def _page_br(doc):
@@ -2898,16 +2899,19 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                 I_НОМ_END  = 3
                 I_ТЕРР_END = 6
             else:
-                # N=4+: Команда разбита на 2 подкол (42+1538=1580), Территория=1439 (1col)
-                W_КОМ_A = 42; W_КОМ_B = 1538  # подкол Команда
-                W_ТЕРР = 1439
-                W_ФИО  = TW - W_НПП - W_КОМ - W_НОМ - W_ТЕРР - N * W_МБ - W_ОЧ - W_ВС
-                GRID = [W_НПП, W_КОМ_A, W_КОМ_B, 137, 551, W_ФИО, W_ТЕРР] + [W_МБ] * N + [W_ОЧ, W_ВС]
-                NC = len(GRID)
-                I_НПП = 0; I_КОМ = 1; I_НОМ = 3; I_ФИО = 5; I_ТЕРР = 6
-                I_МБ0 = 7; I_ОЧ  = 7 + N; I_ВС  = 8 + N
-                I_НОМ_END  = 4   # Номер = cols 3-4
-                I_ТЕРР_END = None  # Территория = 1 col
+                # N=4+: простая структура, пропорции 5/12/6/34/11/4×N/6/9
+                _PCTS = [5, 12, 6, 34, 11] + [4] * N + [6, 9]
+                _SUM_P = sum(_PCTS)
+                GRID = [round(TW * p / _SUM_P) for p in _PCTS]
+                GRID[-1] += TW - sum(GRID)
+                NC = len(GRID)   # 5+N+2
+                I_НПП = 0; I_КОМ = 1; I_НОМ = 2; I_ФИО = 3; I_ТЕРР = 4
+                I_МБ0 = 5; I_ОЧ  = 5 + N; I_ВС  = 6 + N
+                I_НОМ_END  = None   # одиночная колонка
+                I_ТЕРР_END = None   # одиночная колонка
+                W_НПП  = GRID[0]; W_КОМ  = GRID[1]; W_НОМ = GRID[2]
+                W_ФИО  = GRID[3]; W_ТЕРР = GRID[4]; W_МБ  = GRID[5]
+                W_ОЧ   = GRID[I_ОЧ]; W_ВС = GRID[I_ВС]
 
         def _no_wrap(cell):
             pr = _tcpr(cell)
@@ -3016,34 +3020,48 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                     tc0.getparent().remove(tc)
             _cw(c0, width)
 
-        # ── Таблица 1: Дата / Место ────────────────────────────────────────────
-        W_DT = 2127   # по образцу — span первых 3 cols (410+42+1538 или 410+1580)
-        W_VN = 3541   # по образцу — span последних 6 cols для R4М
-        # Для общего случая: дата = W_НПП + W_КОМ (span=2), место = W_ТЕРР + ... (остаток)
-        # Упрощённо: дата=2127 dxa (фикс.), место=3541 dxa (фикс.), спейсер = остаток
-        W_DT_FIX = 2127
-        W_VN_FIX = 3541
-        W_SP_FIX = TW - W_DT_FIX - W_VN_FIX   # 11196-2127-3541=5528
+        # ── Таблица 1: Дата / Место (autofit, min-width ячейки, noWrap) ──────────
 
-        hdr_tbl = _make_tbl(3)
-        _set_tbl_grid(hdr_tbl, [W_DT_FIX, W_SP_FIX, W_VN_FIX])
+        def _make_dv_tbl():
+            t = doc.add_table(rows=0, cols=3)
+            tbl = t._tbl
+            tblPr = tbl.find(qn('w:tblPr'))
+            if tblPr is None: tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+            for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+            for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+            el = tblPr.find(qn('w:tblW'))
+            if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+            el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+            ind = tblPr.find(qn('w:tblInd'))
+            if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+            ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+            lay = tblPr.find(qn('w:tblLayout'))
+            if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+            lay.set(qn('w:type'), 'autofit')
+            return t
 
-        # Строка 0 — значения (дата | пусто | место)
-        r = hdr_tbl.add_row()
+        def _auto_w(cell):
+            pr = _tcpr(cell)
+            el = pr.find(qn('w:tcW'))
+            if el is None: el = OxmlElement('w:tcW'); pr.append(el)
+            el.set(qn('w:w'), '0'); el.set(qn('w:type'), 'auto')
+
+        hdr_tbl = _make_dv_tbl()
+
+        r = hdr_tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
-        _cw(cs[0], W_DT_FIX); _cw(cs[1], W_SP_FIX); _cw(cs[2], W_VN_FIX)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
-        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _no_wrap(cs[0]); _auto_w(cs[0])
+        _no_wrap(cs[2]); _auto_w(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
 
-        # Строка 1 — подписи под чертой
-        r = hdr_tbl.add_row()
+        r = hdr_tbl.add_row(); _row_h(r, 0.5)
         cs = list(r.cells)
-        _cw(cs[0], W_DT_FIX); _cw(cs[1], W_SP_FIX); _cw(cs[2], W_VN_FIX)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
-        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _no_wrap(cs[0]); _auto_w(cs[0])
+        _no_wrap(cs[2]); _auto_w(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
@@ -3069,9 +3087,6 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             else:
                 _vmerge_cont(cs[I_НПП])
 
-            # Команда (span при N>3: два физических столбца)
-            if N > 3:
-                _hspan(cs, I_КОМ, I_КОМ + 1)
             _cw(cs[I_КОМ], W_КОМ)
             if vmerge_mode == 'restart':
                 _vmerge_restart(cs[I_КОМ])
@@ -3079,8 +3094,9 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             else:
                 _vmerge_cont(cs[I_КОМ])
 
-            # Номер (span 2 cols: горизонтальное объединение)
-            _hspan(cs, I_НОМ, I_НОМ_END)
+            # Номер (span 2 cols если есть субколонка, иначе одиночная)
+            if I_НОМ_END is not None:
+                _hspan(cs, I_НОМ, I_НОМ_END)
             _cw(cs[I_НОМ], W_НОМ)
             if vmerge_mode == 'restart':
                 _vmerge_restart(cs[I_НОМ])
@@ -3144,14 +3160,16 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             _cw(cs[I_КОМ], W_КОМ)
             _fill(cs[I_КОМ], 'Команда', align=C, pt=8, bold=True)
 
-            _hspan(cs, I_НОМ, I_НОМ_END)
+            if I_НОМ_END is not None:
+                _hspan(cs, I_НОМ, I_НОМ_END)
             _cw(cs[I_НОМ], W_НОМ)
             _fill(cs[I_НОМ], 'Номер', align=C, pt=8, bold=True)
 
             _cw(cs[I_ФИО], W_ФИО)
             _fill(cs[I_ФИО], 'Фамилия, имя, отчество участников', align=C, pt=8, bold=True)
 
-            _hspan(cs, I_ТЕРР, I_ТЕРР_END)
+            if I_ТЕРР_END is not None:
+                _hspan(cs, I_ТЕРР, I_ТЕРР_END)
             _cw(cs[I_ТЕРР], W_ТЕРР)
             _fill(cs[I_ТЕРР], 'Территория', align=C, pt=8, bold=True)
 
@@ -3230,13 +3248,12 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
             _fill(cs[I_НПП], str(пп), align=C)
 
             # Команда
-            if N > 3:
-                cs[I_КОМ].merge(cs[I_КОМ + 1])
             _cw(cs[I_КОМ], W_КОМ)
             _fill(cs[I_КОМ], к.название or '—')
 
             # Номер
-            cs[I_НОМ].merge(cs[I_НОМ_END])
+            if I_НОМ_END is not None:
+                cs[I_НОМ].merge(cs[I_НОМ_END])
             _cw(cs[I_НОМ], W_НОМ)
             _fill(cs[I_НОМ], str(к.нагрудный_номер or ''), align=C)
 
