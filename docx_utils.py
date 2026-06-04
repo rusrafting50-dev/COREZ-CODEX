@@ -1812,12 +1812,19 @@ def create_старт_спринт_docx(сор, группы, filename):
         if tblPr is None:
             tblPr = OxmlElement('w:tblPr')
             tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')):
+            tblPr.remove(s)
         el = tblPr.find(qn('w:tblW'))
         if el is None:
             el = OxmlElement('w:tblW')
             tblPr.append(el)
         el.set(qn('w:w'), str(TW))
         el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd')
+            tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None:
             lay = OxmlElement('w:tblLayout')
@@ -1899,10 +1906,15 @@ def create_старт_спринт_docx(сор, группы, filename):
         hpr = hdr._tbl.find(qn('w:tblPr'))
         if hpr is None:
             hpr = OxmlElement('w:tblPr'); hdr._tbl.insert(0, hpr)
+        for s in hpr.findall(qn('w:tblStyle')): hpr.remove(s)
         htw = hpr.find(qn('w:tblW'))
         if htw is None:
             htw = OxmlElement('w:tblW'); hpr.append(htw)
         htw.set(qn('w:w'), str(TW)); htw.set(qn('w:type'), 'dxa')
+        hind = hpr.find(qn('w:tblInd'))
+        if hind is None:
+            hind = OxmlElement('w:tblInd'); hpr.append(hind)
+        hind.set(qn('w:w'), '0'); hind.set(qn('w:type'), 'dxa')
         htl = hpr.find(qn('w:tblLayout'))
         if htl is None:
             htl = OxmlElement('w:tblLayout'); hpr.append(htl)
@@ -1910,7 +1922,7 @@ def create_старт_спринт_docx(сор, группы, filename):
         hgr = OxmlElement('w:tblGrid')
         for w in (W01, HDR_MID, HDR_LOC):
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); hgr.append(gc)
-        hdr._tbl.insert(0, hgr)
+        hpr.addnext(hgr)
 
         # Row 0 — date/location values
         r = add_row(hdr); _row_h(r, 0.6)
