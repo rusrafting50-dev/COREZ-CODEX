@@ -1661,7 +1661,7 @@ def create_старт_спринт_docx(сор, группы, filename, порт
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
     # Proportions 6/19/7/34/13/13/8 % at TW=10597 dxa (portrait)
-    _GRID_P = [636, 2012, 742, 1802, 1801, 1378, 1378, 848]
+    _GRID_P = [424, 2013, 636, 1960, 1960, 1378, 1378, 848]
     _TW_P   = sum(_GRID_P)
     if портрет:
         GRID = _GRID_P
