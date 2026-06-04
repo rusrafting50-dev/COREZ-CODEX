@@ -2419,6 +2419,16 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[7],  кол1_заг, align=C, pt=7, bold=True); _vert_cell(cs[7])
         _fill(cs[8],  кол2_заг, align=C, pt=7, bold=True); _vert_cell(cs[8])
         _fill(cs[9],  'Сумма',  align=C, pt=7, bold=True); _vert_cell(cs[9])
+        for _vc in (cs[7], cs[8], cs[9]):
+            _pr = _tcpr(_vc)
+            for _old in _pr.findall(qn('w:tcMar')): _pr.remove(_old)
+            _mar = OxmlElement('w:tcMar')
+            for _side in ('left', 'right'):
+                _el = OxmlElement(f'w:{_side}')
+                _el.set(qn('w:w'), '108')
+                _el.set(qn('w:type'), 'dxa')
+                _mar.append(_el)
+            _pr.append(_mar)
         _vmerge_cont(cs[10])
         _vmerge_cont(cs[11])
 
