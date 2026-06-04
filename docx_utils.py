@@ -2405,7 +2405,11 @@ def create_старт_слалом_docx(сор, секции, filename):
         grid = OxmlElement('w:tblGrid')
         for w in widths:
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
-        tbl.insert(list(tbl).index(tbl.find(qn('w:tr')) or tbl[-1]), grid)
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None:
+            tblPr.addnext(grid)
+        else:
+            tbl.insert(0, grid)
 
     def _no_wrap(cell):
         pr = _tcpr(cell)
@@ -2480,9 +2484,8 @@ def create_старт_слалом_docx(сор, секции, filename):
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
         cs[5].merge(cs[6]);  _cw(cs[5], W_ТЕРР)
-        cs[7].merge(cs[9]);  _cw(cs[7], W_МБ)
         for i, w in enumerate(GRID):
-            if i not in (2, 3, 5, 6, 7, 8, 9):
+            if i not in (2, 3, 5, 6):
                 _cw(cs[i], w)
         border_row(r); _hdr_cell_margins(r)
         p = cs[0].paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p); p.alignment = C; _valign(cs[0])
@@ -2491,11 +2494,11 @@ def create_старт_слалом_docx(сор, секции, filename):
         _fill(cs[2],  'Номер',                              align=C, pt=8, bold=True)
         _fill(cs[4],  'Фамилия, имя, отчество участников',  align=C, pt=8, bold=True)
         _fill(cs[5],  'Территория',                         align=C, pt=8, bold=True)
-        _fill(cs[7],  'Очки Многоборье',                    align=C, pt=8, bold=True)
-        _valign(cs[7], 'bottom')
+        p7 = cs[7].paragraphs[0]; p7.clear(); p7.style = 'No Spacing'; _sp(p7); p7.alignment = C
+        _run(p7, 'Очки\nМного-\nборье', pt=8, bold=True); _valign(cs[7], 'bottom')
         _fill(cs[10], 'Время\nпопытка 1',                  align=C, pt=8, bold=True)
         _fill(cs[11], 'Время\nпопытка 2',                  align=C, pt=8, bold=True)
-        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
+        for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[7], cs[8], cs[9], cs[10], cs[11]]:
             _vmerge_restart(cell)
 
         # ── Header row 2 ──────────────────────────────────────────────────────
@@ -2513,6 +2516,8 @@ def create_старт_слалом_docx(сор, секции, filename):
         _vmerge_cont(cs[2])
         _vmerge_cont(cs[4])
         _vmerge_cont(cs[5])
+        _vmerge_cont(cs[10])
+        _vmerge_cont(cs[11])
         _fill(cs[7],  кол1_заг, align=C, pt=7, bold=True); _vert_cell(cs[7])
         _fill(cs[8],  кол2_заг, align=C, pt=7, bold=True); _vert_cell(cs[8])
         _fill(cs[9],  'Сумма',  align=C, pt=7, bold=True); _vert_cell(cs[9])
@@ -2526,8 +2531,6 @@ def create_старт_слалом_docx(сор, секции, filename):
                 _el.set(qn('w:type'), 'dxa')
                 _mar.append(_el)
             _pr.append(_mar)
-        _vmerge_cont(cs[10])
-        _vmerge_cont(cs[11])
 
         # ── Section header row ────────────────────────────────────────────────
         r = add_row(тbl); _row_h(r, 0.6)
@@ -2740,7 +2743,11 @@ def create_старт_дг_docx(сор, секции, filename):
             gc = OxmlElement('w:gridCol')
             gc.set(qn('w:w'), str(w))
             grid.append(gc)
-        tbl_el.insert(list(tbl_el).index(tbl_el.find(qn('w:tr')) or tbl_el[-1]), grid)
+        tblPr = tbl_el.find(qn('w:tblPr'))
+        if tblPr is not None:
+            tblPr.addnext(grid)
+        else:
+            tbl_el.insert(0, grid)
 
     def _tbl_w(tbl_obj):
         tbl = tbl_obj._tbl
@@ -2971,7 +2978,11 @@ def create_старт_дг_docx(сор, секции, filename):
             grid = OxmlElement('w:tblGrid')
             for w in widths:
                 gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
-            tbl.insert(list(tbl).index(tbl.find(qn('w:tr')) or tbl[-1]), grid)
+            tblPr = tbl.find(qn('w:tblPr'))
+            if tblPr is not None:
+                tblPr.addnext(grid)
+            else:
+                tbl.insert(0, grid)
 
         def _tiny_para(doc):
             """1 pt high paragraph to separate tables."""
