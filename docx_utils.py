@@ -3220,7 +3220,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
         _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=PT, bold=True)
         _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=PT, bold=True)
         _fill(cs[I_ШТ], 'Штраф',                        align=C, pt=PT, bold=True)
-        _fill(cs[I_МС], 'Место, стадия',                align=C, pt=PT, bold=True)
+        _fill(cs[I_МС], 'Место,\nстадия',                align=C, pt=PT, bold=True)
         for cell in cs:
             _borders(cell); _valign(cell)
 
