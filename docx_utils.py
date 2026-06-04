@@ -2901,7 +2901,7 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
                 I_ТЕРР_END = 6
             else:
                 # N=4+: простая структура, пропорции 5/12/6/34/11/4×N/6/9
-                _PCTS = [5, 12, 7, 33, 11] + [4] * N + [7, 9]
+                _PCTS = [5, 12, 7, 30, 11] + [5] * N + [8, 7]
                 _SUM_P = sum(_PCTS)
                 GRID = [round(TW * p / _SUM_P) for p in _PCTS]
                 GRID[-1] += TW - sum(GRID)
