@@ -2805,9 +2805,10 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
         рез = к.результат_дг
         if рез and рез.время_старта is not None:
             s = float(рез.время_старта)
-            m = int(s // 60); sec = s % 60
-            hun = round((sec % 1) * 100)
-            return f'{m:02d}:{int(sec):02d}:{hun:02d}'
+            h = int(s // 3600)
+            m = int((s % 3600) // 60)
+            sec = s % 60
+            return f'{h:02d}:{m:02d}:{int(sec):02d}'
         return ''
 
     def _page_br(doc):
