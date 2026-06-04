@@ -1660,16 +1660,15 @@ def create_старт_спринт_docx(сор, группы, filename, порт
 
     TNR   = 'Times New Roman'
     C     = WD_ALIGN_PARAGRAPH.CENTER
-    # Proportions 4/19/6/37/13/13/8 % — scaled to exact page text-area width
-    _GRID_P = [424, 2013, 636, 1960, 1960, 1378, 1378, 848]
-    _TW_P   = sum(_GRID_P)
-    _TW_portrait  = round((210 - 15 - 10) * 1440 / 25.4)   # portrait A4, left=15 right=10
-    _TW_landscape = round((297 - 15 - 10) * 1440 / 25.4)   # landscape A4, same margins
-    _TW_target = _TW_portrait if портрет else _TW_landscape
-    GRID = [round(v * _TW_target / _TW_P) for v in _GRID_P]
-    GRID[-1] += _TW_target - sum(GRID)
+    # Page text-area width (twips) — exact, used for all three tables
+    TW = round(((210 if портрет else 297) - 15 - 10) * 1440 / 25.4)
+
+    # Main-table column proportions 4/19/6/37/13/13/8
+    # ФИО (37 %) is split evenly across two grid columns (3 and 4)
+    _PCTS = [4, 19, 6, 18.5, 18.5, 13, 13, 8]   # sum = 100
+    GRID  = [round(TW * p / 100) for p in _PCTS]
+    GRID[-1] += TW - sum(GRID)                    # fix rounding remainder
     NC    = len(GRID)
-    TW    = sum(GRID)
 
     W01   = GRID[0] + GRID[1]
     W234  = GRID[2] + GRID[3] + GRID[4]
