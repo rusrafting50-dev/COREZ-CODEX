@@ -2269,7 +2269,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         return ''
 
     def _vert_cell(cell):
-        """Vertical text btLr (bottom-to-top rotation), valign center, para centered."""
+        """Vertical text btLr (bottom-to-top rotation), valign center, para left."""
         pr = _tcpr(cell)
         for old in pr.findall(qn('w:textDirection')):
             pr.remove(old)
@@ -2282,7 +2282,7 @@ def create_старт_слалом_docx(сор, секции, filename):
             pr.append(td)
         _valign(cell, 'center')
         for p in cell.paragraphs:
-            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
     # ── builders ──────────────────────────────────────────────────────────────
 
