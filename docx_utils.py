@@ -3175,8 +3175,7 @@ def create_ход_пс_docx(сор, секции, filename):
         m = int(rest // 60)
         sv = rest % 60
         si = int(sv)
-        cc = min(99, round((sv - si) * 100))
-        return f'{h:02d}:{m:02d}:{si:02d}.{cc:02d}'
+        return f'{h:02d}:{m:02d}:{si:02d}'
 
     def _fmt_dur(secs):
         if secs is None:
@@ -3278,8 +3277,8 @@ def create_ход_пс_docx(сор, секции, filename):
                 _fill(cs[I_МС], '', pt=14)
 
         # ── Signature rows ────────────────────────────────────────────────────
-        for pos, fio in (('Главный судья',     сор.главный_судья     or ''),
-                         ('Главный секретарь', сор.главный_секретарь or '')):
+        for pos, fio in (('Старший судья старта',  сор.главный_судья     or ''),
+                         ('Старший судья финиша', сор.главный_секретарь or '')):
             r = tbl.add_row(); _row_h(r, 1.4)
             cs = list(r.cells)
             cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
