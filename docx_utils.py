@@ -2995,7 +2995,7 @@ def create_ход_пс_docx(сор, секции, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
 
     # 10-column grid (dxa) — A4 landscape, L=15mm R=10mm → usable ≈ 272mm = 15420 dxa
-    GRID = [1000, 700, 900, 3500, 3500, 700, 1300, 1300, 700, 1820]
+    GRID = [1200, 900, 2500, 1860, 1860, 1200, 1500, 1500, 900, 2000]
     NC   = len(GRID)
     TW   = sum(GRID)   # 15420 dxa ≈ 272 mm
 
