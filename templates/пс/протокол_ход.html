@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}ПС: Протокол хода — {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">ПС — Протокол хода</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 8pt; }
+    @page { margin: 10mm 8mm; size: A4 landscape; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+  }
+</style>
+
+<div class="no-print d-flex justify-content-between align-items-center mb-3">
+  <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">Word</a>
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">Печать</button>
+  </div>
+</div>
+
+<div class="text-center mb-2 fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+<div class="text-center mb-3 fw-semibold">Протокол хода — Параллельный спринт</div>
+
+{% if not секции %}
+<div class="alert alert-warning">Нет данных для протокола хода.</div>
+{% endif %}
+
+{% for секция in секции %}
+<h6 class="fw-semibold mt-3 mb-1">{{ секция.метка }}</h6>
+<div class="table-responsive mb-3">
+  <table class="table table-sm table-bordered align-middle" style="font-size:.82rem">
+    <thead class="table-light">
+      <tr>
+        <th class="text-center align-middle" style="min-width:60px">Стадия</th>
+        <th class="text-center align-middle" style="width:48px">Заезд<br>№</th>
+        <th class="text-center align-middle" style="min-width:70px">Место спринт./<br>позиция в заезде</th>
+        <th colspan="2" class="text-center align-middle">Команда</th>
+        <th class="text-center align-middle" style="width:50px">Номер</th>
+        <th class="text-center align-middle" style="width:90px">Время<br>старта</th>
+        <th class="text-center align-middle" style="width:80px">Время<br>финиша</th>
+        <th class="text-center align-middle" style="width:55px">Штраф</th>
+        <th class="text-center align-middle" style="min-width:90px">Место,<br>стадия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for заезд in секция.заезды %}
+      {% for уч in заезд.участники %}
+      {% set i = loop.index0 %}
+      <tr>
+        {% if i == 0 %}
+        <td rowspan="2" class="text-center fw-semibold align-middle" style="white-space:nowrap">{{ заезд.стадия }}</td>
+        <td rowspan="2" class="text-center fw-semibold align-middle">{{ заезд.local }}</td>
+        {% endif %}
+        <td class="text-center align-middle text-muted small">{{ уч.позиция }}</td>
+        <td colspan="2" class="align-middle">
+          {% if уч.команда %}
+          {{ уч.команда.название or '—' }}
+          {% else %}
+          <span class="text-muted fst-italic small">{{ уч.метка or 'Ожидается' }}</span>
+          {% endif %}
+        </td>
+        <td class="text-center align-middle">{{ уч.команда.нагрудный_номер if уч.команда else '' }}</td>
+        {% if i == 0 %}
+        <td rowspan="2" class="text-center font-monospace align-middle small">{{ format_time(заезд.время_старта) if заезд.время_старта else '' }}</td>
+        {% endif %}
+        <td class="text-center font-monospace align-middle small">
+          {%- if уч.запись -%}
+            {%- if уч.запись.статус == 'ДК' -%}ДК
+            {%- elif уч.запись.статус == 'НФН' -%}Не фин.
+            {%- elif уч.запись.статус == 'НСТ' -%}Не старт.
+            {%- elif уч.запись.время -%}{{ format_dur(уч.запись.время) }}
+            {%- endif -%}
+          {%- endif -%}
+        </td>
+        <td class="text-center align-middle small">
+          {%- if уч.запись and уч.запись.штрафное_время -%}{{ уч.запись.штрафное_время }}{%- endif -%}
+        </td>
+        <td class="text-center small align-middle">{{ уч.метка_стадии or '' }}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+
+{% endblock %}

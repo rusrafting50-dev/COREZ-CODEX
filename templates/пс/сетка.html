@@ -100,6 +100,8 @@
        class="btn btn-outline-info btn-sm">Результаты →</a>
     <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
+    <a href="{{ url_for('пс.протокол_ход', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол хода</a>
   </div>
 </div>
 {% endif %}

@@ -2981,6 +2981,359 @@ def create_старт_дг_docx(сор, секции, filename):
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
+def create_ход_пс_docx(сор, секции, filename):
+    """Протокол хода Параллельного спринта.
+
+    секции: list of {'метка': str, 'заезды': list}
+    заезд: {'local': int, 'стадия': str, 'участники': [...], 'время_старта': time|None}
+    участник: {'позиция': str, 'команда': obj|None, 'метка': str|None,
+                'запись': obj|None, 'метка_стадии': str|None}
+    """
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+
+    # 10-column grid (dxa) — A4 landscape, L=15mm R=10mm → usable ≈ 272mm = 15420 dxa
+    GRID = [1000, 700, 900, 3500, 3500, 700, 1300, 1300, 700, 1820]
+    NC   = len(GRID)
+    TW   = sum(GRID)   # 15420 dxa ≈ 272 mm
+
+    I_СТ, I_ЗН, I_ПО = 0, 1, 2
+    I_К1, I_К2, I_НО = 3, 4, 5
+    I_ВС, I_ВФ, I_ШТ, I_МС = 6, 7, 8, 9
+
+    W_КОМ  = GRID[I_К1] + GRID[I_К2]
+    W_SIG_L = sum(GRID[:5])   # 9600
+    W_SIG_R = TW - W_SIG_L   # 5820
+
+    # ── micro-helpers ─────────────────────────────────────────────────────────
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=8, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        if bold:
+            r.font.bold = True
+        return r
+
+    def _para(doc, text='', align=None, pt=10, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        return p
+
+    def _page_br(doc):
+        p = doc.add_paragraph()
+        _sp(p)
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        p.add_run()._r.append(br)
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr')
+            tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'single')
+            el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), '000000')
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), 'auto')
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        tcW.set(qn('w:w'), str(w))
+        tcW.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        va = pr.find(qn('w:vAlign'))
+        if va is None:
+            va = OxmlElement('w:vAlign'); pr.append(va)
+        va.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=None, pt=8, bold=False):
+        p = cell.paragraphs[0]
+        p.clear()
+        p.style = 'No Spacing'
+        _sp(p)
+        if align:
+            p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+
+    def _set_grid(tbl):
+        tg = tbl._tbl.find(qn('w:tblGrid'))
+        if tg is not None:
+            tbl._tbl.remove(tg)
+        tg = OxmlElement('w:tblGrid')
+        for w in GRID:
+            gc = OxmlElement('w:gridCol')
+            gc.set(qn('w:w'), str(w))
+            tg.append(gc)
+        tbl._tbl.insert(0, tg)
+
+    def _tbl_w(tbl):
+        pr = tbl._tbl.find(qn('w:tblPr'))
+        if pr is None:
+            pr = OxmlElement('w:tblPr')
+            tbl._tbl.insert(0, pr)
+        tw = pr.find(qn('w:tblW'))
+        if tw is None:
+            tw = OxmlElement('w:tblW'); pr.append(tw)
+        tw.set(qn('w:w'), str(TW))
+        tw.set(qn('w:type'), 'dxa')
+        tl = pr.find(qn('w:tblLayout'))
+        if tl is None:
+            tl = OxmlElement('w:tblLayout'); pr.append(tl)
+        tl.set(qn('w:type'), 'fixed')
+        ti = pr.find(qn('w:tblInd'))
+        if ti is None:
+            ti = OxmlElement('w:tblInd'); pr.append(ti)
+        ti.set(qn('w:w'), '0')
+        ti.set(qn('w:type'), 'dxa')
+
+    def _row_h(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr')
+            row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')):
+            pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567)))
+        rh.set(qn('w:hRule'), 'exact')
+        pr.append(rh)
+
+    def _row_h_min(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr')
+            row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')):
+            pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567)))
+        rh.set(qn('w:hRule'), 'atLeast')
+        pr.append(rh)
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge')
+        vm.set(qn('w:val'), 'restart')
+        pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge')
+        pr.append(vm)
+
+    # ── local time formatters ─────────────────────────────────────────────────
+
+    def _fmt_time(t):
+        if t is None:
+            return ''
+        cs = t.microsecond // 10000
+        return f'{t.hour:02d}:{t.minute:02d}:{t.second:02d}.{cs:02d}'
+
+    def _fmt_dur(secs):
+        if secs is None:
+            return ''
+        secs = float(secs)
+        m = int(secs // 60)
+        sv = secs % 60
+        si = int(sv)
+        cc = min(99, round((sv - si) * 100))
+        return f'{m}:{si:02d}.{cc:02d}'
+
+    # ── header paragraphs ─────────────────────────────────────────────────────
+
+    def _add_header(doc):
+        _para(doc, сор.название, align=C, pt=11, bold=True)
+        if сор.организаторы_блок:
+            for line in сор.организаторы_блок.split('\n'):
+                if line.strip():
+                    _para(doc, line.strip(), align=C, pt=9)
+        _para(doc, 'Протокол хода', align=C, pt=10, bold=True)
+        _para(doc, 'Группа спортивных дисциплин ПАРАЛЛЕЛЬНЫЙ СПРИНТ', align=C, pt=9)
+
+    # ── table builder ─────────────────────────────────────────────────────────
+
+    def _add_table(doc, метка, заезды):
+        tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(tbl); _set_grid(tbl)
+
+        # ── Section header row ────────────────────────────────────────────────
+        r = tbl.add_row(); _row_h(r, 0.65)
+        cs = list(r.cells)
+        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        _borders(cs[0])
+        _fill(cs[0], метка, align=C, pt=9, bold=True)
+
+        # ── Column header row ─────────────────────────────────────────────────
+        r = tbl.add_row(); _row_h_min(r, 0.8)
+        cs = list(r.cells)
+        for i, w in enumerate(GRID):
+            _cw(cs[i], w)
+        _fill(cs[I_СТ], 'Стадия',                      align=C, pt=7, bold=True)
+        _fill(cs[I_ЗН], 'Заезд\n№',                    align=C, pt=7, bold=True)
+        _fill(cs[I_ПО], 'Место спринт./\nпозиция',     align=C, pt=7, bold=True)
+        cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
+        _fill(cs[I_К1], 'Команда',                     align=C, pt=7, bold=True)
+        _fill(cs[I_НО], 'Номер\nэкипажа',              align=C, pt=7, bold=True)
+        _fill(cs[I_ВС], 'Время\nстарта',               align=C, pt=7, bold=True)
+        _fill(cs[I_ВФ], 'Время\nфиниша',               align=C, pt=7, bold=True)
+        _fill(cs[I_ШТ], 'Штраф',                       align=C, pt=7, bold=True)
+        _fill(cs[I_МС], 'Место, стадия',               align=C, pt=7, bold=True)
+        for cell in cs:
+            _borders(cell); _valign(cell)
+
+        # ── Heat rows ─────────────────────────────────────────────────────────
+        for заезд in заезды:
+            вс = _fmt_time(заезд['время_старта'])
+            for row_i, уч in enumerate(заезд['участники'][:2]):
+                r = tbl.add_row(); _row_h_min(r, 0.55)
+                cs = list(r.cells)
+                for i, w in enumerate(GRID):
+                    _cw(cs[i], w)
+                for cell in cs:
+                    _borders(cell); _valign(cell)
+
+                # Col 0: Стадия (vmerge across 2 rows)
+                if row_i == 0:
+                    _fill(cs[I_СТ], заезд['стадия'], align=C, pt=8, bold=True)
+                    _vmerge_restart(cs[I_СТ])
+                else:
+                    _vmerge_cont(cs[I_СТ])
+
+                # Col 1: Заезд № (vmerge across 2 rows)
+                if row_i == 0:
+                    _fill(cs[I_ЗН], str(заезд['local']), align=C, pt=8, bold=True)
+                    _vmerge_restart(cs[I_ЗН])
+                else:
+                    _vmerge_cont(cs[I_ЗН])
+
+                # Col 2: Позиция
+                _fill(cs[I_ПО], уч['позиция'], align=C, pt=8)
+
+                # Col 3+4: Команда (merged)
+                cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
+                if уч['команда']:
+                    _fill(cs[I_К1], уч['команда'].название or '—', pt=8)
+                elif уч['метка']:
+                    _fill(cs[I_К1], уч['метка'], pt=7)
+
+                # Col 5: Номер
+                ном = str(уч['команда'].нагрудный_номер) if уч['команда'] else ''
+                _fill(cs[I_НО], ном, align=C, pt=8)
+
+                # Col 6: Время старта (vmerge across 2 rows)
+                if row_i == 0:
+                    _fill(cs[I_ВС], вс, align=C, pt=8)
+                    _vmerge_restart(cs[I_ВС])
+                else:
+                    _vmerge_cont(cs[I_ВС])
+
+                # Col 7: Время финиша
+                з = уч['запись']
+                вф = ''
+                if з:
+                    if з.статус == 'ДК':
+                        вф = 'ДК'
+                    elif з.статус == 'НФН':
+                        вф = 'Не фин.'
+                    elif з.статус == 'НСТ':
+                        вф = 'Не старт.'
+                    elif з.время:
+                        вф = _fmt_dur(з.время)
+                _fill(cs[I_ВФ], вф, align=C, pt=8)
+
+                # Col 8: Штраф
+                штр = str(з.штрафное_время) if з and з.штрафное_время else ''
+                _fill(cs[I_ШТ], штр, align=C, pt=8)
+
+                # Col 9: Место, стадия
+                _fill(cs[I_МС], уч['метка_стадии'] or '', align=C, pt=8)
+
+        # ── Signature rows ────────────────────────────────────────────────────
+        for pos, fio in (('Главный судья',     сор.главный_судья     or ''),
+                         ('Главный секретарь', сор.главный_секретарь or '')):
+            r = tbl.add_row(); _row_h(r, 1.2)
+            cs = list(r.cells)
+            cs[0].merge(cs[4]); _cw(cs[0], W_SIG_L)
+            cs[5].merge(cs[NC - 1]); _cw(cs[5], W_SIG_R)
+            _no_border(cs[0]); _no_border(cs[5])
+            _fill(cs[0], pos, pt=10)
+            _fill(cs[5], fio, pt=10)
+
+    # ── Document assembly ─────────────────────────────────────────────────────
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(297)
+    sect.page_height   = Mm(210)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.set(qn('w:orient'), 'landscape')
+
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    for i, секция in enumerate(секции):
+        if i > 0:
+            _page_br(doc)
+        _add_header(doc)
+        _add_table(doc, секция['метка'], секция['заезды'])
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
 def create_результаты_слалом_docx(
     сор, кл, кол_ворот, итоговый,
     муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2,

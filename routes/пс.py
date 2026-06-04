@@ -7,7 +7,7 @@ from models import (db, Соревнование, Команда, Результ
                     СТАТУС_ФИНИШ, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ДК)
 from routes.спринт import parse_time, format_time, format_time_hms
 from нормативы import получить_норматив
-from docx_utils import send_docx
+from docx_utils import send_docx, create_ход_пс_docx
 
 bp_пс = Blueprint('пс', __name__)
 
@@ -1431,6 +1431,44 @@ def протокол_сетка_word(sor_id):
     return send_docx(html, f'протокол_сетка_пс_{sor_id}.docx')
 
 
+def _ход_секции(sor_id):
+    has_r6 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R6').count() > 0
+    has_r4 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R4').count() > 0
+    кл_r4 = 'R4' if has_r4 else None
+    секции = []
+    for кл, пол, пол_текст in [
+        (кл_r4, 'м', 'мужчины'),
+        (кл_r4, 'ж', 'женщины'),
+        ('R6', 'м', 'мужчины'),
+        ('R6', 'ж', 'женщины'),
+    ]:
+        if кл is None:
+            continue
+        if кл == 'R6' and not has_r6:
+            continue
+        заезды = _ход_данные(sor_id, пол, кл)
+        if заезды:
+            секции.append({'метка': f'Параллельный спринт — {кл}, {пол_текст}', 'заезды': заезды})
+    return секции
+
+
+@bp_пс.route('/<int:sor_id>/протокол-ход')
+def протокол_ход(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    секции = _ход_секции(sor_id)
+    return render_template('пс/протокол_ход.html',
+                           сор=сор, секции=секции,
+                           format_time=format_time,
+                           format_dur=_format_dur)
+
+
+@bp_пс.route('/<int:sor_id>/протокол-ход-word')
+def протокол_ход_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    секции = _ход_секции(sor_id)
+    return create_ход_пс_docx(сор, секции, f'протокол_ход_пс_{sor_id}.docx')
+
+
 @bp_пс.route('/<int:sor_id>/протокол-результаты-сетка')
 def протокол_результаты_сетка(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
@@ -1457,6 +1495,82 @@ def протокол_результаты_сетка(sor_id):
                            вывод=вывод,
                            сегодня=date.today(),
                            **ctx)
+
+
+def _ход_данные(sor_id, пол, класс=None):
+    """Список заездов с участниками для протокола хода."""
+    посев = _посев(sor_id, пол, класс)
+    n = len(посев)
+    if n < 2 or n not in ТАБЛИЦА_СОСТАВ:
+        return []
+
+    посев_map = {к.id: i + 1 for i, к in enumerate(посев)}
+    все = _все_записи_пола(sor_id, пол, класс)
+    состав_т = ТАБЛИЦА_СОСТАВ[n]
+    стадии_т = ТАБЛИЦА_СТАДИИ[n]
+    позиции = _позиции_в_стадиях(n)
+    db_to_local, local_to_db = _построить_mapping(n, посев, все) if все else ({}, {})
+    по_db = _в_заезды(все)
+    метки = _метки_записей(sor_id, пол, класс)
+    ids = _ids_пола(sor_id, пол, класс)
+
+    def _поз(part):
+        if part.startswith('ПБ'):
+            return f'ПБ{part[2:]}'
+        if part.startswith('ПР'):
+            return f'ПР{part[2:]}'
+        return f'СП {part}'
+
+    заезды = []
+    for lh in sorted(состав_т.keys()):
+        ст = стадии_т[lh]
+        comp = состав_т[lh]
+        parts = comp.split('-')
+
+        rdb = local_to_db.get(lh)
+        рecs = по_db.get(rdb, []) if rdb else []
+        левая = next((з for з in рecs if з.дорожка == 'левая'), None)
+        правая = next((з for з in рecs if з.дорожка == 'правая'), None)
+
+        # Start time
+        время_старта = None
+        if рecs:
+            время_старта = рecs[0].время_старта
+        elif ids:
+            загл = (РезультатПараллельногоСпринта.query
+                    .filter_by(соревнование_id=sor_id, стадия=ст, номер_заезда=-lh, дорожка='заглушка')
+                    .filter(РезультатПараллельногоСпринта.команда_id.in_(ids))
+                    .first())
+            if загл:
+                время_старта = загл.время_старта
+
+        участники = []
+        for part, rec in [(parts[0], левая), (parts[1], правая)]:
+            if rec is not None:
+                команда = rec.команда
+                метка_уч = None
+            else:
+                team, label = _разрешить_часть_для_предв(
+                    part, посев, local_to_db, по_db, стадии_т, позиции)
+                команда = team
+                метка_уч = label
+
+            участники.append({
+                'позиция': _поз(part),
+                'команда': команда,
+                'метка': метка_уч,
+                'запись': rec,
+                'метка_стадии': метки.get(rec.id) if rec else None,
+            })
+
+        заезды.append({
+            'local': lh,
+            'стадия': КОРОТКИЕ_СТАДИИ.get(ст, ст),
+            'участники': участники,
+            'время_старта': время_старта,
+        })
+
+    return заезды
 
 
 def _стадии_по_командам(sor_id, пол):
