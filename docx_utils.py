@@ -2374,15 +2374,59 @@ def create_старт_слалом_docx(сор, секции, filename):
         p = _para(doc, 'Стартовый протокол', align=C, pt=12, bold=True); _spacing_15(p)
         p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _spacing_15(p)
 
+    def _make_tbl(ncols):
+        """Fixed-layout table spanning TW, no inherited style offset."""
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        ts = tblPr.find(qn('w:tblStyle'))
+        if ts is not None:
+            tblPr.remove(ts)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None:
+            el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None:
+            lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
+
+    def _set_grid_custom(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        old = tbl.find(qn('w:tblGrid'))
+        if old is not None: tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tbl.insert(list(tbl).index(tbl.find(qn('w:tr')) or tbl[-1]), grid)
+
+    def _no_wrap(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _tiny_para():
+        """1 pt high paragraph to separate tables."""
+        p = doc.add_paragraph()
+        _sp(p); p.style = 'No Spacing'
+        pPr = p._p.get_or_add_pPr()
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
+        pPr.append(sp)
+
     def _add_table(doc, метка, команды, мб_колонки):
         кол1_заг  = мб_колонки[0]['заг']  if len(мб_колонки) > 0 else ''
         кол1_поле = мб_колонки[0]['поле'] if len(мб_колонки) > 0 else None
         кол2_заг  = мб_колонки[1]['заг']  if len(мб_колонки) > 1 else ''
         кол2_поле = мб_колонки[1]['поле'] if len(мб_колонки) > 1 else None
-
-        # Signature split aligned to column boundaries: cols 0-4 / cols 5-11
-        W_SIG_L = sum(GRID[:5])    # 6380 dxa
-        W_SIG_R = TW - W_SIG_L    # 4816 dxa
 
         def _hdr_cell_margins(row, dxa=28):
             for tc in row._tr.findall(qn('w:tc')):
@@ -2399,34 +2443,39 @@ def create_старт_слалом_docx(сор, секции, filename):
                     mar.append(el)
                 pr.append(mar)
 
-        # ── Single table: date/venue + header + data + signatures ────────────────
-        тbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(тbl)
+        # ── Дата / место — отдельная таблица ──────────────────────────────────
+        W_DT = 2500   # достаточно для любой даты (noWrap)
+        W_VN = 4500   # достаточно для большинства мест (noWrap)
+        W_SP = TW - W_DT - W_VN   # спейсер
+
+        hdr = _make_tbl(3)
+        _set_grid_custom(hdr, [W_DT, W_SP, W_VN])
+
+        r = add_row(hdr); _row_h(r, 0.6)
+        cs = list(r.cells)
+        _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        r = add_row(hdr); _row_h(r, 0.5)
+        cs = list(r.cells)
+        _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _no_wrap(cs[0]); _no_wrap(cs[2])
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
+
+        _tiny_para()
+
+        # ── Основная таблица: шапка + данные ──────────────────────────────────
+        тbl = _make_tbl(NC)
         _set_grid(тbl)
 
-        # ── Date / venue row 0: values (bottom border on date and venue) ──────────
-        r = add_row(тbl)
-        cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _bottom_border(cs[0]); _no_border(cs[3]); _bottom_border(cs[6])
-        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], сор.место_проведения or '', align=C, pt=10, bold=True)
-
-        # ── Date / venue row 1: labels (no borders) ───────────────────────────────
-        r = add_row(тbl)
-        cs = list(r.cells)
-        cs[0].merge(cs[2]);  _cw(cs[0], W_DATE)
-        cs[3].merge(cs[5]);  _cw(cs[3], W_MID)
-        cs[6].merge(cs[11]); _cw(cs[6], W_VENUE)
-        _no_border(cs[0]); _no_border(cs[3]); _no_border(cs[6])
-        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
-        _fill(cs[3], '')
-        _fill(cs[6], 'Место проведения', align=C, pt=8, bold=True)
-
-        # ── Header row 1 (Очки Многоборье merged over cols 7-9) ──────────────────
+        # ── Header row 1 ──────────────────────────────────────────────────────
         r = add_row(тbl)
         cs = list(r.cells)
         cs[2].merge(cs[3]);  _cw(cs[2], W_НОМ)
@@ -2449,8 +2498,7 @@ def create_старт_слалом_docx(сор, секции, filename):
         for cell in [cs[0], cs[1], cs[2], cs[4], cs[5], cs[10], cs[11]]:
             _vmerge_restart(cell)
 
-        # ── Header row 2 (Очки sub-split) ────────────────────────────────────────
-        # For btLr text row height = available text width; ~0.13cm per Cyrillic char at 7pt
+        # ── Header row 2 ──────────────────────────────────────────────────────
         _h2 = max(len(кол1_заг), len(кол2_заг), len('Сумма')) * 0.13 + 0.1
         r = add_row(тbl); _row_h_min(r, max(1.0, _h2))
         cs = list(r.cells)
@@ -2481,14 +2529,14 @@ def create_старт_слалом_docx(сор, секции, filename):
         _vmerge_cont(cs[10])
         _vmerge_cont(cs[11])
 
-        # ── Section header row ────────────────────────────────────────────────────
+        # ── Section header row ────────────────────────────────────────────────
         r = add_row(тbl); _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0])
         _fill(cs[0], метка, align=C, pt=9, bold=True)
 
-        # ── Data rows ─────────────────────────────────────────────────────────────
+        # ── Data rows ─────────────────────────────────────────────────────────
         for пп, к in enumerate(команды, 1):
             r = add_row(тbl)
             cs = list(r.cells)
@@ -2519,16 +2567,23 @@ def create_старт_слалом_docx(сор, секции, filename):
             _fill(cs[10], _time(к, 1),                                   align=C)
             _fill(cs[11], _time(к, 2),                                   align=C)
 
-        # ── Signature rows ────────────────────────────────────────────────────────
+        _tiny_para()
+
+        # ── Подписи — отдельная таблица, соотношение 1:2 ──────────────────────
+        W_SIG_L = TW // 3        # 3732 dxa
+        W_SIG_R = TW - W_SIG_L  # 7464 dxa
+
+        sig = _make_tbl(2)
+        _set_grid_custom(sig, [W_SIG_L, W_SIG_R])
+
         for pos, fio in (('Главный судья', сор.главный_судья or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
-            r = add_row(тbl); _row_h_min(r, 1.2)
+            r = add_row(sig); _row_h_min(r, 1.2)
             cs = list(r.cells)
-            cs[0].merge(cs[4]);  _cw(cs[0], W_SIG_L)
-            cs[5].merge(cs[11]); _cw(cs[5], W_SIG_R)
-            _no_border(cs[0]); _no_border(cs[5])
+            _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+            _no_border(cs[0]); _no_border(cs[1])
             _fill(cs[0], pos, pt=10)
-            _fill(cs[5], fio, pt=10)
+            _fill(cs[1], fio, pt=10)
 
     # ── document ──────────────────────────────────────────────────────────────
 
