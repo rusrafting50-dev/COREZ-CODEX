@@ -4592,8 +4592,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/5/8
-    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 5, 8]
+    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/3/10
+    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 3, 10]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
@@ -4858,7 +4858,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, pct_w=(5000 if портрет else 5100))
+    dt = _make_tbl(3, pct_w=(5000 if портрет else 5100), jc=('center' if портрет else None))
     dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
@@ -5000,7 +5000,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               align=L, pt=PT_FIO, bold=True)
 
     # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
-    sig = _make_tbl(2, fixed_tw=TW_SIG)
+    sig = _make_tbl(2, fixed_tw=TW_SIG, jc='center')
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
