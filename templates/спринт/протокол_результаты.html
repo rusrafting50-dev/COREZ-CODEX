@@ -20,6 +20,7 @@
     table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
     th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
+    thead tr:first-child th.with-bottom { border-bottom: 0.75pt solid #333 !important; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .underline-field { border-bottom: 1px solid #000; min-width: 160px; display: inline-block; }
     .text-center { text-align: center; }
@@ -188,8 +189,8 @@
     <th rowspan="2">Номер</th>
     <th rowspan="2">Фамилия, имя, отчество участников</th>
     <th rowspan="2">Субъект РФ</th>
-    <th colspan="2">Штрафы</th>
-    <th colspan="3">Результат</th>
+    <th colspan="2" class="with-bottom">Штрафы</th>
+    <th colspan="3" class="with-bottom">Результат</th>
     <th rowspan="2">Место</th>
     <th rowspan="2">Очки</th>
     <th rowspan="2">Выполнение разряда{% if _снос %}*{% endif %}</th>
