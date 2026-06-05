@@ -4705,31 +4705,27 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             if i < len(parts) - 1:
                 br = OxmlElement('w:br'); r._r.append(br)
 
-    def _make_tbl_fixed(ncols, widths):
-        """Создать fixed-таблицу без унаследованного стиля, tblInd=0."""
-        t = doc.add_table(rows=0, cols=ncols)
-        tbl = t._tbl
-        tblPr = tbl.find(qn('w:tblPr'))
-        if tblPr is None:
-            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
-        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
-        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
-        el = tblPr.find(qn('w:tblW'))
-        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
-        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
-        ind = tblPr.find(qn('w:tblInd'))
-        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
-        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
-        lay = tblPr.find(qn('w:tblLayout'))
-        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
-        lay.set(qn('w:type'), 'fixed')
-        old_g = tbl.find(qn('w:tblGrid'))
-        if old_g is not None: tbl.remove(old_g)
-        grid = OxmlElement('w:tblGrid')
-        for w in widths:
-            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
-        tblPr.addnext(grid)
-        return t
+    def _set_grid(tbl):
+        tg = tbl._tbl.find(qn('w:tblGrid'))
+        if tg is not None: tbl._tbl.remove(tg)
+        tg = OxmlElement('w:tblGrid')
+        for w in GRID:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
+        tbl._tbl.insert(0, tg)
+
+    def _tbl_w(tbl, w=None):
+        w = w or TW
+        pr = tbl._tbl.find(qn('w:tblPr'))
+        if pr is None:
+            pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
+        tw = pr.find(qn('w:tblW'))
+        if tw is None:
+            tw = OxmlElement('w:tblW'); pr.append(tw)
+        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+        tl = pr.find(qn('w:tblLayout'))
+        if tl is None:
+            tl = OxmlElement('w:tblLayout'); pr.append(tl)
+        tl.set(qn('w:type'), 'fixed')
 
     def _row_h(row, cm):
         pr = row._tr.find(qn('w:trPr'))
@@ -4800,41 +4796,31 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True)
     _para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True)
 
-    # ── date/venue table (separate, same fixed layout) ─────────────────────
-    W_DT_L = 2500                    # date column
-    W_DT_R = TW // 3                 # venue column
-    W_DT_S = TW - W_DT_L - W_DT_R   # spacer
-
-    dt = _make_tbl_fixed(3, [W_DT_L, W_DT_S, W_DT_R])
-
-    # row 0 — values
-    r = dt.add_row(); _row_h_min(r, 0.6)
-    cs = list(r.cells)
-    _cw(cs[0], W_DT_L); _cw(cs[1], W_DT_S); _cw(cs[2], W_DT_R)
-    _no_border(cs[1])
-    _bottom_border(cs[0]); _valign(cs[0], 'bottom'); _no_wrap_cell(cs[0])
-    _bottom_border(cs[2]); _valign(cs[2], 'bottom'); _no_wrap_cell(cs[2])
-    _fill(cs[0], сор.даты_проведения  or '', align=C, pt=PT, bold=True)
-    _fill(cs[2], сор.место_проведения or '', align=C, pt=PT, bold=True)
-
-    # row 1 — labels
-    r = dt.add_row(); _row_h_min(r, 0.5)
-    cs = list(r.cells)
-    _cw(cs[0], W_DT_L); _cw(cs[1], W_DT_S); _cw(cs[2], W_DT_R)
-    _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
-    _fill(cs[0], 'Дата проведения',  align=C, pt=PT_FIO, bold=True)
-    _fill(cs[2], 'Место проведения', align=C, pt=PT_FIO, bold=True)
-
-    # 1-pt spacer paragraph
-    p_gap = doc.add_paragraph(); p_gap.style = 'No Spacing'
-    pPr_g = p_gap._p.get_or_add_pPr()
-    sp_g  = OxmlElement('w:spacing')
-    sp_g.set(qn('w:before'), '0'); sp_g.set(qn('w:after'), '0')
-    sp_g.set(qn('w:line'), '20');  sp_g.set(qn('w:lineRule'), 'exact')
-    pPr_g.append(sp_g)
-
     # ── main table ───────────────────────────────────────────────────────────
-    tbl = _make_tbl_fixed(NC, GRID)
+    tbl = doc.add_table(rows=0, cols=NC)
+    _set_grid(tbl); _tbl_w(tbl)
+
+    # row 0 — date/location values
+    r = tbl.add_row(); _row_h_min(r, 0.6)
+    cs = list(r.cells)
+    cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
+    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
+    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
+    _bottom_border(cs[0]); _valign(cs[0], 'bottom')
+    _no_border(cs[2])
+    _bottom_border(cs[10]); _valign(cs[10], 'bottom')
+    _fill(cs[0],  сор.даты_проведения  or '', align=C, pt=PT, bold=True)
+    _fill(cs[10], сор.место_проведения or '', align=C, pt=PT, bold=True)
+
+    # row 1 — date/location labels
+    r = tbl.add_row(); _row_h_min(r, 0.5)
+    cs = list(r.cells)
+    cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
+    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
+    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
+    _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[10])
+    _fill(cs[0],  'Дата проведения',  align=C, pt=PT_FIO, bold=True)
+    _fill(cs[10], 'Место проведения', align=C, pt=PT_FIO, bold=True)
 
     # row 2 — header part 1 (vMerge restart on single cols; hspan on composite cols)
     r = tbl.add_row(); _row_h_min(r, 0.7)
