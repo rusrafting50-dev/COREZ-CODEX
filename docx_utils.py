@@ -4596,19 +4596,19 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # A4 landscape L=15mm R=10mm → 272mm = 15420 dxa
-    # 15 cols, proportional to sample [488,1701,381,753,3402,1418,850,851,850,851,850,992,709,567,1276] sum=15939
+    # 14 cols (Лимит времени удалён, его 823 dxa добавлены к ФИО)
     TW   = 15420
-    GRID = [472, 1645, 368, 728, 3296, 1371, 822, 823, 822, 823, 822, 960, 686, 548, 1234]
-    NC   = len(GRID)   # 15; sum(GRID) == 15420
+    GRID = [472, 1645, 368, 728, 4119, 1371, 822, 822, 823, 822, 960, 686, 548, 1234]
+    NC   = len(GRID)   # 14; sum(GRID) == 15420
 
     I_НПП, I_К1, I_К2, I_НОМ, I_ФИО = 0, 1, 2, 3, 4
-    I_СУБ, I_ШТС, I_ЛВ,  I_ШТФ      = 5, 6, 7, 8
-    I_ШТИ, I_ВП,  I_ИТ               = 9, 10, 11
-    I_МЕ,  I_ОЧ,  I_РА               = 12, 13, 14
+    I_СУБ, I_ШТС, I_ШТФ              = 5, 6, 7
+    I_ШТИ, I_ВП,  I_ИТ               = 8, 9, 10
+    I_МЕ,  I_ОЧ,  I_РА               = 11, 12, 13
 
-    W_К    = GRID[I_К1] + GRID[I_К2]                         # 2013
-    W_ПРОХ = GRID[I_ШТС] + GRID[I_ЛВ] + GRID[I_ШТФ]         # 2467
-    W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]          # 2605
+    W_К    = GRID[I_К1] + GRID[I_К2]          # 2013
+    W_ПРОХ = GRID[I_ШТС] + GRID[I_ШТФ]        # 1644
+    W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]  # 2605
     W_SIG_L, W_SIG_R = 5400, TW - 5400
 
     PT, PT_FIO, PT_HDR = 10, 8, 9
@@ -4808,23 +4808,23 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     r = tbl.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
     cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
-    cs[2].merge(cs[10]);  _cw(cs[2], sum(GRID[2:11]))
-    cs[11].merge(cs[14]); _cw(cs[11], sum(GRID[11:]))
+    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
+    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
     _bottom_border(cs[0]); _valign(cs[0], 'bottom')
     _no_border(cs[2])
-    _bottom_border(cs[11]); _valign(cs[11], 'bottom')
+    _bottom_border(cs[10]); _valign(cs[10], 'bottom')
     _fill(cs[0],  сор.даты_проведения  or '', align=C, pt=PT, bold=True)
-    _fill(cs[11], сор.место_проведения or '', align=C, pt=PT, bold=True)
+    _fill(cs[10], сор.место_проведения or '', align=C, pt=PT, bold=True)
 
     # row 1 — date/location labels
     r = tbl.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
     cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
-    cs[2].merge(cs[10]);  _cw(cs[2], sum(GRID[2:11]))
-    cs[11].merge(cs[14]); _cw(cs[11], sum(GRID[11:]))
-    _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[11])
+    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
+    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
+    _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[10])
     _fill(cs[0],  'Дата проведения',  align=C, pt=PT_FIO, bold=True)
-    _fill(cs[11], 'Место проведения', align=C, pt=PT_FIO, bold=True)
+    _fill(cs[10], 'Место проведения', align=C, pt=PT_FIO, bold=True)
 
     # row 2 — header part 1 (vMerge restart on single cols; hspan on composite cols)
     r = tbl.add_row(); _row_h_min(r, 0.7)
@@ -4840,13 +4840,14 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_НОМ], 'Номер',                                     align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ФИО], 'Фамилия, имя, отчество участников',        align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_СУБ], 'Субъект РФ',                               align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТС], 'Прохождение дистанции\n(штрафные баллы)',  align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТИ], 'Результат',                                 align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТС], 'Штрафы',    align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТИ], 'Результат', align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                     align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
+    _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])  # restore bottom border after merge
     for i in range(NC):
         _tcMar(cs[i]); _no_wrap_cell(cs[i])
 
@@ -4857,12 +4858,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_К)
     for i in (I_НПП, I_К1, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
         _vmerge_cont(cs[i])
-    _fill(cs[I_ШТС], 'Старт',              align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ЛВ],  'Лимит\nвремени',    align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТФ], 'Финиш',             align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТИ], 'Штрафное\nвремя',   align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ВП],  'Время\nпрохождения', align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ИТ],  'Итоговый\nрезультат', align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТС], 'Старт',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТФ], 'Финиш',  align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТИ], 'Штраф',  align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ВП],  'Время',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ИТ],  'Итоговый', align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
@@ -4903,21 +4903,18 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         ст = рез.статус
         if ст in (СТАТУС_ДНС, СТАТУС_ДНФ):
             _fill(cs[I_ШТС], 'Не старт.' if ст == СТАТУС_ДНС else '–', align=C, pt=PT)
-            _fill(cs[I_ЛВ],  '–', align=C, pt=PT)
             _fill(cs[I_ШТФ], 'Не фин.' if ст == СТАТУС_ДНФ else '–',  align=C, pt=PT)
             _fill(cs[I_ШТИ], '–', align=C, pt=PT)
             _fill(cs[I_ВП],  'Не старт.' if ст == СТАТУС_ДНС else 'Не фин.', align=C, pt=PT)
             _fill(cs[I_ИТ],  '–', align=C, pt=PT)
         elif ст == СТАТУС_ДК:
             _fill(cs[I_ШТС], 'ДК', align=C, pt=PT)
-            _fill(cs[I_ЛВ],  '–', align=C, pt=PT)
             _fill(cs[I_ШТФ], _fmt_dur(шт_фн) if шт_фн else '–', align=C, pt=PT)
             _fill(cs[I_ШТИ], _fmt_dur(рез.штрафное_время) or '0:00.00', align=C, pt=PT)
             _fill(cs[I_ВП],  _fmt_dur(рез.время_прохождения), align=C, pt=PT)
             _fill(cs[I_ИТ],  'ДК', align=C, pt=PT)
         else:
             _fill(cs[I_ШТС], _fmt_dur(шт_ст) if шт_ст else '–', align=C, pt=PT)
-            _fill(cs[I_ЛВ],  'Прев. ЛВ' if ст == СТАТУС_ПЛВ else '–', align=C, pt=PT)
             фн_т = 'Посл. м.' if ст == СТАТУС_ПМ else (_fmt_dur(шт_фн) if шт_фн else '–')
             _fill(cs[I_ШТФ], фн_т, align=C, pt=PT)
             _fill(cs[I_ШТИ], _fmt_dur(рез.штрафное_время) or '0:00.00', align=C, pt=PT)
