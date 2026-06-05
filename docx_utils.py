@@ -42,13 +42,9 @@ def _make_base_doc(portrait=False):
         sec.right_margin  = Cm(1.0)
         sec.top_margin    = Cm(1.5)
         sec.bottom_margin = Cm(1.5)
-    # Explicitly set w:orient so Word doesn't have to infer from dimensions
     pgSz = sec._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
-        if portrait:
-            pgSz.attrib.pop(qn('w:orient'), None)
-        else:
-            pgSz.set(qn('w:orient'), 'landscape')
+        pgSz.set(qn('w:orient'), 'portrait' if portrait else 'landscape')
     doc.styles['Normal'].font.name = 'Times New Roman'
     doc.styles['Normal'].font.size = Pt(10)
     return doc
@@ -5377,14 +5373,10 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
               'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
               align=L, pt=PT_FIO, bold=True)
 
-    # H) Publish time
-    p_время = _para(doc, 'Время опубликования:', align=L, pt=PT)
-    _keep_next_p(p_время)
-
-    # I) Tiny separator
+    # H) Tiny separator before signatures
     _tiny_para()
 
-    # J) Signature table
+    # I) Signature table
     sig = doc.add_table(rows=0, cols=2)
     sig_pr = sig._tbl.find(qn('w:tblPr'))
     if sig_pr is None:
@@ -5411,6 +5403,11 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
+
+    # J) Publish time — after signatures, with current date/time
+    from datetime import datetime
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+    _para(doc, f'Время опубликования: {now_str}', align=L, pt=PT)
 
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
