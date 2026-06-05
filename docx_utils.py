@@ -5042,7 +5042,10 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     else:
         TW = round((297 - 15 - 10) * 1440 / 25.4)   # ~15420 dxa
 
-    _PCTS = [3, 13, 5, 21, 9, 15, 17, 5, 4, 4, 4]
+    if портрет:
+        _PCTS = [3, 11, 5, 32, 11, 6, 5, 8, 5, 5, 9]   # sum=100
+    else:
+        _PCTS = [3, 13, 5, 21, 9, 15, 17, 5, 4, 4, 4]   # sum=101
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 11
@@ -5404,7 +5407,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         cs = list(r.cells)
         for i, w in enumerate(GRID): _cw_pct(cs[i], w)
         for i in range(NC):
-            _borders(cs[i]); _valign(cs[i])
+            _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i])
 
         _fill(cs[I_НПП], str(пп),                                             align=C, pt=PT)
         _fill(cs[I_КОМ], к.название or '–',                                   align=L, pt=PT)
