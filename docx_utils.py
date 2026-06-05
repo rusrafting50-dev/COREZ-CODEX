@@ -4873,7 +4873,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, fixed_tw=TW)
+    dt = _make_tbl(3, fixed_tw=TW, jc='center')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
     for idx, (лево, право, pt_v, bold_v) in enumerate([
@@ -4897,7 +4897,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc)
 
     # ── main table ───────────────────────────────────────────────────────────
-    tbl = _make_tbl(NC, fixed_tw=TW)
+    tbl = _make_tbl(NC, fixed_tw=TW, jc='center')
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
@@ -5016,7 +5016,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               align=L, pt=PT_FIO, bold=True)
 
     # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
-    sig = _make_tbl(2, fixed_tw=TW)
+    sig = _make_tbl(2, fixed_tw=TW, jc='center')
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
