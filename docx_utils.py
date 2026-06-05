@@ -5239,31 +5239,38 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         p.alignment = C; _spacing_15(p)
         r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
 
-    # C) Date/venue autofit table — left/right cols min-width via noWrap, center flexible
+    # C) Date/venue table — fixed layout, explicit widths, no tblStyle (как в стартовом протоколе)
+    W_DT = 2500          # достаточно для любой даты
+    W_VN = TW // 3       # треть ширины для места проведения
+    W_SP = TW - W_DT - W_VN
+
     dt = doc.add_table(rows=0, cols=3)
     dt_pr = dt._tbl.find(qn('w:tblPr'))
     if dt_pr is None:
         dt_pr = OxmlElement('w:tblPr'); dt._tbl.insert(0, dt_pr)
+    for old in dt_pr.findall(qn('w:tblStyle')): dt_pr.remove(old)
+    for old in dt_pr.findall(qn('w:tblLook')):  dt_pr.remove(old)
     dt_tw = dt_pr.find(qn('w:tblW'))
-    if dt_tw is None:
-        dt_tw = OxmlElement('w:tblW'); dt_pr.append(dt_tw)
+    if dt_tw is None: dt_tw = OxmlElement('w:tblW'); dt_pr.append(dt_tw)
     dt_tw.set(qn('w:w'), str(TW)); dt_tw.set(qn('w:type'), 'dxa')
+    dt_ind = dt_pr.find(qn('w:tblInd'))
+    if dt_ind is None: dt_ind = OxmlElement('w:tblInd'); dt_pr.append(dt_ind)
+    dt_ind.set(qn('w:w'), '0'); dt_ind.set(qn('w:type'), 'dxa')
     dt_lay = dt_pr.find(qn('w:tblLayout'))
-    if dt_lay is None:
-        dt_lay = OxmlElement('w:tblLayout'); dt_pr.append(dt_lay)
-    dt_lay.set(qn('w:type'), 'autofit')
-
-    def _dt_auto_cw(cell):
-        pr = _tcpr(cell)
-        tcW = pr.find(qn('w:tcW'))
-        if tcW is None:
-            tcW = OxmlElement('w:tcW'); pr.append(tcW)
-        tcW.set(qn('w:w'), '0'); tcW.set(qn('w:type'), 'auto')
+    if dt_lay is None: dt_lay = OxmlElement('w:tblLayout'); dt_pr.append(dt_lay)
+    dt_lay.set(qn('w:type'), 'fixed')
+    # tblGrid
+    dt_tg = dt._tbl.find(qn('w:tblGrid'))
+    if dt_tg is not None: dt._tbl.remove(dt_tg)
+    dt_tg = OxmlElement('w:tblGrid')
+    for w in (W_DT, W_SP, W_VN):
+        gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); dt_tg.append(gc)
+    dt._tbl.insert(0, dt_tg)
 
     # row 0 — values
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
-    for cell in cs: _dt_auto_cw(cell)
+    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
     _bottom_border(cs[0]); _valign(cs[0], 'bottom'); _no_wrap_cell(cs[0])
     _no_border(cs[1])
     _bottom_border(cs[2]); _valign(cs[2], 'bottom'); _no_wrap_cell(cs[2])
@@ -5273,12 +5280,13 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # row 1 — labels
     r = dt.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
-    for cell in cs: _dt_auto_cw(cell); _no_border(cell)
+    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
+    _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
     _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
-    _fill(cs[0], 'Дата проведения', align=C, pt=PT_FIO, bold=True)
+    _fill(cs[0], 'Дата проведения',  align=C, pt=PT_FIO, bold=True)
     _fill(cs[2], 'Место проведения', align=C, pt=PT_FIO, bold=True)
 
-    # D) 1pt spacer between date/venue table and main table
+    # D) 1pt spacer между таблицей дата/место и основной таблицей
     _tiny_para()
 
     # F) Main data table
