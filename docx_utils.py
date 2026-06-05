@@ -4974,8 +4974,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             _fill(cs[I_ШТС], str(шт_ст) if шт_ст else '–', align=C, pt=PT)
             _fill(cs[I_ШТФ], str(шт_фн) if шт_фн else '–', align=C, pt=PT)
             _fill(cs[I_ШТИ], str(шт_ит) if шт_ит else '–', align=C, pt=PT)
-            _fill(cs[I_ВП],  _fmt_dur(рез.результат_попытки), align=C, pt=PT)
-            _fill(cs[I_ИТ],  _fmt_dur(рез.итоговый_результат), align=C, pt=PT)
+            _fill(cs[I_ВП],  _fmt_dur(рез.время_прохождения), align=C, pt=PT)
+            _fill(cs[I_ИТ],  _fmt_dur(рез.результат),         align=C, pt=PT)
 
         _fill(cs[I_МЕ], str(рез.место or '–'),  align=C, pt=PT)
         _fill(cs[I_ОЧ], str(рез.очки or '–'),   align=C, pt=PT)
