@@ -4902,7 +4902,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
-    r = tbl.add_row(); _row_h_min(r, 0.7)
+    r = tbl.add_row(); _row_h_min(r, 0.9)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
@@ -4929,7 +4929,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
-    r = tbl.add_row(); _row_h_min(r, 0.7)
+    r = tbl.add_row(); _row_h_min(r, 0.9)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
