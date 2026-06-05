@@ -5123,25 +5123,38 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
                 br = OxmlElement('w:br'); r._r.append(br)
 
     def _set_grid(tbl):
-        tg = tbl._tbl.find(qn('w:tblGrid'))
-        if tg is not None: tbl._tbl.remove(tg)
-        tg = OxmlElement('w:tblGrid')
+        tbl_el = tbl._tbl
+        old = tbl_el.find(qn('w:tblGrid'))
+        if old is not None: tbl_el.remove(old)
+        grid = OxmlElement('w:tblGrid')
         for w in GRID:
-            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
-        tbl._tbl.insert(0, tg)
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tblPr = tbl_el.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(grid)
+        else: tbl_el.insert(0, grid)
 
-    def _tbl_w(tbl, w=None):
-        w = w or TW
+    def _cw_pct(cell, dxa):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        pct = round(dxa * 5000 / TW)
+        tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
+
+    def _tbl_w(tbl):
         pr = tbl._tbl.find(qn('w:tblPr'))
         if pr is None:
             pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
+        for s in pr.findall(qn('w:tblStyle')): pr.remove(s)
+        for s in pr.findall(qn('w:tblLook')):  pr.remove(s)
         tw = pr.find(qn('w:tblW'))
-        if tw is None:
-            tw = OxmlElement('w:tblW'); pr.append(tw)
-        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+        if tw is None: tw = OxmlElement('w:tblW'); pr.append(tw)
+        tw.set(qn('w:w'), '5000'); tw.set(qn('w:type'), 'pct')
+        ind = pr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); pr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
         tl = pr.find(qn('w:tblLayout'))
-        if tl is None:
-            tl = OxmlElement('w:tblLayout'); pr.append(tl)
+        if tl is None: tl = OxmlElement('w:tblLayout'); pr.append(tl)
         tl.set(qn('w:type'), 'fixed')
 
     def _row_h(row, cm):
@@ -5289,12 +5302,12 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     dt_tg = OxmlElement('w:tblGrid')
     for w in (W_DT, W_SP, W_VN):
         gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); dt_tg.append(gc)
-    dt._tbl.insert(0, dt_tg)
+    dt_pr.addnext(dt_tg)
 
     # row 0 — values
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
-    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
+    _cw_pct(cs[0], W_DT); _cw_pct(cs[1], W_SP); _cw_pct(cs[2], W_VN)
     _bottom_border(cs[0]); _valign(cs[0], 'bottom'); _no_wrap_cell(cs[0])
     _no_border(cs[1])
     _bottom_border(cs[2]); _valign(cs[2], 'bottom'); _no_wrap_cell(cs[2])
@@ -5304,7 +5317,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # row 1 — labels
     r = dt.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
-    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
+    _cw_pct(cs[0], W_DT); _cw_pct(cs[1], W_SP); _cw_pct(cs[2], W_VN)
     _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
     _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
     _fill(cs[0], 'Дата проведения',  align=C, pt=PT_FIO, bold=True)
@@ -5320,7 +5333,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # Header row
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
-    for i, w in enumerate(GRID): _cw(cs[i], w)
+    for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i]); _no_wrap_cell(cs[i])
     _fill(cs[I_НПП], '№\nп/п',                                     align=C, pt=PT_HDR, bold=True)
@@ -5340,7 +5353,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     def _section(label):
         r = tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        cs[0].merge(cs[NC - 1]); _cw_pct(cs[0], TW)
         _borders(cs[0]); _valign(cs[0])
         _fill(cs[0], label, align=C, pt=PT, bold=True)
         _keep_next_p(cs[0].paragraphs[-1])
@@ -5354,7 +5367,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
 
         r = tbl.add_row(); _row_h_min(r, 0.5)
         cs = list(r.cells)
-        for i, w in enumerate(GRID): _cw(cs[i], w)
+        for i, w in enumerate(GRID): _cw_pct(cs[i], w)
         for i in range(NC):
             _borders(cs[i]); _valign(cs[i])
 
@@ -5420,13 +5433,13 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     sig_tg = OxmlElement('w:tblGrid')
     for w in (W_SIG_L, W_SIG_R):
         gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); sig_tg.append(gc)
-    sig._tbl.insert(0, sig_tg)
+    sig_pr.addnext(sig_tg)
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                           ('Главный секретарь', сор.главный_секретарь or '')):
         r = sig.add_row(); _row_h(r, 0.88)
         cs = list(r.cells)
-        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+        _cw_pct(cs[0], W_SIG_L); _cw_pct(cs[1], W_SIG_R)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
