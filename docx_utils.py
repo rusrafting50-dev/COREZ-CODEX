@@ -4918,9 +4918,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
         r = tbl.add_row(); _row_h_min(r, 0.5)
         cs = list(r.cells)
-        cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
         for i, w in enumerate(GRID):
-            if i != I_К2: _cw_pct(cs[i], w)
+            if i not in (I_К2,): _cw_pct(cs[i], w)
+        cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
         for i in range(NC):
             if i != I_К2:
                 _borders(cs[i]); _valign(cs[i])
