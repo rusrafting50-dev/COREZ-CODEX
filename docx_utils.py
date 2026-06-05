@@ -5673,7 +5673,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         for s in pr.findall(qn('w:tblLook')):  pr.remove(s)
         tw = pr.find(qn('w:tblW'))
         if tw is None: tw = OxmlElement('w:tblW'); pr.append(tw)
-        tw.set(qn('w:w'), '5000'); tw.set(qn('w:type'), 'pct')
+        tw.set(qn('w:w'), str(TW)); tw.set(qn('w:type'), 'dxa')
         ind = pr.find(qn('w:tblInd'))
         if ind is None: ind = OxmlElement('w:tblInd'); pr.append(ind)
         ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
@@ -5813,7 +5813,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     for old in dt_pr.findall(qn('w:tblLook')):  dt_pr.remove(old)
     dt_tw = dt_pr.find(qn('w:tblW'))
     if dt_tw is None: dt_tw = OxmlElement('w:tblW'); dt_pr.append(dt_tw)
-    dt_tw.set(qn('w:w'), '5000'); dt_tw.set(qn('w:type'), 'pct')
+    dt_tw.set(qn('w:w'), str(TW)); dt_tw.set(qn('w:type'), 'dxa')
     dt_ind = dt_pr.find(qn('w:tblInd'))
     if dt_ind is None: dt_ind = OxmlElement('w:tblInd'); dt_pr.append(dt_ind)
     dt_ind.set(qn('w:w'), '0'); dt_ind.set(qn('w:type'), 'dxa')
@@ -5834,7 +5834,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # row 0 — values
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
-    _cw_pct(cs[0], W_DT); _cw_pct(cs[1], W_SP); _cw_pct(cs[2], W_VN)
+    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
     _bottom_border(cs[0]); _valign(cs[0], 'bottom'); _no_wrap_cell(cs[0])
     _no_border(cs[1])
     _bottom_border(cs[2]); _valign(cs[2], 'bottom'); _no_wrap_cell(cs[2])
@@ -5844,7 +5844,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # row 1 — labels
     r = dt.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
-    _cw_pct(cs[0], W_DT); _cw_pct(cs[1], W_SP); _cw_pct(cs[2], W_VN)
+    _cw(cs[0], W_DT); _cw(cs[1], W_SP); _cw(cs[2], W_VN)
     _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
     _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
     _fill(cs[0], 'Дата проведения',  align=C, pt=PT_FIO, bold=True)
@@ -5860,7 +5860,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     # Header row
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
-    for i, w in enumerate(GRID): _cw_pct(cs[i], w)
+    for i, w in enumerate(GRID): _cw(cs[i], w)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i]); _no_wrap_cell(cs[i])
     _fill(cs[I_НПП], '№\nп/п',                                     align=C, pt=PT_HDR, bold=True)
@@ -5880,7 +5880,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     def _section(label):
         r = tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]); _cw_pct(cs[0], TW)
+        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0]); _valign(cs[0])
         _fill(cs[0], label, align=C, pt=PT, bold=True)
         _keep_next_p(cs[0].paragraphs[-1])
@@ -5894,7 +5894,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
 
         r = tbl.add_row(); _row_h_min(r, 0.5)
         cs = list(r.cells)
-        for i, w in enumerate(GRID): _cw_pct(cs[i], w)
+        for i, w in enumerate(GRID): _cw(cs[i], w)
         for i in range(NC):
             _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i])
 
@@ -5972,7 +5972,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
                           ('Главный секретарь', сор.главный_секретарь or '')):
         r = sig.add_row(); _row_h(r, 0.88)
         cs = list(r.cells)
-        _cw_pct(cs[0], W_SIG_L); _cw_pct(cs[1], W_SIG_R)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
