@@ -129,7 +129,7 @@
   </tr>
 </table>
 
-{% set ncol = 11 if итоговый else 14 %}
+{% set ncol = 11 if итоговый else 13 %}
 
 {# ── Macro: объединённая таблица мужчины + женщины ──────────────────────── #}
 {% macro таблица_рез(муж_рез, муж_без, жен_рез, жен_без, муж_разр, жен_разр) %}
@@ -154,17 +154,16 @@
     <col style="width:90px">
   </colgroup>
   {% else %}
-  {# Предварительный: 14 столбцов. Пропорции: 2/12/4/22/10/5/6/5/5/7/7/4/4/7 % #}
+  {# Предварительный: 13 столбцов (Лимит времени удалён). #}
   <colgroup>
     <col style="width:20px">
     <col style="width:120px">
     <col style="width:40px">
-    <col style="width:220px">
+    <col style="width:270px">
     <col style="width:100px">
-    <col style="width:50px">
     <col style="width:60px">
-    <col style="width:50px">
-    <col style="width:50px">
+    <col style="width:60px">
+    <col style="width:70px">
     <col style="width:70px">
     <col style="width:70px">
     <col style="width:40px">
@@ -194,7 +193,7 @@
     <th rowspan="2">Номер</th>
     <th rowspan="2">Фамилия, имя, отчество участников</th>
     <th rowspan="2">Субъект РФ</th>
-    <th colspan="3">Прохождение дистанции<br>(штрафные баллы)</th>
+    <th colspan="2">Штрафы</th>
     <th colspan="3">Результат</th>
     <th rowspan="2">Место</th>
     <th rowspan="2">Очки</th>
@@ -202,11 +201,10 @@
   </tr>
   <tr>
     <th>Старт</th>
-    <th>Лимит времени</th>
     <th>Финиш</th>
-    <th>Штрафное время</th>
-    <th>Время прохождения</th>
-    <th>Итоговый результат</th>
+    <th>Штраф</th>
+    <th>Время</th>
+    <th>Итоговый</th>
   </tr>
   {% endif %}
   </thead>
@@ -237,7 +235,6 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
-    <td class="text-center">{% if р.статус == 'ПЛВ' %}Прев. ЛВ{% else %}–{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}Посл. м.{% elif шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
@@ -278,7 +275,6 @@
     <td class="text-center">–</td>
       {% else %}
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else '–' }}</td>
-    <td class="text-center">–</td>
     <td class="text-center">{{ 'Не фин.' if р.статус == 'НФН' else '–' }}</td>
     <td class="text-center">–</td>
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
@@ -291,14 +287,13 @@
     <td class="text-center">ДК</td>
       {% else %}
     <td class="text-center">ДК</td>
-    <td class="text-center">–</td>
     <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
     <td class="text-center">ДК</td>
       {% endif %}
     {% else %}
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+    <td colspan="{{ 3 if итоговый else 5 }}" class="text-center">
       <strong>{{ р.статус }}</strong>
     </td>
     {% endif %}
@@ -336,7 +331,6 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace">{% if шт_ст == 0 %}–{% else %}{{ format_dur(шт_ст) }}{% endif %}</td>
-    <td class="text-center">{% if р.статус == 'ПЛВ' %}Прев. ЛВ{% else %}–{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{% if р.статус == 'ПМ' %}Посл. м.{% elif шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
@@ -377,7 +371,6 @@
     <td class="text-center">–</td>
       {% else %}
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else '–' }}</td>
-    <td class="text-center">–</td>
     <td class="text-center">{{ 'Не фин.' if р.статус == 'НФН' else '–' }}</td>
     <td class="text-center">–</td>
     <td class="text-center">{{ 'Не старт.' if р.статус == 'НСТ' else 'Не фин.' }}</td>
@@ -390,14 +383,13 @@
     <td class="text-center">ДК</td>
       {% else %}
     <td class="text-center">ДК</td>
-    <td class="text-center">–</td>
     <td class="text-center" style="font-family:monospace">{% if шт_фн == 0 %}–{% else %}{{ format_dur(шт_фн) }}{% endif %}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) | replace('–', '–') }}</td>
     <td class="text-center">ДК</td>
       {% endif %}
     {% else %}
-    <td colspan="{{ 3 if итоговый else 6 }}" class="text-center">
+    <td colspan="{{ 3 if итоговый else 5 }}" class="text-center">
       <strong>{{ р.статус }}</strong>
     </td>
     {% endif %}
