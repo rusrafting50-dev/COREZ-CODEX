@@ -5239,10 +5239,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         p.alignment = C; _spacing_15(p)
         r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
 
-    # C) Tiny separator
-    _tiny_para()
-
-    # D) Date/venue autofit table
+    # C) Date/venue autofit table — left/right cols min-width via noWrap, center flexible
     dt = doc.add_table(rows=0, cols=3)
     dt_pr = dt._tbl.find(qn('w:tblPr'))
     if dt_pr is None:
@@ -5267,11 +5264,9 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
     for cell in cs: _dt_auto_cw(cell)
-    _bottom_border(cs[0]); _valign(cs[0], 'bottom')
-    _no_wrap_cell(cs[0])
+    _bottom_border(cs[0]); _valign(cs[0], 'bottom'); _no_wrap_cell(cs[0])
     _no_border(cs[1])
-    _bottom_border(cs[2]); _valign(cs[2], 'bottom')
-    _no_wrap_cell(cs[2])
+    _bottom_border(cs[2]); _valign(cs[2], 'bottom'); _no_wrap_cell(cs[2])
     _fill(cs[0], сор.даты_проведения or '', align=C, pt=PT, bold=True)
     _fill(cs[2], сор.место_проведения or '', align=C, pt=PT, bold=True)
 
@@ -5279,10 +5274,11 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     r = dt.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
     for cell in cs: _dt_auto_cw(cell); _no_border(cell)
+    _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
     _fill(cs[0], 'Дата проведения', align=C, pt=PT_FIO, bold=True)
     _fill(cs[2], 'Место проведения', align=C, pt=PT_FIO, bold=True)
 
-    # E) Tiny separator
+    # D) 1pt spacer between date/venue table and main table
     _tiny_para()
 
     # F) Main data table
