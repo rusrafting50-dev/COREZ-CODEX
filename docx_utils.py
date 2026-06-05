@@ -4873,7 +4873,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, pct_w=5000, jc='center')
+    dt = _make_tbl(3, fixed_tw=TW, jc='center')
     dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [100, TW - 200, 100])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
