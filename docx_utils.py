@@ -4592,8 +4592,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/3/10
-    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 3, 10]
+    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/4/9
+    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
@@ -4891,7 +4891,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
-    r = tbl.add_row(); _row_h_min(r, 0.7)
+    r = tbl.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
@@ -4907,16 +4907,15 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_РА],  'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
-    _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
-    r = tbl.add_row(); _row_h_min(r, 0.7)
+    r = tbl.add_row(); _row_h_min(r, 0.5)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
