@@ -4718,7 +4718,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         pct = round(dxa * 5000 / TW)
         tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
 
-    def _make_tbl(ncols, fixed_tw=None, pct_w=5000):
+    def _make_tbl(ncols, fixed_tw=None, pct_w=5000, jc=None):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
         tblPr = tbl.find(qn('w:tblPr'))
@@ -4738,6 +4738,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
         lay.set(qn('w:type'), 'fixed')
+        if jc:
+            jc_el = tblPr.find(qn('w:jc'))
+            if jc_el is None: jc_el = OxmlElement('w:jc'); tblPr.append(jc_el)
+            jc_el.set(qn('w:val'), jc)
         return t
 
     def _set_grid_sp(tbl_obj, widths):
