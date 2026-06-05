@@ -4614,7 +4614,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     W_SIG_L = TW_SIG * 35 // 100
     W_SIG_R = TW_SIG - W_SIG_L
 
-    PT, PT_FIO, PT_HDR = 8, 7, 8
+    if портрет:
+        PT, PT_FIO, PT_HDR = 8, 7, 8
+    else:
+        PT, PT_FIO, PT_HDR = 10, 8, 10
     MAR = 28  # 0.05cm = ~28 dxa — отступ слева/справа во всех ячейках
 
     # ── helpers ──────────────────────────────────────────────────────────────
@@ -4882,10 +4885,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _w_mid = max(100, TW - _w_dt - _w_pl)
     _set_grid_sp(dt, [_w_dt, _w_mid, _w_pl])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
-    for idx, (лево, право, pt_v, bold_v) in enumerate([
+    _dt_rows = [
         (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
-        ('Дата проведения', 'Место проведения', 7, False),
-    ]):
+        ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+    ]
+    for idx, (лево, право, pt_v, bold_v) in enumerate(_dt_rows):
         r = dt.add_row(); _dt_rh(r)
         cs = list(r.cells)
         for c in cs:
@@ -4908,7 +4912,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
-    r = tbl.add_row(); _row_h_min(r, 0.9)
+    r = tbl.add_row(); _row_h_min(r, 0.9 if портрет else 0.6)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
@@ -4932,10 +4936,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
-    _vert_cell(cs[I_РА])
+    if портрет:
+        _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
-    r = tbl.add_row(); _row_h_min(r, 0.9)
+    r = tbl.add_row(); _row_h_min(r, 0.9 if портрет else 0.6)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
