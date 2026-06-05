@@ -4805,6 +4805,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if pr.find(qn('w:noWrap')) is None:
             pr.append(OxmlElement('w:noWrap'))
 
+    def _line_br(p):
+        p.add_run()._r.append(OxmlElement('w:br'))
+
     def _vert_cell(cell):
         pr = _tcpr(cell)
         for old in pr.findall(qn('w:textDirection')): pr.remove(old)
