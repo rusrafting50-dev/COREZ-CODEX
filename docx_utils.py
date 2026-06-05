@@ -4714,6 +4714,14 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             if i < len(parts) - 1:
                 br = OxmlElement('w:br'); r._r.append(br)
 
+    def _cw_pct(cell, dxa):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        pct = round(dxa * 5000 / TW)
+        tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
+
     def _make_tbl(ncols):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
@@ -4724,7 +4732,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
         el = tblPr.find(qn('w:tblW'))
         if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
-        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        el.set(qn('w:w'), '5000'); el.set(qn('w:type'), 'pct')
         ind = tblPr.find(qn('w:tblInd'))
         if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
         ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
@@ -4852,10 +4860,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     # row 0 — header part 1 (vMerge restart on single cols; hspan on composite cols)
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
-    for i, w in enumerate(GRID): _cw(cs[i], w)
-    cs[I_К1].merge(cs[I_К2]);   _cw(cs[I_К1], W_К)
-    cs[I_ШТС].merge(cs[I_ШТФ]); _cw(cs[I_ШТС], W_ПРОХ)
-    cs[I_ШТИ].merge(cs[I_ИТ]);  _cw(cs[I_ШТИ], W_РЕЗ)
+    for i, w in enumerate(GRID): _cw_pct(cs[i], w)
+    cs[I_К1].merge(cs[I_К2]);   _cw_pct(cs[I_К1], W_К)
+    cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
+    cs[I_ШТИ].merge(cs[I_ИТ]);  _cw_pct(cs[I_ШТИ], W_РЕЗ)
     for i in (I_НПП, I_К1, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
         _vmerge_restart(cs[i])
     _fill(cs[I_НПП], '№\nп/п',                                   align=C, pt=PT_HDR, bold=True)
@@ -4877,8 +4885,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     # row 3 — header part 2 (vMerge continue on same single cols; sub-headers for 6-11)
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
-    for i, w in enumerate(GRID): _cw(cs[i], w)
-    cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_К)
+    for i, w in enumerate(GRID): _cw_pct(cs[i], w)
+    cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
     for i in (I_НПП, I_К1, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
         _vmerge_cont(cs[i])
     _fill(cs[I_ШТС], 'Старт',   align=C, pt=PT_HDR, bold=True)
@@ -4895,7 +4903,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     def _section(label):
         r = tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
-        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        cs[0].merge(cs[NC - 1]); _cw_pct(cs[0], TW)
         _borders(cs[0]); _valign(cs[0])
         _fill(cs[0], label, align=C, pt=PT, bold=True)
         _keep_next_p(cs[0].paragraphs[-1])
@@ -4910,9 +4918,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
         r = tbl.add_row(); _row_h_min(r, 0.5)
         cs = list(r.cells)
-        cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_К)
+        cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
         for i, w in enumerate(GRID):
-            if i != I_К2: _cw(cs[i], w)
+            if i != I_К2: _cw_pct(cs[i], w)
         for i in range(NC):
             if i != I_К2:
                 _borders(cs[i]); _valign(cs[i])
@@ -4974,7 +4982,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
                           ('Главный секретарь', сор.главный_секретарь or '')):
         r = sig.add_row(); _row_h(r, 0.88)
         cs = list(r.cells)
-        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+        _cw_pct(cs[0], W_SIG_L); _cw_pct(cs[1], W_SIG_R)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
