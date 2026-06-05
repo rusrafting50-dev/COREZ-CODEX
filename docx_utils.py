@@ -3477,7 +3477,9 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
             gc = OxmlElement('w:gridCol')
             gc.set(qn('w:w'), str(w))
             tg.append(gc)
-        tbl._tbl.insert(0, tg)
+        tblPr = tbl._tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(tg)
+        else: tbl._tbl.insert(0, tg)
 
     def _tbl_w(tbl):
         pr = tbl._tbl.find(qn('w:tblPr'))
@@ -4711,17 +4713,25 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         tg = OxmlElement('w:tblGrid')
         for w in GRID:
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
-        tbl._tbl.insert(0, tg)
+        tblPr = tbl._tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(tg)
+        else: tbl._tbl.insert(0, tg)
 
     def _tbl_w(tbl, w=None):
         w = w or TW
         pr = tbl._tbl.find(qn('w:tblPr'))
         if pr is None:
             pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
+        for old in pr.findall(qn('w:tblStyle')): pr.remove(old)
+        for old in pr.findall(qn('w:tblLook')):  pr.remove(old)
         tw = pr.find(qn('w:tblW'))
         if tw is None:
             tw = OxmlElement('w:tblW'); pr.append(tw)
         tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+        ind = pr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd'); pr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
         tl = pr.find(qn('w:tblLayout'))
         if tl is None:
             tl = OxmlElement('w:tblLayout'); pr.append(tl)
@@ -4821,7 +4831,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     dt_tg = OxmlElement('w:tblGrid')
     for w in (W_DT, W_SP, W_VN):
         gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); dt_tg.append(gc)
-    dt._tbl.insert(0, dt_tg)
+    dt_pr.addnext(dt_tg)
 
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
@@ -5130,17 +5140,25 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         tg = OxmlElement('w:tblGrid')
         for w in GRID:
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
-        tbl._tbl.insert(0, tg)
+        tblPr = tbl._tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(tg)
+        else: tbl._tbl.insert(0, tg)
 
     def _tbl_w(tbl, w=None):
         w = w or TW
         pr = tbl._tbl.find(qn('w:tblPr'))
         if pr is None:
             pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
+        for old in pr.findall(qn('w:tblStyle')): pr.remove(old)
+        for old in pr.findall(qn('w:tblLook')):  pr.remove(old)
         tw = pr.find(qn('w:tblW'))
         if tw is None:
             tw = OxmlElement('w:tblW'); pr.append(tw)
         tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+        ind = pr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd'); pr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
         tl = pr.find(qn('w:tblLayout'))
         if tl is None:
             tl = OxmlElement('w:tblLayout'); pr.append(tl)
@@ -5291,7 +5309,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     dt_tg = OxmlElement('w:tblGrid')
     for w in (W_DT, W_SP, W_VN):
         gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); dt_tg.append(gc)
-    dt._tbl.insert(0, dt_tg)
+    dt_pr.addnext(dt_tg)
 
     # row 0 — values
     r = dt.add_row(); _row_h_min(r, 0.6)
