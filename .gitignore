@@ -6,3 +6,4 @@ local.db
 *.egg-info/
 dist/
 build/
+.claude/
