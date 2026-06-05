@@ -4585,7 +4585,7 @@ def create_нагрудные_номера_docx(сор, команды, filename
 
 
 def create_результаты_пред_спринт_docx(сор, муж_рез, муж_без, жен_рез, жен_без,
-                                        муж_разр, жен_разр, класс, filename):
+                                        муж_разр, жен_разр, класс, filename, портрет=False):
     """Предварительный протокол результатов Спринт — по образцу Протокол_результатов_сп_пред.docx."""
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
@@ -4705,27 +4705,35 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             if i < len(parts) - 1:
                 br = OxmlElement('w:br'); r._r.append(br)
 
-    def _set_grid(tbl):
-        tg = tbl._tbl.find(qn('w:tblGrid'))
-        if tg is not None: tbl._tbl.remove(tg)
-        tg = OxmlElement('w:tblGrid')
-        for w in GRID:
-            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
-        tbl._tbl.insert(0, tg)
+    def _make_tbl(ncols):
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
 
-    def _tbl_w(tbl, w=None):
-        w = w or TW
-        pr = tbl._tbl.find(qn('w:tblPr'))
-        if pr is None:
-            pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
-        tw = pr.find(qn('w:tblW'))
-        if tw is None:
-            tw = OxmlElement('w:tblW'); pr.append(tw)
-        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
-        tl = pr.find(qn('w:tblLayout'))
-        if tl is None:
-            tl = OxmlElement('w:tblLayout'); pr.append(tl)
-        tl.set(qn('w:type'), 'fixed')
+    def _set_grid_sp(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        old = tbl.find(qn('w:tblGrid'))
+        if old is not None: tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(grid)
+        else: tbl.insert(0, grid)
 
     def _row_h(row, cm):
         pr = row._tr.find(qn('w:trPr'))
@@ -4788,7 +4796,29 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     дисциплина = _коды.get(класс, 'СПРИНТ' + (f' – {класс}' if класс else ''))
 
     # ── document ─────────────────────────────────────────────────────────────
-    doc = _make_base_doc(portrait=False)
+    from docx.shared import Mm
+    doc  = Document()
+    sect = doc.sections[0]
+    if портрет:
+        sect.page_height   = Mm(297); sect.page_width    = Mm(210)
+    else:
+        sect.page_height   = Mm(210); sect.page_width    = Mm(297)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
+    doc.styles['Normal'].font.name = 'Times New Roman'
+    doc.styles['Normal'].font.size = Pt(10)
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
 
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=12, bold=True)
@@ -4797,8 +4827,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True)
 
     # ── main table ───────────────────────────────────────────────────────────
-    tbl = doc.add_table(rows=0, cols=NC)
-    _set_grid(tbl); _tbl_w(tbl)
+    tbl = _make_tbl(NC)
+    _set_grid_sp(tbl, GRID)
 
     # row 0 — date/location values
     r = tbl.add_row(); _row_h_min(r, 0.6)
@@ -4942,18 +4972,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _keep_next_p(p_время)
 
     # ── signature table ───────────────────────────────────────────────────────
-    sig = doc.add_table(rows=0, cols=2)
-    pr2 = sig._tbl.find(qn('w:tblPr'))
-    if pr2 is None:
-        pr2 = OxmlElement('w:tblPr'); sig._tbl.insert(0, pr2)
-    tw2 = pr2.find(qn('w:tblW'))
-    if tw2 is None:
-        tw2 = OxmlElement('w:tblW'); pr2.append(tw2)
-    tw2.set(qn('w:w'), str(TW)); tw2.set(qn('w:type'), 'dxa')
-    tg2 = OxmlElement('w:tblGrid')
-    for w in (W_SIG_L, W_SIG_R):
-        gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg2.append(gc)
-    sig._tbl.insert(0, tg2)
+    sig = _make_tbl(2)
+    _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                           ('Главный секретарь', сор.главный_секретарь or '')):
