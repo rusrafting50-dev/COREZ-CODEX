@@ -4873,7 +4873,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, pct_w=5100, jc=('center' if портрет else None))
+    dt = _make_tbl(3, pct_w=5100)
     dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
@@ -5017,7 +5017,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               align=L, pt=PT_FIO, bold=True)
 
     # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
-    sig = _make_tbl(2, pct_w=5100, jc='center')
+    sig = _make_tbl(2, pct_w=5100)
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
