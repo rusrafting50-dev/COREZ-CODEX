@@ -4595,7 +4595,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 18, 10, 6, 6, 6, 6, 8, 5, 5, 9]   # sum=100; Очки=5% (~524dxa для «Очки»), Разряд=9%
+        _PCTS = [3, 12, 6, 19, 10, 6, 6, 6, 6, 8, 5, 5, 8]   # sum=100; ФИО=19%, Разряд=8%
     else:
         _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -4915,7 +4915,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_РА],  'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    p_ра = cs[I_РА].paragraphs[0]; p_ра.clear(); _sp(p_ра); p_ра.alignment = C
+    _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
+    _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
