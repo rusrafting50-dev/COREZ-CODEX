@@ -4592,9 +4592,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/4/9
-    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
+    if портрет:
+        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 9, 3]  # sum=100; Очки=9%, Разряд=3% (btLr)
+    else:
+        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 13
@@ -4855,14 +4857,15 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if child.tag == qn('w:p'):
             body.remove(child)
 
+    _hdr_pt = 10 if портрет else 12
     if сор.организаторы_блок:
-        _para(doc, сор.организаторы_блок, align=C, pt=12, bold=True)
-    _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
-    _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True))
-    _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
+        _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
+    _ls15(_para(doc, сор.название or '', align=C, pt=_hdr_pt, bold=True))
+    _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=_hdr_pt, bold=True))
+    _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, pct_w=(5000 if портрет else 5100), jc=('center' if портрет else None))
+    dt = _make_tbl(3, pct_w=(4750 if портрет else 5100), jc=('center' if портрет else None))
     dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
@@ -4881,7 +4884,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             _bottom_border(cs[0])
             _bottom_border(cs[2])
         _fill(cs[0], лево, align=L, pt=pt_v, bold=bold_v)
-        _fill(cs[2], право, align=L, pt=pt_v, bold=bold_v)
+        _fill(cs[2], право, align=(R if idx == 0 else C), pt=pt_v, bold=bold_v)
 
     # ── пустая строка перед таблицей ────────────────────────────────────────
     _para(doc)
