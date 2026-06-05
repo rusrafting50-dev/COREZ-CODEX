@@ -4894,7 +4894,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         cs = list(r.cells)
         for c in cs:
             _no_border(c)
-            _valign(c)
+            if not портрет:
+                _valign(c, 'bottom' if idx == 0 else 'top')
+            else:
+                _valign(c)
         _no_wrap_cell(cs[0])
         _no_wrap_cell(cs[2])
         if idx == 0:
