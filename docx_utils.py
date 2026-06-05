@@ -4589,6 +4589,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
                                         портрет=False):
     """Предварительный протокол результатов Спринт."""
     from datetime import datetime
+    from docx.shared import Mm
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
@@ -4774,12 +4775,12 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if pPr.find(qn('w:keepNext')) is None:
             pPr.append(OxmlElement('w:keepNext'))
 
-    def _make_tbl_fixed(ncols, widths):
-        """Fixed-таблица без унаследованного стиля, tblInd=0, tblGrid после tblPr."""
+    def _make_tbl(ncols):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
         tblPr = tbl.find(qn('w:tblPr'))
-        if tblPr is None: tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
         for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
         for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
         el = tblPr.find(qn('w:tblW'))
@@ -4791,13 +4792,19 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
         lay.set(qn('w:type'), 'fixed')
-        old_g = tbl.find(qn('w:tblGrid'))
-        if old_g is not None: tbl.remove(old_g)
+        return t
+
+    def _set_grid_sp(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        old = tbl.find(qn('w:tblGrid'))
+        if old is not None: tbl.remove(old)
         grid = OxmlElement('w:tblGrid')
         for w in widths:
             gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
-        tblPr.addnext(grid)
-        return t
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(grid)
+        else: tbl.insert(0, grid)
+
 
     # ── Флаги ────────────────────────────────────────────────────────────────
     муж_норм = (len(муж_рез) + len(муж_без)) >= 6
@@ -4809,8 +4816,29 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
              'R6': 'СПРИНТ – R6, код ВРВС 1740101811Я'}
     дисциплина = _коды.get(класс, 'СПРИНТ' + (f' – {класс}' if класс else ''))
 
-    # ── Документ ─────────────────────────────────────────────────────────────
-    doc = _make_base_doc(portrait=портрет)
+    # ── Документ (точно как в стартовом протоколе) ──────────────────────────
+    doc  = Document()
+    sect = doc.sections[0]
+    if портрет:
+        sect.page_height   = Mm(297); sect.page_width    = Mm(210)
+    else:
+        sect.page_height   = Mm(210); sect.page_width    = Mm(297)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
+    doc.styles['Normal'].font.name = 'Times New Roman'
+    doc.styles['Normal'].font.size = Pt(10)
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
 
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=12, bold=True)
@@ -4825,7 +4853,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     W_VN = round(TW * 0.230)
     W_SP = TW - W_DT - W_VN
 
-    dt = _make_tbl_fixed(3, [W_DT, W_SP, W_VN])
+    dt = _make_tbl(3)
+    _set_grid_sp(dt, [W_DT, W_SP, W_VN])
 
     r = dt.add_row(); _row_h_min(r, 0.6)
     cs = list(r.cells)
@@ -4852,7 +4881,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     pPr_g.append(sp_g)
 
     # ── Основная таблица ─────────────────────────────────────────────────────
-    tbl = _make_tbl_fixed(NC, GRID)
+    tbl = _make_tbl(NC)
+    _set_grid_sp(tbl, GRID)
 
     # Строка заголовка 1
     r = tbl.add_row(); _row_h_min(r, 0.7)
@@ -4973,7 +5003,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
                   'в виде программы недостаточно для их присвоения.', align=L, pt=PT_FIO)
 
     # ── Подписи ──────────────────────────────────────────────────────────────
-    sig = _make_tbl_fixed(2, [W_SIG_L, W_SIG_R])
+    sig = _make_tbl(2)
+    _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
     for позиция, фио in (('Главный судья',      сор.главный_судья      or ''),
                           ('Главный секретарь',  сор.главный_секретарь  or '')):
         r = sig.add_row(); _row_h(r, 0.88)
