@@ -9,19 +9,14 @@
         crossorigin="anonymous">
   <style>
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
+    @page { margin: 5mm 5mm 12mm 5mm; size: A4 {% if портрет %}portrait{% else %}landscape{% endif %}; }
     @media print {
       .no-print { display: none !important; }
-      @page { margin: 5mm 5mm 12mm 5mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
       .gender-row { page-break-after: avoid; break-after: avoid; }
+      {% if портрет %}body { zoom: 0.707; }{% endif %}
     }
-    {% if портрет %}
-    @media print {
-      @page { margin: 5mm 5mm 12mm 5mm; size: A4 portrait; }
-      body { zoom: 0.707; }
-    }
-    {% endif %}
     table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
     th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
