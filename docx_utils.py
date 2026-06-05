@@ -4891,8 +4891,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if idx == 0:
             _bottom_border(cs[0])
             _bottom_border(cs[2])
-        _fill(cs[0], лево, align=L, pt=pt_v, bold=bold_v)
-        _fill(cs[2], право, align=(R if idx == 0 else C), pt=pt_v, bold=bold_v)
+        _fill(cs[0], лево, align=C, pt=pt_v, bold=bold_v)
+        _fill(cs[2], право, align=C, pt=pt_v, bold=bold_v)
 
     # ── пустая строка перед таблицей (1пт) ──────────────────────────────────
     p = _para(doc)
