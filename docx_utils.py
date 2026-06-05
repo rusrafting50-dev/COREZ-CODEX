@@ -4907,12 +4907,13 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РА],  'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
+    _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
     r = tbl.add_row(); _row_h_min(r, 0.5)
