@@ -129,7 +129,7 @@
   </tr>
 </table>
 
-{% set ncol = 11 if итоговый else 14 %}
+{% set ncol = 11 if итоговый else 13 %}
 
 {# ── Macro: объединённая таблица мужчины + женщины ─────────────────────────── #}
 {% macro таблица_рез(муж_рез, муж_пм, муж_без, жен_рез, жен_пм, жен_без, муж_разр, жен_разр) %}
@@ -160,7 +160,7 @@
     <th rowspan="2" style="width:48px">Номер</th>
     <th rowspan="2" style="min-width:126px">Фамилия, имя, отчество участников</th>
     <th rowspan="2" style="min-width:90px">Субъект РФ</th>
-    <th colspan="3">Прохождение дистанции<br>(штрафные баллы)</th>
+    <th colspan="2">Прохождение дистанции<br>(штрафные баллы)</th>
     <th colspan="3">Результат</th>
     <th rowspan="2" style="width:38px">Место</th>
     <th rowspan="2" style="width:60px">Очки</th>
@@ -168,7 +168,6 @@
   </tr>
   <tr>
     <th style="width:55px">Старт</th>
-    <th style="width:65px">Лимит времени</th>
     <th style="width:55px">Финиш</th>
     <th style="width:60px">Штрафное время</th>
     <th style="width:70px">Время прохождения</th>
@@ -201,7 +200,6 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center">{{ format_dur(сор.лимит_время_муж) if сор.лимит_время_муж else '–' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
@@ -327,7 +325,6 @@
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
     <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center">{{ format_dur(сор.лимит_время_жен) if сор.лимит_время_жен else '–' }}</td>
     <td class="text-center" style="font-family:monospace"></td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
