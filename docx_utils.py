@@ -4884,7 +4884,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _w_pl  = max(100, len(сор.место_проведения or 'Место проведения') * _cw_char + 2 * MAR)
     _w_mid = max(100, TW - _w_dt - _w_pl)
     _set_grid_sp(dt, [_w_dt, _w_mid, _w_pl])
-    _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
+    _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
     _dt_rows = [
         (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
         ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
