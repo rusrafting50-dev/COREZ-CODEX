@@ -4759,6 +4759,28 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         for old in pr.findall(qn('w:vMerge')): pr.remove(old)
         vm = OxmlElement('w:vMerge'); pr.append(vm)
 
+    def _tcMar(cell, lr=28):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcMar')): pr.remove(old)
+        mar = OxmlElement('w:tcMar')
+        for side in ('left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(lr)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
+    def _no_wrap_cell(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _keep_next_p(p):
+        pPr = p._p.find(qn('w:pPr'))
+        if pPr is None:
+            pPr = OxmlElement('w:pPr'); p._p.insert(0, pPr)
+        if pPr.find(qn('w:keepNext')) is None:
+            pPr.append(OxmlElement('w:keepNext'))
+
     # ── flags ────────────────────────────────────────────────────────────────
     муж_норм = (len(муж_рез) + len(муж_без)) >= 6
     жен_норм = (len(жен_рез) + len(жен_без)) >= 6
@@ -4825,6 +4847,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
+    for i in range(NC):
+        _tcMar(cs[i]); _no_wrap_cell(cs[i])
 
     # row 3 — header part 2 (vMerge continue on same single cols; sub-headers for 6-11)
     r = tbl.add_row(); _row_h_min(r, 0.7)
@@ -4841,6 +4865,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ИТ],  'Итоговый\nрезультат', align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
+    for i in range(NC):
+        _tcMar(cs[i]); _no_wrap_cell(cs[i])
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
@@ -4849,6 +4875,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
         _borders(cs[0]); _valign(cs[0])
         _fill(cs[0], label, align=C, pt=PT, bold=True)
+        _keep_next_p(cs[0].paragraphs[-1])
 
     def _data_row(пп, рез, разряды, норм):
         from models import СТАТУС_ДК, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ПМ, СТАТУС_ПЛВ
@@ -4918,7 +4945,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         _para(doc, '* Разряды не присваиваются, т.к. количество участников в виде программы '
               'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
               align=L, pt=PT_FIO, bold=True)
-    _para(doc, 'Время опубликования:', align=L, pt=PT)
+    p_время = _para(doc, 'Время опубликования:', align=L, pt=PT)
+    _keep_next_p(p_время)
 
     # ── signature table ───────────────────────────────────────────────────────
     sig = doc.add_table(rows=0, cols=2)
@@ -4933,6 +4961,445 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     for w in (W_SIG_L, W_SIG_R):
         gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg2.append(gc)
     sig._tbl.insert(0, tg2)
+
+    for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
+                          ('Главный секретарь', сор.главный_секретарь or '')):
+        r = sig.add_row(); _row_h(r, 0.88)
+        cs = list(r.cells)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+        _no_border(cs[0]); _no_border(cs[1])
+        _valign(cs[0]); _valign(cs[1])
+        _fill(cs[0], позиция, align=L, pt=PT, bold=True)
+        _fill(cs[1], фио,    align=L, pt=PT, bold=True)
+
+    buf = BytesIO()
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_результаты_итог_спринт_docx(сор, муж_рез, муж_без, жен_рез, жен_без,
+                                        муж_разр, жен_разр, класс, filename, портрет=False):
+    """Итоговый протокол результатов Спринт."""
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+
+    if портрет:
+        TW = round((210 - 15 - 10) * 1440 / 25.4)   # ~10490 dxa
+    else:
+        TW = round((297 - 15 - 10) * 1440 / 25.4)   # ~15420 dxa
+
+    _PCTS = [3, 13, 5, 21, 9, 15, 17, 5, 4, 4, 4]
+    GRID = [round(TW * p / 100) for p in _PCTS]
+    GRID[-1] += TW - sum(GRID)
+    NC = 11
+    I_НПП, I_КОМ, I_НОМ, I_СОС, I_СУБ = 0, 1, 2, 3, 4
+    I_ВРМ, I_ШТ,  I_РЕЗ, I_МЕ, I_ОЧ, I_РА = 5, 6, 7, 8, 9, 10
+
+    W_SIG_L = TW // 3
+    W_SIG_R = TW - W_SIG_L
+
+    PT, PT_FIO, PT_HDR = 10, 8, 9
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+    def _fmt_dur(secs):
+        if secs is None: return '–'
+        secs = float(secs); neg = secs < 0; secs = abs(secs)
+        m = int(secs // 60); sv = secs % 60; si = int(sv)
+        cc = min(99, round((sv - si) * 100))
+        return ('-' if neg else '') + f'{m}:{si:02d}.{cc:02d}'
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=PT, bold=False):
+        r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(pt)
+        if bold: r.font.bold = True
+        return r
+
+    def _para(doc, text='', align=None, pt=PT, bold=False):
+        p = doc.add_paragraph(); _sp(p)
+        if align: p.alignment = align
+        if text: _run(p, text, pt, bold)
+        return p
+
+    def _line_br(p):
+        r = p.add_run()
+        br = OxmlElement('w:br'); r._r.append(br)
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+
+    def _bottom_border(cell, sz=6):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+        el = b.find(qn('w:bottom'))
+        if el is None:
+            el = OxmlElement('w:bottom'); b.append(el)
+        el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+        el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        tcW.set(qn('w:w'), str(int(w))); tcW.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        va = pr.find(qn('w:vAlign'))
+        if va is None:
+            va = OxmlElement('w:vAlign'); pr.append(va)
+        va.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=None, pt=PT, bold=False):
+        p = cell.paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
+        if align: p.alignment = align
+        if not text: return
+        parts = str(text).split('\n')
+        for i, part in enumerate(parts):
+            r = p.add_run(part); r.font.name = TNR; r.font.size = Pt(pt)
+            if bold: r.font.bold = True
+            if i < len(parts) - 1:
+                br = OxmlElement('w:br'); r._r.append(br)
+
+    def _set_grid(tbl):
+        tg = tbl._tbl.find(qn('w:tblGrid'))
+        if tg is not None: tbl._tbl.remove(tg)
+        tg = OxmlElement('w:tblGrid')
+        for w in GRID:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); tg.append(gc)
+        tbl._tbl.insert(0, tg)
+
+    def _tbl_w(tbl, w=None):
+        w = w or TW
+        pr = tbl._tbl.find(qn('w:tblPr'))
+        if pr is None:
+            pr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, pr)
+        tw = pr.find(qn('w:tblW'))
+        if tw is None:
+            tw = OxmlElement('w:tblW'); pr.append(tw)
+        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+        tl = pr.find(qn('w:tblLayout'))
+        if tl is None:
+            tl = OxmlElement('w:tblLayout'); pr.append(tl)
+        tl.set(qn('w:type'), 'fixed')
+
+    def _row_h(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr'); row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')): pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567))); rh.set(qn('w:hRule'), 'exact')
+        pr.append(rh)
+
+    def _row_h_min(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr'); row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')): pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567))); rh.set(qn('w:hRule'), 'atLeast')
+        pr.append(rh)
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
+        vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart'); pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
+        vm = OxmlElement('w:vMerge'); pr.append(vm)
+
+    def _tcMar(cell, lr=28):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcMar')): pr.remove(old)
+        mar = OxmlElement('w:tcMar')
+        for side in ('left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(lr)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
+    def _no_wrap_cell(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _keep_next_p(p):
+        pPr = p._p.find(qn('w:pPr'))
+        if pPr is None:
+            pPr = OxmlElement('w:pPr'); p._p.insert(0, pPr)
+        if pPr.find(qn('w:keepNext')) is None:
+            pPr.append(OxmlElement('w:keepNext'))
+
+    def _spacing_15(p):
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:line'), '360'); sp.set(qn('w:lineRule'), 'auto')
+
+    def _tbl_hdr_row(row):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None: trPr = OxmlElement('w:trPr'); row._tr.insert(0, trPr)
+        if trPr.find(qn('w:tblHeader')) is None:
+            trPr.append(OxmlElement('w:tblHeader'))
+
+    # ── flags ────────────────────────────────────────────────────────────────
+    муж_норм = (len(муж_рез) + len(муж_без)) >= 6
+    жен_норм = (len(жен_рез) + len(жен_без)) >= 6
+    снос = ((len(муж_рез) + len(муж_без)) > 0 and not муж_норм) or \
+           ((len(жен_рез) + len(жен_без)) > 0 and not жен_норм)
+
+    _коды = {'R4': 'СПРИНТ – R4, код ВРВС 1740091811Я',
+             'R6': 'СПРИНТ – R6, код ВРВС 1740101811Я'}
+    дисциплина = _коды.get(класс, 'СПРИНТ' + (f' – {класс}' if класс else ''))
+
+    # ── document ─────────────────────────────────────────────────────────────
+    doc = _make_base_doc(portrait=портрет)
+
+    def _tiny_para():
+        p = doc.add_paragraph(); p.style = 'No Spacing'
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
+
+    # A) Organizer text
+    if сор.организаторы_блок:
+        for line in сор.организаторы_блок.split('\n'):
+            line = line.rstrip()
+            if not line:
+                continue
+            # find quoted part
+            qi = -1
+            for qi_c in ('"', '«'):
+                idx = line.find(qi_c)
+                if idx >= 0:
+                    qi = idx; break
+            p = doc.add_paragraph(); p.style = 'No Spacing'; _sp(p)
+            p.alignment = C
+            _spacing_15(p)
+            if qi < 0:
+                r = p.add_run(line); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
+            else:
+                before = line[:qi].strip()
+                quoted = line[qi:]
+                if len(line) <= 80:
+                    text = (before + ' ' + quoted).strip() if before else quoted
+                    r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
+                else:
+                    if before:
+                        r = p.add_run(before); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
+                        _line_br(p)
+                    r = p.add_run(quoted); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
+
+    # B) Title paragraphs
+    for text in (сор.название or '', 'ПРОТОКОЛ РЕЗУЛЬТАТОВ',
+                 f'Спортивная дисциплина: {дисциплина}'):
+        p = doc.add_paragraph(); p.style = 'No Spacing'; _sp(p)
+        p.alignment = C; _spacing_15(p)
+        r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(12); r.font.bold = True
+
+    # C) Tiny separator
+    _tiny_para()
+
+    # D) Date/venue autofit table
+    dt = doc.add_table(rows=0, cols=3)
+    dt_pr = dt._tbl.find(qn('w:tblPr'))
+    if dt_pr is None:
+        dt_pr = OxmlElement('w:tblPr'); dt._tbl.insert(0, dt_pr)
+    dt_tw = dt_pr.find(qn('w:tblW'))
+    if dt_tw is None:
+        dt_tw = OxmlElement('w:tblW'); dt_pr.append(dt_tw)
+    dt_tw.set(qn('w:w'), str(TW)); dt_tw.set(qn('w:type'), 'dxa')
+    dt_lay = dt_pr.find(qn('w:tblLayout'))
+    if dt_lay is None:
+        dt_lay = OxmlElement('w:tblLayout'); dt_pr.append(dt_lay)
+    dt_lay.set(qn('w:type'), 'autofit')
+
+    def _dt_auto_cw(cell):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        tcW.set(qn('w:w'), '0'); tcW.set(qn('w:type'), 'auto')
+
+    # row 0 — values
+    r = dt.add_row(); _row_h_min(r, 0.6)
+    cs = list(r.cells)
+    for cell in cs: _dt_auto_cw(cell)
+    _bottom_border(cs[0]); _valign(cs[0], 'bottom')
+    _no_wrap_cell(cs[0])
+    _no_border(cs[1])
+    _bottom_border(cs[2]); _valign(cs[2], 'bottom')
+    _no_wrap_cell(cs[2])
+    _fill(cs[0], сор.даты_проведения or '', align=C, pt=PT, bold=True)
+    _fill(cs[2], сор.место_проведения or '', align=C, pt=PT, bold=True)
+
+    # row 1 — labels
+    r = dt.add_row(); _row_h_min(r, 0.5)
+    cs = list(r.cells)
+    for cell in cs: _dt_auto_cw(cell); _no_border(cell)
+    _fill(cs[0], 'Дата проведения', align=C, pt=PT_FIO, bold=True)
+    _fill(cs[2], 'Место проведения', align=C, pt=PT_FIO, bold=True)
+
+    # E) Tiny separator
+    _tiny_para()
+
+    # F) Main data table
+    tbl = doc.add_table(rows=0, cols=NC)
+    _set_grid(tbl); _tbl_w(tbl)
+
+    # Header row
+    r = tbl.add_row(); _row_h_min(r, 0.7)
+    cs = list(r.cells)
+    for i, w in enumerate(GRID): _cw(cs[i], w)
+    for i in range(NC):
+        _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i]); _no_wrap_cell(cs[i])
+    _fill(cs[I_НПП], '№\nп/п',                                     align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_КОМ], 'Команда',                                     align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_НОМ], 'Номер',                                       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_СОС], 'Фамилия, имя, отчество участников',           align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_СУБ], 'Субъект РФ',                                  align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ВРМ], 'Время',                                       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТ],  'Штраф',                                       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РЕЗ], 'Результат',                                   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_МЕ],  'Место',                                       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ОЧ],  'Очки',                                        align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _tbl_hdr_row(r)
+
+    # ── section/data helpers ─────────────────────────────────────────────────
+    def _section(label):
+        r = tbl.add_row(); _row_h(r, 0.6)
+        cs = list(r.cells)
+        cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+        _borders(cs[0]); _valign(cs[0])
+        _fill(cs[0], label, align=C, pt=PT, bold=True)
+        _keep_next_p(cs[0].paragraphs[-1])
+
+    def _data_row(пп, рез, разряды, норм):
+        from models import СТАТУС_ДК, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ПМ, СТАТУС_ПЛВ
+        к = рез.команда
+        состав = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+        фио = ', '.join(с.фамилия_имя_отчество for с in состав) if состав else '–'
+        шт_ст = (рез.штраф_с10 or 0) * 10 + (рез.штраф_с50 or 0) * 50 + (рез.штраф_ф50 or 0) * 50
+
+        r = tbl.add_row(); _row_h_min(r, 0.5)
+        cs = list(r.cells)
+        for i, w in enumerate(GRID): _cw(cs[i], w)
+        for i in range(NC):
+            _borders(cs[i]); _valign(cs[i])
+
+        _fill(cs[I_НПП], str(пп),                                             align=C, pt=PT)
+        _fill(cs[I_КОМ], к.название or '–',                                   align=L, pt=PT)
+        _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),                        align=C, pt=PT)
+        _fill(cs[I_СОС], фио,                                                  align=L, pt=PT_FIO)
+        _fill(cs[I_СУБ], к.субъект.название if к.субъект else '–',            align=C, pt=PT)
+
+        ст = рез.статус
+        if ст in (СТАТУС_ДНС, СТАТУС_ДНФ):
+            врм_т = 'Не старт.' if ст == СТАТУС_ДНС else 'Не фин.'
+            _fill(cs[I_ВРМ], врм_т, align=C, pt=PT)
+            _fill(cs[I_ШТ],  '–',   align=C, pt=PT)
+            _fill(cs[I_РЕЗ], врм_т, align=C, pt=PT)
+        elif ст == СТАТУС_ДК:
+            _fill(cs[I_ВРМ], _fmt_dur(рез.время_прохождения), align=C, pt=PT)
+            _fill(cs[I_ШТ],  _fmt_dur(шт_ст) if шт_ст else '–', align=C, pt=PT)
+            _fill(cs[I_РЕЗ], 'ДК',  align=C, pt=PT)
+        else:
+            _fill(cs[I_ВРМ], _fmt_dur(рез.время_прохождения), align=C, pt=PT)
+            _fill(cs[I_ШТ],  _fmt_dur(шт_ст) if шт_ст else '–', align=C, pt=PT)
+            if ст == СТАТУС_ПМ:    итог = 'Посл. м.'
+            elif ст == СТАТУС_ПЛВ: итог = 'Прев. ЛВ'
+            else:                   итог = _fmt_dur(рез.результат)
+            _fill(cs[I_РЕЗ], итог, align=C, pt=PT)
+
+        _fill(cs[I_МЕ], str(рез.место) if рез.место else '–', align=C, pt=PT)
+        _fill(cs[I_ОЧ], str(int(рез.очки)) if рез.очки else '–', align=C, pt=PT)
+        _fill(cs[I_РА], разряды.get(рез.команда_id, '–') if норм else '–', align=C, pt=PT)
+
+    # ── data sections ────────────────────────────────────────────────────────
+    _section('Мужчины')
+    for пп, рез in enumerate(муж_рез + муж_без, 1):
+        _data_row(пп, рез, муж_разр, муж_норм)
+
+    _section('Женщины')
+    for пп, рез in enumerate(жен_рез + жен_без, 1):
+        _data_row(пп, рез, жен_разр, жен_норм)
+
+    # G) Footnote
+    if снос:
+        _para(doc, '* Разряды не присваиваются, т.к. количество участников в виде программы '
+              'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
+              align=L, pt=PT_FIO, bold=True)
+
+    # H) Publish time
+    p_время = _para(doc, 'Время опубликования:', align=L, pt=PT)
+    _keep_next_p(p_время)
+
+    # I) Tiny separator
+    _tiny_para()
+
+    # J) Signature table
+    sig = doc.add_table(rows=0, cols=2)
+    sig_pr = sig._tbl.find(qn('w:tblPr'))
+    if sig_pr is None:
+        sig_pr = OxmlElement('w:tblPr'); sig._tbl.insert(0, sig_pr)
+    sig_tw = sig_pr.find(qn('w:tblW'))
+    if sig_tw is None:
+        sig_tw = OxmlElement('w:tblW'); sig_pr.append(sig_tw)
+    sig_tw.set(qn('w:w'), str(TW)); sig_tw.set(qn('w:type'), 'dxa')
+    sig_tl = sig_pr.find(qn('w:tblLayout'))
+    if sig_tl is None:
+        sig_tl = OxmlElement('w:tblLayout'); sig_pr.append(sig_tl)
+    sig_tl.set(qn('w:type'), 'fixed')
+    sig_tg = OxmlElement('w:tblGrid')
+    for w in (W_SIG_L, W_SIG_R):
+        gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); sig_tg.append(gc)
+    sig._tbl.insert(0, sig_tg)
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                           ('Главный секретарь', сор.главный_секретарь or '')):
