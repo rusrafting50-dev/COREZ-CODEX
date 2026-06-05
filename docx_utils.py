@@ -383,15 +383,6 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
         new_tblW.set(qn('w:type'), 'dxa')
         tblPr.append(new_tblW)
 
-        # Align left + zero indent so all tables start at the same left edge
-        table.alignment = WD_TABLE_ALIGNMENT.LEFT
-        ind = tblPr.find(qn('w:tblInd'))
-        if ind is None:
-            ind = OxmlElement('w:tblInd')
-            tblPr.append(ind)
-        ind.set(qn('w:w'), '0')
-        ind.set(qn('w:type'), 'dxa')
-
         for row in table.rows:
             # Collect cells and their _tc refs first to hold strong references.
             # lxml proxy objects get new ids after GC, so id(cell._tc) is only
@@ -411,28 +402,6 @@ def _apply_table_widths(doc, table_widths, page_width_cm=None, scale_factor=1.0)
                 applied.add(tc_id)
                 if tc_id in tc_widths:
                     _set_cell_width(cell, tc_widths[tc_id])
-
-
-# ─── Post-processing: remove paragraph indents before tables ─────────────────
-
-def _clear_para_indents_before_tables(doc):
-    """Remove left/right/first-line indents from paragraphs that immediately precede tables."""
-    body = doc.element.body
-    children = list(body)
-    for i, child in enumerate(children):
-        if child.tag != qn('w:tbl'):
-            continue
-        if i == 0:
-            continue
-        prev = children[i - 1]
-        if prev.tag != qn('w:p'):
-            continue
-        pPr = prev.find(qn('w:pPr'))
-        if pPr is None:
-            continue
-        ind = pPr.find(qn('w:ind'))
-        if ind is not None:
-            pPr.remove(ind)
 
 
 # ─── Post-processing: date/place table borders and alignment ─────────────────
@@ -1268,9 +1237,6 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6, da
 
     # 5. Apply column widths (page_width_cm already reflects orientation)
     _apply_table_widths(doc, table_widths, page_width_cm)
-
-    # 5a. Clear paragraph indents before tables (prevents left-edge shifts)
-    _clear_para_indents_before_tables(doc)
 
     # 5b. Restore vertical text lost by HtmlToDocx (writing-mode:vertical-*)
     _apply_vertical_text(doc, soup)
