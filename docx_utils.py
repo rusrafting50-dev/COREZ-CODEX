@@ -4874,7 +4874,6 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
     # ── таблица дата/место ───────────────────────────────────────────────────
     dt = _make_tbl(3, pct_w=5000)
-    dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
     for idx, (лево, право, pt_v, bold_v) in enumerate([
