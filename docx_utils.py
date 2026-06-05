@@ -5044,7 +5044,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         TW = round((297 - 15 - 10) * 1440 / 25.4)   # ~15420 dxa
 
     if портрет:
-        _PCTS = [3, 11, 5, 32, 11, 6, 5, 8, 5, 5, 9]   # sum=100
+        _PCTS = [3, 11, 5, 29, 11, 6, 5, 8, 5, 5, 12]   # sum=100; Разряд=12% для 2 строк
     else:
         _PCTS = [3, 13, 5, 21, 9, 15, 17, 5, 4, 4, 4]   # sum=101
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -5331,7 +5331,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     dt_ind.set(qn('w:w'), '0'); dt_ind.set(qn('w:type'), 'dxa')
     dt_lay = dt_pr.find(qn('w:tblLayout'))
     if dt_lay is None: dt_lay = OxmlElement('w:tblLayout'); dt_pr.append(dt_lay)
-    dt_lay.set(qn('w:type'), 'fixed')
+    dt_lay.set(qn('w:type'), 'autofit')
     dt_jc = dt_pr.find(qn('w:jc'))
     if dt_jc is None: dt_jc = OxmlElement('w:jc'); dt_pr.append(dt_jc)
     dt_jc.set(qn('w:val'), 'center')
