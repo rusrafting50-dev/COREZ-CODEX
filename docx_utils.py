@@ -4590,6 +4590,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
+    R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
