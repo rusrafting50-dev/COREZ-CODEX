@@ -4842,6 +4842,32 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
 
+    # ── таблица дата/место (выровнена с основной таблицей через tblInd=0) ────
+    W_ДА = TW * 22 // 100   # дата проведения (левый)
+    W_МС = TW * 27 // 100   # место проведения (правый)
+    W_СР = TW - W_ДА - W_МС  # средний разделитель
+    dtbl = _make_tbl(3)
+    _set_grid_sp(dtbl, [W_ДА, W_СР, W_МС])
+
+    # строка 0 — значения
+    r = dtbl.add_row(); _row_h_min(r, 0.6)
+    cs = list(r.cells)
+    _cw(cs[0], W_ДА); _cw(cs[1], W_СР); _cw(cs[2], W_МС)
+    _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+    _bottom_border(cs[0]); _bottom_border(cs[2])
+    _valign(cs[0], 'bottom'); _valign(cs[2], 'bottom')
+    _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
+    _fill(cs[0], сор.даты_проведения  or '', align=C, pt=PT, bold=True)
+    _fill(cs[2], сор.место_проведения or '', align=C, pt=PT, bold=True)
+
+    # строка 1 — подписи
+    r = dtbl.add_row(); _row_h_min(r, 0.5)
+    cs = list(r.cells)
+    _cw(cs[0], W_ДА); _cw(cs[1], W_СР); _cw(cs[2], W_МС)
+    _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+    _fill(cs[0], 'Дата проведения',   align=C, pt=PT_FIO, bold=True)
+    _fill(cs[2], 'Место проведения',  align=C, pt=PT_FIO, bold=True)
+
     # ── пустая строка перед таблицей ────────────────────────────────────────
     _para(doc)
 
