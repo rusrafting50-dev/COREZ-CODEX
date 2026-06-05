@@ -4778,6 +4778,13 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if pr.find(qn('w:noWrap')) is None:
             pr.append(OxmlElement('w:noWrap'))
 
+    def _ls15(p):
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:line'), '360'); sp.set(qn('w:lineRule'), 'auto')
+
     def _keep_next_p(p):
         pPr = p._p.find(qn('w:pPr'))
         if pPr is None:
@@ -4822,9 +4829,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=12, bold=True)
-    _para(doc, сор.название or '', align=C, pt=12, bold=True)
-    _para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True)
-    _para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True)
+    _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
+    _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True))
+    _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
 
     # ── main table ───────────────────────────────────────────────────────────
     tbl = _make_tbl(NC)
@@ -4963,13 +4970,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     for пп, рез in enumerate(жен_рез + жен_без, 1):
         _data_row(пп, рез, жен_разр, жен_норм)
 
-    # ── footnote + publish time ───────────────────────────────────────────────
+    # ── footnote ─────────────────────────────────────────────────────────────
     if снос:
         _para(doc, '* Разряды не присваиваются, т.к. количество участников в виде программы '
               'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
               align=L, pt=PT_FIO, bold=True)
-    p_время = _para(doc, 'Время опубликования:', align=L, pt=PT)
-    _keep_next_p(p_время)
 
     # ── signature table ───────────────────────────────────────────────────────
     sig = _make_tbl(2)
@@ -4984,6 +4989,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
+
+    # ── publish time ─────────────────────────────────────────────────────────
+    from datetime import datetime
+    now_str = datetime.now().strftime('%d.%m.%Y %H:%M:%S')
+    _para(doc, f'Время опубликования: {now_str}', align=L, pt=PT)
 
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
