@@ -4849,6 +4849,27 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
 
+    # ── таблица дата/место ───────────────────────────────────────────────────
+    dt = _make_tbl(3, pct_w=5100)
+    dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
+    _set_grid_sp(dt, [2200, 6098, 2400])
+    for idx, (лево, право, pt_v, bold_v) in enumerate([
+        (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
+        ('Дата проведения', 'Место проведения', 7, False),
+    ]):
+        r = dt.add_row(); _row_h_min(r, 0.5)
+        cs = list(r.cells)
+        for c in cs:
+            _no_border(c)
+            _valign(c)
+        _no_wrap_cell(cs[0])
+        _no_wrap_cell(cs[2])
+        if idx == 0:
+            _bottom_border(cs[0])
+            _bottom_border(cs[2])
+        _fill(cs[0], лево, align=L, pt=pt_v, bold=bold_v)
+        _fill(cs[2], право, align=L, pt=pt_v, bold=bold_v)
+
     # ── пустая строка перед таблицей ────────────────────────────────────────
     _para(doc)
 
