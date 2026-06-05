@@ -199,8 +199,8 @@
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
-    <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center" style="border:1px solid black;vertical-align:middle">–</td>
+    <td class="text-center" style="border:1px solid black;vertical-align:middle">–</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     {% else %}
@@ -324,8 +324,8 @@
     </td>
     <td>{{ к.субъект.название if к.субъект else '–' }}</td>
     {% if not итоговый %}
-    <td class="text-center" style="font-family:monospace"></td>
-    <td class="text-center" style="font-family:monospace"></td>
+    <td class="text-center" style="border:1px solid black;vertical-align:middle">–</td>
+    <td class="text-center" style="border:1px solid black;vertical-align:middle">–</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}</td>
     <td class="text-center" style="font-family:monospace">{{ format_dur(р.время_прохождения) }}</td>
     {% else %}
