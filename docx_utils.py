@@ -4592,8 +4592,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    # Portrait: 3/12/5/20/9/6/6/6/5/8/5/5/9
-    _PCTS = [3, 12, 5, 20, 9, 6, 6, 6, 5, 8, 5, 5, 9]
+    # Portrait: 3/12/6/20/9/6/6/6/6/8/5/5/9
+    _PCTS = [3, 12, 6, 20, 9, 6, 6, 6, 6, 8, 5, 5, 9]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
@@ -4718,7 +4718,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         pct = round(dxa * 5000 / TW)
         tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
 
-    def _make_tbl(ncols, fixed_tw=None):
+    def _make_tbl(ncols, fixed_tw=None, pct_w=5000):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
         tblPr = tbl.find(qn('w:tblPr'))
@@ -4731,7 +4731,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if fixed_tw:
             el.set(qn('w:w'), str(fixed_tw)); el.set(qn('w:type'), 'dxa')
         else:
-            el.set(qn('w:w'), '5000'); el.set(qn('w:type'), 'pct')
+            el.set(qn('w:w'), str(pct_w)); el.set(qn('w:type'), 'pct')
         ind = tblPr.find(qn('w:tblInd'))
         if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
         ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
@@ -4853,7 +4853,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc)
 
     # ── main table ───────────────────────────────────────────────────────────
-    tbl = _make_tbl(NC)
+    tbl = _make_tbl(NC, pct_w=5100)
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
