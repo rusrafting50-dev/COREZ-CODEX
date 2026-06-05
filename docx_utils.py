@@ -4874,8 +4874,12 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
     # ── таблица дата/место ───────────────────────────────────────────────────
     dt = _make_tbl(3, fixed_tw=TW, jc='center')
-    dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
-    _set_grid_sp(dt, [100, TW - 200, 100])
+    # Ширина крайних колонок по содержимому: символ TNR ≈ PT*0.6пт, + 2×отступ
+    _cw_char = round(PT * 0.6 * 20)
+    _w_dt  = max(100, len(сор.даты_проведения or 'Дата проведения') * _cw_char + 2 * MAR)
+    _w_pl  = max(100, len(сор.место_проведения or 'Место проведения') * _cw_char + 2 * MAR)
+    _w_mid = max(100, TW - _w_dt - _w_pl)
+    _set_grid_sp(dt, [_w_dt, _w_mid, _w_pl])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
     for idx, (лево, право, pt_v, bold_v) in enumerate([
         (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
