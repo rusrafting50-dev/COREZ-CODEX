@@ -4735,9 +4735,13 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             el.set(qn('w:w'), str(fixed_tw)); el.set(qn('w:type'), 'dxa')
         else:
             el.set(qn('w:w'), str(pct_w)); el.set(qn('w:type'), 'pct')
-        ind = tblPr.find(qn('w:tblInd'))
-        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
-        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        if jc == 'center':
+            # убрать tblInd чтобы jc=center работало
+            for old_ind in tblPr.findall(qn('w:tblInd')): tblPr.remove(old_ind)
+        else:
+            ind = tblPr.find(qn('w:tblInd'))
+            if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+            ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
         lay.set(qn('w:type'), 'fixed')
@@ -4866,7 +4870,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
-    dt = _make_tbl(3, pct_w=(4750 if портрет else 5100), jc=('center' if портрет else None))
+    dt = _make_tbl(3, pct_w=5100, jc=('center' if портрет else None))
     dt._tbl.find(qn('w:tblPr')).find(qn('w:tblLayout')).set(qn('w:type'), 'autofit')
     _set_grid_sp(dt, [2200, 2000, TW - 4200])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h_min(r, 0.5))
@@ -4895,7 +4899,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
-    r = tbl.add_row(); _row_h_min(r, 0.5)
+    r = tbl.add_row(); _row_h_min(r, 1.6)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
@@ -4920,7 +4924,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
-    r = tbl.add_row(); _row_h_min(r, 0.5)
+    r = tbl.add_row(); _row_h_min(r, 1.6)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
     for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
@@ -5008,7 +5012,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               align=L, pt=PT_FIO, bold=True)
 
     # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
-    sig = _make_tbl(2, fixed_tw=TW_SIG, jc='center')
+    sig = _make_tbl(2, pct_w=5100, jc='center')
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
