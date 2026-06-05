@@ -3580,7 +3580,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
         _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=PT, bold=True)
         _fill(cs[I_ПО], 'Место\nспринт,\nпозиция\nв заезде', align=C, pt=PT, bold=True)
         cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
-        _fill(cs[I_К1], 'Команда',                        align=C, pt=PT, bold=True)
+        _fill(cs[I_К],  'Команда',                        align=C, pt=PT, bold=True)
         _fill(cs[I_НО], 'Номер',                          align=C, pt=PT, bold=True)
         _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=PT, bold=True)
         _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=PT, bold=True)
@@ -4591,33 +4591,28 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    # 10 logical columns: НПП/Команда/Номер/ФИО/Субъект/Штрафы/Результат/Место/Очки/Разряд
-    # Percentages: 3/13/5/21/9/15/17/5/4/8
-    _PCTS = [3, 13, 5, 21, 9, 15, 17, 5, 4, 8]
+    # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
+    # Portrait: 3/12/5/20/9/6/6/6/5/8/5/5/9
+    _PCTS = [3, 12, 5, 20, 9, 6, 6, 6, 5, 8, 5, 5, 9]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
-    _W = [round(TW * p / 100) for p in _PCTS]
-    _W[-1] += TW - sum(_W)
-    # Split composite logical cols into grid sub-cols (14 total):
-    # Команда→2, Штрафы→2, Результат→3
-    _K1 = _W[1] * 4 // 5;  _K2 = _W[1] - _K1
-    _delta = round(TW / 100)
-    _ШС = _W[5] // 2;       _ШФ = _W[5] - _ШС - _delta   # Финиш −1%
-    _ШИ = _W[6] // 3;       _ВП = _W[6] // 3;  _ИТ = _W[6] - _ШИ - _ВП + _delta  # Итоговый +1%
-    GRID = [_W[0], _K1, _K2, _W[2], _W[3], _W[4], _ШС, _ШФ, _ШИ, _ВП, _ИТ, _W[7], _W[8], _W[9]]
-    NC   = 14
+    GRID = [round(TW * p / 100) for p in _PCTS]
+    GRID[-1] += TW - sum(GRID)
+    NC = 13
 
-    I_НПП, I_К1, I_К2, I_НОМ, I_ФИО = 0, 1, 2, 3, 4
-    I_СУБ, I_ШТС, I_ШТФ              = 5, 6, 7
-    I_ШТИ, I_ВП,  I_ИТ               = 8, 9, 10
-    I_МЕ,  I_ОЧ,  I_РА               = 11, 12, 13
+    I_НПП, I_К,   I_НОМ, I_ФИО, I_СУБ = 0, 1, 2, 3, 4
+    I_ШТС, I_ШТФ                        = 5, 6
+    I_ШТИ, I_ВП,  I_ИТ                  = 7, 8, 9
+    I_МЕ,  I_ОЧ,  I_РА                  = 10, 11, 12
 
-    W_К    = _K1 + _K2
-    W_ПРОХ = _ШС + _ШФ
-    W_РЕЗ  = _ШИ + _ВП + _ИТ
-    W_SIG_L = TW * 35 // 100
-    W_SIG_R = TW - W_SIG_L
+    W_ПРОХ = GRID[I_ШТС] + GRID[I_ШТФ]
+    W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]
+    # Подписи: фиксированная ширина по портрету в обеих ориентациях
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
 
-    PT, PT_FIO, PT_HDR = 10, 8, 9
+    PT, PT_FIO, PT_HDR = 8, 7, 8
+    MAR = 28  # 0.05cm = ~28 dxa — отступ слева/справа во всех ячейках
 
     # ── helpers ──────────────────────────────────────────────────────────────
     def _fmt_dur(secs):
@@ -4723,7 +4718,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         pct = round(dxa * 5000 / TW)
         tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
 
-    def _make_tbl(ncols):
+    def _make_tbl(ncols, fixed_tw=None):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
         tblPr = tbl.find(qn('w:tblPr'))
@@ -4733,7 +4728,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
         el = tblPr.find(qn('w:tblW'))
         if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
-        el.set(qn('w:w'), '5000'); el.set(qn('w:type'), 'pct')
+        if fixed_tw:
+            el.set(qn('w:w'), str(fixed_tw)); el.set(qn('w:type'), 'dxa')
+        else:
+            el.set(qn('w:w'), '5000'); el.set(qn('w:type'), 'pct')
         ind = tblPr.find(qn('w:tblInd'))
         if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
         ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
@@ -4858,47 +4856,45 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     tbl = _make_tbl(NC)
     _set_grid_sp(tbl, GRID)
 
-    # row 0 — header part 1 (vMerge restart on single cols; hspan on composite cols)
+    # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
-    cs[I_К1].merge(cs[I_К2]);   _cw_pct(cs[I_К1], W_К)
     cs[I_ШТС].merge(cs[I_ШТФ]); _cw_pct(cs[I_ШТС], W_ПРОХ)
     cs[I_ШТИ].merge(cs[I_ИТ]);  _cw_pct(cs[I_ШТИ], W_РЕЗ)
-    for i in (I_НПП, I_К1, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
+    for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
         _vmerge_restart(cs[i])
-    _fill(cs[I_НПП], '№\nп/п',                                   align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_К1],  'Команда',                                   align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_НОМ], 'Номер',                                     align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ФИО], 'Фамилия, имя, отчество участников',        align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_СУБ], 'Субъект РФ',                               align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТС], 'Штрафы',    align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТИ], 'Результат', align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_МЕ],  'Место',                                     align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ОЧ],  'Очки',                                      align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_НПП], '№\nп/п',                                    align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_К],   'Команда',                                    align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_НОМ], 'Номер',                                      align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ФИО], 'Фамилия, имя, отчество участников',         align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_СУБ], 'Субъект РФ',                                align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТС], 'Штрафы',     align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
-    _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])  # restore bottom border after merge
+    _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
-        _tcMar(cs[i]); _no_wrap_cell(cs[i])
+        _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
 
-    # row 3 — header part 2 (vMerge continue on same single cols; sub-headers for 6-11)
+    # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
-    cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
-    for i in (I_НПП, I_К1, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
+    for i in (I_НПП, I_К, I_НОМ, I_ФИО, I_СУБ, I_МЕ, I_ОЧ, I_РА):
         _vmerge_cont(cs[i])
-    _fill(cs[I_ШТС], 'Старт',   align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТФ], 'Финиш',  align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТИ], 'Штраф',  align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ВП],  'Время',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТС], 'Старт',    align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТФ], 'Финиш',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТИ], 'Штраф',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ВП],  'Время',    align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ИТ],  'Итоговый', align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
-        _tcMar(cs[i]); _no_wrap_cell(cs[i])
+        _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
@@ -4919,15 +4915,12 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
         r = tbl.add_row(); _row_h_min(r, 0.5)
         cs = list(r.cells)
-        for i, w in enumerate(GRID):
-            if i not in (I_К2,): _cw_pct(cs[i], w)
-        cs[I_К1].merge(cs[I_К2]); _cw_pct(cs[I_К1], W_К)
+        for i, w in enumerate(GRID): _cw_pct(cs[i], w)
         for i in range(NC):
-            if i != I_К2:
-                _borders(cs[i]); _valign(cs[i])
+            _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
 
         _fill(cs[I_НПП], str(пп),                        align=C, pt=PT)
-        _fill(cs[I_К1],  к.название or '–',              align=L, pt=PT)
+        _fill(cs[I_К],   к.название or '–',              align=L, pt=PT)
         _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),   align=C, pt=PT)
         _fill(cs[I_ФИО], фио,                             align=L, pt=PT_FIO)
         _fill(cs[I_СУБ], к.субъект.название if к.субъект else '–', align=C, pt=PT)
@@ -4975,15 +4968,15 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
               align=L, pt=PT_FIO, bold=True)
 
-    # ── signature table ───────────────────────────────────────────────────────
-    sig = _make_tbl(2)
+    # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
+    sig = _make_tbl(2, fixed_tw=TW_SIG)
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                           ('Главный секретарь', сор.главный_секретарь or '')):
         r = sig.add_row(); _row_h(r, 0.88)
         cs = list(r.cells)
-        _cw_pct(cs[0], W_SIG_L); _cw_pct(cs[1], W_SIG_R)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
