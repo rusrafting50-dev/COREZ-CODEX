@@ -4592,15 +4592,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
+    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/5/8
+    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 5, 8]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
-    if портрет:
-        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 5, 8]
-        PT, PT_FIO, PT_HDR = 8, 7, 8
-        TBL_PCT = 4950   # 99% ширины текстовой области
-    else:
-        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 5, 8]
-        PT, PT_FIO, PT_HDR = 8, 7, 8
-        TBL_PCT = 4950
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 13
@@ -4612,11 +4606,12 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
     W_ПРОХ = GRID[I_ШТС] + GRID[I_ШТФ]
     W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]
-    # Подписи: 98% ширины текстовой области, по центру
-    SIG_PCT = TBL_PCT - 50   # 1% меньше основной таблицы
-    W_SIG_L = TW * 35 // 100
-    W_SIG_R = TW - W_SIG_L
+    # Подписи: фиксированная ширина по портрету в обеих ориентациях
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
 
+    PT, PT_FIO, PT_HDR = 8, 7, 8
     MAR = 28  # 0.05cm = ~28 dxa — отступ слева/справа во всех ячейках
 
     # ── helpers ──────────────────────────────────────────────────────────────
@@ -4723,7 +4718,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         pct = round(dxa * 5000 / TW)
         tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
 
-    def _make_tbl(ncols, fixed_tw=None, pct_w=5000, jc=None):
+    def _make_tbl(ncols, fixed_tw=None, pct_w=5000):
         t = doc.add_table(rows=0, cols=ncols)
         tbl = t._tbl
         tblPr = tbl.find(qn('w:tblPr'))
@@ -4743,10 +4738,6 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         lay = tblPr.find(qn('w:tblLayout'))
         if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
         lay.set(qn('w:type'), 'fixed')
-        if jc:
-            jc_el = tblPr.find(qn('w:jc'))
-            if jc_el is None: jc_el = OxmlElement('w:jc'); tblPr.append(jc_el)
-            jc_el.set(qn('w:val'), jc)
         return t
 
     def _set_grid_sp(tbl_obj, widths):
@@ -4891,7 +4882,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc)
 
     # ── main table ───────────────────────────────────────────────────────────
-    tbl = _make_tbl(NC, pct_w=TBL_PCT, jc='center')
+    tbl = _make_tbl(NC, pct_w=5100)
     _set_grid_sp(tbl, GRID)
 
     # row 0 — header part 1 (vMerge restart на одиночных; hspan на составных)
@@ -4911,12 +4902,13 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РА],  'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
+    _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
     r = tbl.add_row(); _row_h_min(r, 0.7)
@@ -5006,15 +4998,15 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
               'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
               align=L, pt=PT_FIO, bold=True)
 
-    # ── signature table (на 1% уже основной, по центру) ─────────────────────
-    sig = _make_tbl(2, pct_w=SIG_PCT, jc='center')
+    # ── signature table (фикс. ширина = портрет, строго под основной таблицей) ──
+    sig = _make_tbl(2, fixed_tw=TW_SIG)
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
 
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                           ('Главный секретарь', сор.главный_секретарь or '')):
         r = sig.add_row(); _row_h(r, 0.88)
         cs = list(r.cells)
-        _cw_pct(cs[0], W_SIG_L); _cw_pct(cs[1], W_SIG_R)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
         _fill(cs[0], позиция, align=L, pt=PT, bold=True)
