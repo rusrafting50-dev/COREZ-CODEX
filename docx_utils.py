@@ -4595,7 +4595,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 18, 10, 6, 6, 6, 6, 8, 5, 4, 10]  # sum=100; Очки=4% (~420dxa для «Очки»), Разряд=10%
+        _PCTS = [3, 12, 6, 18, 10, 6, 6, 6, 6, 8, 5, 5, 9]   # sum=100; Очки=5% (~524dxa для «Очки»), Разряд=9%
     else:
         _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -4809,7 +4809,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         pr = _tcpr(cell)
         for old in pr.findall(qn('w:textDirection')): pr.remove(old)
         td = OxmlElement('w:textDirection'); td.set(qn('w:val'), 'btLr'); pr.append(td)
-        _valign(cell, 'bottom')
+        _valign(cell, 'center')
         for p in cell.paragraphs:
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
