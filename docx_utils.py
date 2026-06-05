@@ -4842,33 +4842,14 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=12, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=12, bold=True))
 
+    # ── пустая строка перед таблицей ────────────────────────────────────────
+    _para(doc)
+
     # ── main table ───────────────────────────────────────────────────────────
     tbl = _make_tbl(NC)
     _set_grid_sp(tbl, GRID)
 
-    # row 0 — date/location values
-    r = tbl.add_row(); _row_h_min(r, 0.6)
-    cs = list(r.cells)
-    cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
-    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
-    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
-    _bottom_border(cs[0]); _valign(cs[0], 'bottom')
-    _no_border(cs[2])
-    _bottom_border(cs[10]); _valign(cs[10], 'bottom')
-    _fill(cs[0],  сор.даты_проведения  or '', align=C, pt=PT, bold=True)
-    _fill(cs[10], сор.место_проведения or '', align=C, pt=PT, bold=True)
-
-    # row 1 — date/location labels
-    r = tbl.add_row(); _row_h_min(r, 0.5)
-    cs = list(r.cells)
-    cs[0].merge(cs[1]);   _cw(cs[0], GRID[0] + GRID[1])
-    cs[2].merge(cs[9]);   _cw(cs[2], sum(GRID[2:10]))
-    cs[10].merge(cs[13]); _cw(cs[10], sum(GRID[10:]))
-    _no_border(cs[0]); _no_border(cs[2]); _no_border(cs[10])
-    _fill(cs[0],  'Дата проведения',  align=C, pt=PT_FIO, bold=True)
-    _fill(cs[10], 'Место проведения', align=C, pt=PT_FIO, bold=True)
-
-    # row 2 — header part 1 (vMerge restart on single cols; hspan on composite cols)
+    # row 0 — header part 1 (vMerge restart on single cols; hspan on composite cols)
     r = tbl.add_row(); _row_h_min(r, 0.7)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw(cs[i], w)
