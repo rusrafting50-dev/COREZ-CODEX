@@ -4893,8 +4893,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         _fill(cs[0], лево, align=L, pt=pt_v, bold=bold_v)
         _fill(cs[2], право, align=(R if idx == 0 else C), pt=pt_v, bold=bold_v)
 
-    # ── пустая строка перед таблицей ────────────────────────────────────────
-    _para(doc)
+    # ── пустая строка перед таблицей (1пт) ──────────────────────────────────
+    p = _para(doc)
+    p.paragraph_format.line_spacing = Pt(1)
 
     # ── main table ───────────────────────────────────────────────────────────
     tbl = _make_tbl(NC, fixed_tw=TW, jc='center')
