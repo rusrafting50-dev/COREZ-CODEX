@@ -4592,8 +4592,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    # Portrait: 3/12/6/20/9/6/6/6/6/8/5/5/9
-    _PCTS = [3, 12, 6, 20, 9, 6, 6, 6, 6, 8, 5, 5, 9]
+    # Portrait: 3/12/6/20/10/6/6/6/6/8/5/5/8
+    _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 5, 8]
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
@@ -4794,6 +4794,14 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         if pr.find(qn('w:noWrap')) is None:
             pr.append(OxmlElement('w:noWrap'))
 
+    def _vert_cell(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:textDirection')): pr.remove(old)
+        td = OxmlElement('w:textDirection'); td.set(qn('w:val'), 'btLr'); pr.append(td)
+        _valign(cell, 'bottom')
+        for p in cell.paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
     def _ls15(p):
         pPr = p._p.get_or_add_pPr()
         sp = pPr.find(qn('w:spacing'))
@@ -4894,12 +4902,13 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТИ], 'Результат',  align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_МЕ],  'Место',                                      align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ОЧ],  'Очки',                                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_РА],  'Выполнение\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_РА],  'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
+    _vert_cell(cs[I_РА])
 
     # row 1 — header part 2 (vMerge continue; sub-headers Старт/Финиш/Штраф/Время/Итоговый)
     r = tbl.add_row(); _row_h_min(r, 0.7)
