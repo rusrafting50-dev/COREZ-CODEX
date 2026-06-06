@@ -4232,7 +4232,7 @@ def create_результаты_слалом_docx(
                 _vmerge_restart(cd1[col])
                 _vmerge_cont(cd2[col])
             _fill(cd1[0], str(пп), align=C, pt=PT)
-            _fill(cd1[1], к.название or '—', pt=PT)
+            _fill(cd1[1], к.название or '—', pt=7)
             _fill(cd1[2], str(к.нагрудный_номер or ''), align=C, pt=PT)
             _fill(cd1[3], фио, pt=7)
             _fill(cd1[4], к.субъект.название if к.субъект else '—', pt=7)
