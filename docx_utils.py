@@ -7121,6 +7121,8 @@ def create_результаты_кз_docx(сор, итог, группы, таб
     # ── coefficient table (таблица ЗС) ───────────────────────────────────────
     if таблица_зс:
         _para(doc)  # spacing
+        # Header paragraph
+        _ls15(_para(doc, 'Таблица начисления баллов', align=C, pt=PT, bold=True))
 
         кол_nums  = таблица_зс['rows']    # кол_субъектов values (e.g. [13,12,...,3])
         место_nums = таблица_зс['cols']   # место values (e.g. [1,2,3,4])
@@ -7143,13 +7145,6 @@ def create_результаты_кз_docx(сор, итог, группы, таб
 
         зс = _make_tbl(nЗС, fixed_tw=TW_зс, jc='left')
         _set_grid_sp(зс, GRID_зс)
-
-        # title row — merged, no borders
-        rt = зс.add_row(); _row_h_min(rt, 0.5)
-        cst = list(rt.cells)
-        cst[0].merge(cst[nЗС - 1])
-        _cw(cst[0], TW_зс); _no_border(cst[0]); _valign(cst[0])
-        _fill(cst[0], 'Таблица начисления баллов', align=C, pt=PT, bold=True)
 
         # header row 0: col0 vMerge, cols 1..n merged with label
         rh0 = зс.add_row(); _row_h_min(rh0, 0.6)
