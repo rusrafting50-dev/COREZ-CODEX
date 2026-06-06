@@ -7187,9 +7187,9 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
 
     TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 10, 4, 20, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 13]
+        _PCTS = [3, 10, 6, 20, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 11]
     else:
-        _PCTS = [3, 11, 4, 22, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 10]
+        _PCTS = [3, 11, 6, 22, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 8]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 16
@@ -7498,15 +7498,16 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     _fill(cs0[I_СУМ], 'Общая\nсумма', align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_МЕ],  'Место',         align=C, pt=PT_HDR, bold=True)
 
-    for ci_м, ci_о, label in (
-        (I_СП_М, I_СП_О, 'Спринт'),
-        (I_ПС_М, I_ПС_О, 'Параллельный\nспринт'),
-        (I_СЛ_М, I_СЛ_О, 'Слалом'),
-        (I_ДГ_М, I_ДГ_О, 'Длинная\nгонка'),
+    for _disc in (
+        (I_СП_М, I_СП_О, 'Спринт',              PT_HDR),
+        (I_ПС_М, I_ПС_О, 'Параллельный\nспринт', 8),
+        (I_СЛ_М, I_СЛ_О, 'Слалом',              PT_HDR),
+        (I_ДГ_М, I_ДГ_О, 'Длинная\nгонка',      PT_HDR),
     ):
+        ci_м, ci_о, label, pt_disc = _disc
         cs0[ci_м].merge(cs0[ci_о])
         _cw_pct(cs0[ci_м], GRID[ci_м] + GRID[ci_о])
-        _fill(cs0[ci_м], label, align=C, pt=PT_HDR, bold=True)
+        _fill(cs0[ci_м], label, align=C, pt=pt_disc, bold=True)
 
     # Выполнение разряда — vMerge restart (horizontal text like sprint итоговый)
     _vmerge_restart(cs0[I_РА])
