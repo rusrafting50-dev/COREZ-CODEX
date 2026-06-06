@@ -7141,13 +7141,14 @@ def create_результаты_кз_docx(сор, итог, группы, таб
             GRID_зс = [_W0, _WF] + [_WH] * n_mid + [_WF]
         TW_зс = sum(GRID_зс)
 
-        # Заголовок в однострочной невидимой таблице той же ширины — центр по ширине ЗС
-        _hdr_tbl = _make_tbl(1, fixed_tw=TW_зс, jc='left')
-        _set_grid_sp(_hdr_tbl, [TW_зс])
-        _rh = _hdr_tbl.add_row(); _row_h_min(_rh, 0.5)
-        _ch = list(_rh.cells)[0]
-        _cw(_ch, TW_зс); _no_border(_ch); _valign(_ch)
-        _fill(_ch, 'Таблица начисления баллов', align=C, pt=PT, bold=True)
+        # Заголовок — обычный параграф с правым отступом TW-TW_зс (в dxa через XML),
+        # чтобы align=C центрировал текст по ширине ЗС-таблицы
+        p_hdr = _para(doc, 'Таблица начисления баллов', align=C, pt=PT, bold=True)
+        _pPr = p_hdr._p.get_or_add_pPr()
+        _ind = _pPr.find(qn('w:ind'))
+        if _ind is None:
+            _ind = OxmlElement('w:ind'); _pPr.append(_ind)
+        _ind.set(qn('w:right'), str(TW - TW_зс))
 
         зс = _make_tbl(nЗС, fixed_tw=TW_зс, jc='left')
         _set_grid_sp(зс, GRID_зс)
