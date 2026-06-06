@@ -7252,7 +7252,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     if портрет:
         _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 3.0, 11.3, 3.9, 8.8, 3.9
         _P_ЗА, _P_РЕЗ = 3.9, 6.0
-        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 4.8, 6.1, 3.9, 3.9, 3.4
+        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 4.8, 6.1, 3.9, 3.9, 5.5
     else:
         _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 2.4, 9.9, 3.0, 8.2, 3.2
         _P_ЗА, _P_РЕЗ = 4.37, 6.6
@@ -7582,7 +7582,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _set_grid_sp(tbl, GRID)
 
     # ── Header row 0 ──────────────────────────────────────────────────────────
-    _HDR_H = 1.5 if портрет else 1.0
+    _HDR_H = 0.35 if портрет else 1.0
     r0 = tbl.add_row(); _row_h_min(r0, _HDR_H)
     cs0 = list(r0.cells)
     for i, w in enumerate(GRID): _cw_pct(cs0[i], w)
@@ -7601,8 +7601,11 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _vert_cell(cs0[I_МСП])
     _fill(cs0[I_МЕС], 'Место',                             align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_ОЧК], 'Очки',                              align=C, pt=PT_HDR, bold=True)
-    _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
-    _vert_cell(cs0[I_РАЗ])
+    if портрет:
+        _fill(cs0[I_РАЗ], 'Выполне-\nние\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    else:
+        _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+        _vert_cell(cs0[I_РАЗ])
     if портрет:
         _vert_cell(cs0[I_МЕС])
 
