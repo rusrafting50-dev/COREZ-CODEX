@@ -5510,27 +5510,27 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
     L   = WD_ALIGN_PARAGRAPH.LEFT
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
-    # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
+    # 14 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/ЛимВр/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
     TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 19, 10, 6, 6, 6, 6, 8, 5, 5, 8]   # sum=100; ФИО=19%, Разряд=8%
+        _PCTS = [3.1, 13.1, 4.7, 21.3, 8.9, 5.3, 5.3, 5.3, 5.3, 5.3, 6.2, 4.4, 3.6, 8.0]
     else:
-        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
+        _PCTS = [3.1, 13.1, 4.7, 21.3, 8.9, 5.3, 5.3, 5.3, 5.3, 5.3, 6.2, 4.4, 3.6, 8.0]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
-    NC = 13
+    NC = 14
 
     I_НПП, I_К,   I_НОМ, I_ФИО, I_СУБ = 0, 1, 2, 3, 4
-    I_ШТС, I_ШТФ                        = 5, 6
-    I_ШТИ, I_ВП,  I_ИТ                  = 7, 8, 9
-    I_МЕ,  I_ОЧ,  I_РА                  = 10, 11, 12
+    I_ШТС, I_ЛИМ, I_ШТФ               = 5, 6, 7
+    I_ШТИ, I_ВП,  I_ИТ                  = 8, 9, 10
+    I_МЕ,  I_ОЧ,  I_РА                  = 11, 12, 13
 
-    W_ПРОХ = GRID[I_ШТС] + GRID[I_ШТФ]
+    W_ПРОХ = GRID[I_ШТС] + GRID[I_ЛИМ] + GRID[I_ШТФ]
     W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]
-    # Подписи: фиксированная ширина по портрету в обеих ориентациях
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 35 // 100
+    W_SIG_R = TW - W_SIG_L
+
+
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -5869,6 +5869,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         _vmerge_cont(cs[i])
     _fill(cs[I_ШТС], 'Старт',    align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ШТФ], 'Финиш',   align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТФ], 'Финиш',          align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ШТИ], 'Штраф',   align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ВП],  'Время',    align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ИТ],  'Итоговый', align=C, pt=PT_HDR, bold=True)
@@ -5887,7 +5888,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         _fill(cs[0], label, align=C, pt=PT, bold=True)
         _keep_next_p(cs[0].paragraphs[-1])
 
-    def _data_row(пп, рез, разряды, норм):
+    def _data_row(пп, рез, разряды, норм, лим_вр=None):
         from models import СТАТУС_ДК, СТАТУС_ДНС, СТАТУС_ДНФ, СТАТУС_ПМ, СТАТУС_ПЛВ
         к = рез.команда
         состав = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
@@ -5899,12 +5900,13 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         for i in range(NC):
             _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
 
-        _borders(cs[I_ШТС], sz=3); _borders(cs[I_ШТФ], sz=3)
+        _borders(cs[I_ШТС], sz=3); _borders(cs[I_ЛИМ], sz=3); _borders(cs[I_ШТФ], sz=3)
         _fill(cs[I_НПП], str(пп),                        align=C, pt=PT)
         _fill(cs[I_К],   к.название or '–',              align=L, pt=PT)
         _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),   align=C, pt=PT)
         _fill(cs[I_ФИО], фио,                             align=L, pt=PT_FIO)
         _fill(cs[I_СУБ], к.субъект.название if к.субъект else '–', align=C, pt=PT)
+        _fill(cs[I_ЛИМ], _fmt_dur(лим_вр) if лим_вр else '–', align=C, pt=PT)
 
         ст = рез.статус
         if ст in (СТАТУС_ДНС, СТАТУС_ДНФ):
@@ -5936,11 +5938,11 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
     # ── data sections ────────────────────────────────────────────────────────
     _section('Мужчины')
     for пп, рез in enumerate(муж_рез + муж_без, 1):
-        _data_row(пп, рез, муж_разр, муж_норм)
+        _data_row(пп, рез, муж_разр, муж_норм, сор.лимит_время_муж)
 
     _section('Женщины')
     for пп, рез in enumerate(жен_рез + жен_без, 1):
-        _data_row(пп, рез, жен_разр, жен_норм)
+        _data_row(пп, рез, жен_разр, жен_норм, сор.лимит_время_жен)
 
     # ── footnote ─────────────────────────────────────────────────────────────
     if снос:
@@ -6423,11 +6425,11 @@ def create_результаты_итог_дг_docx(сор, муж_рез, муж
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+    TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
         _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 5, 10]
     else:
-        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 4, 11]
+        _PCTS = [4.4, 13.8, 5.5, 29.1, 10.2, 5.5, 5.7, 7.3, 5.1, 4.6, 8.8]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 11
@@ -6436,9 +6438,9 @@ def create_результаты_итог_дг_docx(сор, муж_рез, муж
     I_ШТИ, I_ВП,  I_ИТ                  = 5, 6, 7
     I_МЕ,  I_ОЧ,  I_РА                  = 8, 9, 10
 
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 35 // 100
+    W_SIG_R = TW - W_SIG_L
+
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -6657,10 +6659,10 @@ def create_результаты_итог_дг_docx(сор, муж_рез, муж
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    sect.top_margin    = Mm(15)
-    sect.bottom_margin = Mm(15)
-    sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(5)
+    sect.top_margin    = Mm(12.5)
+    sect.bottom_margin = Mm(12.5)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
@@ -8169,7 +8171,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     if портрет:
         _PCTS = [3, 10, 6, 20, 10, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 6, 4.9, 4.9]
     else:
-        _PCTS = [3, 11, 6, 22, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 8]
+        _PCTS = [2.9, 12.0, 3.5, 24.5, 7.7, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 4.1, 5.4, 4.7, 6.5]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 16
@@ -8181,9 +8183,9 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     I_ДГ_М, I_ДГ_О                         = 11, 12
     I_СУМ, I_МЕ,  I_РА                    = 13, 14, 15
 
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 27 // 100
+    W_SIG_R = TW - W_SIG_L
+
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -8419,8 +8421,8 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    sect.top_margin    = Mm(15)
-    sect.bottom_margin = Mm(15)
+    sect.top_margin    = Mm(12)
+    sect.bottom_margin = Mm(17.5)
     sect.left_margin   = Mm(10)
     sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
