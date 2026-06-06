@@ -5038,11 +5038,11 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
+    TW = round((210 - 15 - 15) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 19, 10, 6, 6, 6, 6, 8, 5, 5, 8]   # sum=100; ФИО=19%, Разряд=8%
+        _PCTS = [2.9, 12.1, 5.0, 19.6, 9.3, 5.5, 6.5, 6.5, 5.3, 7.6, 5.3, 5.3, 9.3]
     else:
-        _PCTS = [3, 12, 6, 20, 10, 6, 6, 6, 6, 8, 5, 4, 9]
+        _PCTS = [3.1, 13.1, 4.7, 24.8, 10.7, 5.3, 5.3, 5.3, 5.3, 6.2, 4.5, 3.6, 8.0]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 13
@@ -5054,10 +5054,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
 
     W_ПРОХ = GRID[I_ШТС] + GRID[I_ШТФ]
     W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]
-    # Подписи: фиксированная ширина по портрету в обеих ориентациях
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 35 // 100
+    W_SIG_R = TW - W_SIG_L
+
+
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -5297,10 +5297,10 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    sect.top_margin    = Mm(15)
+    sect.top_margin    = Mm(10)
     sect.bottom_margin = Mm(15)
     sect.left_margin   = Mm(15)
-    sect.right_margin  = Mm(10)
+    sect.right_margin  = Mm(15) if портрет else Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
@@ -5985,11 +5985,11 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # 11 columns: НПП/Команда/Номер/Состав/Субъект/Штраф/Время/Итоговый/Место/Очки/Разряд
-    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+    TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 5, 10]   # sum=100; Разряд=10% для Выполнение
+        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 5, 10]
     else:
-        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 4, 11]   # sum=100
+        _PCTS = [4.4, 13.8, 5.5, 29.1, 10.2, 5.5, 5.7, 7.3, 5.1, 4.6, 8.8]
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 11
@@ -5999,9 +5999,8 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     I_МЕ,  I_ОЧ,  I_РА                  = 8, 9, 10
 
     W_РЕЗ  = GRID[I_ШТИ] + GRID[I_ВП] + GRID[I_ИТ]
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 35 // 100
+    W_SIG_R = TW - W_SIG_L
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -6240,10 +6239,10 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    sect.top_margin    = Mm(15)
-    sect.bottom_margin = Mm(15)
-    sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(5)
+    sect.top_margin    = Mm(12.5)
+    sect.bottom_margin = Mm(12.5)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
