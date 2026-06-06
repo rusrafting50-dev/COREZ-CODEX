@@ -7407,6 +7407,11 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         for p in cell.paragraphs:
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
+
+    def _horiz_cell(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:textDirection')): pr.remove(old)
+
     def _ls15(p):
         pPr = p._p.get_or_add_pPr()
         sp = pPr.find(qn('w:spacing'))
@@ -7529,6 +7534,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _vert_cell(cs0[I_РА])
         _fill(cs0[I_РА], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     else:
+        _horiz_cell(cs0[I_РА])
         p_ра = cs0[I_РА].paragraphs[0]; p_ра.clear()
         _sp(p_ра); p_ра.alignment = C
         _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
@@ -7546,6 +7552,8 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _vmerge_cont(cs1[i])
     if портрет:
         _vert_cell(cs1[I_РА])
+    else:
+        _horiz_cell(cs1[I_РА])
 
     _PT_DISC = 6.5 if портрет else PT_HDR
     for ci_м, ci_о in ((I_СП_М, I_СП_О), (I_ПС_М, I_ПС_О), (I_СЛ_М, I_СЛ_О), (I_ДГ_М, I_ДГ_О)):
@@ -7605,7 +7613,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _fill(cs[I_СЛ_О], _очки(р.очки_слалом),          align=C, pt=PT)
         _fill(cs[I_ДГ_М], str(м_дг),                     align=C, pt=PT)
         _fill(cs[I_ДГ_О], _очки(р.очки_дг),              align=C, pt=PT)
-        _fill(cs[I_СУМ], str(int(р.сумма_очков)) if р.сумма_очков else '–', align=C, pt=PT, bold=True)
+        _fill(cs[I_СУМ], str(int(р.сумма_очков)) if р.сумма_очков else '–', align=C, pt=PT)
         _fill(cs[I_МЕ],  str(р.место) if р.место else '–', align=C, pt=PT)
         _fill(cs[I_РА],  разряды.get(к.id, '–') if норм else '–', align=C, pt=PT)
 
