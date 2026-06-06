@@ -7487,7 +7487,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
     for idx, (лево, право, pt_v, bold_v) in enumerate([
         (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
-        ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+        ('Дата проведения', 'Место проведения', PT if not портрет else 7, True),
     ]):
         r = dt.add_row(); _dt_rh(r)
         cs = list(r.cells)
