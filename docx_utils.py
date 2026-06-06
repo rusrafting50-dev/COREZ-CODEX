@@ -3692,15 +3692,27 @@ def create_результаты_слалом_docx(
     сор, кл, кол_ворот, итоговый,
     муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2,
     жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2,
-    filename
+    filename, портрет=False
 ):
     """Generate Slalom results protocol DOCX (preliminary with gate columns, or final)."""
     from docx.shared import Mm, Pt
 
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
 
     кол_ворот = max(кол_ворот, 1)
+
+    TW  = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+    MAR = 28
+    if портрет:
+        PT, PT_FIO, PT_HDR = 8, 7, 8
+    else:
+        PT, PT_FIO, PT_HDR = 10, 8, 10
+
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
@@ -3896,48 +3908,146 @@ def create_результаты_слалом_docx(
 
     # ── document header ────────────────────────────────────────────────────────
 
+    def _ls15(p):
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:line'), '360'); sp.set(qn('w:lineRule'), 'auto')
+
+    def _no_border_cell(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+
+    def _bottom_border_cell(cell, sz=6):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+        el = b.find(qn('w:bottom'))
+        if el is None:
+            el = OxmlElement('w:bottom'); b.append(el)
+        el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+        el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+
+    def _make_tbl_sl(ncols, fixed_tw, jc='center'):
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(fixed_tw)); el.set(qn('w:type'), 'dxa')
+        ind = tblPr.find(qn('w:tblInd'))
+        if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        jc_el = tblPr.find(qn('w:jc'))
+        if jc_el is None: jc_el = OxmlElement('w:jc'); tblPr.append(jc_el)
+        jc_el.set(qn('w:val'), jc)
+        return t
+
+    def _no_wrap_cell(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _fill_sl(cell, text, align=None, pt=PT, bold=False):
+        p = cell.paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
+        if align: p.alignment = align
+        text = str(text).replace('—', '–')
+        if not text: return
+        parts = str(text).split('\n')
+        for i, part in enumerate(parts):
+            r = p.add_run(part); r.font.name = TNR; r.font.size = Pt(pt)
+            if bold: r.font.bold = True
+            if i < len(parts) - 1:
+                br = OxmlElement('w:br'); r._r.append(br)
+
     def _add_doc_header(doc):
+        _hdr_pt = 10 if портрет else 12
         if сор.организаторы_блок:
-            lines = [l.strip() for l in сор.организаторы_блок.split('\n')]
-            p = _para(doc, align=C)
-            for i, line in enumerate(lines):
-                if i > 0:
-                    _line_br(p)
-                _run(p, line, pt=10, bold=True)
-            _para(doc)
-        _para(doc, сор.название or '', align=C, pt=12, bold=True)
+            _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
+        p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
+        _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
         if итоговый and сор.номер_екп:
-            _para(doc, f'ЕКП № {сор.номер_екп}', align=C, pt=11, bold=True)
+            _ls15(_para(doc, f'ЕКП № {сор.номер_екп}', align=C, pt=_hdr_pt, bold=True))
         заг = 'ПРОТОКОЛ РЕЗУЛЬТАТОВ' if итоговый else 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ'
-        _para(doc, заг, align=C, pt=12, bold=True)
+        _ls15(_para(doc, заг, align=C, pt=_hdr_pt, bold=True))
         if кл == 'R4':
             дисц = 'СЛАЛОМ – R4, код ВРВС 1740031811Я'
         elif кл == 'R6':
             дисц = 'СЛАЛОМ – R6, код ВРВС 1740041811Я'
         else:
             дисц = f'СЛАЛОМ{" – " + кл if кл else ""}'
-        _para(doc, f'Спортивная дисциплина: {дисц}', align=C, pt=10, bold=True)
+        _ls15(_para(doc, f'Спортивная дисциплина: {дисц}', align=C, pt=_hdr_pt, bold=True))
+
+        # Дата/место block
+        _cw_char = round(PT * 0.6 * 20)
+        _w_dt  = max(100, len(сор.даты_проведения or 'Дата проведения') * _cw_char + 2 * MAR)
+        _w_pl  = max(100, len(сор.место_проведения or 'Место проведения') * _cw_char + 2 * MAR)
+        _w_mid = max(100, TW - _w_dt - _w_pl)
+        dt = _make_tbl_sl(3, fixed_tw=TW)
+        _set_grid(dt, [_w_dt, _w_mid, _w_pl])
+        _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
+        for idx, (лево, право, pt_v, bold_v) in enumerate([
+            (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
+            ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+        ]):
+            r = dt.add_row(); _dt_rh(r)
+            cs = list(r.cells)
+            for c in cs:
+                _no_border_cell(c)
+                _valign(c, 'bottom' if (not портрет and idx == 0) else ('top' if (not портрет and idx == 1) else 'center'))
+            _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
+            if idx == 0:
+                _bottom_border_cell(cs[0]); _bottom_border_cell(cs[2])
+            _fill_sl(cs[0], лево, align=C, pt=pt_v, bold=bold_v)
+            _fill_sl(cs[2], право, align=C, pt=pt_v, bold=bold_v)
 
     # ── signatures ────────────────────────────────────────────────────────────
 
     def _add_sigs(doc):
-        for pos, fio in (('Главный судья', сор.главный_судья or ''),
-                         ('Главный секретарь', сор.главный_секретарь or '')):
-            p = doc.add_paragraph()
-            _sp(p)
-            p.paragraph_format.space_before = Pt(12)
-            _run(p, pos + '   ' + fio, pt=10, bold=True)
+        sig = _make_tbl_sl(2, fixed_tw=TW_SIG)
+        _set_grid(sig, [W_SIG_L, W_SIG_R])
+        for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
+                              ('Главный секретарь', сор.главный_секретарь or '')):
+            r = sig.add_row(); _row_h(r, 0.88)
+            cs = list(r.cells)
+            _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+            _no_border_cell(cs[0]); _no_border_cell(cs[1])
+            _valign(cs[0]); _valign(cs[1])
+            _fill_sl(cs[0], позиция, align=L, pt=PT, bold=True)
+            _fill_sl(cs[1], фио,    align=L, pt=PT, bold=True)
 
     # ══════════════════════════════════════════════════════════════════════════
     # PRELIMINARY PROTOCOL  (two rows per team, gate columns, vertical text)
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_pred(doc):
-        # Landscape A4 usable ≈ 16155 dxa
         FIXED_LEFT  = [300, 1700, 450, 2700, 1270, 300, 300]
         FIXED_RIGHT = [300, 600, 740, 800, 800, 350, 500, 800]
         FIXED_SUM   = sum(FIXED_LEFT) + sum(FIXED_RIGHT)
-        gate_w      = max(250, (16155 - FIXED_SUM) // кол_ворот)
+        gate_w      = max(200, (TW - FIXED_SUM) // кол_ворот)
         GRID        = FIXED_LEFT + [gate_w] * кол_ворот + FIXED_RIGHT
         NC          = len(GRID)
         TW          = sum(GRID)
@@ -4195,12 +4305,22 @@ def create_результаты_слалом_docx(
 
     doc = Document()
     sect = doc.sections[0]
-    sect.page_height   = Mm(210)
-    sect.page_width    = Mm(297)
-    sect.top_margin    = Mm(12)
-    sect.bottom_margin = Mm(10)
-    sect.left_margin   = Mm(7)
+    if портрет:
+        sect.page_height = Mm(297); sect.page_width = Mm(210)
+    else:
+        sect.page_height = Mm(210); sect.page_width = Mm(297)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(10)
     sect.right_margin  = Mm(5)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
+    doc.styles['Normal'].font.name = 'Times New Roman'
+    doc.styles['Normal'].font.size = Pt(10)
 
     body = doc.element.body
     for child in list(body):
@@ -4208,7 +4328,7 @@ def create_результаты_слалом_docx(
             body.remove(child)
 
     _add_doc_header(doc)
-    _para(doc)
+    _para(doc).paragraph_format.line_spacing = Pt(1)
 
     if итоговый:
         _build_итог(doc)
