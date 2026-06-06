@@ -4421,6 +4421,11 @@ def create_результаты_слалом_docx(
     _add_sigs(doc)
 
     buf2 = BytesIO()
+    if not итоговый and not портрет:
+        for _tbl in doc.tables:
+            for _row in _tbl.rows:
+                for _cell in _row.cells:
+                    _tcMar(_cell, MAR)
     _apply_no_break(doc)
     _apply_keep_next(doc)
     doc.save(buf2)
