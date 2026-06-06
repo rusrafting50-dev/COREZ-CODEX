@@ -4087,8 +4087,6 @@ def create_результаты_слалом_docx(
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_pred(doc):
-        снос = ((len(муж_рез) + len(муж_без) > 0 and len(муж_рез) + len(муж_без) < 6) or
-                (len(жен_рез) + len(жен_без) > 0 and len(жен_рез) + len(жен_без) < 6))
         if портрет:
             _FL_PCT = [2.0, 9.8, 3.6, 21.3, 8.2, 1.9, 1.9]
             _FR_PCT = [1.9, 3.7, 4.3, 5.3, 4.9, 2.8, 3.3, 2.9]
@@ -4135,11 +4133,11 @@ def create_результаты_слалом_docx(
                 _fill(cs[I_ШТ], '–', align=C, pt=PT); _fill(cs[I_ВР], 'Прев. ЛВ', align=C, pt=PT); _fill(cs[I_ИТ], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'ДК':
                 _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
-                _fill(cs[I_ИТ], 'ДК', align=C, pt=PT)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
                 _fill(cs[I_ИТ], 'ДК', align=C, bold=True, pt=PT)
             else:
                 _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
-                _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, pt=PT)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
                 _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True, pt=PT)
 
         tbl = doc.add_table(rows=0, cols=NC)
@@ -4147,7 +4145,7 @@ def create_результаты_слалом_docx(
         _tbl_w(tbl, TW_пред)
 
         # Header row 1
-        _row_h_min(rh1, 0.8)
+        rh1 = tbl.add_row()
         _row_h_min(rh1, 3.5)
         cs = list(rh1.cells)
         for i, w in enumerate(GRID):
@@ -4167,13 +4165,13 @@ def create_результаты_слалом_docx(
         _fill(cs[I_ШТ], 'Результат попытки', align=C, bold=True)
         _fill(cs[I_ЛУЧ], 'Результат лучшей попытки', align=C, bold=True)
         _fill(cs[I_МЕС], 'Место', align=C, bold=True); _vert_cell(cs[I_МЕС])
-        _fill(cs[I_НОР], 'Выполнение\nразряда' + ('*' if снос else ''), align=C, bold=True); _vert_cell(cs[I_НОР])
+        _fill(cs[I_ОЧК], 'Очки', align=C, bold=True)
         _fill(cs[I_НОР], 'Выполнение разряда', align=C, bold=True); _vert_cell(cs[I_НОР])
         for col in ROWSPAN_H:
             _vmerge_restart(cs[col])
 
         # Header row 2 (vertical gate numbers)
-        _row_h_min(rh2, 0.8)
+        rh2 = tbl.add_row()
         _row_h_min(rh2, 3.0)
         cs2 = list(rh2.cells)
         for i, w in enumerate(GRID):
@@ -4235,15 +4233,14 @@ def create_результаты_слалом_docx(
             _fill(cd1[I_ПОП], '1', align=C, pt=PT)
             _fill(cd2[I_ПОП], '2', align=C, pt=PT)
             _fill_поп(cd1, р1, ш1)
-            _fill(cd1[I_ЛУЧ], _fmt_dur(лучший), align=C, pt=PT)
-            _fill(cd1[I_МЕС], str(место) if место else '–', align=C, pt=PT)
+            _fill_поп(cd2, р2, ш2)
+            _fill(cd1[I_ЛУЧ], _fmt_dur(лучший), align=C, bold=True, pt=PT)
             _fill(cd1[I_МЕС], str(место) if место else '–', align=C, bold=True, pt=PT)
             _fill(cd1[I_ОЧК], str(int(очки)) if очки else '–', align=C, pt=PT)
             _fill(cd1[I_НОР], норм, align=C, pt=8)
 
         _add_section(муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2, 'Мужчины')
         _add_section(жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2, 'Женщины')
-        return снос
 
     # ══════════════════════════════════════════════════════════════════════════
     # FINAL PROTOCOL  (one row per team, no gate columns)
@@ -4419,11 +4416,7 @@ def create_результаты_слалом_docx(
     if итоговый:
         _build_итог(doc)
     else:
-        снос_пред = _build_pred(doc)
-        if снос_пред:
-            _para(doc, '* Разряды не присваиваются, т.к. количество участников в виде программы '
-                  'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
-                  align=L, pt=8, bold=False)
+        _build_pred(doc)
 
     _add_sigs(doc)
 
