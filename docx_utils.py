@@ -4869,9 +4869,9 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
             body.remove(child)
 
     _hdr_pt = 10 if портрет else 12
-    p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
+    p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
     _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
     _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=_hdr_pt, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
@@ -5807,9 +5807,9 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
             body.remove(child)
 
     _hdr_pt = 10 if портрет else 12
-    p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
+    p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
     _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
     _ls15(_para(doc, 'ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=_hdr_pt, bold=True))
     if сор.номер_екп:
