@@ -4428,6 +4428,244 @@ def create_результаты_слалом_docx(
     return send_file(buf2, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
+def create_жеребьёвка_docx(сор, муж_р4, жен_р4, муж_р6, жен_р6, последовательность, filename):
+    """Generate draw (жеребьёвка) protocol DOCX matching Протокол_жеребьёвки.docx sample."""
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+
+    # A4 portrait, L=15, R=10, T=12, B=22.5
+    TW  = round((210 - 15 - 10) * 1440 / 25.4)
+    MAR = 28
+    PT  = 10
+
+    _КАРТА = {'R4-м': муж_р4, 'R4-ж': жен_р4, 'R6-м': муж_р6, 'R6-ж': жен_р6}
+    _МЕТКИ = {
+        'R4-м': 'Спринт – R4, Мужчины', 'R4-ж': 'Спринт – R4, Женщины',
+        'R6-м': 'Спринт – R6, Мужчины', 'R6-ж': 'Спринт – R6, Женщины',
+    }
+    виды = [к for к in последовательность if к in _КАРТА and _КАРТА[к]]
+
+    # Column widths from sample proportions (6 logical cols)
+    _PCTS = [4.9, 16.0, 7.6, 38.7, 17.3, 15.4]
+    GRID  = [round(TW * p / 100) for p in _PCTS]
+    GRID[-1] += TW - sum(GRID)
+    NC = 6
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(210)
+    sect.page_height   = Mm(297)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(10)
+    sect.top_margin    = Mm(12)
+    sect.bottom_margin = Mm(22.5)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.attrib.pop(qn('w:orient'), None)
+    doc.styles['Normal'].font.name = TNR
+    doc.styles['Normal'].font.size = Pt(PT)
+
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=10, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR; r.font.size = Pt(pt)
+        if bold: r.font.bold = True
+        return r
+
+    def _para(text='', align=None, pt=10, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        if align: p.alignment = align
+        if text: _run(p, text, pt, bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None: el = OxmlElement('w:tcW'); pr.append(el)
+        el.set(qn('w:w'), str(w)); el.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        v = pr.find(qn('w:vAlign'))
+        if v is None: v = OxmlElement('w:vAlign'); pr.append(v)
+        v.set(qn('w:val'), val)
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')): pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), '000000')
+            b.append(el)
+        pr.append(b)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcBorders')): pr.remove(old)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+            b.append(el)
+        pr.append(b)
+
+    def _bottom_border(cell, sz=6):
+        _no_border(cell)
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        el = OxmlElement('w:bottom')
+        el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+        el.set(qn('w:space'), '0'); el.set(qn('w:color'), '000000')
+        b.append(el)
+
+    def _fill(cell, text, align=None, pt=10, bold=False):
+        p = cell.paragraphs[0]; p.clear(); _sp(p)
+        if align: p.alignment = align
+        if text: _run(p, str(text), pt, bold)
+        _valign(cell)
+
+    def _row_h(row, cm):
+        val = round(cm * 1440 / 2.54)
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None: trPr = OxmlElement('w:trPr'); row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None: trH = OxmlElement('w:trHeight'); trPr.append(trH)
+        trH.set(qn('w:val'), str(val)); trH.set(qn('w:hRule'), 'atLeast')
+
+    def _make_tbl(ncols):
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None: tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
+
+    def _set_grid(tbl, grid):
+        t = tbl._tbl
+        for old in t.findall(qn('w:tblGrid')): t.remove(old)
+        g = OxmlElement('w:tblGrid')
+        for w in grid:
+            col = OxmlElement('w:gridCol'); col.set(qn('w:w'), str(w)); g.append(col)
+        tblPr = t.find(qn('w:tblPr'))
+        tblPr.addnext(g) if tblPr is not None else t.insert(0, g)
+
+    # ── Document header ────────────────────────────────────────────────────────
+
+    if сор.организаторы_блок:
+        _para(сор.организаторы_блок, align=C, pt=10, bold=True)
+    _para(сор.название or '', align=C, pt=12, bold=True)
+    _para('Протокол жеребьёвки', align=C, pt=12, bold=True)
+    _para('Группа спортивных дисциплин СПРИНТ', align=C, pt=10, bold=True)
+
+    # Date / place table
+    _cw_char = round(PT * 0.6 * 20)
+    _w_dt  = max(100, len(сор.даты_проведения or 'Дата проведения') * _cw_char + 2 * MAR)
+    _w_pl  = max(100, len(сор.место_проведения or 'Место проведения') * _cw_char + 2 * MAR)
+    _w_mid = max(100, TW - _w_dt - _w_pl)
+    dt = _make_tbl(3)
+    _set_grid(dt, [_w_dt, _w_mid, _w_pl])
+    for idx, (лево, право, pt_v, bold_v) in enumerate([
+        (сор.даты_проведения or '', сор.место_проведения or '', 10, True),
+        ('Дата проведения', 'Место проведения', 8, False),
+    ]):
+        r = dt.add_row()
+        cs = list(r.cells)
+        for c in cs: _no_border(c); _valign(c, 'center')
+        if idx == 0:
+            _bottom_border(cs[0]); _bottom_border(cs[2])
+        _fill(cs[0], лево, align=C, pt=pt_v, bold=bold_v)
+        _fill(cs[2], право, align=C, pt=pt_v, bold=bold_v)
+
+    # ── Main table ─────────────────────────────────────────────────────────────
+
+    tbl = _make_tbl(NC)
+    _set_grid(tbl, GRID)
+
+    # Header row
+    rh = tbl.add_row()
+    cs = list(rh.cells)
+    for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
+    _fill(cs[0], '№ п/п',  align=C, pt=8, bold=True)
+    _fill(cs[1], 'Команда', align=C, pt=8, bold=True)
+    _fill(cs[2], 'Номер',  align=C, pt=8, bold=True)
+    _fill(cs[3], 'Фамилия, имя, отчество участников', align=C, pt=8, bold=True)
+    _fill(cs[4], 'Территория', align=C, pt=8, bold=True)
+    _fill(cs[5], 'Порядковый номер согласно жеребьёвке', align=C, pt=8, bold=True)
+
+    for код in виды:
+        # Section header row
+        rs = tbl.add_row()
+        cs_s = list(rs.cells)
+        cs_s[0].merge(cs_s[NC - 1])
+        for c in list(rs.cells): _borders(c)
+        _fill(list(rs.cells)[0], _МЕТКИ[код], align=C, pt=9, bold=True)
+
+        команды_вида = _КАРТА[код]
+        for пп, к in enumerate(команды_вида, 1):
+            спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
+            фио = ', '.join(с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество)
+            rd = tbl.add_row()
+            cd = list(rd.cells)
+            for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
+            _fill(cd[0], str(пп), align=C, pt=8)
+            _fill(cd[1], к.название or '—', pt=8)
+            _fill(cd[2], str(к.нагрудный_номер or ''), align=C, pt=8)
+            _fill(cd[3], фио, pt=8)
+            _fill(cd[4], к.субъект.название if к.субъект else '—', pt=8)
+            _fill(cd[5], str(к.стартовый_номер_спринт or '—'), align=C, pt=8)
+
+    # ── Signatures ─────────────────────────────────────────────────────────────
+
+    sig = _make_tbl(2)
+    w_l = TW * 43 // 100
+    w_r = TW - w_l
+    _set_grid(sig, [w_l, w_r])
+    for позиция, фио in (('Главный судья', сор.главный_судья or ''),
+                          ('Главный секретарь', сор.главный_секретарь or '')):
+        rs = sig.add_row(); _row_h(rs, 1.5)
+        cs = list(rs.cells)
+        _cw(cs[0], w_l); _cw(cs[1], w_r)
+        _no_border(cs[0]); _no_border(cs[1])
+        _valign(cs[0]); _valign(cs[1])
+        _fill(cs[0], позиция, align=L, pt=10, bold=False)
+        _fill(cs[1], фио,    align=L, pt=10, bold=False)
+
+    buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
+    doc.save(buf)
+    buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
 def create_нагрудные_номера_docx(сор, команды, filename):
     """Generate bib-number issuance protocol DOCX matching the official sample layout.
 
