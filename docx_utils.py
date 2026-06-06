@@ -4052,7 +4052,7 @@ def create_результаты_слалом_docx(
         _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
         for idx, (лево, право, pt_v, bold_v) in enumerate([
             (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
-            ('Дата проведения', 'Место проведения', 10 if портрет else 8, not портрет),
+            ('Дата проведения', 'Место проведения', 8, True),
         ]):
             r = dt.add_row(); _dt_rh(r)
             cs = list(r.cells)
