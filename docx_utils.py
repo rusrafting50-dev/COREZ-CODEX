@@ -7105,6 +7105,7 @@ def create_результаты_кз_docx(сор, итог, группы, таб
         _fill(cs[I_МЕ],      str(з['место']) if з.get('место') else '–', align=C, pt=PT)
 
     # ── signature table ───────────────────────────────────────────────────────
+    _para(doc)
     sig = _make_tbl(2, fixed_tw=TW, jc='center')
     _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
     for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
@@ -7131,33 +7132,36 @@ def create_результаты_кз_docx(сор, итог, группы, таб
 
         # Cols in зс table: 1 (место label) + len(кол_nums) (one per кол_субъектов)
         nЗС = 1 + len(кол_nums)
-        _w_ме_зс = 6; _w_кол_зс = 4; _w_кол_зс_half = 2
+        # Абсолютные ширины в dxa: первый и 2й/последний столбцы полные, средние — вдвое уже
+        _W0  = round(45 * 1440 / 25.4)   # первый столбец (место): 45mm
+        _WF  = round(18 * 1440 / 25.4)   # полный столбец (2й и последний): 18mm
+        _WH  = round(10 * 1440 / 25.4)   # половинный столбец (средние): 10mm
         n_mid = max(0, len(кол_nums) - 2)
-        _ww = [_w_ме_зс, _w_кол_зс] + [_w_кол_зс_half] * n_mid + ([_w_кол_зс] if len(кол_nums) > 1 else [])
-        _tw_зс_total = sum(_ww)
-        GRID_зс = [round(TW * w / _tw_зс_total) for w in _ww]
-        GRID_зс[-1] += TW - sum(GRID_зс)
+        if len(кол_nums) == 1:
+            GRID_зс = [_W0, _WF]
+        else:
+            GRID_зс = [_W0, _WF] + [_WH] * n_mid + [_WF]
+        TW_зс = sum(GRID_зс)
 
-        зс = _make_tbl(nЗС, fixed_tw=TW, jc='center')
+        зс = _make_tbl(nЗС, fixed_tw=TW_зс, jc='center')
         _set_grid_sp(зс, GRID_зс)
 
         # header row 0: col0 vMerge, cols 1..n merged with label
         rh0 = зс.add_row(); _row_h_min(rh0, 0.6)
         csh0 = list(rh0.cells)
-        _cw_pct(csh0[0], GRID_зс[0])
+        _cw(csh0[0], GRID_зс[0])
         _vmerge_restart(csh0[0]); _fill(csh0[0], 'Количество баллов за каждую дисциплину за занятое место', align=C, pt=PT, bold=True)
         csh0[1].merge(csh0[nЗС - 1])
-        _cw_pct(csh0[1], sum(GRID_зс[1:]))
+        _cw(csh0[1], TW_зс - GRID_зс[0])
         _fill(csh0[1], 'Количество субъектов Российской Федерации', align=C, pt=PT, bold=True)
         for i in range(nЗС): _borders(csh0[i]); _valign(csh0[i]); _tcMar(csh0[i], MAR)
 
         # header row 1: col0 vMerge cont, cols 1..n кол_субъектов labels
         rh1 = зс.add_row(); _row_h_min(rh1, 0.6)
         csh1 = list(rh1.cells)
-        _cw_pct(csh1[0], GRID_зс[0])
-        _vmerge_cont(csh1[0])
+        _cw(csh1[0], GRID_зс[0]); _vmerge_cont(csh1[0])
         for j, кол in enumerate(кол_nums):
-            _cw_pct(csh1[j + 1], GRID_зс[j + 1])
+            _cw(csh1[j + 1], GRID_зс[j + 1])
             _fill(csh1[j + 1], row_labels[кол], align=C, pt=PT, bold=True)
         for i in range(nЗС): _borders(csh1[i]); _valign(csh1[i]); _tcMar(csh1[i], MAR)
 
@@ -7166,7 +7170,7 @@ def create_результаты_кз_docx(сор, итог, группы, таб
             rd = зс.add_row(); _row_h_min(rd, 0.5)
             csd = list(rd.cells)
             for i in range(nЗС):
-                _cw_pct(csd[i], GRID_зс[i])
+                _cw(csd[i], GRID_зс[i])
                 _borders(csd[i]); _valign(csd[i]); _tcMar(csd[i], MAR)
             _fill(csd[0], col_labels[место], align=C, pt=PT, bold=True)
             for j, кол in enumerate(кол_nums):
