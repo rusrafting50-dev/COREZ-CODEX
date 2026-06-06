@@ -342,8 +342,36 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+
+  // Replace sig-table with tab-stop paragraphs + underlined text (no table in Word)
+  var sigTbl = clone.querySelector('table.sig-table');
+  if (sigTbl) {
+    var rows = sigTbl.querySelectorAll('tr');
+    var судья   = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
+    var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
+    var TS  = 'mso-tab-stops:200.0pt 270.0pt;';
+    var TAB = '<span style="mso-tab-count:1">\t</span>';
+    var NBS = ' '.repeat(22);  // ширина колонки «подпись»
+    function sigP(pos, fio, mb) {
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.8;' + TS + '">'
+           + pos + TAB + '<u>' + NBS + '</u>' + TAB + '<u>' + fio + '</u>' + '</p>';
+    }
+    function lblP(mb) {
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS + '">'
+           + TAB + '(подпись)' + TAB + '(расшифровка подписи)</p>';
+    }
+    var tmp = document.createElement('div');
+    tmp.innerHTML = sigP('Главный судья соревнований', судья, '')
+                  + lblP('14px')
+                  + sigP('Главный секретарь соревнований', секретарь, '')
+                  + lblP('');
+    var par = sigTbl.parentNode;
+    while (tmp.firstChild) par.insertBefore(tmp.firstChild, sigTbl);
+    par.removeChild(sigTbl);
+  }
+
   // border="1" on data tables → Word renders shared grid lines, not individual cell boxes
-  clone.querySelectorAll('table:not(.sig-table)').forEach(function(t){
+  clone.querySelectorAll('table').forEach(function(t){
     t.setAttribute('border', '1');
     t.setAttribute('cellspacing', '0');
     t.style.borderCollapse = 'collapse';
