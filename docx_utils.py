@@ -8851,12 +8851,23 @@ def create_регламент_docx(сор, программа, filename):
         tPr = tbl._tbl.find(qn('w:tblPr'))
         if tPr is None:
             tPr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, tPr)
+        # remove default style / tblLook that override width
+        for tag in ('w:tblStyle', 'w:tblLook'):
+            for el in tPr.findall(qn(tag)):
+                tPr.remove(el)
         jcEl = OxmlElement('w:jc'); jcEl.set(qn('w:val'), 'left'); tPr.append(jcEl)
-        tblW = OxmlElement('w:tblW')
+        tblW = tPr.find(qn('w:tblW'))
+        if tblW is None:
+            tblW = OxmlElement('w:tblW'); tPr.append(tblW)
         tblW.set(qn('w:w'), str(int(tw))); tblW.set(qn('w:type'), 'dxa')
-        tPr.append(tblW)
-        layout = OxmlElement('w:tblLayout'); layout.set(qn('w:type'), 'fixed')
-        tPr.append(layout)
+        ind = tPr.find(qn('w:tblInd'))
+        if ind is None:
+            ind = OxmlElement('w:tblInd'); tPr.append(ind)
+        ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tPr.find(qn('w:tblLayout'))
+        if lay is None:
+            lay = OxmlElement('w:tblLayout'); tPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
         tblBrd = OxmlElement('w:tblBorders')
         for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
             el = OxmlElement(f'w:{side}'); el.set(qn('w:val'), 'none')
@@ -9067,6 +9078,15 @@ def create_регламент_docx(сор, программа, filename):
         _fill(hcs[0], 'Дата',         align=C, bold=True)
         _fill(hcs[1], 'Время',        align=C, bold=True)
         _fill(hcs[2], 'Наименование', align=C, bold=True)
+        # keep header row with first data row; repeat on each page if table spans
+        trPr = hdr._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr'); hdr._tr.insert(0, trPr)
+        if trPr.find(qn('w:tblHeader')) is None:
+            trPr.append(OxmlElement('w:tblHeader'))
+        for hc in hcs:
+            for p in hc.paragraphs:
+                p.paragraph_format.keep_with_next = True
 
         seen = {}
         for пункт in программа:
