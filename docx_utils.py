@@ -4283,7 +4283,7 @@ def create_результаты_слалом_docx(
         _set_grid(tbl, GRID_ИТ)
         _tbl_w(tbl, TW)
 
-        _HDR_H_ИТ = 2.0 if портрет else 1.0
+        _HDR_H_ИТ = 0.85 if портрет else 1.0
         rh1 = tbl.add_row(); _row_h_min(rh1, _HDR_H_ИТ)
         cs = _init_r_mar(rh1)
         cs[5].merge(cs[7])
@@ -4299,7 +4299,7 @@ def create_результаты_слалом_docx(
         _fill(cs[11], 'Лучшая попытка',      align=C, pt=PT_HDR, bold=True)
         _fill(cs[12], 'Место',               align=C, pt=PT_HDR, bold=True)
         _fill(cs[13], 'Очки',               align=C, pt=PT_HDR, bold=True)
-        _fill(cs[14], 'Выполнение разряда' + ('*' if снос else ''),  align=C, pt=PT_HDR, bold=True)
+        _fill(cs[14], 'Выполнение\nразряда' + ('*' if снос else ''),  align=C, pt=PT_HDR, bold=True)
         if портрет:
             for _c in (cs[2], cs[12], cs[14]):
                 _vert_cell(_c)
@@ -4309,7 +4309,7 @@ def create_результаты_слалом_docx(
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_restart(cs[col])
 
-        rh2 = tbl.add_row(); _row_h_min(rh2, 0.6)
+        rh2 = tbl.add_row(); _row_h_min(rh2, _HDR_H_ИТ)
         cs2 = _init_r_mar(rh2)
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_cont(cs2[col])
