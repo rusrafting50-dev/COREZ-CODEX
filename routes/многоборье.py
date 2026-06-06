@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request
 from models import (db, Соревнование, Команда, РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов)
 from нормативы import получить_норматив
+from docx_utils import create_результаты_мн_docx
 
 bp_многоборье = Blueprint('многоборье', __name__)
 
@@ -132,3 +133,17 @@ def протокол(sor_id):
                            портрет=портрет,
                            класс=кл,
                            сегодня=date.today())
+
+
+@bp_многоборье.route('/<int:sor_id>/протокол-word')
+def протокол_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    кл      = request.args.get('класс',    'R4')
+    итоговый = request.args.get('итоговый', '0') == '1'
+    портрет  = request.args.get('портрет',  '0') == '1'
+    муж_рез, муж_разр = _рассчитать(sor_id, 'м', кл)
+    жен_рез, жен_разр = _рассчитать(sor_id, 'ж', кл)
+    return create_результаты_мн_docx(
+        сор, муж_рез, жен_рез, муж_разр, жен_разр, кл,
+        f'протокол_мн_{кл}_{sor_id}.docx',
+        итоговый=итоговый, портрет=портрет)
