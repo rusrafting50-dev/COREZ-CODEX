@@ -5874,8 +5874,6 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
-    if портрет:
-        _vert_cell(cs[I_РА])
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
