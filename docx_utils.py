@@ -8761,15 +8761,17 @@ def create_регламент_docx(сор, программа, filename):
         return _para(text, align=J, pt=pt, bold=bold, indent_mm=10)
 
     def _indent_block(text, pt=PT):
-        p = doc.add_paragraph()
-        _spacing(p)
-        pPr = p._p.get_or_add_pPr()
-        ind = OxmlElement('w:ind')
-        ind.set(qn('w:left'), str(round(10 * 1440 / 25.4)))
-        pPr.append(ind)
-        p.alignment = J
-        _run_r(p, text, pt=pt)
-        return p
+        for line in (text or '').split('\n'):
+            if not line.strip():
+                continue
+            p = doc.add_paragraph()
+            _spacing(p)
+            pPr = p._p.get_or_add_pPr()
+            ind = OxmlElement('w:ind')
+            ind.set(qn('w:left'), str(round(10 * 1440 / 25.4)))
+            pPr.append(ind)
+            p.alignment = J
+            _run_r(p, line.strip(), pt=pt)
 
     def _list_dash(text, pt=PT):
         p = doc.add_paragraph()
@@ -9019,7 +9021,10 @@ def create_регламент_docx(сор, программа, filename):
     if сор.обязанности_федерации:
         for стр in сор.обязанности_федерации.split('\n'):
             if стр.strip():
-                _indent(стр)
+                if стр.strip().startswith('–') or стр.strip().startswith('-'):
+                    _list_dash(стр.strip())
+                else:
+                    _indent(стр.strip())
     else:
         _list_dash('– размещение информации о спортивных соревнованиях на сайте rusraftfed.ru;')
         _list_dash('– утверждение состава главной судейской коллегии соревнований;')
@@ -9029,7 +9034,10 @@ def create_регламент_docx(сор, программа, filename):
     if сор.обязанности_проводящей:
         for стр in сор.обязанности_проводящей.split('\n'):
             if стр.strip():
-                _indent(стр)
+                if стр.strip().startswith('–') or стр.strip().startswith('-'):
+                    _list_dash(стр.strip())
+                else:
+                    _indent(стр.strip())
     else:
         _list_dash('– формирование судейской коллегии и направление состава ГСК для '
                    'утверждения в ФРР;')
@@ -9121,21 +9129,30 @@ def create_регламент_docx(сор, программа, filename):
     _heading('8. Размещение и проживание участников')
     п8 = 1
     if сор.проживание_описание:
-        _indent(f'8.{п8}. {сор.проживание_описание}')
+        строки8 = [с.strip() for с in сор.проживание_описание.split('\n') if с.strip()]
+        _indent(f'8.{п8}. {строки8[0]}')
+        for стр in строки8[1:]:
+            _indent(стр)
     else:
         _indent(f'8.{п8}. Размещение участников осуществляется самостоятельно.')
     п8 += 1
     _indent(f'8.{п8}. Питание участники организовывают самостоятельно.')
     п8 += 1
     if сор.инфраструктура_описание:
-        _indent(f'8.{п8}. {сор.инфраструктура_описание}')
+        строки8и = [с.strip() for с in сор.инфраструктура_описание.split('\n') if с.strip()]
+        _indent(f'8.{п8}. {строки8и[0]}')
+        for стр in строки8и[1:]:
+            _indent(стр)
 
     # ════════════════════════════════════════════════════════════════════
     # 9. Награждение
     # ════════════════════════════════════════════════════════════════════
     _heading('9. Награждение')
     if сор.награждение_описание:
-        _indent(f'9.1. {сор.награждение_описание}')
+        строки9 = [с.strip() for с in сор.награждение_описание.split('\n') if с.strip()]
+        _indent(f'9.1. {строки9[0]}')
+        for стр in строки9[1:]:
+            _indent(стр)
     else:
         _indent('9.1. Награждение победителей и призёров спортивных соревнований проводится '
                 'в соответствии с Положением о соревнованиях.')
@@ -9157,9 +9174,13 @@ def create_регламент_docx(сор, программа, filename):
     # ════════════════════════════════════════════════════════════════════
     _heading('11. Варианты проезда к месту проведения соревнований')
     _indent('11.1. Общественным транспортом:')
-    _indent_block(сор.проезд_общественный or '___')
+    for стр11 in (сор.проезд_общественный or '___').split('\n'):
+        if стр11.strip():
+            _indent(стр11.strip())
     _indent('11.2. Собственным автомобильным транспортом:')
-    _indent_block(сор.проезд_собственный or '___')
+    for стр11 in (сор.проезд_собственный or '___').split('\n'):
+        if стр11.strip():
+            _indent(стр11.strip())
 
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
