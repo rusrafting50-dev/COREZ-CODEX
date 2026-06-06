@@ -7582,7 +7582,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _set_grid_sp(tbl, GRID)
 
     # ── Header row 0 ──────────────────────────────────────────────────────────
-    _HDR_H = 1.1 if портрет else 1.0
+    _HDR_H = 0.75 if портрет else 1.0
     r0 = tbl.add_row(); _row_h_min(r0, _HDR_H)
     cs0 = list(r0.cells)
     for i, w in enumerate(GRID): _cw_pct(cs0[i], w)
