@@ -4148,7 +4148,7 @@ def create_результаты_слалом_docx(
 
         # Header row 1
         rh1 = tbl.add_row()
-        _row_h_min(rh1, 3.5)
+        _row_h_min(rh1, 0.5)
         cs = list(rh1.cells)
         for i, w in enumerate(GRID):
             _cw(cs[i], w)
@@ -4168,13 +4168,17 @@ def create_результаты_слалом_docx(
         _fill(cs[I_ЛУЧ], 'Результат лучшей попытки', align=C, bold=True)
         _fill(cs[I_МЕС], 'Место', align=C, bold=True); _vert_cell(cs[I_МЕС])
         _fill(cs[I_ОЧК], 'Очки', align=C, bold=True)
-        _fill(cs[I_НОР], 'Выполнение разряда' + ('*' if снос else ''), align=C, bold=True); _vert_cell(cs[I_НОР])
+        p_нор = cs[I_НОР].paragraphs[0]; p_нор.clear(); _sp(p_нор); p_нор.alignment = C
+        _run(p_нор, 'Выполнение', pt=PT_HDR, bold=True)
+        _line_br(p_нор)
+        _run(p_нор, 'разряда' + ('*' if снос else ''), pt=PT_HDR, bold=True)
+        _valign(cs[I_НОР]); _vert_cell(cs[I_НОР])
         for col in ROWSPAN_H:
             _vmerge_restart(cs[col])
 
         # Header row 2 (vertical gate numbers)
         rh2 = tbl.add_row()
-        _row_h_min(rh2, 3.0)
+        _row_h_min(rh2, 0.5)
         cs2 = list(rh2.cells)
         for i, w in enumerate(GRID):
             _cw(cs2[i], w)
