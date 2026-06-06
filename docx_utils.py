@@ -4037,13 +4037,15 @@ def create_результаты_слалом_docx(
     # ── signatures ────────────────────────────────────────────────────────────
 
     def _add_sigs(doc):
-        sig = _make_tbl_sl(2, fixed_tw=TW_SIG)
-        _set_grid(sig, [W_SIG_L, W_SIG_R])
+        w_l = TW * 35 // 100
+        w_r = TW - w_l
+        sig = _make_tbl_sl(2, fixed_tw=TW)
+        _set_grid(sig, [w_l, w_r])
         for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
                               ('Главный секретарь', сор.главный_секретарь or '')):
             r = sig.add_row(); _row_h(r, 0.88)
             cs = list(r.cells)
-            _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+            _cw(cs[0], w_l); _cw(cs[1], w_r)
             _no_border_cell(cs[0]); _no_border_cell(cs[1])
             _valign(cs[0]); _valign(cs[1])
             _fill_sl(cs[0], позиция, align=L, pt=PT, bold=True)
@@ -4338,7 +4340,7 @@ def create_результаты_слалом_docx(
             _para(doc,
                   '* Разряды не присваиваются, т.к. количество участников в виде программы '
                   'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
-                  align=L, pt=PT_FIO, bold=False)
+                  align=L, pt=PT_FIO, bold=True)
 
     # ── Build document ────────────────────────────────────────────────────────
 
