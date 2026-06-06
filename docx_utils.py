@@ -7187,7 +7187,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
 
     TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 10, 6, 20, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 11]
+        _PCTS = [3, 10, 6, 20, 8, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 4.4, 6, 4.9, 6.9]
     else:
         _PCTS = [3, 11, 6, 22, 8, 4, 4, 4, 4, 4, 4, 4, 4, 6, 4, 8]
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -7394,6 +7394,15 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     def _line_br(p):
         p.add_run()._r.append(OxmlElement('w:br'))
 
+
+    def _vert_cell(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:textDirection')): pr.remove(old)
+        td = OxmlElement('w:textDirection'); td.set(qn('w:val'), 'btLr'); pr.append(td)
+        _valign(cell, 'center')
+        for p in cell.paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
     def _ls15(p):
         pPr = p._p.get_or_add_pPr()
         sp = pPr.find(qn('w:spacing'))
@@ -7509,13 +7518,10 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _cw_pct(cs0[ci_м], GRID[ci_м] + GRID[ci_о])
         _fill(cs0[ci_м], label, align=C, pt=pt_disc, bold=True)
 
-    # Выполнение разряда — vMerge restart (horizontal text like sprint итоговый)
+    # Выполнение разряда — вертикальный текст btLr
     _vmerge_restart(cs0[I_РА])
-    p_ра = cs0[I_РА].paragraphs[0]; p_ра.clear()
-    from docx.oxml.ns import qn as _qn
-    _sp(p_ра); p_ра.alignment = C
-    _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
-    _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
+    _vert_cell(cs0[I_РА])
+    _fill(cs0[I_РА], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
 
     for i in range(NC):
         _borders(cs0[i]); _valign(cs0[i]); _tcMar(cs0[i], MAR)
@@ -7527,10 +7533,12 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
 
     for i in (I_НПП, I_К, I_НОМ, I_СОС, I_СУБ, I_СУМ, I_МЕ, I_РА):
         _vmerge_cont(cs1[i])
+    _vert_cell(cs1[I_РА])
 
+    _PT_DISC = 6.5 if портрет else PT_HDR
     for ci_м, ci_о in ((I_СП_М, I_СП_О), (I_ПС_М, I_ПС_О), (I_СЛ_М, I_СЛ_О), (I_ДГ_М, I_ДГ_О)):
-        _fill(cs1[ci_м], 'Место', align=C, pt=PT_HDR, bold=True)
-        _fill(cs1[ci_о], 'Очки',  align=C, pt=PT_HDR, bold=True)
+        _fill(cs1[ci_м], 'Место', align=C, pt=_PT_DISC, bold=True)
+        _fill(cs1[ci_о], 'Очки',  align=C, pt=_PT_DISC, bold=True)
 
     for i in range(NC):
         _borders(cs1[i]); _valign(cs1[i]); _tcMar(cs1[i], MAR)
