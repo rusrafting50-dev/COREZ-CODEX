@@ -302,7 +302,7 @@
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
 {% macro подпись_строка(должность, фио, квал, субъект) %}
-<table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+<table class="sig-table" style="width:100%;border-collapse:collapse;margin-bottom:14px">
   <tr>
     <td style="border:none;white-space:nowrap;vertical-align:bottom;padding:0 10px 0 0">{{ должность }}</td>
     <td style="border:none;border-bottom:1px solid #000;width:80px;text-align:center;vertical-align:bottom;padding:0 4px">&nbsp;</td>
@@ -337,6 +337,12 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  // border="1" on data tables → Word renders shared grid lines, not individual cell boxes
+  clone.querySelectorAll('table:not(.sig-table)').forEach(function(t){
+    t.setAttribute('border', '1');
+    t.setAttribute('cellspacing', '0');
+    t.style.borderCollapse = 'collapse';
+  });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
@@ -347,7 +353,8 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #000;mso-border-alt:solid #000 .75pt;padding:3px 5px;}';
+  // remove CSS-based cell borders; grid comes from border="1" attribute
+  css += 'td,th{border:none;padding:3px 5px;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
