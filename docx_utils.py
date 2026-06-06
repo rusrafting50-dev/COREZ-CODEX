@@ -7239,7 +7239,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _set_grid_sp(tbl, GRID)
 
     # ── Header row 0 ──────────────────────────────────────────────────────────
-    r0 = tbl.add_row(); _row_h_min(r0, 0.9 if портрет else 0.6)
+    _HDR_H = 1.0
+    r0 = tbl.add_row(); _row_h_min(r0, _HDR_H)
     cs0 = list(r0.cells)
     for i, w in enumerate(GRID): _cw_pct(cs0[i], w)
 
@@ -7250,9 +7251,11 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _fill(cs0[I_НПП], '№\nп/п',                            align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_КОМ], 'Команда',                           align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_НОМ], 'Номер',                             align=C, pt=PT_HDR, bold=True)
+    _vert_cell(cs0[I_НОМ])
     _fill(cs0[I_ФИО], 'Фамилия, имя, отчество участников', align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_СУБ], 'Субъект РФ',                        align=C, pt=PT_HDR, bold=True)
-    _fill(cs0[I_МСП], 'Место\nСПРИНТ',                    align=C, pt=PT_HDR, bold=True)
+    _fill(cs0[I_МСП], 'Место СПРИНТ',                      align=C, pt=PT_HDR, bold=True)
+    _vert_cell(cs0[I_МСП])
     _fill(cs0[I_МЕС], 'Место',                             align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_ОЧК], 'Очки',                              align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
@@ -7271,7 +7274,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _fill(cs0[I_СТА], 'Итоговый результат', align=C, pt=PT_HDR, bold=True)
 
     # ── Header row 1 ──────────────────────────────────────────────────────────
-    r1 = tbl.add_row(); _row_h_min(r1, 0.6)
+    r1 = tbl.add_row(); _row_h_min(r1, _HDR_H)
     cs1 = list(r1.cells)
     for i, w in enumerate(GRID): _cw_pct(cs1[i], w)
 
