@@ -5535,11 +5535,11 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # 11 columns: НПП/Команда/Номер/Состав/Субъект/Штраф/Время/Итоговый/Место/Очки/Разряд
-    TW = round((210 - 15 - 10) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
+    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
     if портрет:
-        _PCTS = [3, 12, 6, 31, 10, 6, 6, 8, 5, 5, 8]   # sum=100
+        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 5, 10]   # sum=100; Разряд=10% для Выполнение
     else:
-        _PCTS = [3, 12, 6, 31, 10, 6, 6, 8, 5, 4, 9]   # sum=100
+        _PCTS = [3, 12, 6, 29, 10, 6, 6, 8, 5, 4, 11]   # sum=100
     GRID = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = 11
@@ -5791,8 +5791,8 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
     sect.top_margin    = Mm(15)
     sect.bottom_margin = Mm(15)
-    sect.left_margin   = Mm(15)
-    sect.right_margin  = Mm(10)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
