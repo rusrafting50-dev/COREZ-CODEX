@@ -301,30 +301,31 @@
 </ol>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
+{% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
 {% set ibl = 'display:inline-block;vertical-align:bottom;' %}
 {% set W0 = '270px' %}{# ширина столбца «должность» #}
 {% set W1 = '90px'  %}{# ширина столбца «подпись» #}
+{% set W2 = '200px' %}{# ширина столбца «ФИО» #}
 <div style="margin-top:28px">
 
   <p style="margin:0;line-height:2">
-    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный судья соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}min-width:160px;border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ сор.главный_судья or '' }}</span>
+    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный судья соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}width:{{ W2 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:left">{{ сор.главный_судья or '' }}</span>
   </p>
   <p style="margin:0 0 16px">
-    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}min-width:160px;font-size:8pt;text-align:center">(расшифровка подписи)</span>
+    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}width:{{ W2 }};font-size:8pt;text-align:center">(расшифровка подписи)</span>
   </p>
 
   <p style="margin:0;line-height:2">
-    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный секретарь соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}min-width:160px;border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ сор.главный_секретарь or '' }}</span>
+    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный секретарь соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}width:{{ W2 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:left">{{ сор.главный_секретарь or '' }}</span>
   </p>
   <p style="margin:0">
-    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}min-width:160px;font-size:8pt;text-align:center">(расшифровка подписи)</span>
+    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}width:{{ W2 }};font-size:8pt;text-align:center">(расшифровка подписи)</span>
   </p>
 
-</div>
+  <p style="margin:20px 0 0;font-size:10pt">
+    {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} года
+  </p>
 
-{% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
-<div style="margin-top:20px;font-size:10pt">
-  {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} г.
 </div>
 
 <script>
