@@ -4218,6 +4218,14 @@ def create_результаты_слалом_docx(
                     5.4, 4.2, 3.9, 7.1]              # Лучшая, Место, Очки, Разряд
         GRID_ИТ = [round(TW * p / 100) for p in _PCTS_ИТ]
         GRID_ИТ[-1] += TW - sum(GRID_ИТ)
+        if портрет:
+            # cols 2 (Номер), 12 (Место), 14 (Разряд) will be vertical btLr — minimum width
+            _W_VERT = 350  # dxa ≈ 6 mm, one line-height for 9pt font
+            saved = (GRID_ИТ[2] - _W_VERT) + (GRID_ИТ[12] - _W_VERT) + (GRID_ИТ[14] - _W_VERT)
+            GRID_ИТ[2]  = _W_VERT
+            GRID_ИТ[12] = _W_VERT
+            GRID_ИТ[14] = _W_VERT
+            GRID_ИТ[3] += saved  # redistribute to Состав
         NC = len(GRID_ИТ)
 
         def _init_r(row, borders=True):
@@ -4239,7 +4247,8 @@ def create_результаты_слалом_docx(
         _set_grid(tbl, GRID_ИТ)
         _tbl_w(tbl, TW)
 
-        rh1 = tbl.add_row(); _row_h_min(rh1, 1.0)
+        _HDR_H_ИТ = 2.0 if портрет else 1.0
+        rh1 = tbl.add_row(); _row_h_min(rh1, _HDR_H_ИТ)
         cs = _init_r_mar(rh1)
         cs[5].merge(cs[7])
         cs[8].merge(cs[10])
@@ -4255,6 +4264,10 @@ def create_результаты_слалом_docx(
         _fill(cs[12], 'Место',               align=C, pt=PT_HDR, bold=True)
         _fill(cs[13], 'Очки',               align=C, pt=PT_HDR, bold=True)
         _fill(cs[14], 'Выполнение разряда' + ('*' if снос else ''),  align=C, pt=PT_HDR, bold=True)
+        if портрет:
+            _vert_cell(cs[2])
+            _vert_cell(cs[12])
+            _vert_cell(cs[14])
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_restart(cs[col])
 
