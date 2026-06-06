@@ -4178,7 +4178,7 @@ def create_результаты_слалом_docx(
 
         # Header row 2 (vertical gate numbers)
         rh2 = tbl.add_row()
-        _row_h_min(rh2, 0.5)
+        _row_h_min(rh2, 1.4)
         cs2 = list(rh2.cells)
         for i, w in enumerate(GRID):
             _cw(cs2[i], w)
