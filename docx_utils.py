@@ -4221,13 +4221,11 @@ def create_результаты_слалом_docx(
         GRID_ИТ = [round(TW * p / 100) for p in _PCTS_ИТ]
         GRID_ИТ[-1] += TW - sum(GRID_ИТ)
         if портрет:
-            # cols 2 (Номер), 12 (Место), 14 (Разряд) will be vertical btLr — minimum width
-            _W_VERT = 350  # dxa ≈ 6 mm, one line-height for 9pt font
-            saved = (GRID_ИТ[2] - _W_VERT) + (GRID_ИТ[12] - _W_VERT) + (GRID_ИТ[14] - _W_VERT)
-            GRID_ИТ[2]  = _W_VERT
-            GRID_ИТ[12] = _W_VERT
-            GRID_ИТ[14] = _W_VERT
-            GRID_ИТ[3] += saved  # redistribute to Состав
+            # Col 14 (Разряд) btLr: column WIDTH = line width for rotated text.
+            # "Выполнение" (10 chars × ~5pt) ≈ 50pt ≈ 1000 dxa + margins → use 1100 dxa.
+            _W_RAZ = 1100
+            GRID_ИТ[3] -= (_W_RAZ - GRID_ИТ[14])  # reduce Состав only
+            GRID_ИТ[14] = _W_RAZ
         NC = len(GRID_ИТ)
 
         def _init_r(row, borders=True):
@@ -4267,9 +4265,11 @@ def create_результаты_слалом_docx(
         _fill(cs[13], 'Очки',               align=C, pt=PT_HDR, bold=True)
         _fill(cs[14], 'Выполнение разряда' + ('*' if снос else ''),  align=C, pt=PT_HDR, bold=True)
         if портрет:
-            _vert_cell(cs[2])
-            _vert_cell(cs[12])
-            _vert_cell(cs[14])
+            for _c in (cs[2], cs[12], cs[14]):
+                _vert_cell(_c)
+                _valign(_c, 'center')
+                for _p in _c.paragraphs:
+                    _p.alignment = C
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_restart(cs[col])
 
@@ -4322,7 +4322,7 @@ def create_результаты_слалом_docx(
                     _fill(cs[0],  str(idx),                                    align=C, pt=PT)
                     _fill(cs[1],  к.название or '–',                       align=L, pt=PT)
                     _fill(cs[2],  str(к.нагрудный_номер or ''),                align=C, pt=PT)
-                    _fill(cs[3],  состав,                                       align=L, pt=PT_FIO)
+                    _fill(cs[3],  состав,                                       align=L, pt=(6 if портрет else PT_FIO))
                     _fill(cs[4],  к.субъект.название if к.субъект else '–',    align=C, pt=PT)
                     _поп_cells(cs, р1, 5)
                     _поп_cells(cs, р2, 8)
