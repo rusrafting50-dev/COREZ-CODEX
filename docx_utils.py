@@ -5407,7 +5407,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
     _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
-    _borders(cs[I_ШТС]); _borders(cs[I_ШТИ])
+    _borders(cs[I_ШТС], sz=6); _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
     if портрет:
@@ -5428,6 +5428,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
+    _borders(cs[I_ШТС], sz=6); _borders(cs[I_ШТФ], sz=6)
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
@@ -5450,6 +5451,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         for i in range(NC):
             _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
 
+        _borders(cs[I_ШТС], sz=6); _borders(cs[I_ШТФ], sz=6)
         _fill(cs[I_НПП], str(пп),                        align=C, pt=PT)
         _fill(cs[I_К],   к.название or '–',              align=L, pt=PT)
         _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),   align=C, pt=PT)
