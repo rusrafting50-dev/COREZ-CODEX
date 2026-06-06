@@ -7511,9 +7511,10 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     _fill(cs0[I_СУМ], 'Общая\nсумма', align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_МЕ],  'Место',         align=C, pt=PT_HDR, bold=True)
 
+    _PT_ПС = 6.5 if портрет else 8
     for _disc in (
         (I_СП_М, I_СП_О, 'Спринт',              PT_HDR),
-        (I_ПС_М, I_ПС_О, 'Параллельный\nспринт', 8),
+        (I_ПС_М, I_ПС_О, 'Параллельный\nспринт', _PT_ПС),
         (I_СЛ_М, I_СЛ_О, 'Слалом',              PT_HDR),
         (I_ДГ_М, I_ДГ_О, 'Длинная\nгонка',      PT_HDR),
     ):
@@ -7522,10 +7523,16 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _cw_pct(cs0[ci_м], GRID[ci_м] + GRID[ci_о])
         _fill(cs0[ci_м], label, align=C, pt=pt_disc, bold=True)
 
-    # Выполнение разряда — вертикальный текст btLr
+    # Выполнение разряда — вертикальный текст в портрете, горизонтальный в альбоме
     _vmerge_restart(cs0[I_РА])
-    _vert_cell(cs0[I_РА])
-    _fill(cs0[I_РА], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    if портрет:
+        _vert_cell(cs0[I_РА])
+        _fill(cs0[I_РА], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    else:
+        p_ра = cs0[I_РА].paragraphs[0]; p_ра.clear()
+        _sp(p_ра); p_ра.alignment = C
+        _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
+        _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
 
     for i in range(NC):
         _borders(cs0[i]); _valign(cs0[i]); _tcMar(cs0[i], MAR)
@@ -7537,7 +7544,8 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
 
     for i in (I_НПП, I_К, I_НОМ, I_СОС, I_СУБ, I_СУМ, I_МЕ, I_РА):
         _vmerge_cont(cs1[i])
-    _vert_cell(cs1[I_РА])
+    if портрет:
+        _vert_cell(cs1[I_РА])
 
     _PT_DISC = 6.5 if портрет else PT_HDR
     for ci_м, ci_о in ((I_СП_М, I_СП_О), (I_ПС_М, I_ПС_О), (I_СЛ_М, I_СЛ_О), (I_ДГ_М, I_ДГ_О)):
