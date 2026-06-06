@@ -3865,6 +3865,16 @@ def create_результаты_слалом_docx(
         for cell in row.cells:
             _borders(cell, sz)
 
+    def _tcMar(cell, lr=28):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcMar')): pr.remove(old)
+        mar = OxmlElement('w:tcMar')
+        for side in ('left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(lr)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
     def _set_grid(tbl_obj, grid):
         tbl = tbl_obj._tbl
         for old in tbl.findall(qn('w:tblGrid')):
@@ -4199,68 +4209,77 @@ def create_результаты_слалом_docx(
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_итог(doc):
-        GRID = [300, 1700, 450, 2700, 1200,
-                680, 520, 760,
-                680, 520, 760,
-                850, 360, 500, 850]
-        NC = len(GRID)
-        TW = sum(GRID)
+        # Proportions from sample Протокол_результатов_сл_итог.docx
+        _PCTS_ИТ = [2.8, 11.2, 4.3, 22.7, 7.2,   # НПП, Команда, Номер, Состав, Субъект
+                    4.9, 4.7, 5.9,                   # 1-я: Время, Штраф, Результат
+                    4.9, 4.7, 5.9,                   # 2-я: Время, Штраф, Результат
+                    5.4, 4.2, 3.9, 7.1]              # Лучшая, Место, Очки, Разряд
+        GRID_ИТ = [round(TW * p / 100) for p in _PCTS_ИТ]
+        GRID_ИТ[-1] += TW - sum(GRID_ИТ)
+        NC = len(GRID_ИТ)
 
         def _init_r(row, borders=True):
             cs = list(row.cells)
-            for i, w in enumerate(GRID):
+            for i, w in enumerate(GRID_ИТ):
                 _cw(cs[i], w)
             if borders:
                 _border_row(row)
             return cs
 
+        def _init_r_mar(row):
+            cs = _init_r(row)
+            for c in cs:
+                _valign(c)
+                _tcMar(c, MAR)
+            return cs
+
         tbl = doc.add_table(rows=0, cols=NC)
-        _set_grid(tbl, GRID)
+        _set_grid(tbl, GRID_ИТ)
         _tbl_w(tbl, TW)
 
         rh1 = tbl.add_row(); _row_h_min(rh1, 1.0)
-        cs = _init_r(rh1)
+        cs = _init_r_mar(rh1)
         cs[5].merge(cs[7])
         cs[8].merge(cs[10])
         p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C
-        _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True); _valign(cs[0])
-        _fill(cs[1], 'Команда', align=C, bold=True)
-        _fill(cs[2], 'Номер', align=C, bold=True)
-        _fill(cs[3], 'Состав', align=C, bold=True)
-        _fill(cs[4], 'Субъект РФ', align=C, bold=True)
-        _fill(cs[5], '1-я попытка', align=C, bold=True)
-        _fill(cs[8], '2-я попытка', align=C, bold=True)
-        _fill(cs[11], 'Лучшая попытка', align=C, bold=True)
-        _fill(cs[12], 'Место', align=C, bold=True)
-        _fill(cs[13], 'Очки', align=C, bold=True)
-        _fill(cs[14], 'Выполнение разряда', align=C, bold=True)
+        _run(p, '№', pt=PT_HDR, bold=True); _line_br(p); _run(p, 'п/п', pt=PT_HDR, bold=True)
+        _fill(cs[1],  'Команда',             align=C, pt=PT_HDR, bold=True)
+        _fill(cs[2],  'Номер',               align=C, pt=PT_HDR, bold=True)
+        _fill(cs[3],  'Состав',              align=C, pt=PT_HDR, bold=True)
+        _fill(cs[4],  'Субъект РФ',          align=C, pt=PT_HDR, bold=True)
+        _fill(cs[5],  '1-я попытка',         align=C, pt=PT_HDR, bold=True)
+        _fill(cs[8],  '2-я попытка',         align=C, pt=PT_HDR, bold=True)
+        _fill(cs[11], 'Лучшая попытка',      align=C, pt=PT_HDR, bold=True)
+        _fill(cs[12], 'Место',               align=C, pt=PT_HDR, bold=True)
+        _fill(cs[13], 'Очки',               align=C, pt=PT_HDR, bold=True)
+        _fill(cs[14], 'Выполнение разряда',  align=C, pt=PT_HDR, bold=True)
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_restart(cs[col])
 
-        rh2 = tbl.add_row(); _row_h_min(rh2, 0.8)
-        cs2 = _init_r(rh2)
+        rh2 = tbl.add_row(); _row_h_min(rh2, 0.6)
+        cs2 = _init_r_mar(rh2)
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_cont(cs2[col])
         for i, lbl in enumerate(['Время', 'Штраф', 'Результат', 'Время', 'Штраф', 'Результат']):
-            _fill(cs2[5 + i], lbl, align=C, bold=True)
+            _fill(cs2[5 + i], lbl, align=C, pt=PT_HDR, bold=True)
 
         def _поп_cells(cs, рез, base):
             if рез is None:
-                for i in range(3): _fill(cs[base + i], '–', align=C)
+                for i in range(3): _fill(cs[base + i], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'НСТ':
-                _fill(cs[base], 'Не старт.', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], '–', align=C)
+                _fill(cs[base], 'Не старт.', align=C, pt=PT); _fill(cs[base+1], '–', align=C, pt=PT); _fill(cs[base+2], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'НФН':
-                _fill(cs[base], 'Не фин.', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], '–', align=C)
+                _fill(cs[base], 'Не фин.', align=C, pt=PT); _fill(cs[base+1], '–', align=C, pt=PT); _fill(cs[base+2], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'ПЛВ':
-                _fill(cs[base], '–', align=C); _fill(cs[base+1], '–', align=C); _fill(cs[base+2], 'Прев. ЛВ', align=C)
+                _fill(cs[base], '–', align=C, pt=PT); _fill(cs[base+1], '–', align=C, pt=PT); _fill(cs[base+2], 'Прев. ЛВ', align=C, pt=PT)
             elif рез.статус_попытки == 'ДК':
-                _fill(cs[base], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
-                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C)
-                _fill(cs[base+2], 'ДК', align=C, bold=True)
+                _fill(cs[base],   _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
+                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
+                _fill(cs[base+2], 'ДК', align=C, pt=PT, bold=True)
             else:
-                _fill(cs[base], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
-                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C)
-                _fill(cs[base+2], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True)
+                _fill(cs[base],   _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
+                _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
+                _fill(cs[base+2], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, pt=PT, bold=True)
 
         def _add_sect(рез_list, без_list, разряды, поп, заг_пол):
             if not рез_list and not без_list:
@@ -4269,7 +4288,7 @@ def create_результаты_слалом_docx(
             rg = tbl.add_row(); _row_h(rg, 0.6)
             cg = list(rg.cells); cg[0].merge(cg[NC - 1])
             _border_row(rg)
-            _fill(list(rg.cells)[0], заг_пол, align=C, pt=9, bold=True)
+            _fill(list(rg.cells)[0], заг_пол, align=C, pt=PT, bold=True)
             idx = 0
             for is_без, entries in ((False, рез_list), (True, без_list)):
                 for рез in entries:
@@ -4281,22 +4300,22 @@ def create_результаты_слалом_docx(
                         f'{с.фамилия_имя_отчество} ({с.дата_рождения.strftime("%d.%m.%Y") if с.дата_рождения else "б/д"}, {с.разряд or "б/р"})'
                         for с in спортсмены
                     )
-                    dr = tbl.add_row(); _row_h(dr, 0.55)
-                    cs = _init_r(dr)
-                    _fill(cs[0], str(idx), align=C)
-                    _fill(cs[1], к.название or '—')
-                    _fill(cs[2], str(к.нагрудный_номер or ''), align=C)
-                    _fill(cs[3], состав, pt=7)
-                    _fill(cs[4], к.субъект.название if к.субъект else '—', pt=7)
+                    dr = tbl.add_row(); _row_h_min(dr, 0.5)
+                    cs = _init_r_mar(dr)
+                    _fill(cs[0],  str(idx),                                    align=C, pt=PT)
+                    _fill(cs[1],  к.название or '–',                       align=L, pt=PT)
+                    _fill(cs[2],  str(к.нагрудный_номер or ''),                align=C, pt=PT)
+                    _fill(cs[3],  состав,                                       align=L, pt=PT_FIO)
+                    _fill(cs[4],  к.субъект.название if к.субъект else '–',    align=C, pt=PT)
                     _поп_cells(cs, р1, 5)
                     _поп_cells(cs, р2, 8)
                     if is_без:
-                        for i in range(11, 15): _fill(cs[i], '–', align=C)
+                        for i in range(11, 15): _fill(cs[i], '–', align=C, pt=PT)
                     else:
-                        _fill(cs[11], _fmt_dur(рез.лучший_результат), align=C, bold=True)
-                        _fill(cs[12], str(рез.место), align=C, bold=True)
-                        _fill(cs[13], str(int(рез.очки)) if рез.очки else '–', align=C)
-                        _fill(cs[14], разряды.get(к.id, '–') if норм_флаг else '–', align=C)
+                        _fill(cs[11], _fmt_dur(рез.лучший_результат),                align=C, pt=PT, bold=True)
+                        _fill(cs[12], str(рез.место),                                align=C, pt=PT)
+                        _fill(cs[13], str(int(рез.очки)) if рез.очки else '–',       align=C, pt=PT)
+                        _fill(cs[14], разряды.get(к.id, '–') if норм_флаг else '–', align=C, pt=PT)
 
         _add_sect(муж_рез, муж_без, муж_разр, муж_поп, 'Мужчины')
         _add_sect(жен_рез, жен_без, жен_разр, жен_поп, 'Женщины')
