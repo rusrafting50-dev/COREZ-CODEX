@@ -308,31 +308,35 @@
   {%- elif p|length == 2 -%}{{ p[1][0] }}.&nbsp;{{ p[0] }}
   {%- else -%}{{ фио or '' }}{%- endif -%}
 {% endmacro %}
-{% set ibl = 'display:inline-block;vertical-align:bottom;' %}
-{% set W0 = '270px' %}{# ширина столбца «должность» #}
-{% set W1 = '90px'  %}{# ширина столбца «подпись» #}
-{% set W2 = '200px' %}{# ширина столбца «ФИО» #}
-<div style="margin-top:28px">
-
-  <p style="margin:0;line-height:2">
-    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный судья соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}width:{{ W2 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ ифио(сор.главный_судья) }}</span>
-  </p>
-  <p style="margin:0 0 16px">
-    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}width:{{ W2 }};font-size:8pt;text-align:center">(расшифровка подписи)</span>
-  </p>
-
-  <p style="margin:0;line-height:2">
-    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный секретарь соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}width:{{ W2 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ ифио(сор.главный_секретарь) }}</span>
-  </p>
-  <p style="margin:0">
-    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}width:{{ W2 }};font-size:8pt;text-align:center">(расшифровка подписи)</span>
-  </p>
-
-  <p style="margin:20px 0 0;font-size:10pt">
-    {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} года
-  </p>
-
-</div>
+{% set tdN  = 'border:none;padding:0;' %}
+{% set tdUL = 'border:none;border-bottom:1px solid #000;mso-border-alt:none;mso-border-bottom-alt:solid #000 .75pt;padding:0;text-align:center;vertical-align:bottom;' %}
+{% set tdLB = 'border:none;padding:0;font-size:8pt;text-align:center;' %}
+<table class="sig-table" style="border-collapse:collapse;border:none;margin-top:28px">
+  <col style="width:270px"><col style="width:90px"><col style="width:200px">
+  <tr style="height:24px">
+    <td style="{{ tdN }}padding-right:6px;white-space:nowrap;vertical-align:bottom">Главный судья соревнований</td>
+    <td style="{{ tdUL }}">&nbsp;</td>
+    <td style="{{ tdUL }}">{{ ифио(сор.главный_судья) }}</td>
+  </tr>
+  <tr>
+    <td style="{{ tdN }}padding-bottom:14px"></td>
+    <td style="{{ tdLB }}">(подпись)</td>
+    <td style="{{ tdLB }}">(расшифровка подписи)</td>
+  </tr>
+  <tr style="height:24px">
+    <td style="{{ tdN }}padding-right:6px;white-space:nowrap;vertical-align:bottom">Главный секретарь соревнований</td>
+    <td style="{{ tdUL }}">&nbsp;</td>
+    <td style="{{ tdUL }}">{{ ифио(сор.главный_секретарь) }}</td>
+  </tr>
+  <tr>
+    <td style="{{ tdN }}"></td>
+    <td style="{{ tdLB }}">(подпись)</td>
+    <td style="{{ tdLB }}">(расшифровка подписи)</td>
+  </tr>
+</table>
+<p style="margin:16px 0 0;font-size:10pt">
+  {{ сегодня.day }} {{ месяцы[сегодня.month] }} {{ сегодня.year }} года
+</p>
 
 <script>
 function exportWord() {
