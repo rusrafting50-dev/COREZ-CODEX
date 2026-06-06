@@ -6830,9 +6830,9 @@ def create_результаты_итог_пс_docx(сор, муж_итог, же
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    TW = round((210 - 12.5 - 12.5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
     if портрет:
-        _PCTS = [6.3, 14.8, 6.6, 36.8, 11.8, 6.6, 5.3, 11.8]
+        _PCTS = [3, 12, 6, 46, 12, 6, 6, 9]   # sum=100
     else:
         _PCTS = [3, 12, 6, 49, 12, 5, 5, 8]   # sum=100
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -6841,8 +6841,9 @@ def create_результаты_итог_пс_docx(сор, муж_итог, же
 
     I_НПП, I_К, I_НОМ, I_СОС, I_СУБ, I_МЕ, I_ОЧ, I_РА = range(8)
 
-    W_SIG_L = TW * 35 // 100
-    W_SIG_R = TW - W_SIG_L
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
 
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
@@ -7059,16 +7060,10 @@ def create_результаты_итог_пс_docx(сор, муж_итог, же
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    if портрет:
-        sect.top_margin    = Mm(10)
-        sect.bottom_margin = Mm(15)
-        sect.left_margin   = Mm(12.5)
-        sect.right_margin  = Mm(12.5)
-    else:
-        sect.top_margin    = Mm(15)
-        sect.bottom_margin = Mm(15)
-        sect.left_margin   = Mm(10)
-        sect.right_margin  = Mm(5)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
@@ -7731,7 +7726,7 @@ def create_результаты_кз_docx(сор, итог, группы, таб
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
     nГр = len(группы)
-    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 7.5 - 5) * 1440 / 25.4)
+    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
 
     _W_НПП = 3
     _W_СУБ = max(12, 38 - nГр * 6)
@@ -7750,8 +7745,9 @@ def create_результаты_кз_docx(сор, итог, группы, таб
     I_ИТ_БАЛ = 2 + 2 * nГр + 1
     I_МЕ     = 2 + 2 * nГр + 2
 
-    W_SIG_L = TW * 435 // 1000
-    W_SIG_R = TW - W_SIG_L
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
 
     if портрет:
         PT, PT_HDR = 8, 8
@@ -7958,16 +7954,10 @@ def create_результаты_кз_docx(сор, итог, группы, таб
         sect.page_height   = Mm(297); sect.page_width    = Mm(210)
     else:
         sect.page_height   = Mm(210); sect.page_width    = Mm(297)
-    if портрет:
-        sect.top_margin    = Mm(15)
-        sect.bottom_margin = Mm(15)
-        sect.left_margin   = Mm(10)
-        sect.right_margin  = Mm(5)
-    else:
-        sect.top_margin    = Mm(12.5)
-        sect.bottom_margin = Mm(12)
-        sect.left_margin   = Mm(7.5)
-        sect.right_margin  = Mm(5)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
