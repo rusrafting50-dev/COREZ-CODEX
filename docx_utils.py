@@ -4049,7 +4049,7 @@ def create_результаты_слалом_docx(
         _w_mid = max(100, TW - _w_dt - _w_pl)
         dt = _make_tbl_sl(3, fixed_tw=TW)
         _set_grid(dt, [_w_dt, _w_mid, _w_pl])
-        _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
+        _dt_rh = lambda r: _row_h(r, 0.4)
         for idx, (лево, право, pt_v, bold_v) in enumerate([
             (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
             ('Дата проведения', 'Место проведения', 8, True),
