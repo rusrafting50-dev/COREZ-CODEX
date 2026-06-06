@@ -4147,8 +4147,8 @@ def create_результаты_слалом_docx(
         _tbl_w(tbl, TW_пред)
 
         # Header row 1
-        rh1 = tbl.add_row()
         _row_h_min(rh1, 0.8)
+        _row_h_min(rh1, 3.5)
         cs = list(rh1.cells)
         for i, w in enumerate(GRID):
             _cw(cs[i], w)
@@ -4173,8 +4173,8 @@ def create_результаты_слалом_docx(
             _vmerge_restart(cs[col])
 
         # Header row 2 (vertical gate numbers)
-        rh2 = tbl.add_row()
         _row_h_min(rh2, 0.8)
+        _row_h_min(rh2, 3.0)
         cs2 = list(rh2.cells)
         for i, w in enumerate(GRID):
             _cw(cs2[i], w)
