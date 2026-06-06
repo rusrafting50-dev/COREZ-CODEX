@@ -5429,7 +5429,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
-    _borders(cs[I_ШТС], sz=6); _borders(cs[I_ШТФ], sz=6)
+    _borders(cs[I_ШТС], sz=3); _borders(cs[I_ШТФ], sz=3)
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
@@ -5452,7 +5452,7 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
         for i in range(NC):
             _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
 
-        _borders(cs[I_ШТС], sz=6); _borders(cs[I_ШТФ], sz=6)
+        _borders(cs[I_ШТС], sz=3); _borders(cs[I_ШТФ], sz=3)
         _fill(cs[I_НПП], str(пп),                        align=C, pt=PT)
         _fill(cs[I_К],   к.название or '–',              align=L, pt=PT)
         _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),   align=C, pt=PT)
