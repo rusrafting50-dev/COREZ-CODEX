@@ -6911,9 +6911,9 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
         _P_ЗА, _P_РЕЗ = 3, 4
         _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 3, 4, 4, 4, 7
     else:
-        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 2, 17, 3, 5, 4
-        _P_ЗА, _P_РЕЗ = 3, 4
-        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 3, 4, 3, 3, 5
+        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 2.4, 9.9, 3.0, 8.2, 3.2
+        _P_ЗА, _P_РЕЗ = 4.37, 6.6
+        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 5.2, 4.8, 4.6, 4.4, 4.1
     _fix  = _P_НПП + _P_КОМ + _P_НОМ + _P_СУБ + _P_МСП
     _end  = _P_СТА + _P_ВРМ + _P_МЕС + _P_ОЧК + _P_РАЗ
     _P_ФИО = max(5, 100 - _fix - _end - (_P_ЗА + _P_РЕЗ) * n_stages)
@@ -7145,6 +7145,14 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
         cc = min(99, round((sv - si) * 100))
         return f'{m}:{si:02d}.{cc:02d}'
 
+    def _vert_cell(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:textDirection')): pr.remove(old)
+        td = OxmlElement('w:textDirection'); td.set(qn('w:val'), 'btLr'); pr.append(td)
+        _valign(cell, 'center')
+        for p in cell.paragraphs:
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
     def _fmt_рез(з):
         if з is None: return '–'
         ст = з.статус
@@ -7247,9 +7255,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _fill(cs0[I_МСП], 'Место\nСПРИНТ',                    align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_МЕС], 'Место',                             align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_ОЧК], 'Очки',                              align=C, pt=PT_HDR, bold=True)
-    p_ра = cs0[I_РАЗ].paragraphs[0]; p_ра.clear(); _sp(p_ра); p_ра.alignment = C
-    _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
-    _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
+    _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
+    _vert_cell(cs0[I_РАЗ])
 
     # colspan-2 stage group headers
     for i, ст in enumerate(ПОРЯДОК_ПОКАЗА):
@@ -7328,8 +7335,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
 
         итог_стадия = АББРЕВ_СТ.get(рез.стадия, рез.стадия or '–') if рез.стадия else '–'
         _fill(cs[I_СТА], итог_стадия,                       align=C, pt=PT)
-        _fill(cs[I_ВРМ], _fmt_рез(рез),                     align=C, pt=PT, bold=True)
-        _fill(cs[I_МЕС], str(рез.итоговое_место) if рез.итоговое_место else '–', align=C, pt=PT, bold=True)
+        _fill(cs[I_ВРМ], _fmt_рез(рез),                     align=C, pt=PT)
+        _fill(cs[I_МЕС], str(рез.итоговое_место) if рез.итоговое_место else '–', align=C, pt=PT)
         _fill(cs[I_ОЧК], str(int(рез.очки)) if рез.очки else '–', align=C, pt=PT)
         _fill(cs[I_РАЗ], разряды.get(рез.команда_id, '–') if норм else '–', align=C, pt=PT)
 
