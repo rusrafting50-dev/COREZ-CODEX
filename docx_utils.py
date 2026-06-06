@@ -6758,8 +6758,8 @@ def create_результаты_кз_docx(сор, итог, группы, таб
 
     _W_НПП = 3
     _W_СУБ = max(12, 38 - nГр * 6)
-    _W_КОЛ = 5
-    _W_БАЛ = 8
+    _W_КОЛ = 6
+    _W_БАЛ = 6
     _W_МЕ  = 4
     _weights = [_W_НПП, _W_СУБ] + [w for _ in группы for w in [_W_КОЛ, _W_БАЛ]] + [_W_КОЛ, _W_БАЛ, _W_МЕ]
     _total_W = sum(_weights)
@@ -7131,8 +7131,9 @@ def create_результаты_кз_docx(сор, итог, группы, таб
 
         # Cols in зс table: 1 (место label) + len(кол_nums) (one per кол_субъектов)
         nЗС = 1 + len(кол_nums)
-        _w_ме_зс = 6; _w_кол_зс = 4
-        _ww = [_w_ме_зс] + [_w_кол_зс] * len(кол_nums)
+        _w_ме_зс = 6; _w_кол_зс = 4; _w_кол_зс_half = 2
+        n_mid = max(0, len(кол_nums) - 2)
+        _ww = [_w_ме_зс, _w_кол_зс] + [_w_кол_зс_half] * n_mid + ([_w_кол_зс] if len(кол_nums) > 1 else [])
         _tw_зс_total = sum(_ww)
         GRID_зс = [round(TW * w / _tw_зс_total) for w in _ww]
         GRID_зс[-1] += TW - sum(GRID_зс)
@@ -7144,7 +7145,7 @@ def create_результаты_кз_docx(сор, итог, группы, таб
         rh0 = зс.add_row(); _row_h_min(rh0, 0.6)
         csh0 = list(rh0.cells)
         _cw_pct(csh0[0], GRID_зс[0])
-        _vmerge_restart(csh0[0]); _fill(csh0[0], 'Очки за\nдисциплину', align=C, pt=PT, bold=True)
+        _vmerge_restart(csh0[0]); _fill(csh0[0], 'Количество баллов за каждую дисциплину за занятое место', align=C, pt=PT, bold=True)
         csh0[1].merge(csh0[nЗС - 1])
         _cw_pct(csh0[1], sum(GRID_зс[1:]))
         _fill(csh0[1], 'Количество субъектов Российской Федерации', align=C, pt=PT, bold=True)
