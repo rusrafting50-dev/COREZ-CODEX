@@ -4050,7 +4050,7 @@ def create_результаты_слалом_docx(
         gate_w      = max(200, (TW - FIXED_SUM) // кол_ворот)
         GRID        = FIXED_LEFT + [gate_w] * кол_ворот + FIXED_RIGHT
         NC          = len(GRID)
-        TW          = sum(GRID)
+        TW_пред     = sum(GRID)
 
         I_ПОП   = 5
         I_СТАРТ = 6
@@ -4094,7 +4094,7 @@ def create_результаты_слалом_docx(
 
         tbl = doc.add_table(rows=0, cols=NC)
         _set_grid(tbl, GRID)
-        _tbl_w(tbl, TW)
+        _tbl_w(tbl, TW_пред)
 
         # Header row 1
         rh1 = tbl.add_row()
