@@ -4708,6 +4708,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     def _fill(cell, text, align=None, pt=PT, bold=False):
         p = cell.paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
         if align: p.alignment = align
+        text = str(text).replace('—', '–')  # — → –
         if not text: return
         parts = str(text).split('\n')
         for i, part in enumerate(parts):
@@ -5647,6 +5648,7 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     def _fill(cell, text, align=None, pt=PT, bold=False):
         p = cell.paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
         if align: p.alignment = align
+        text = str(text).replace('—', '–')  # — → –
         if not text: return
         parts = str(text).split('\n')
         for i, part in enumerate(parts):
