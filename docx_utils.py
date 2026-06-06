@@ -6963,9 +6963,11 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
 
     TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
     if портрет:
-        PT, PT_FIO, PT_HDR = 8, 7, 8
+        PT, PT_FIO, PT_HDR = 8, 6, 6
+        PT_TXT = 6   # Команда, Номер, ФИО, Субъект в данных
     else:
         PT, PT_FIO, PT_HDR = 10, 8, 10
+        PT_TXT = PT
     MAR = 28
 
     # Detect which stages are present
@@ -6993,11 +6995,11 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
 
     ROWSPAN_COLS = [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_СУБ, I_МСП, I_МЕС, I_ОЧК, I_РАЗ]
 
-    # Column width proportions (based on Протокол_результатов_пс_пред.docx)
+    # Column width proportions
     if портрет:
-        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 3.0, 11.8, 4.6, 7.6, 6.0
-        _P_ЗА, _P_РЕЗ = 3.4, 5.7
-        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 4.7, 3.8, 3.8, 3.8, 7.5
+        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 3.0, 11.3, 3.9, 8.8, 3.9
+        _P_ЗА, _P_РЕЗ = 3.9, 6.0
+        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 4.8, 6.1, 3.9, 3.9, 3.4
     else:
         _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 2.4, 9.9, 3.0, 8.2, 3.2
         _P_ЗА, _P_РЕЗ = 4.37, 6.6
@@ -7289,11 +7291,12 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
         if child.tag == qn('w:p'):
             body.remove(child)
 
-    _hdr_pt = 10 if портрет else 12
+    _hdr_pt  = 8  if портрет else 12
+    _name_pt = 10 if портрет else 12
     if сор.организаторы_блок:
         _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
     p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
-    _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
+    _ls15(_para(doc, сор.название or '', align=C, pt=_name_pt, bold=True))
     _ls15(_para(doc, 'ПРЕДВАРИТЕЛЬНЫЙ ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=_hdr_pt, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
@@ -7305,8 +7308,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _set_grid_sp(dt, [_w_dt, _w_mid, _w_pl])
     _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
     _dt_rows = [
-        (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
-        ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+        (сор.даты_проведения or '', сор.место_проведения or '', 6 if портрет else PT, True),
+        ('Дата проведения', 'Место проведения', 6 if портрет else PT, not портрет),
     ]
     for idx, (лево, право, pt_v, bold_v) in enumerate(_dt_rows):
         r = dt.add_row(); _dt_rh(r)
@@ -7406,10 +7409,10 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
             _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
 
         _fill(cs[I_НПП], str(пп),                              align=C, pt=PT)
-        _fill(cs[I_КОМ], к.название or '–',               align=L, pt=PT)
-        _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),        align=C, pt=PT)
+        _fill(cs[I_КОМ], к.название or '–',               align=L, pt=PT_TXT)
+        _fill(cs[I_НОМ], str(к.нагрудный_номер or ''),        align=C, pt=PT_TXT)
         _fill(cs[I_ФИО], фио,                                  align=L, pt=PT_FIO)
-        _fill(cs[I_СУБ], к.субъект.название if к.субъект else '–', align=C, pt=PT)
+        _fill(cs[I_СУБ], к.субъект.название if к.субъект else '–', align=C, pt=PT_TXT)
         _fill(cs[I_МСП], место_сп,                             align=C, pt=PT)
 
         д = ст_команд.get(к.id, {})
