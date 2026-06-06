@@ -5812,6 +5812,8 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
         _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
     _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
     _ls15(_para(doc, 'ПРОТОКОЛ РЕЗУЛЬТАТОВ', align=C, pt=_hdr_pt, bold=True))
+    if сор.номер_екп:
+        _ls15(_para(doc, f'ЕКП № {сор.номер_екп}', align=C, pt=_hdr_pt, bold=True))
     _ls15(_para(doc, f'Спортивная дисциплина: {дисциплина}', align=C, pt=_hdr_pt, bold=True))
 
     # ── таблица дата/место ───────────────────────────────────────────────────
@@ -5851,45 +5853,29 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
     tbl = _make_tbl(NC, fixed_tw=TW, jc='center')
     _set_grid_sp(tbl, GRID)
 
-    # row 0 — header part 1
+    # header — одна строка
     r = tbl.add_row(); _row_h_min(r, 0.9 if портрет else 0.6)
     cs = list(r.cells)
     for i, w in enumerate(GRID): _cw_pct(cs[i], w)
-    cs[I_ШТИ].merge(cs[I_ИТ]); _cw_pct(cs[I_ШТИ], W_РЕЗ)
-    for i in (I_НПП, I_К, I_НОМ, I_СОС, I_СУБ, I_МЕ, I_ОЧ, I_РА):
-        _vmerge_restart(cs[i])
-    _fill(cs[I_НПП], '№\nп/п',                           align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_К],   'Команда',                           align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_НОМ], 'Номер',                             align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_СОС], 'Состав',                            align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_СУБ], 'Субъект РФ',                       align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ШТИ], 'Результат',                        align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_МЕ],  'Место',                             align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ОЧ],  'Очки',                              align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_НПП], '№\nп/п',      align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_К],   'Команда',      align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_НОМ], 'Номер',        align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_СОС], 'Состав',       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_СУБ], 'Субъект РФ',  align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ШТИ], 'Штраф',       align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ВП],  'Время',        align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ИТ],  'Результат',    align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_МЕ],  'Место',        align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ОЧ],  'Очки',         align=C, pt=PT_HDR, bold=True)
     p_ра = cs[I_РА].paragraphs[0]; p_ра.clear(); _sp(p_ра); p_ра.alignment = C
     _run(p_ра, 'Выполнение', PT_HDR, True); _line_br(p_ра)
     _run(p_ра, 'разряда' + ('*' if снос else ''), PT_HDR, True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
-    _borders(cs[I_ШТИ])
     for i in range(NC):
         _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
     if портрет:
         _vert_cell(cs[I_РА])
-
-    # row 1 — header part 2
-    r = tbl.add_row(); _row_h_min(r, 0.9 if портрет else 0.6)
-    cs = list(r.cells)
-    for i, w in enumerate(GRID): _cw_pct(cs[i], w)
-    for i in (I_НПП, I_К, I_НОМ, I_СОС, I_СУБ, I_МЕ, I_ОЧ, I_РА):
-        _vmerge_cont(cs[i])
-    _fill(cs[I_ШТИ], 'Штраф',    align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ВП],  'Время',     align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ИТ],  'Итоговый',  align=C, pt=PT_HDR, bold=True)
-    for i in range(NC):
-        _borders(cs[i]); _valign(cs[i])
-    for i in range(NC):
-        _tcMar(cs[i], MAR); _no_wrap_cell(cs[i])
 
     # ── section/data helpers ─────────────────────────────────────────────────
     def _section(label):
