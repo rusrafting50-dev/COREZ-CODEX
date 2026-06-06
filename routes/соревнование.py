@@ -360,14 +360,10 @@ def регламент_печать(id):
 
 @bp_соревнование.route('/<int:id>/регламент-word')
 def регламент_word(id):
-    from docx_utils import send_docx
+    from docx_utils import create_регламент_docx
     сор = Соревнование.query.get_or_404(id)
-    html = render_template('соревнование/регламент_печать.html',
-                           сор=сор,
-                           статусы=СТАТУСЫ,
-                           виды=_получить_виды(сор),
-                           программа=_получить_программу(сор))
-    return send_docx(html, f'регламент_{id}.docx')
+    программа = _получить_программу(сор)
+    return create_регламент_docx(сор, программа, f'регламент_{id}.docx')
 
 
 @bp_соревнование.route('/<int:id>/удалить', methods=['POST'])

@@ -8643,3 +8643,524 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
     _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_регламент_docx(сор, программа, filename):
+    """Регламент соревнований — A4 портрет, TNR 11pt."""
+    from docx.shared import Mm
+
+    PT  = 11
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+    J   = WD_ALIGN_PARAGRAPH.JUSTIFY
+    R   = WD_ALIGN_PARAGRAPH.RIGHT
+
+    # Page geometry (dxa)
+    PW  = round(210 * 1440 / 25.4)
+    ML  = round(25  * 1440 / 25.4)
+    MR  = round(15  * 1440 / 25.4)
+    MT  = round(20  * 1440 / 25.4)
+    MB  = round(20  * 1440 / 25.4)
+    TW  = PW - ML - MR                  # ≈ 9638 dxa
+
+    W_SIDE = round(TW * 0.47)           # each УТВЕРЖДАЮ column
+    W_GAP  = TW - 2 * W_SIDE
+
+    W_DATE = round(70 * 1440 / 72)
+    W_TIME = round(80 * 1440 / 72)
+    W_NAME = TW - W_DATE - W_TIME
+
+    doc = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(210)
+    sect.page_height   = Mm(297)
+    sect.left_margin   = Mm(25)
+    sect.right_margin  = Mm(15)
+    sect.top_margin    = Mm(20)
+    sect.bottom_margin = Mm(20)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.attrib.pop(qn('w:orient'), None)
+
+    for p in list(doc.paragraphs):
+        p._element.getparent().remove(p._element)
+
+    # ── helpers ──────────────────────────────────────────────────────────
+    def _sp0(p):
+        pPr = p._p.get_or_add_pPr()
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0')
+        sp.set(qn('w:after'),  '0')
+        pPr.append(sp)
+
+    def _ls115(p):
+        pPr = p._p.get_or_add_pPr()
+        sp  = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:line'),     str(round(1.15 * 240)))
+        sp.set(qn('w:lineRule'), 'auto')
+
+    def _spacing(p, before_pt=0, after_pt=0):
+        pPr = p._p.get_or_add_pPr()
+        sp  = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:before'),   str(round(before_pt * 20)))
+        sp.set(qn('w:after'),    str(round(after_pt  * 20)))
+        sp.set(qn('w:line'),     str(round(1.15 * 240)))
+        sp.set(qn('w:lineRule'), 'auto')
+
+    def _run_r(p, text, pt=PT, bold=False, char_sp_pt=0):
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(pt)
+        run.font.bold = bool(bold)
+        r   = run._r
+        rPr = r.find(qn('w:rPr'))
+        if rPr is None:
+            rPr = OxmlElement('w:rPr'); r.insert(0, rPr)
+        rFonts = rPr.find(qn('w:rFonts'))
+        if rFonts is None:
+            rFonts = OxmlElement('w:rFonts'); rPr.append(rFonts)
+        for attr in ('w:ascii', 'w:hAnsi', 'w:eastAsia'):
+            rFonts.set(qn(attr), 'Times New Roman')
+        if char_sp_pt:
+            csp = OxmlElement('w:spacing')
+            csp.set(qn('w:val'), str(round(char_sp_pt * 20)))
+            rPr.append(csp)
+        return run
+
+    def _line_br(p):
+        p._p.append(OxmlElement('w:br'))
+
+    def _para(text='', align=J, pt=PT, bold=False, indent_mm=0,
+               before_pt=0, after_pt=0):
+        p = doc.add_paragraph()
+        _spacing(p, before_pt, after_pt)
+        p.alignment = align
+        if indent_mm:
+            pPr = p._p.get_or_add_pPr()
+            ind = OxmlElement('w:ind')
+            ind.set(qn('w:firstLine'), str(round(indent_mm * 1440 / 25.4)))
+            pPr.append(ind)
+        if text:
+            _run_r(p, text, pt=pt, bold=bold)
+        return p
+
+    def _heading(text, pt=PT, bold=True):
+        p = _para(align=C, pt=pt, bold=bold, before_pt=8, after_pt=2)
+        parts = text.split('\n')
+        for i, part in enumerate(parts):
+            _run_r(p, part, pt=pt, bold=bold)
+            if i < len(parts) - 1:
+                _line_br(p)
+        return p
+
+    def _indent(text, pt=PT, bold=False):
+        return _para(text, align=J, pt=pt, bold=bold, indent_mm=10)
+
+    def _indent_block(text, pt=PT):
+        p = doc.add_paragraph()
+        _spacing(p)
+        pPr = p._p.get_or_add_pPr()
+        ind = OxmlElement('w:ind')
+        ind.set(qn('w:left'), str(round(10 * 1440 / 25.4)))
+        pPr.append(ind)
+        p.alignment = J
+        _run_r(p, text, pt=pt)
+        return p
+
+    def _list_dash(text, pt=PT):
+        p = doc.add_paragraph()
+        _spacing(p)
+        pPr = p._p.get_or_add_pPr()
+        ind = OxmlElement('w:ind')
+        ind.set(qn('w:left'),    str(round(14 * 1440 / 25.4)))
+        ind.set(qn('w:hanging'), str(round(4  * 1440 / 25.4)))
+        pPr.append(ind)
+        p.alignment = J
+        _run_r(p, text, pt=pt)
+        return p
+
+    # ── cell helpers ─────────────────────────────────────────────────────
+    def _tcpr(cell):
+        tc   = cell._tc
+        tcPr = tc.find(qn('w:tcPr'))
+        if tcPr is None:
+            tcPr = OxmlElement('w:tcPr'); tc.insert(0, tcPr)
+        return tcPr
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        tcB = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            tcB.append(el)
+        pr.append(tcB)
+
+    def _borders_all(cell, sz=4):
+        pr = _tcpr(cell)
+        tcB = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single')
+            el.set(qn('w:sz'),  str(sz))
+            el.set(qn('w:space'), '0')
+            el.set(qn('w:color'), '000000')
+            tcB.append(el)
+        pr.append(tcB)
+
+    def _cw(cell, w):
+        pr  = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        tcW.set(qn('w:w'), str(int(w)))
+        tcW.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        vA = OxmlElement('w:vAlign')
+        vA.set(qn('w:val'), val)
+        pr.append(vA)
+
+    def _fill(cell, text='', align=C, pt=PT, bold=False):
+        for p in list(cell.paragraphs):
+            p._element.getparent().remove(p._element)
+        p = cell.add_paragraph()
+        _sp0(p); _ls115(p)
+        p.alignment = align
+        if text:
+            _run_r(p, text, pt=pt, bold=bold)
+        return p
+
+    def _fill_add(cell, text='', align=C, pt=PT, bold=False):
+        p = cell.add_paragraph()
+        _sp0(p); _ls115(p)
+        p.alignment = align
+        if text:
+            _run_r(p, text, pt=pt, bold=bold)
+        return p
+
+    def _make_tbl(ncols, tw):
+        tbl = doc.add_table(rows=0, cols=ncols)
+        tPr = tbl._tbl.find(qn('w:tblPr'))
+        if tPr is None:
+            tPr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, tPr)
+        jcEl = OxmlElement('w:jc'); jcEl.set(qn('w:val'), 'left'); tPr.append(jcEl)
+        tblW = OxmlElement('w:tblW')
+        tblW.set(qn('w:w'), str(int(tw))); tblW.set(qn('w:type'), 'dxa')
+        tPr.append(tblW)
+        layout = OxmlElement('w:tblLayout'); layout.set(qn('w:type'), 'fixed')
+        tPr.append(layout)
+        tblBrd = OxmlElement('w:tblBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}'); el.set(qn('w:val'), 'none')
+            tblBrd.append(el)
+        tPr.append(tblBrd)
+        return tbl
+
+    def _set_grid(tbl, widths):
+        tblGrid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(int(w)))
+            tblGrid.append(gc)
+        tbl._tbl.insert(1, tblGrid)
+
+    def _row_h_min(row, cm):
+        tr   = row._tr
+        trPr = tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr'); tr.insert(0, trPr)
+        trH = OxmlElement('w:trHeight')
+        trH.set(qn('w:val'),   str(round(cm * 1440 / 2.54)))
+        trH.set(qn('w:hRule'), 'atLeast')
+        trPr.append(trH)
+
+    # ════════════════════════════════════════════════════════════════════
+    # УТВЕРЖДАЮ (3-column no-border table: left | gap | right)
+    # ════════════════════════════════════════════════════════════════════
+    utv = _make_tbl(3, TW)
+    _set_grid(utv, [W_SIDE, W_GAP, W_SIDE])
+
+    def _utv_block(cell, должность, название):
+        _fill(cell, 'УТВЕРЖДАЮ', align=C, pt=PT, bold=True)
+        if должность:
+            _fill_add(cell, должность, align=C)
+        if название and '«' in название:
+            parts = название.split('«', 1)
+            if parts[0].strip():
+                _fill_add(cell, parts[0].strip(), align=C)
+            _fill_add(cell, '«' + parts[1].strip(), align=C)
+        elif название:
+            _fill_add(cell, название, align=C)
+
+    def _sig_block(cell, руководитель):
+        _fill(cell, '', align=C)   # clear
+        p = list(cell.paragraphs)[-1]
+        _spacing(p, before_pt=6)
+        p.alignment = R
+        if руководитель:
+            фио = руководитель.split()
+            if len(фио) >= 3:
+                иниц = f'{фио[1][0]}.{фио[2][0]}. {фио[0]}'
+            else:
+                иниц = руководитель
+            _run_r(p, f'___________ {иниц}')
+        else:
+            _run_r(p, '___________ ___________')
+        p2 = _fill_add(cell, '«____»___________202__г.', align=C)
+        _spacing(p2, before_pt=4)
+
+    r1 = utv.add_row()
+    cs = list(r1.cells)
+    for c in cs:
+        _no_border(c)
+    _cw(cs[0], W_SIDE); _cw(cs[1], W_GAP); _cw(cs[2], W_SIDE)
+    _valign(cs[0], 'top'); _valign(cs[2], 'top')
+    _utv_block(cs[0], сор.федерация_должность or '', сор.федерация_название or '')
+    _utv_block(cs[2], сор.проводящая_орг_должность or '', сор.проводящая_орг_название or '')
+
+    r2 = utv.add_row()
+    cs2 = list(r2.cells)
+    for c in cs2:
+        _no_border(c)
+    _cw(cs2[0], W_SIDE); _cw(cs2[1], W_GAP); _cw(cs2[2], W_SIDE)
+    _valign(cs2[0], 'top'); _valign(cs2[2], 'top')
+    _sig_block(cs2[0], сор.федерация_руководитель or '')
+    _sig_block(cs2[2], сор.проводящая_орг_руководитель or '')
+
+    # ════════════════════════════════════════════════════════════════════
+    # РЕГЛАМЕНТ title
+    # ════════════════════════════════════════════════════════════════════
+    _para(before_pt=0, after_pt=10)   # spacer with margin-bottom=10pt after utv
+
+    p_reg = _para(align=C, before_pt=0, after_pt=0)
+    _run_r(p_reg, 'РЕГЛАМЕНТ', pt=14, bold=True, char_sp_pt=3)
+
+    _para('проведения спортивных соревнований', align=C)
+    if сор.название:
+        _para(сор.название.lower(), align=C)
+    if сор.возрастная_группа:
+        _para(сор.возрастная_группа, align=C)
+    if сор.номер_екп:
+        _para(f'(С/М в ЕКП № {сор.номер_екп})', align=C)
+    _para(after_pt=6)   # spacer
+
+    # ════════════════════════════════════════════════════════════════════
+    # 1. Общая информация
+    # ════════════════════════════════════════════════════════════════════
+    _heading('1. Общая информация')
+
+    ekp_part = ''
+    if сор.единый_кп:
+        ekp_part = f', {сор.единый_кп}'
+    elif сор.номер_екп:
+        ekp_part = f', С/М в ЕКП № {сор.номер_екп}'
+
+    _indent(f'1.1. {сор.название or "Соревнования по рафтингу"} проводятся в соответствии:')
+    _indent(f'– с Единым календарным планом межрегиональных, всероссийских и международных '
+            f'физкультурных мероприятий и спортивных мероприятий{ekp_part};')
+
+    if сор.положение_о_соревнованиях:
+        _indent(f'– с Положением о межрегиональных и всероссийских официальных спортивных '
+                f'соревнованиях по рафтингу, {сор.положение_о_соревнованиях};')
+    else:
+        _indent('– с «Положением о спортивных соревнованиях по рафтингу», утверждённым '
+                'Минспортом России и Федерацией рафтинга России;')
+
+    pvt = '– с правилами вида спорта «рафтинг»'
+    if сор.правила_вида_спорта:
+        pvt += f', {сор.правила_вида_спорта}'
+    _indent(pvt + ';')
+    _indent('– с настоящим регламентом.')
+    _indent(f'1.2. Сроки проведения спортивных соревнований: '
+            f'{сор.даты_проведения or "___"}. '
+            f'Место проведения: {сор.место_проведения or "___"}.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 2. Организаторы
+    # ════════════════════════════════════════════════════════════════════
+    _heading('2. Организаторы соревнований')
+    _indent('2.1. Организаторами спортивных соревнований являются:')
+    for орг in [сор.организатор_1, сор.организатор_2,
+                сор.организатор_3, сор.организатор_4]:
+        if орг:
+            _indent(f'– {орг};')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 3. Организация, проводящая соревнования
+    # ════════════════════════════════════════════════════════════════════
+    _heading('3. Организация, проводящая соревнования')
+    _indent(f'3.1. Организацией, проводящей спортивные соревнования, является '
+            f'{сор.проводящая_орг_название or "___"} (далее — Проводящая организация).')
+    _indent('3.2. Непосредственное проведение спортивных соревнований возлагается на '
+            'судейскую коллегию соревнований, утвержденную Проводящей организацией и '
+            'согласованную ФРР.')
+    судья = сор.главный_судья or '___'
+    if сор.главный_судья_телефон:
+        судья += f', телефон: {сор.главный_судья_телефон}'
+    _indent(f'3.3. Главный судья соревнований {судья}.')
+    _indent('3.4. Протоколы спортивных соревнований и другие документы судейской коллегии '
+            'оформляются за подписью главного судьи и главного секретаря спортивных '
+            'соревнований и заверяются печатью Проводящей организации.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 4. Распределение обязанностей
+    # ════════════════════════════════════════════════════════════════════
+    _heading('4. Распределение обязанностей организаторов\n'
+             'и организации, проводящей соревнования')
+    _indent('4.1. В соответствии с Положением организаторы определяют условия '
+            'проведения спортивных соревнований.')
+    _indent(f'4.2. {сор.федерация_название or "Федерация рафтинга России"} при организации '
+            f'и проведении спортивных соревнований обеспечивает:')
+    if сор.обязанности_федерации:
+        for стр in сор.обязанности_федерации.split('\n'):
+            if стр.strip():
+                _indent(стр)
+    else:
+        _list_dash('– размещение информации о спортивных соревнованиях на сайте rusraftfed.ru;')
+        _list_dash('– утверждение состава главной судейской коллегии соревнований;')
+        _list_dash('– утверждение кандидатуры технического делегата ФРР.')
+    _indent(f'4.3. {сор.проводящая_орг_название or "Проводящая организация"} при организации '
+            f'и проведении спортивных соревнований обеспечивает:')
+    if сор.обязанности_проводящей:
+        for стр in сор.обязанности_проводящей.split('\n'):
+            if стр.strip():
+                _indent(стр)
+    else:
+        _list_dash('– формирование судейской коллегии и направление состава ГСК для '
+                   'утверждения в ФРР;')
+        _list_dash('– деятельность судейской коллегии во время проведения спортивных '
+                   'соревнований;')
+        _list_dash('– организацию материально-технического, транспортного и медицинского '
+                   'обеспечения соревнований;')
+        _list_dash('– организацию мер безопасности спортсменов и зрителей;')
+        _list_dash('– организацию проживания и питания участников;')
+        _list_dash('– направление в ФРР по итогам соревнований отчёта, итоговых протоколов '
+                   'и справки о составе судейской коллегии.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 5. Программа соревнований
+    # ════════════════════════════════════════════════════════════════════
+    _heading('5. Программа соревнований')
+
+    if программа:
+        sched = _make_tbl(3, TW)
+        _set_grid(sched, [W_DATE, W_TIME, W_NAME])
+
+        hdr = sched.add_row()
+        hcs = list(hdr.cells)
+        _cw(hcs[0], W_DATE); _cw(hcs[1], W_TIME); _cw(hcs[2], W_NAME)
+        for hc in hcs:
+            _borders_all(hc); _valign(hc)
+        _fill(hcs[0], 'Дата',         align=C, bold=True)
+        _fill(hcs[1], 'Время',        align=C, bold=True)
+        _fill(hcs[2], 'Наименование', align=C, bold=True)
+
+        seen = {}
+        for пункт in программа:
+            dr  = sched.add_row(); _row_h_min(dr, 0.5)
+            dcs = list(dr.cells)
+            _cw(dcs[0], W_DATE); _cw(dcs[1], W_TIME); _cw(dcs[2], W_NAME)
+            _borders_all(dcs[1]); _valign(dcs[1])
+            _borders_all(dcs[2]); _valign(dcs[2])
+            d = пункт.get('дата', '') or ''
+            if d not in seen:
+                seen[d] = True
+                pr = _tcpr(dcs[0])
+                vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart')
+                pr.append(vm)
+                _borders_all(dcs[0]); _valign(dcs[0])
+                _fill(dcs[0], d, align=C)
+            else:
+                pr = _tcpr(dcs[0])
+                vm = OxmlElement('w:vMerge'); pr.append(vm)
+                _borders_all(dcs[0])
+                _fill(dcs[0], '')
+            _fill(dcs[1], пункт.get('время', '') or '',        align=L)
+            _fill(dcs[2], пункт.get('наименование', '') or '', align=L)
+
+    # ════════════════════════════════════════════════════════════════════
+    # 6. Заявочный взнос
+    # ════════════════════════════════════════════════════════════════════
+    _heading('6. Дополнительные требования к участникам, заявочный взнос')
+    _indent('6.1. Сборные команды субъектов Российской Федерации должны иметь единую '
+            'парадную форму и флаг субъекта Российской Федерации.')
+    _indent('6.2. Все члены сборных команд субъектов Российской Федерации, включённые '
+            'в заявку, должны быть включены в действующие списки сборной команды субъекта '
+            'Российской Федерации по рафтингу.')
+    _indent('6.3. К соревнованиям допускаются сборные команды субъектов Российской '
+            'Федерации, которые оплатили заявочный взнос за участие в спортивных '
+            'соревнованиях.')
+    _indent(f'6.4. Размер заявочного взноса за участие в спортивных соревнованиях в классе '
+            f'судов R4: {сор.заявочный_взнос_r4 or "___"}, в классе судов R6: '
+            f'{сор.заявочный_взнос or "___"}.')
+    if сор.назначение_платежа:
+        _indent(f'Назначение платежа: {сор.назначение_платежа}.')
+    if сор.реквизиты_оплаты:
+        _indent('6.5. Оплата взносов производится по безналичному расчёту по следующим '
+                'реквизитам:')
+        _indent_block(сор.реквизиты_оплаты)
+
+    # ════════════════════════════════════════════════════════════════════
+    # 7. Условия финансирования
+    # ════════════════════════════════════════════════════════════════════
+    _heading('7. Условия финансирования')
+    _indent('7.1. Расходы по организации и проведению спортивных соревнований несут '
+            'организаторы в соответствии с установленными полномочиями.')
+    _indent('7.2. За счёт средств заявочных взносов Проводящая организация обеспечивает '
+            'медицинское обеспечение, меры безопасности и материально-техническое '
+            'обеспечение спортивных соревнований.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 8. Размещение и проживание
+    # ════════════════════════════════════════════════════════════════════
+    _heading('8. Размещение и проживание участников')
+    п8 = 1
+    if сор.проживание_описание:
+        _indent(f'8.{п8}. {сор.проживание_описание}')
+    else:
+        _indent(f'8.{п8}. Размещение участников осуществляется самостоятельно.')
+    п8 += 1
+    _indent(f'8.{п8}. Питание участники организовывают самостоятельно.')
+    п8 += 1
+    if сор.инфраструктура_описание:
+        _indent(f'8.{п8}. {сор.инфраструктура_описание}')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 9. Награждение
+    # ════════════════════════════════════════════════════════════════════
+    _heading('9. Награждение')
+    if сор.награждение_описание:
+        _indent(f'9.1. {сор.награждение_описание}')
+    else:
+        _indent('9.1. Награждение победителей и призёров спортивных соревнований проводится '
+                'в соответствии с Положением о соревнованиях.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 10. Контакты
+    # ════════════════════════════════════════════════════════════════════
+    _heading('10. Контакты организаторов')
+    контакт = сор.главный_судья or '___'
+    if сор.главный_судья_телефон:
+        контакт += f', телефон: {сор.главный_судья_телефон}'
+    if сор.проводящая_орг_email:
+        контакт += f', email: {сор.проводящая_орг_email}'
+    _indent(f'10.1. Вопросы, связанные с подачей заявок и условиями проведения '
+            f'спортивных соревнований: {контакт}.')
+
+    # ════════════════════════════════════════════════════════════════════
+    # 11. Варианты проезда
+    # ════════════════════════════════════════════════════════════════════
+    _heading('11. Варианты проезда к месту проведения соревнований')
+    _indent('11.1. Общественным транспортом:')
+    _indent_block(сор.проезд_общественный or '___')
+    _indent('11.2. Собственным автомобильным транспортом:')
+    _indent_block(сор.проезд_собственный or '___')
+
+    buf = BytesIO()
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
