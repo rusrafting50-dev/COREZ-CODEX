@@ -4156,17 +4156,17 @@ def create_результаты_слалом_docx(
         cs[I_ШТ].merge(cs[I_ИТ])
         p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C
         _run(p, '№', pt=8, bold=True); _line_br(p); _run(p, 'п/п', pt=8, bold=True)
-        _valign(cs[0])
-        _fill(cs[1], 'Команда', align=C, bold=True)
-        _fill(cs[2], 'Номер', align=C, bold=True)
-        _fill(cs[3], 'Фамилия, имя, отчество участников', align=C, bold=True)
-        _fill(cs[4], 'Субъект РФ', align=C, bold=True)
+        _valign(cs[0], 'top')
+        _fill(cs[1], 'Команда', align=C, bold=True);                                  _valign(cs[1], 'top')
+        _fill(cs[2], 'Номер', align=C, bold=True);                                    _valign(cs[2], 'top')
+        _fill(cs[3], 'Фамилия, имя, отчество участников', align=C, bold=True);        _valign(cs[3], 'top')
+        _fill(cs[4], 'Субъект РФ', align=C, bold=True);                               _valign(cs[4], 'top')
         _fill(cs[I_ПОП], 'Попытка', align=C, bold=True); _vert_cell(cs[I_ПОП])
-        _fill(cs[I_СТАРТ], 'Прохождение дистанции (штрафные баллы)', align=C, bold=True)
-        _fill(cs[I_ШТ], 'Результат попытки', align=C, bold=True)
-        _fill(cs[I_ЛУЧ], 'Результат лучшей попытки', align=C, bold=True)
+        _fill(cs[I_СТАРТ], 'Прохождение дистанции (штрафные баллы)', align=C, bold=True); _valign(cs[I_СТАРТ], 'top')
+        _fill(cs[I_ШТ], 'Результат попытки', align=C, bold=True);                    _valign(cs[I_ШТ], 'top')
+        _fill(cs[I_ЛУЧ], 'Результат лучшей попытки', align=C, bold=True);            _valign(cs[I_ЛУЧ], 'top')
         _fill(cs[I_МЕС], 'Место', align=C, bold=True); _vert_cell(cs[I_МЕС])
-        _fill(cs[I_ОЧК], 'Очки', align=C, bold=True)
+        _fill(cs[I_ОЧК], 'Очки', align=C, bold=True);                                _valign(cs[I_ОЧК], 'top')
         p_нор = cs[I_НОР].paragraphs[0]; p_нор.clear(); _sp(p_нор); p_нор.alignment = C
         _run(p_нор, 'Выполнение', pt=8, bold=True)
         _line_br(p_нор)
@@ -4187,11 +4187,11 @@ def create_результаты_слалом_docx(
         _fill(cs2[I_СТАРТ], 'Старт', align=C, bold=True);  _vert_cell(cs2[I_СТАРТ])
         for g in range(1, кол_ворот + 1):
             _fill(cs2[I_ВОР0 + g - 1], str(g), align=C, bold=True)
-            _vert_cell(cs2[I_ВОР0 + g - 1])
+            _valign(cs2[I_ВОР0 + g - 1], 'top')
         _fill(cs2[I_ФИН], 'Финиш', align=C, bold=True);   _vert_cell(cs2[I_ФИН])
-        _fill(cs2[I_ШТ], 'Штраф', align=C, bold=True)
-        _fill(cs2[I_ВР], 'Время', align=C, bold=True)
-        _fill(cs2[I_ИТ], 'Итоговый', align=C, bold=True)
+        _fill(cs2[I_ШТ], 'Штраф', align=C, bold=True);    _valign(cs2[I_ШТ], 'top')
+        _fill(cs2[I_ВР], 'Время', align=C, bold=True);    _valign(cs2[I_ВР], 'top')
+        _fill(cs2[I_ИТ], 'Итоговый', align=C, bold=True); _valign(cs2[I_ИТ], 'top')
 
         def _add_section(рез_list, без_list, разряды, поп, ш1_d, ш2_d, заг_пол):
             if not рез_list and not без_list:
@@ -4426,7 +4426,7 @@ def create_результаты_слалом_docx(
         if снос_пред:
             _para(doc, '* Разряды не присваиваются, т.к. количество участников в виде программы '
                   'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
-                  align=L, pt=8)
+                  align=L, pt=8, bold=True)
 
     _add_sigs(doc)
 
