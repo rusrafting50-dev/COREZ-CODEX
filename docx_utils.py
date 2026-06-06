@@ -4411,7 +4411,7 @@ def create_результаты_слалом_docx(
             body.remove(child)
 
     _add_doc_header(doc)
-    _para(doc).paragraph_format.line_spacing = Pt(1)
+    _para(doc).paragraph_format.line_spacing = Pt(2 if портрет else 1)
 
     if итоговый:
         _build_итог(doc)
