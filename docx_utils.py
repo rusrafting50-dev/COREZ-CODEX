@@ -7605,7 +7605,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
         _fill(cs0[I_РАЗ], 'Выполне-\nние\nразряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     else:
         _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
-        _vert_cell(cs0[I_РАЗ])
+    _vert_cell(cs0[I_РАЗ])
     if портрет:
         _vert_cell(cs0[I_МЕС])
 
