@@ -7100,8 +7100,8 @@ def create_результаты_кз_docx(сор, итог, группы, таб
             _fill(cs[ci],     str(gd['кол']) if gd['кол'] else '–', align=C, pt=PT)
             _fill(cs[ci + 1], _fmt_bal(gd['баллы']) if gd['баллы'] else '–', align=C, pt=PT)
 
-        _fill(cs[I_ИТ_КОЛ], str(з['итого_кол']),            align=C, pt=PT, bold=True)
-        _fill(cs[I_ИТ_БАЛ], _fmt_bal(з['итого_баллы']),     align=C, pt=PT, bold=True)
+        _fill(cs[I_ИТ_КОЛ], str(з['итого_кол']),            align=C, pt=PT)
+        _fill(cs[I_ИТ_БАЛ], _fmt_bal(з['итого_баллы']),     align=C, pt=PT)
         _fill(cs[I_МЕ],      str(з['место']) if з.get('место') else '–', align=C, pt=PT)
 
     # ── signature table ───────────────────────────────────────────────────────
@@ -7143,7 +7143,7 @@ def create_результаты_кз_docx(сор, итог, группы, таб
             GRID_зс = [_W0, _WF] + [_WH] * n_mid + [_WF]
         TW_зс = sum(GRID_зс)
 
-        зс = _make_tbl(nЗС, fixed_tw=TW_зс, jc='center')
+        зс = _make_tbl(nЗС, fixed_tw=TW_зс, jc='left')
         _set_grid_sp(зс, GRID_зс)
 
         # header row 0: col0 vMerge, cols 1..n merged with label
