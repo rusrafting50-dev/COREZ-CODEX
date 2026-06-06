@@ -3738,16 +3738,12 @@ def create_результаты_слалом_docx(
 
     кол_ворот = max(кол_ворот, 1)
 
-    TW  = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+    TW  = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 7 - 5) * 1440 / 25.4)
     MAR = 28
     if портрет:
         PT, PT_FIO, PT_HDR = 8, 7, 8
     else:
         PT, PT_FIO, PT_HDR = 10, 8, 10
-
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
 
     # ── micro-helpers ─────────────────────────────────────────────────────────
 
@@ -4029,7 +4025,7 @@ def create_результаты_слалом_docx(
                 br = OxmlElement('w:br'); r._r.append(br)
 
     def _add_doc_header(doc):
-        _hdr_pt = 10 if портрет else 12
+        _hdr_pt = (10 if портрет else 12) if итоговый else (12 if портрет else 10)
         if сор.организаторы_блок:
             _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
         p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
@@ -4056,7 +4052,7 @@ def create_результаты_слалом_docx(
         _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
         for idx, (лево, право, pt_v, bold_v) in enumerate([
             (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
-            ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+            ('Дата проведения', 'Место проведения', 10 if портрет else 8, not портрет),
         ]):
             r = dt.add_row(); _dt_rh(r)
             cs = list(r.cells)
@@ -4072,7 +4068,7 @@ def create_результаты_слалом_docx(
     # ── signatures ────────────────────────────────────────────────────────────
 
     def _add_sigs(doc):
-        w_l = TW * 35 // 100
+        w_l = TW * (33 if портрет else 24) // 100
         w_r = TW - w_l
         sig = _make_tbl_sl(2, fixed_tw=TW)
         _set_grid(sig, [w_l, w_r])
@@ -4091,13 +4087,18 @@ def create_результаты_слалом_docx(
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_pred(doc):
-        FIXED_LEFT  = [300, 1700, 450, 2700, 1270, 300, 300]
-        FIXED_RIGHT = [300, 600, 740, 800, 800, 350, 500, 800]
-        FIXED_SUM   = sum(FIXED_LEFT) + sum(FIXED_RIGHT)
-        gate_w      = max(200, (TW - FIXED_SUM) // кол_ворот)
-        GRID        = FIXED_LEFT + [gate_w] * кол_ворот + FIXED_RIGHT
-        NC          = len(GRID)
-        TW_пред     = sum(GRID)
+        if портрет:
+            _FL_PCT = [2.0, 9.8, 3.6, 21.3, 8.2, 1.9, 1.9]
+            _FR_PCT = [1.9, 3.7, 4.3, 5.3, 4.9, 2.8, 3.3, 2.9]
+        else:
+            _FL_PCT = [1.8, 8.7, 3.3, 21.2, 6.2, 1.9, 1.9]
+            _FR_PCT = [1.9, 3.7, 4.6, 5.0, 5.0, 2.2, 3.1, 3.6]
+        _gate_pct = max(0.5, (100.0 - sum(_FL_PCT) - sum(_FR_PCT)) / кол_ворот)
+        _pcts = _FL_PCT + [_gate_pct] * кол_ворот + _FR_PCT
+        GRID  = [round(TW * p / 100) for p in _pcts]
+        GRID[-1] += TW - sum(GRID)
+        NC      = len(GRID)
+        TW_пред = TW
 
         I_ПОП   = 5
         I_СТАРТ = 6
@@ -4116,28 +4117,28 @@ def create_результаты_слалом_docx(
 
         def _fill_поп(cs, рез, ш):
             ст = (рез.кол_штраф_с10 or 0) * 10 + (рез.кол_штраф_старт or 0) * 50 if рез else 0
-            _fill(cs[I_СТАРТ], str(ст) if ст else '0', align=C)
+            _fill(cs[I_СТАРТ], str(ст) if ст else '0', align=C, pt=PT)
             for g in range(1, кол_ворот + 1):
                 v = ш.get(g, 0) if ш else 0
-                _fill(cs[I_ВОР0 + g - 1], str(v) if v else '0', align=C)
+                _fill(cs[I_ВОР0 + g - 1], str(v) if v else '0', align=C, pt=PT)
             фш = (рез.кол_штраф_финиш or 0) * 50 if рез else 0
-            _fill(cs[I_ФИН], str(фш) if фш else '0', align=C)
+            _fill(cs[I_ФИН], str(фш) if фш else '0', align=C, pt=PT)
             if рез is None:
-                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], '–', align=C); _fill(cs[I_ИТ], '–', align=C)
+                _fill(cs[I_ШТ], '–', align=C, pt=PT); _fill(cs[I_ВР], '–', align=C, pt=PT); _fill(cs[I_ИТ], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'НСТ':
-                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Не старт.', align=C); _fill(cs[I_ИТ], '–', align=C)
+                _fill(cs[I_ШТ], '–', align=C, pt=PT); _fill(cs[I_ВР], 'Не старт.', align=C, pt=PT); _fill(cs[I_ИТ], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'НФН':
-                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Не фин.', align=C); _fill(cs[I_ИТ], '–', align=C)
+                _fill(cs[I_ШТ], '–', align=C, pt=PT); _fill(cs[I_ВР], 'Не фин.', align=C, pt=PT); _fill(cs[I_ИТ], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'ПЛВ':
-                _fill(cs[I_ШТ], '–', align=C); _fill(cs[I_ВР], 'Прев. ЛВ', align=C); _fill(cs[I_ИТ], '–', align=C)
+                _fill(cs[I_ШТ], '–', align=C, pt=PT); _fill(cs[I_ВР], 'Прев. ЛВ', align=C, pt=PT); _fill(cs[I_ИТ], '–', align=C, pt=PT)
             elif рез.статус_попытки == 'ДК':
-                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C)
-                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
-                _fill(cs[I_ИТ], 'ДК', align=C, bold=True)
+                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
+                _fill(cs[I_ИТ], 'ДК', align=C, bold=True, pt=PT)
             else:
-                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C)
-                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C)
-                _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True)
+                _fill(cs[I_ШТ], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
+                _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
+                _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, bold=True, pt=PT)
 
         tbl = doc.add_table(rows=0, cols=NC)
         _set_grid(tbl, GRID)
@@ -4224,19 +4225,19 @@ def create_результаты_слалом_docx(
             for col in ROWSPAN_D:
                 _vmerge_restart(cd1[col])
                 _vmerge_cont(cd2[col])
-            _fill(cd1[0], str(пп), align=C)
-            _fill(cd1[1], к.название or '—')
-            _fill(cd1[2], str(к.нагрудный_номер or ''), align=C)
+            _fill(cd1[0], str(пп), align=C, pt=PT)
+            _fill(cd1[1], к.название or '—', pt=PT)
+            _fill(cd1[2], str(к.нагрудный_номер or ''), align=C, pt=PT)
             _fill(cd1[3], фио, pt=7)
             _fill(cd1[4], к.субъект.название if к.субъект else '—', pt=7)
-            _fill(cd1[I_ПОП], '1', align=C)
-            _fill(cd2[I_ПОП], '2', align=C)
+            _fill(cd1[I_ПОП], '1', align=C, pt=PT)
+            _fill(cd2[I_ПОП], '2', align=C, pt=PT)
             _fill_поп(cd1, р1, ш1)
             _fill_поп(cd2, р2, ш2)
-            _fill(cd1[I_ЛУЧ], _fmt_dur(лучший), align=C, bold=True)
-            _fill(cd1[I_МЕС], str(место) if место else '–', align=C, bold=True)
-            _fill(cd1[I_ОЧК], str(int(очки)) if очки else '–', align=C)
-            _fill(cd1[I_НОР], норм, align=C)
+            _fill(cd1[I_ЛУЧ], _fmt_dur(лучший), align=C, bold=True, pt=PT)
+            _fill(cd1[I_МЕС], str(место) if место else '–', align=C, bold=True, pt=PT)
+            _fill(cd1[I_ОЧК], str(int(очки)) if очки else '–', align=C, pt=PT)
+            _fill(cd1[I_НОР], норм, align=C, pt=8)
 
         _add_section(муж_рез, муж_без, муж_разр, муж_поп, муж_ш1, муж_ш2, 'Мужчины')
         _add_section(жен_рез, жен_без, жен_разр, жен_поп, жен_ш1, жен_ш2, 'Женщины')
@@ -4385,10 +4386,16 @@ def create_результаты_слалом_docx(
         sect.page_height = Mm(297); sect.page_width = Mm(210)
     else:
         sect.page_height = Mm(210); sect.page_width = Mm(297)
-    sect.top_margin    = Mm(15)
-    sect.bottom_margin = Mm(15)
-    sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(5)
+    if портрет:
+        sect.top_margin    = Mm(15)
+        sect.bottom_margin = Mm(15)
+        sect.left_margin   = Mm(10)
+        sect.right_margin  = Mm(5)
+    else:
+        sect.top_margin    = Mm(12)
+        sect.bottom_margin = Mm(12)
+        sect.left_margin   = Mm(7)
+        sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
@@ -4414,6 +4421,8 @@ def create_результаты_слалом_docx(
     _add_sigs(doc)
 
     buf2 = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf2)
     buf2.seek(0)
     return send_file(buf2, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
