@@ -4058,7 +4058,7 @@ def create_результаты_слалом_docx(
             cs = list(r.cells)
             for c in cs:
                 _no_border_cell(c)
-                _valign(c, 'bottom' if (not портрет and idx == 0) else ('top' if (not портрет and idx == 1) else 'center'))
+                _valign(c, 'bottom' if (not портрет and idx == 0) else ('top' if idx == 1 else 'center'))
             _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
             if idx == 0:
                 _bottom_border_cell(cs[0]); _bottom_border_cell(cs[2])
