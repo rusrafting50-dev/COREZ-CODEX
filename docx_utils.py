@@ -12,6 +12,29 @@ from flask import send_file
 
 DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
+
+def _apply_no_break(doc):
+    """Запретить разрыв строк таблиц при переносе на следующую страницу."""
+    for tbl in doc.tables:
+        for row in tbl.rows:
+            trPr = row._tr.find(qn('w:trPr'))
+            if trPr is None:
+                trPr = OxmlElement('w:trPr')
+                row._tr.insert(0, trPr)
+            if trPr.find(qn('w:cantSplit')) is None:
+                trPr.append(OxmlElement('w:cantSplit'))
+
+
+def _apply_keep_next(doc):
+    """Объединённая секция-заголовок всегда остаётся со следующей строкой данных."""
+    for tbl in doc.tables:
+        rows = list(tbl.rows)
+        for i, row in enumerate(rows[:-1]):
+            cells = row.cells
+            if len(set(id(c) for c in cells)) == 1:
+                for p in cells[0].paragraphs:
+                    p.paragraph_format.keep_with_next = True
+
 # Usable widths (page − margins)
 _PAGE_WIDTH_LANDSCAPE_CM = 27.2   # 29.7 − 1.5 − 1.0
 _PAGE_WIDTH_PORTRAIT_CM  = 18.5   # 21.0 − 1.5 − 1.0
@@ -1300,6 +1323,8 @@ def send_docx(html_string, filename, portrait=None, date_place_border_size=6, da
     _apply_section_row_font_size(doc, None, section_row_font_half_pts)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -1640,6 +1665,8 @@ def create_акт_дистанции_docx(сор, дистанции, тип, fi
             _cell_text(c1, fio, pt=12)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -2085,6 +2112,8 @@ def create_старт_спринт_docx(сор, группы, filename, порт
         _add_table(doc, секции)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -2544,6 +2573,8 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _build_section(метка, команды, мб_колонки)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -3341,6 +3372,8 @@ def create_старт_дг_docx(сор, секции, filename, портрет=T
         _add_table(doc, метка, команды, мб_колонки)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -3683,6 +3716,8 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
         _add_table(doc, секция['заезды'])
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -4740,6 +4775,8 @@ def create_нагрудные_номера_docx(сор, команды, filename
     _add_table(doc, _ordered_groups())
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf)
     buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
@@ -5212,6 +5249,8 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _para(doc, f'Время опубликования: {now_str}', align=L, pt=PT)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -5682,6 +5721,8 @@ def create_результаты_пред_дг_docx(сор, муж_рез, муж
     _para(doc, f'Время опубликования: {now_str}', align=L, pt=PT)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -6122,6 +6163,8 @@ def create_результаты_итог_спринт_docx(сор, муж_рез
 
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -6526,6 +6569,8 @@ def create_результаты_итог_дг_docx(сор, муж_рез, муж
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -6903,6 +6948,8 @@ def create_результаты_итог_пс_docx(сор, муж_итог, же
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -7410,6 +7457,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -7853,6 +7902,8 @@ def create_результаты_кз_docx(сор, итог, группы, таб
                 _fill(csd[j + 1], _fmt_bal(v) if v != '' else '–', align=C, pt=PT)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
@@ -8319,5 +8370,7 @@ def create_результаты_мн_docx(сор, муж_рез, жен_рез, 
         _fill(cs[1], фио,    align=L, pt=PT, bold=True)
 
     buf = BytesIO()
+    _apply_no_break(doc)
+    _apply_keep_next(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
