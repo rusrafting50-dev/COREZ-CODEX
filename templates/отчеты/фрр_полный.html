@@ -301,36 +301,25 @@
 </ol>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
-{% set nb = 'border:none;mso-border-alt:none;' %}
-{% set ul = 'border:none;mso-border-alt:none;border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;' %}
+{% set ibl = 'display:inline-block;vertical-align:bottom;' %}
+{% set W0 = '270px' %}{# ширина столбца «должность» #}
+{% set W1 = '90px'  %}{# ширина столбца «подпись» #}
 <div style="margin-top:28px">
-<table class="sig-table" style="width:100%;border-collapse:collapse">
-  <colgroup>
-    <col style="width:auto">
-    <col style="width:100px">
-    <col style="width:auto">
-  </colgroup>
-  <tr>
-    <td style="{{ nb }}white-space:nowrap;vertical-align:bottom;padding:0 10px 0 0">Главный судья соревнований</td>
-    <td style="{{ ul }}text-align:center;vertical-align:bottom;padding:0 4px">&nbsp;</td>
-    <td style="{{ ul }}text-align:center;vertical-align:bottom;padding:0 4px">{{ сор.главный_судья or '' }}</td>
-  </tr>
-  <tr>
-    <td style="{{ nb }}"></td>
-    <td style="{{ nb }}font-size:8pt;text-align:center">(подпись)</td>
-    <td style="{{ nb }}font-size:8pt;text-align:center">(расшифровка подписи)</td>
-  </tr>
-  <tr>
-    <td style="{{ nb }}white-space:nowrap;vertical-align:bottom;padding:12px 10px 0 0">Главный секретарь соревнований</td>
-    <td style="{{ ul }}text-align:center;vertical-align:bottom;padding:12px 4px 0 4px">&nbsp;</td>
-    <td style="{{ ul }}text-align:center;vertical-align:bottom;padding:12px 4px 0 4px">{{ сор.главный_секретарь or '' }}</td>
-  </tr>
-  <tr>
-    <td style="{{ nb }}"></td>
-    <td style="{{ nb }}font-size:8pt;text-align:center">(подпись)</td>
-    <td style="{{ nb }}font-size:8pt;text-align:center">(расшифровка подписи)</td>
-  </tr>
-</table>
+
+  <p style="margin:0;line-height:2">
+    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный судья соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}min-width:160px;border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ сор.главный_судья or '' }}</span>
+  </p>
+  <p style="margin:0 0 16px">
+    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}min-width:160px;font-size:8pt;text-align:center">(расшифровка подписи)</span>
+  </p>
+
+  <p style="margin:0;line-height:2">
+    <span style="{{ ibl }}width:{{ W0 }};white-space:nowrap">Главный секретарь соревнований</span><span style="{{ ibl }}width:{{ W1 }};border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">&nbsp;</span><span style="{{ ibl }}min-width:160px;border-bottom:1px solid #000;mso-border-bottom-alt:solid #000 .75pt;text-align:center">{{ сор.главный_секретарь or '' }}</span>
+  </p>
+  <p style="margin:0">
+    <span style="{{ ibl }}width:{{ W0 }}"></span><span style="{{ ibl }}width:{{ W1 }};font-size:8pt;text-align:center">(подпись)</span><span style="{{ ibl }}min-width:160px;font-size:8pt;text-align:center">(расшифровка подписи)</span>
+  </p>
+
 </div>
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
