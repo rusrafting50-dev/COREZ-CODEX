@@ -9,7 +9,7 @@
     h3 { font-size: 11pt; font-weight: bold; margin: 14px 0 4px; }
     p  { margin: 3px 0; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
-    table td, table th { border: 1px solid #333; padding: 3px 5px; }
+    table td, table th { border: 1px solid #000; mso-border-alt: solid #000 .75pt; padding: 3px 5px; }
     table th { font-weight: bold; text-align: center; background: #f0f0f0; }
     .center { text-align: center; }
     .bold { font-weight: bold; }
@@ -301,22 +301,31 @@
 </ol>
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
-{% macro подпись(должность, фио) %}
-<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
-  <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
-  <div style="flex:0 0 100px;text-align:center">
-    <div style="border-bottom:1px solid #000">&nbsp;</div>
-    <div style="font-size:8pt">(подпись)</div>
-  </div>
-  <div style="flex:1;text-align:center">
-    <div><span style="border-bottom:1px solid #000;display:inline-block;min-width:150px">{{ фио }}</span></div>
-    <div style="font-size:8pt">(расшифровка подписи)</div>
-  </div>
-</div>
+{% macro подпись_строка(должность, фио, квал, субъект) %}
+<table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+  <tr>
+    <td style="border:none;white-space:nowrap;vertical-align:bottom;padding:0 10px 0 0">{{ должность }}</td>
+    <td style="border:none;border-bottom:1px solid #000;width:80px;text-align:center;vertical-align:bottom;padding:0 4px">&nbsp;</td>
+    <td style="border:none;border-bottom:1px solid #000;width:170px;text-align:center;vertical-align:bottom;padding:0 4px">{{ фио }}</td>
+    <td style="border:none;border-bottom:1px solid #000;width:70px;text-align:center;vertical-align:bottom;padding:0 4px">{{ квал }}</td>
+    <td style="border:none;border-bottom:1px solid #000;vertical-align:bottom;padding:0 4px">{{ субъект }}</td>
+  </tr>
+  <tr>
+    <td style="border:none"></td>
+    <td style="border:none;font-size:8pt;text-align:center">(подпись)</td>
+    <td style="border:none;font-size:8pt;text-align:center">(расшифровка подписи)</td>
+    <td style="border:none;font-size:8pt;text-align:center">(квалификация)</td>
+    <td style="border:none;font-size:8pt;text-align:center">(субъект Российской Федерации)</td>
+  </tr>
+</table>
 {% endmacro %}
 <div style="margin-top:28px">
-  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
-  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
+  {{ подпись_строка('Главный судья соревнований',
+                    сор.главный_судья or '',
+                    сор.главный_судья_квалификация or '',
+                    сор.главный_судья_субъект_рф or '') }}
+  {{ подпись_строка('Главный секретарь соревнований',
+                    сор.главный_секретарь or '', '', '') }}
 </div>
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
@@ -338,7 +347,7 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += 'td,th{border:1px solid #000;mso-border-alt:solid #000 .75pt;padding:3px 5px;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
