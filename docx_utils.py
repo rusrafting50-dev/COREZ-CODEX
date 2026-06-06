@@ -4209,6 +4209,8 @@ def create_результаты_слалом_docx(
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_итог(doc):
+        снос = ((len(муж_рез) + len(муж_без) > 0 and len(муж_рез) + len(муж_без) < 6) or
+                (len(жен_рез) + len(жен_без) > 0 and len(жен_рез) + len(жен_без) < 6))
         # Proportions from sample Протокол_результатов_сл_итог.docx
         _PCTS_ИТ = [2.8, 11.2, 4.3, 22.7, 7.2,   # НПП, Команда, Номер, Состав, Субъект
                     4.9, 4.7, 5.9,                   # 1-я: Время, Штраф, Результат
@@ -4252,7 +4254,7 @@ def create_результаты_слалом_docx(
         _fill(cs[11], 'Лучшая попытка',      align=C, pt=PT_HDR, bold=True)
         _fill(cs[12], 'Место',               align=C, pt=PT_HDR, bold=True)
         _fill(cs[13], 'Очки',               align=C, pt=PT_HDR, bold=True)
-        _fill(cs[14], 'Выполнение разряда',  align=C, pt=PT_HDR, bold=True)
+        _fill(cs[14], 'Выполнение разряда' + ('*' if снос else ''),  align=C, pt=PT_HDR, bold=True)
         for col in [0, 1, 2, 3, 4, 11, 12, 13, 14]:
             _vmerge_restart(cs[col])
 
@@ -4275,11 +4277,11 @@ def create_результаты_слалом_docx(
             elif рез.статус_попытки == 'ДК':
                 _fill(cs[base],   _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
                 _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
-                _fill(cs[base+2], 'ДК', align=C, pt=PT, bold=True)
+                _fill(cs[base+2], 'ДК', align=C, pt=PT)
             else:
                 _fill(cs[base],   _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
                 _fill(cs[base+1], _fmt_шт(рез.штрафное_время), align=C, pt=PT)
-                _fill(cs[base+2], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, pt=PT, bold=True)
+                _fill(cs[base+2], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, pt=PT)
 
         def _add_sect(рез_list, без_list, разряды, поп, заг_пол):
             if not рез_list and not без_list:
@@ -4312,13 +4314,18 @@ def create_результаты_слалом_docx(
                     if is_без:
                         for i in range(11, 15): _fill(cs[i], '–', align=C, pt=PT)
                     else:
-                        _fill(cs[11], _fmt_dur(рез.лучший_результат),                align=C, pt=PT, bold=True)
+                        _fill(cs[11], _fmt_dur(рез.лучший_результат),                align=C, pt=PT)
                         _fill(cs[12], str(рез.место),                                align=C, pt=PT)
                         _fill(cs[13], str(int(рез.очки)) if рез.очки else '–',       align=C, pt=PT)
                         _fill(cs[14], разряды.get(к.id, '–') if норм_флаг else '–', align=C, pt=PT)
 
         _add_sect(муж_рез, муж_без, муж_разр, муж_поп, 'Мужчины')
         _add_sect(жен_рез, жен_без, жен_разр, жен_поп, 'Женщины')
+        if снос:
+            _para(doc,
+                  '* Разряды не присваиваются, т.к. количество участников в виде программы '
+                  'недостаточно для присвоения в соответствии с положением о ЕВСК (пункт 25)',
+                  align=L, pt=PT_FIO, bold=False)
 
     # ── Build document ────────────────────────────────────────────────────────
 
