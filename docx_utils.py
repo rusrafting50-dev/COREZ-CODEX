@@ -6744,3 +6744,434 @@ def create_результаты_итог_пс_docx(сор, муж_итог, же
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_результаты_кз_docx(сор, итог, группы, таблица_зс, filename, портрет=False):
+    """Протокол командного зачёта субъектов РФ."""
+    ПОЛ_НАЗВ = {'м': 'Мужчины', 'ж': 'Женщины'}
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+
+    nГр = len(группы)
+    TW = round((210 - 10 - 5) * 1440 / 25.4) if портрет else round((297 - 10 - 5) * 1440 / 25.4)
+
+    _W_НПП = 3
+    _W_СУБ = max(12, 38 - nГр * 6)
+    _W_КОЛ = 5
+    _W_БАЛ = 8
+    _W_МЕ  = 4
+    _weights = [_W_НПП, _W_СУБ] + [w for _ in группы for w in [_W_КОЛ, _W_БАЛ]] + [_W_КОЛ, _W_БАЛ, _W_МЕ]
+    _total_W = sum(_weights)
+    GRID = [round(TW * w / _total_W) for w in _weights]
+    GRID[-1] += TW - sum(GRID)
+    NC = len(GRID)
+
+    I_НПП    = 0
+    I_СУБ    = 1
+    I_ИТ_КОЛ = 2 + 2 * nГр
+    I_ИТ_БАЛ = 2 + 2 * nГр + 1
+    I_МЕ     = 2 + 2 * nГр + 2
+
+    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
+    W_SIG_L = TW_SIG * 35 // 100
+    W_SIG_R = TW_SIG - W_SIG_L
+
+    if портрет:
+        PT, PT_HDR = 8, 8
+    else:
+        PT, PT_HDR = 10, 10
+    MAR = 28
+
+    def _fmt_bal(v):
+        s = f'{round(float(v), 2):.2f}'.rstrip('0').rstrip('.')
+        return s if s else '0'
+
+    def _sp(p):
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after  = Pt(0)
+
+    def _run(p, text, pt=PT, bold=False):
+        r = p.add_run(text); r.font.name = TNR; r.font.size = Pt(pt)
+        if bold: r.font.bold = True
+        return r
+
+    def _para(doc, text='', align=None, pt=PT, bold=False):
+        p = doc.add_paragraph(); _sp(p)
+        if align: p.alignment = align
+        if text: _run(p, text, pt, bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+
+    def _bottom_border(cell, sz=6):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'right', 'insideH', 'insideV'):
+            el = b.find(qn(f'w:{side}'))
+            if el is None:
+                el = OxmlElement(f'w:{side}'); b.append(el)
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+        el = b.find(qn('w:bottom'))
+        if el is None:
+            el = OxmlElement('w:bottom'); b.append(el)
+        el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+        el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        tcW.set(qn('w:w'), str(int(w))); tcW.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        va = pr.find(qn('w:vAlign'))
+        if va is None:
+            va = OxmlElement('w:vAlign'); pr.append(va)
+        va.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=None, pt=PT, bold=False):
+        p = cell.paragraphs[0]; p.clear(); p.style = 'No Spacing'; _sp(p)
+        if align: p.alignment = align
+        text = str(text).replace('—', '–')
+        if not text: return
+        parts = str(text).split('\n')
+        for i, part in enumerate(parts):
+            r = p.add_run(part); r.font.name = TNR; r.font.size = Pt(pt)
+            if bold: r.font.bold = True
+            if i < len(parts) - 1:
+                br = OxmlElement('w:br'); r._r.append(br)
+
+    def _cw_pct(cell, dxa):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW'); pr.append(tcW)
+        pct = round(dxa * 5000 / TW)
+        tcW.set(qn('w:w'), str(pct)); tcW.set(qn('w:type'), 'pct')
+
+    def _make_tbl(ncols, fixed_tw=None, jc=None):
+        t = doc.add_table(rows=0, cols=ncols)
+        tbl = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        for tl in tblPr.findall(qn('w:tblLook')): tblPr.remove(tl)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        if fixed_tw:
+            el.set(qn('w:w'), str(fixed_tw)); el.set(qn('w:type'), 'dxa')
+        else:
+            el.set(qn('w:w'), '5000'); el.set(qn('w:type'), 'pct')
+        if jc == 'center':
+            for old_ind in tblPr.findall(qn('w:tblInd')): tblPr.remove(old_ind)
+        else:
+            ind = tblPr.find(qn('w:tblInd'))
+            if ind is None: ind = OxmlElement('w:tblInd'); tblPr.append(ind)
+            ind.set(qn('w:w'), '0'); ind.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        if jc:
+            jc_el = tblPr.find(qn('w:jc'))
+            if jc_el is None: jc_el = OxmlElement('w:jc'); tblPr.append(jc_el)
+            jc_el.set(qn('w:val'), jc)
+        return t
+
+    def _set_grid_sp(tbl_obj, widths):
+        tbl = tbl_obj._tbl
+        old = tbl.find(qn('w:tblGrid'))
+        if old is not None: tbl.remove(old)
+        grid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol'); gc.set(qn('w:w'), str(w)); grid.append(gc)
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is not None: tblPr.addnext(grid)
+        else: tbl.insert(0, grid)
+
+    def _row_h(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr'); row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')): pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567))); rh.set(qn('w:hRule'), 'exact')
+        pr.append(rh)
+
+    def _row_h_min(row, cm):
+        pr = row._tr.find(qn('w:trPr'))
+        if pr is None:
+            pr = OxmlElement('w:trPr'); row._tr.insert(0, pr)
+        for old in pr.findall(qn('w:trHeight')): pr.remove(old)
+        rh = OxmlElement('w:trHeight')
+        rh.set(qn('w:val'), str(int(cm * 567))); rh.set(qn('w:hRule'), 'atLeast')
+        pr.append(rh)
+
+    def _tcMar(cell, lr=28):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:tcMar')): pr.remove(old)
+        mar = OxmlElement('w:tcMar')
+        for side in ('left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(lr)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
+    def _no_wrap_cell(cell):
+        pr = _tcpr(cell)
+        if pr.find(qn('w:noWrap')) is None:
+            pr.append(OxmlElement('w:noWrap'))
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
+        vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart'); pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        for old in pr.findall(qn('w:vMerge')): pr.remove(old)
+        vm = OxmlElement('w:vMerge'); pr.append(vm)
+
+    def _ls15(p):
+        pPr = p._p.get_or_add_pPr()
+        sp = pPr.find(qn('w:spacing'))
+        if sp is None:
+            sp = OxmlElement('w:spacing'); pPr.append(sp)
+        sp.set(qn('w:line'), '360'); sp.set(qn('w:lineRule'), 'auto')
+
+    # ── document ──────────────────────────────────────────────────────────────
+    from docx.shared import Mm
+    doc  = Document()
+    sect = doc.sections[0]
+    if портрет:
+        sect.page_height   = Mm(297); sect.page_width    = Mm(210)
+    else:
+        sect.page_height   = Mm(210); sect.page_width    = Mm(297)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(5)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        if портрет:
+            pgSz.attrib.pop(qn('w:orient'), None)
+        else:
+            pgSz.set(qn('w:orient'), 'landscape')
+    doc.styles['Normal'].font.name = 'Times New Roman'
+    doc.styles['Normal'].font.size = Pt(10)
+    body = doc.element.body
+    for child in list(body):
+        if child.tag == qn('w:p'):
+            body.remove(child)
+
+    # ── header ────────────────────────────────────────────────────────────────
+    _hdr_pt = 10 if портрет else 12
+    if сор.организаторы_блок:
+        _para(doc, сор.организаторы_блок, align=C, pt=_hdr_pt, bold=True)
+    p0 = _para(doc); p0.paragraph_format.line_spacing = Pt(4)
+    _ls15(_para(doc, сор.название or '', align=C, pt=12, bold=True))
+    _ls15(_para(doc, 'Командный зачет среди субъектов Российской Федерации',
+                align=C, pt=_hdr_pt, bold=True))
+
+    # ── дата/место ────────────────────────────────────────────────────────────
+    dt = _make_tbl(3, fixed_tw=TW, jc='center')
+    _cw_char = round(PT * 0.6 * 20)
+    _w_dt  = max(100, len(сор.даты_проведения or 'Дата проведения') * _cw_char + 2 * MAR)
+    _w_pl  = max(100, len(сор.место_проведения or 'Место проведения') * _cw_char + 2 * MAR)
+    _w_mid = max(100, TW - _w_dt - _w_pl)
+    _set_grid_sp(dt, [_w_dt, _w_mid, _w_pl])
+    _dt_rh = (lambda r: _row_h(r, 0.3)) if портрет else (lambda r: _row_h(r, 0.4))
+    for idx, (лево, право, pt_v, bold_v) in enumerate([
+        (сор.даты_проведения or '', сор.место_проведения or '', PT, True),
+        ('Дата проведения', 'Место проведения', PT if not портрет else 7, not портрет),
+    ]):
+        r = dt.add_row(); _dt_rh(r)
+        cs = list(r.cells)
+        for c in cs:
+            _no_border(c)
+            _valign(c, 'bottom' if (not портрет and idx == 0) else ('top' if (not портрет) else 'center'))
+        _no_wrap_cell(cs[0]); _no_wrap_cell(cs[2])
+        if idx == 0:
+            _bottom_border(cs[0]); _bottom_border(cs[2])
+        _fill(cs[0], лево, align=C, pt=pt_v, bold=bold_v)
+        _fill(cs[2], право, align=C, pt=pt_v, bold=bold_v)
+
+    p = _para(doc); p.paragraph_format.line_spacing = Pt(1)
+
+    # ── main table ────────────────────────────────────────────────────────────
+    tbl = _make_tbl(NC, fixed_tw=TW, jc='center')
+    _set_grid_sp(tbl, GRID)
+
+    # header row 0
+    r0 = tbl.add_row(); _row_h_min(r0, 0.9 if портрет else 0.6)
+    cs0 = list(r0.cells)
+    for i, w in enumerate(GRID): _cw_pct(cs0[i], w)
+
+    _vmerge_restart(cs0[I_НПП])
+    _fill(cs0[I_НПП], '№\nп/п', align=C, pt=PT_HDR, bold=True)
+
+    _vmerge_restart(cs0[I_СУБ])
+    _fill(cs0[I_СУБ], 'Субъект Российской Федерации', align=C, pt=PT_HDR, bold=True)
+
+    for gi, (пол, кл) in enumerate(группы):
+        ci = 2 + 2 * gi
+        cs0[ci].merge(cs0[ci + 1]); _cw_pct(cs0[ci], GRID[ci] + GRID[ci + 1])
+        _fill(cs0[ci], f'{ПОЛ_НАЗВ[пол]} {кл}', align=C, pt=PT_HDR, bold=True)
+
+    cs0[I_ИТ_КОЛ].merge(cs0[I_ИТ_БАЛ])
+    _cw_pct(cs0[I_ИТ_КОЛ], GRID[I_ИТ_КОЛ] + GRID[I_ИТ_БАЛ])
+    _fill(cs0[I_ИТ_КОЛ], 'ИТОГО', align=C, pt=PT_HDR, bold=True)
+
+    _vmerge_restart(cs0[I_МЕ])
+    _fill(cs0[I_МЕ], 'Место', align=C, pt=PT_HDR, bold=True)
+
+    for i in range(NC):
+        _borders(cs0[i]); _valign(cs0[i]); _tcMar(cs0[i], MAR)
+
+    # header row 1
+    r1 = tbl.add_row(); _row_h_min(r1, 0.9 if портрет else 0.6)
+    cs1 = list(r1.cells)
+    for i, w in enumerate(GRID): _cw_pct(cs1[i], w)
+
+    _vmerge_cont(cs1[I_НПП])
+    _vmerge_cont(cs1[I_СУБ])
+
+    for gi in range(nГр):
+        ci = 2 + 2 * gi
+        _fill(cs1[ci],     'Кол-во\nэкипажей', align=C, pt=PT_HDR, bold=True)
+        _fill(cs1[ci + 1], 'Баллы',             align=C, pt=PT_HDR, bold=True)
+
+    _fill(cs1[I_ИТ_КОЛ], 'Кол-во\nэкипажей', align=C, pt=PT_HDR, bold=True)
+    _fill(cs1[I_ИТ_БАЛ], 'Баллы',             align=C, pt=PT_HDR, bold=True)
+    _vmerge_cont(cs1[I_МЕ])
+
+    for i in range(NC):
+        _borders(cs1[i]); _valign(cs1[i]); _tcMar(cs1[i], MAR)
+
+    # data rows
+    for пп, з in enumerate(итог, 1):
+        r = tbl.add_row(); _row_h_min(r, 0.5)
+        cs = list(r.cells)
+        for i, w in enumerate(GRID): _cw_pct(cs[i], w)
+        for i in range(NC):
+            _borders(cs[i]); _valign(cs[i]); _tcMar(cs[i], MAR)
+
+        _fill(cs[I_НПП], str(пп),                    align=C, pt=PT)
+        _fill(cs[I_СУБ], з['субъект'].название or '–', align=L, pt=PT)
+
+        for gi, (пол, кл) in enumerate(группы):
+            ci = 2 + 2 * gi
+            gd = з['группы'].get((пол, кл), {'кол': 0, 'баллы': 0.0})
+            _fill(cs[ci],     str(gd['кол']) if gd['кол'] else '–', align=C, pt=PT)
+            _fill(cs[ci + 1], _fmt_bal(gd['баллы']) if gd['баллы'] else '–', align=C, pt=PT)
+
+        _fill(cs[I_ИТ_КОЛ], str(з['итого_кол']),            align=C, pt=PT, bold=True)
+        _fill(cs[I_ИТ_БАЛ], _fmt_bal(з['итого_баллы']),     align=C, pt=PT, bold=True)
+        _fill(cs[I_МЕ],      str(з['место']) if з.get('место') else '–', align=C, pt=PT)
+
+    # ── signature table ───────────────────────────────────────────────────────
+    sig = _make_tbl(2, fixed_tw=TW, jc='center')
+    _set_grid_sp(sig, [W_SIG_L, W_SIG_R])
+    for позиция, фио in (('Главный судья',    сор.главный_судья     or ''),
+                          ('Главный секретарь', сор.главный_секретарь or '')):
+        r = sig.add_row(); _row_h(r, 0.88)
+        cs = list(r.cells)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+        _no_border(cs[0]); _no_border(cs[1])
+        _valign(cs[0]); _valign(cs[1])
+        _fill(cs[0], позиция, align=L, pt=PT, bold=True)
+        _fill(cs[1], фио,    align=L, pt=PT, bold=True)
+
+    # ── coefficient table (таблица ЗС) ───────────────────────────────────────
+    if таблица_зс:
+        _para(doc)  # spacing
+        # Header paragraph
+        _ls15(_para(doc, 'Таблица начисления баллов', align=C, pt=PT, bold=True))
+
+        кол_nums  = таблица_зс['rows']    # кол_субъектов values (e.g. [13,12,...,3])
+        место_nums = таблица_зс['cols']   # место values (e.g. [1,2,3,4])
+        row_labels = таблица_зс['row_labels']
+        col_labels = таблица_зс['col_labels']
+        data       = таблица_зс['data']
+
+        # Cols in зс table: 1 (место label) + len(кол_nums) (one per кол_субъектов)
+        nЗС = 1 + len(кол_nums)
+        _w_ме_зс = 6; _w_кол_зс = 4
+        _ww = [_w_ме_зс] + [_w_кол_зс] * len(кол_nums)
+        _tw_зс_total = sum(_ww)
+        GRID_зс = [round(TW * w / _tw_зс_total) for w in _ww]
+        GRID_зс[-1] += TW - sum(GRID_зс)
+
+        зс = _make_tbl(nЗС, fixed_tw=TW, jc='center')
+        _set_grid_sp(зс, GRID_зс)
+
+        # header row 0: col0 vMerge, cols 1..n merged with label
+        rh0 = зс.add_row(); _row_h_min(rh0, 0.6)
+        csh0 = list(rh0.cells)
+        _cw_pct(csh0[0], GRID_зс[0])
+        _vmerge_restart(csh0[0]); _fill(csh0[0], 'Очки за\nдисциплину', align=C, pt=PT, bold=True)
+        csh0[1].merge(csh0[nЗС - 1])
+        _cw_pct(csh0[1], sum(GRID_зс[1:]))
+        _fill(csh0[1], 'Количество субъектов Российской Федерации', align=C, pt=PT, bold=True)
+        for i in range(nЗС): _borders(csh0[i]); _valign(csh0[i]); _tcMar(csh0[i], MAR)
+
+        # header row 1: col0 vMerge cont, cols 1..n кол_субъектов labels
+        rh1 = зс.add_row(); _row_h_min(rh1, 0.6)
+        csh1 = list(rh1.cells)
+        _cw_pct(csh1[0], GRID_зс[0])
+        _vmerge_cont(csh1[0])
+        for j, кол in enumerate(кол_nums):
+            _cw_pct(csh1[j + 1], GRID_зс[j + 1])
+            _fill(csh1[j + 1], row_labels[кол], align=C, pt=PT, bold=True)
+        for i in range(nЗС): _borders(csh1[i]); _valign(csh1[i]); _tcMar(csh1[i], MAR)
+
+        # data rows
+        for место in место_nums:
+            rd = зс.add_row(); _row_h_min(rd, 0.5)
+            csd = list(rd.cells)
+            for i in range(nЗС):
+                _cw_pct(csd[i], GRID_зс[i])
+                _borders(csd[i]); _valign(csd[i]); _tcMar(csd[i], MAR)
+            _fill(csd[0], col_labels[место], align=C, pt=PT, bold=True)
+            for j, кол in enumerate(кол_nums):
+                v = data.get((кол, место), '')
+                _fill(csd[j + 1], _fmt_bal(v) if v != '' else '–', align=C, pt=PT)
+
+    buf = BytesIO()
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)

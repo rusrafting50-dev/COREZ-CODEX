@@ -2,6 +2,7 @@
 from datetime import date
 from flask import Blueprint, render_template, request
 from models import (db, Соревнование, Субъект, КоэффициентыСубъектов, Команда)
+from docx_utils import create_результаты_кз_docx
 
 bp_зачет = Blueprint('зачет', __name__)
 
@@ -200,3 +201,16 @@ def протокол(sor_id):
                            портрет=портрет,
                            таблица_зс=таблица_зс,
                            сегодня=date.today())
+
+
+@bp_зачет.route('/<int:sor_id>/протокол-word')
+def протокол_word(sor_id):
+    сор = Соревнование.query.get_or_404(sor_id)
+    портрет  = request.args.get('портрет',  '0') == '1'
+    итоговый = request.args.get('итоговый', '0') == '1'
+    итог, группы = _зачёт_все(sor_id)
+    таблица_зс = _таблица_зс() if итоговый else None
+    return create_результаты_кз_docx(
+        сор, итог, группы, таблица_зс,
+        f'протокол_кз_{sor_id}.docx',
+        портрет=портрет)
