@@ -4142,9 +4142,8 @@ def create_результаты_слалом_docx(
                 _fill(cs[I_ВР], _fmt_dur(рез.время_прохождения) if рез.время_прохождения else '–', align=C, pt=PT)
                 _fill(cs[I_ИТ], _fmt_dur(рез.результат_попытки) if рез.результат_попытки else '–', align=C, pt=PT)
 
-        tbl = doc.add_table(rows=0, cols=NC)
+        tbl = _make_tbl_sl(NC, fixed_tw=TW_пред)
         _set_grid(tbl, GRID)
-        _tbl_w(tbl, TW_пред)
 
         # Header row 1
         rh1 = tbl.add_row()
@@ -4169,9 +4168,9 @@ def create_результаты_слалом_docx(
         _fill(cs[I_МЕС], 'Место', align=C, bold=True); _vert_cell(cs[I_МЕС])
         _fill(cs[I_ОЧК], 'Очки', align=C, bold=True)
         p_нор = cs[I_НОР].paragraphs[0]; p_нор.clear(); _sp(p_нор); p_нор.alignment = C
-        _run(p_нор, 'Выполнение', pt=PT_HDR, bold=True)
+        _run(p_нор, 'Выполнение', pt=8, bold=True)
         _line_br(p_нор)
-        _run(p_нор, 'разряда' + ('*' if снос else ''), pt=PT_HDR, bold=True)
+        _run(p_нор, 'разряда' + ('*' if снос else ''), pt=8, bold=True)
         _valign(cs[I_НОР]); _vert_cell(cs[I_НОР])
         for col in ROWSPAN_H:
             _vmerge_restart(cs[col])
