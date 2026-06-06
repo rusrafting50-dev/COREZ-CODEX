@@ -6993,11 +6993,11 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
 
     ROWSPAN_COLS = [I_НПП, I_КОМ, I_НОМ, I_ФИО, I_СУБ, I_МСП, I_МЕС, I_ОЧК, I_РАЗ]
 
-    # Column width proportions
+    # Column width proportions (based on Протокол_результатов_пс_пред.docx)
     if портрет:
-        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 3, 12, 4, 8, 4
-        _P_ЗА, _P_РЕЗ = 3, 4
-        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 3, 4, 4, 4, 7
+        _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 3.0, 11.8, 4.6, 7.6, 6.0
+        _P_ЗА, _P_РЕЗ = 3.4, 5.7
+        _P_СТА, _P_ВРМ, _P_МЕС, _P_ОЧК, _P_РАЗ = 4.7, 3.8, 3.8, 3.8, 7.5
     else:
         _P_НПП, _P_КОМ, _P_НОМ, _P_СУБ, _P_МСП = 2.4, 9.9, 3.0, 8.2, 3.2
         _P_ЗА, _P_РЕЗ = 4.37, 6.6
@@ -7013,9 +7013,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     GRID = [round(TW * p / _tot) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
 
-    TW_SIG  = round((210 - 15 - 10) * 1440 / 25.4)
-    W_SIG_L = TW_SIG * 35 // 100
-    W_SIG_R = TW_SIG - W_SIG_L
+    W_SIG_L = TW * 35 // 100
+    W_SIG_R = TW - W_SIG_L
 
     НАЗВАНИЯ_СТ = {
         '1/16': '1/16 финала', '1/8': '1/8 финала',
@@ -7327,7 +7326,7 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _set_grid_sp(tbl, GRID)
 
     # ── Header row 0 ──────────────────────────────────────────────────────────
-    _HDR_H = 1.0
+    _HDR_H = 1.5 if портрет else 1.0
     r0 = tbl.add_row(); _row_h_min(r0, _HDR_H)
     cs0 = list(r0.cells)
     for i, w in enumerate(GRID): _cw_pct(cs0[i], w)
@@ -7348,6 +7347,8 @@ def create_результаты_пред_пс_docx(сор, муж_итог, же
     _fill(cs0[I_ОЧК], 'Очки',                              align=C, pt=PT_HDR, bold=True)
     _fill(cs0[I_РАЗ], 'Выполнение разряда' + ('*' if снос else ''), align=C, pt=PT_HDR, bold=True)
     _vert_cell(cs0[I_РАЗ])
+    if портрет:
+        _vert_cell(cs0[I_МЕС])
 
     # colspan-2 stage group headers
     for i, ст in enumerate(ПОРЯДОК_ПОКАЗА):
