@@ -376,30 +376,35 @@ function exportWord() {
       return '\u00a0'.repeat(n) + text + '\u00a0'.repeat(n);
     }
 
-    var GAP  = 8;   // 0.2 cm gap between (подпись) and (расшифровка подписи) columns
-    var LH   = 'line-height:normal;mso-line-height-rule:exactly;';
-    var NC   = 'border:none;padding:0;' + LH;
-    var VALB = 'vertical-align:bottom;';
-    var VALM = 'vertical-align:middle;';
-    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;' + LH;
-    var TOPB = 'border:none;border-top:1px solid #000;'
-             + 'mso-border-alt:none;mso-border-top-alt:solid #000 .75pt;'
-             + 'padding:2px 0 0;' + LH;
-    var CENT = 'text-align:center;';
+    var GAP   = 8;
+    var LH    = 'line-height:normal;mso-line-height-rule:exactly;';
+    var BN    = 'border:none;mso-border-alt:none;';
+    var NC    = BN + 'padding:0;' + LH;
+    var VALB  = 'vertical-align:bottom;';
+    var VALM  = 'vertical-align:middle;';
+    var FONT  = 'font-family:\'Times New Roman\',serif;font-size:11pt;' + LH;
+    var TOPB  = BN + 'border-top:1px solid #000;mso-border-top-alt:solid #000 .75pt;padding:2px 0 0;' + LH;
+    var CENT  = 'text-align:center;';
 
-    // «Без интервала»: margin:0 + mso-para-margin + class MsoNoSpacing (Word распознаёт нативно)
+    // Вычисляем posPx ДО sigRow — нужен внутри функции
+    var bPx   = Math.round(txtW(BLANK));
+    var fPx   = Math.round(wFIO) + 12;
+    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 20; // +20px запас на Word
+
+    // «Без интервала»: все 4 свойства, class MsoNoSpacing = нативный стиль Word
     var P = 'margin:0;margin-top:0;margin-bottom:0;'
           + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
           + LH;
 
-    function mkP(extraStyle, text) {
-      return '<p class="MsoNoSpacing" style="' + P + (extraStyle || '') + '">' + text + '</p>';
+    function mkP(extra, text) {
+      return '<p class="MsoNoSpacing" style="' + P + (extra || '') + '">' + text + '</p>';
     }
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
-           + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">'
-           +   mkP('', pos) + '</td>'
+           // col1: фиксированная ширина + nowrap и на td и на p — чтобы Word не переносил
+           + '<td style="' + NC + VALB + 'white-space:nowrap;width:' + posPx + 'px;padding-right:8px">'
+           +   mkP('white-space:nowrap', pos) + '</td>'
            + '<td style="' + NC + VALM + CENT + '">'
            +   mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>') + '</td>'
            + '<td style="' + NC + VALB + 'width:' + GAP + 'px">' + mkP('', '') + '</td>'
@@ -419,9 +424,6 @@ function exportWord() {
            + '</tr>';
     }
 
-    var bPx  = Math.round(txtW(BLANK));
-    var fPx  = Math.round(wFIO) + 12;
-    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 8; // ширина по длиннейшему тексту + padding-right
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
              + ' style="border:none;border-collapse:collapse;margin-top:20px;width:auto">'
              + '<col style="width:' + posPx + 'px"><col style="width:' + bPx + 'px">'
@@ -454,18 +456,27 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
+  // Убираем CSS-рамки; рамки data-таблиц идут через border="1" атрибут
   css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
-  // «Без интервала» — переопределяем p{margin:3px 0} из CSS страницы; последнее правило побеждает
+  // «Без интервала» — переопределяем p{margin:3px 0} из CSS страницы (одинаковая специфичность, последнее побеждает)
   css += 'p,p.MsoNoSpacing{'
        + 'margin:0;margin-top:0;margin-bottom:0;'
        + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
        + 'line-height:normal;mso-line-height-rule:exactly;}';
-  // sig-out: auto-ширина (не 100%), принудительные padding и выравнивание ячеек
-  css += 'table.sig-out{width:auto!important;}'
-       + 'table.sig-out td{'
+  // sig-out: отдельный блок !important чтобы перекрыть table{width:100%} и table td{border:1px}
+  css += 'table.sig-out{'
+       + 'width:auto!important;border:none!important;border-collapse:collapse;}'
+       + 'table.sig-out td,table.sig-out th{'
+       + 'border:none!important;mso-border-alt:none!important;'
        + 'padding:0!important;vertical-align:middle!important;'
-       + 'line-height:normal;mso-line-height-rule:exactly;}'
-       + 'table.sig-out td:first-child{vertical-align:bottom!important;text-align:left;}';
+       + 'white-space:nowrap;line-height:normal;mso-line-height-rule:exactly;}'
+       + 'table.sig-out td:first-child{'
+       + 'vertical-align:bottom!important;text-align:left!important;white-space:nowrap;}'
+       // Специфичный оверрайд для p внутри sig-out (0,1,1 > 0,0,1)
+       + 'table.sig-out p,table.sig-out p.MsoNoSpacing{'
+       + 'margin:0!important;margin-top:0!important;margin-bottom:0!important;'
+       + 'mso-para-margin:0cm!important;mso-para-margin-top:0cm!important;mso-para-margin-bottom:0cm!important;'
+       + 'line-height:normal!important;mso-line-height-rule:exactly!important;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm 14mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
