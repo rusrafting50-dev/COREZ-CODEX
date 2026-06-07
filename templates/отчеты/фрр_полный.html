@@ -389,7 +389,7 @@ function exportWord() {
 
     // Вычисляем posPx ДО sigRow — нужен внутри функции
     var bPx     = Math.round(txtW(BLANK));
-    var fPx     = Math.round(wFIO) + 12;
+    var fPx     = Math.max(Math.round(wFIO), Math.round(txtW('(расшифровка подписи)'))) + 12;
     var textW   = Math.round(txtW('Главный секретарь соревнований'));
     var posPx   = textW + 8;              // +8px = padding-right ячейки
     // A4 portrait: 210мм − 15мм − 15мм = 180мм = 680px при 96dpi
@@ -426,10 +426,10 @@ function exportWord() {
       return '<tr>'
            + td(posPx,   NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : ''), mkP('', ''))
            + td(bPx,     TOPB + VALM + CENT,
-                mkP('font-size:8pt;text-align:center', '(подпись)'))
+                mkP('font-size:8pt;text-align:center;white-space:nowrap', '(подпись)'))
            + td(GAP,     NC + VALM, mkP('', ''))
            + td(fPx,     TOPB + VALM + CENT,
-                mkP('font-size:8pt;text-align:center', '(расшифровка подписи)'))
+                mkP('font-size:8pt;text-align:center;white-space:nowrap', '(расшифровка подписи)'))
            + td(rightPx, NC, mkP('', ''))
            + '</tr>';
     }
