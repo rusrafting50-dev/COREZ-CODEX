@@ -9492,22 +9492,25 @@ def create_гск_docx(сор, судьи, filename):
             _valign(cell, va)
 
     # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
+    # ind_l = ind_first = 708 dxa (~12.5мм) — отступ первой строки
+    IND = 708
+
     _para()
-    _para('УТВЕРЖДАЮ', pt=13, bold=True, align=C)
+    _indent(_para('УТВЕРЖДАЮ', pt=13, bold=True, align=C), IND, IND)
 
     if сор.проводящая_орг_должность:
-        _para(сор.проводящая_орг_должность.strip(), pt=11, after=3, align=C)
+        _indent(_para(сор.проводящая_орг_должность.strip(), pt=11, after=3, align=C), IND, IND)
 
     if сор.проводящая_орг_название:
         for line in сор.проводящая_орг_название.split('\n'):
             if line.strip():
-                _para(line.strip(), pt=11, after=3, align=C)
+                _indent(_para(line.strip(), pt=11, after=3, align=C), IND, IND)
 
     _para()
     руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
-    _para(руков, pt=11, bold=True, align=R)
+    _indent(_para(руков, pt=11, align=R), IND, IND)
     _para()
-    _para('«____» ___________ 202__ г.', pt=11, align=C)
+    _indent(_para('«____» ___________ 202__ г.', pt=11, align=C), IND, IND)
     _para()
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
