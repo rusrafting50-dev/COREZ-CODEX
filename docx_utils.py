@@ -9282,7 +9282,7 @@ def create_гск_docx(сор, судьи, filename):
 
     # Column widths scaled from sample proportions (494:2762:3901:1719:2068)
     # Column widths: №=477, Должность=2664, ФИО=3024, Квалификация=2400, Субъект=1995
-    GRID = [477, 2664, 3024, 2400, 1995]
+    GRID = [477, 2664, 3504, 1920, 1995]
 
 
     doc  = Document()
