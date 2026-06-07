@@ -5314,7 +5314,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     sect.top_margin    = Mm(10)
     sect.bottom_margin = Mm(15)
     sect.left_margin   = Mm(15)
-    sect.right_margin  = Mm(15) if портрет else Mm(10)
+    sect.right_margin  = Mm(5) if портрет else Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
@@ -9277,12 +9277,12 @@ def create_гск_docx(сор, судьи, filename):
     L   = WD_ALIGN_PARAGRAPH.LEFT
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
-    # A4 portrait, L=10, R=15, T=15, B=15 (from sample)
-    TW = round((210 - 10 - 15) * 1440 / 25.4)  # 10560 dxa
+    # A4 portrait, L=10, R=5, T=15, B=15
+    TW = round((210 - 10 - 5) * 1440 / 25.4)   # 11054 dxa
 
     # Column widths scaled from sample proportions (494:2762:3901:1719:2068)
     # Column widths: №=477, Должность=2664, ФИО=3024, Квалификация=2400, Субъект=1995
-    GRID = [477, 2664, 3504, 1920, 1995]
+    GRID = [477, 2664, 3998, 1920, 1995]
 
 
     doc  = Document()
@@ -9290,7 +9290,7 @@ def create_гск_docx(сор, судьи, filename):
     sect.page_width    = Mm(210)
     sect.page_height   = Mm(297)
     sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(15)
+    sect.right_margin  = Mm(5)
     sect.top_margin    = Mm(15)
     sect.bottom_margin = Mm(15)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
