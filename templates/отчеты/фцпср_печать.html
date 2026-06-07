@@ -205,23 +205,40 @@
 
 {# ── Подписи ─────────────────────────────────────────────────────────────── #}
 {# Ширина колонки должности фиксирована — чтобы ФИО обеих строк начинались на одном уровне #}
-{% macro подпись(должность, фио) %}
-<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
-  <div style="flex:0 0 250px;padding-top:2px">{{ должность }}</div>
-  <div style="flex:0 0 100px;text-align:center">
-    <div style="border-bottom:1px solid #000">&nbsp;</div>
-    <div style="font-size:8pt">(подпись)</div>
-  </div>
-  <div style="flex:1;text-align:center">
-    <div><span style="border-bottom:1px solid #000;display:inline-block;min-width:150px">{{ фио }}</span></div>
-    <div style="font-size:8pt">(расшифровка подписи)</div>
-  </div>
-</div>
+{% macro ифио(фио) %}
+  {%- set p = (фио or '').split() -%}
+  {%- if p|length >= 3 -%}{{ p[1][0] }}.&nbsp;{{ p[2][0] }}.&nbsp;{{ p[0] }}
+  {%- elif p|length == 2 -%}{{ p[1][0] }}.&nbsp;{{ p[0] }}
+  {%- else -%}{{ фио or '' }}{%- endif -%}
 {% endmacro %}
-<div style="margin-top:28px">
-  {{ подпись('Главный судья соревнований', сор.главный_судья or '') }}
-  {{ подпись('Главный секретарь соревнований', сор.главный_секретарь or '') }}
-</div>
+{% set LH   = 'line-height:normal;mso-line-height-rule:exactly;' %}
+{% set tdN  = 'border:none;padding:0;' + LH %}
+{% set tdUL = 'border:none;border-bottom:1px solid #000;padding:0;text-align:center;vertical-align:middle;' + LH %}
+{% set tdLB = 'border:none;padding:2px 0 0;font-size:8pt;text-align:center;vertical-align:middle;' + LH %}
+<table class="sig-table" style="border-collapse:collapse;border:none;margin-top:28px">
+  <col style="width:270px"><col style="width:90px"><col style="width:200px">
+  <tr style="height:24px">
+    <td style="{{ tdN }}padding-right:6px;white-space:nowrap;vertical-align:bottom">Главный судья соревнований</td>
+    <td style="{{ tdUL }}">&nbsp;</td>
+    <td style="{{ tdUL }}">{{ ифио(сор.главный_судья) }}</td>
+  </tr>
+  <tr>
+    <td style="{{ tdN }}padding-bottom:14px"></td>
+    <td style="{{ tdLB }}">(подпись)</td>
+    <td style="{{ tdLB }}">(расшифровка подписи)</td>
+  </tr>
+  <tr style="height:24px">
+    <td style="{{ tdN }}padding-right:6px;white-space:nowrap;vertical-align:bottom">Главный секретарь соревнований</td>
+    <td style="{{ tdUL }}">&nbsp;</td>
+    <td style="{{ tdUL }}">{{ ифио(сор.главный_секретарь) }}</td>
+  </tr>
+  <tr>
+    <td style="{{ tdN }}"></td>
+    <td style="{{ tdLB }}">(подпись)</td>
+    <td style="{{ tdLB }}">(расшифровка подписи)</td>
+  </tr>
+</table>
+
 
 {% set месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'} %}
 <div style="margin-top:20px;font-size:10pt">
@@ -232,8 +249,94 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-  // border="1" on data tables → Word renders shared grid lines, not individual cell boxes
-  clone.querySelectorAll('table:not(.sig-table)').forEach(function(t){
+
+  var sigTbl = clone.querySelector('table.sig-table');
+  if (sigTbl) {
+    var rows      = sigTbl.querySelectorAll('tr');
+    var судья     = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
+    var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
+
+    function txtW(s) {
+      var el = document.createElement('span');
+      el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;'
+                       + 'font-family:"Times New Roman",serif;font-size:11pt;';
+      el.textContent = s;
+      document.body.appendChild(el);
+      var w = el.getBoundingClientRect().width;
+      document.body.removeChild(el);
+      return w;
+    }
+    function toCm(px) { return (px / 96 * 2.54).toFixed(3); }
+
+    var BLANK   = '\u00a0'.repeat(33);
+    var wFIO    = Math.max(txtW(судья), txtW(секретарь));
+    var posCm   = toCm(txtW('Главный секретарь соревнований') + 8);
+    var bCm     = toCm(txtW(BLANK));
+    var gapCm   = '0.212';
+    var fCm     = toCm(Math.max(wFIO, txtW('(расшифровка подписи)')) + 8);
+    var rightCm = (18.0 - parseFloat(posCm) - parseFloat(bCm)
+                       - parseFloat(gapCm) - parseFloat(fCm)).toFixed(3);
+
+    var P0  = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
+    var TBL = 'border:none;mso-border-alt:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
+    var TOP = 'border:none;mso-border-alt:none;border-top:1px solid #000;'
+            + 'mso-border-top-alt:solid windowtext .75pt;padding:2px 0 0;'
+            + 'line-height:normal;mso-line-height-rule:exactly;';
+    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
+
+    function cell(wCm, cellStyle, pStyle, content) {
+      return '<td style="width:' + wCm + 'cm;' + cellStyle + '">'
+           + '<p class="MsoNoSpacing" style="' + P0 + (pStyle || '') + '">' + content + '</p>'
+           + '</td>';
+    }
+    function sigRow(pos, fio) {
+      return '<tr>'
+           + cell(posCm,   TBL + 'vertical-align:bottom;white-space:nowrap;padding-right:8px;',
+                           'white-space:nowrap;', pos)
+           + cell(bCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + BLANK + '</span>')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + fio + '</span>')
+           + cell(rightCm, TBL, '', '')
+           + '</tr>';
+    }
+    function lblRow(pbPx) {
+      return '<tr>'
+           + cell(posCm,   TBL + (pbPx ? 'padding-bottom:' + pbPx + ';' : ''), '', '')
+           + cell(bCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(подпись)')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
+           + cell(rightCm, TBL, '', '')
+           + '</tr>';
+    }
+
+    var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
+             + ' style="table-layout:fixed;mso-table-layout-alt:fixed;width:18.0cm;'
+             + 'border-collapse:collapse;border:none;margin-top:20px;">'
+             + '<col style="width:' + posCm   + 'cm">'
+             + '<col style="width:' + bCm     + 'cm">'
+             + '<col style="width:' + gapCm   + 'cm">'
+             + '<col style="width:' + fCm     + 'cm">'
+             + '<col style="width:' + rightCm + 'cm">'
+             + sigRow('Главный судья соревнований', судья)
+             + lblRow('10px')
+             + sigRow('Главный секретарь соревнований', секретарь)
+             + lblRow('')
+             + '</table>';
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    var par = sigTbl.parentNode;
+    while (wrap.firstChild) par.insertBefore(wrap.firstChild, sigTbl);
+    par.removeChild(sigTbl);
+  }
+  // border="1" on data tables
+  clone.querySelectorAll('table:not(.sig-out)').forEach(function(t){
     t.setAttribute('border', '1');
     t.setAttribute('cellspacing', '0');
     t.style.borderCollapse = 'collapse';
@@ -249,13 +352,25 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
+  css += 'p,p.MsoNoSpacing{'
+       + 'margin:0;margin-top:0;margin-bottom:0;'
+       + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
+       + 'line-height:normal;mso-line-height-rule:exactly;}';
+  css += 'table.sig-out{table-layout:fixed;mso-table-layout-alt:fixed;'
+       + 'width:18.0cm;border:none!important;border-collapse:collapse;}'
+       + 'table.sig-out td{'
+       + 'border:none!important;mso-border-alt:none!important;padding:0!important;'
+       + 'line-height:normal;mso-line-height-rule:exactly;}'
+       + 'table.sig-out p,table.sig-out p.MsoNoSpacing{'
+       + 'margin:0!important;mso-para-margin:0cm!important;'
+       + 'line-height:normal!important;mso-line-height-rule:exactly!important;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
     + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
   var post = '</body></html>';
-  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
+  var blob = new Blob(['\ufeff', pre + clone.innerHTML + post], {type: 'application/msword'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
