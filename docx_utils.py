@@ -9492,27 +9492,52 @@ def create_гск_docx(сор, судьи, filename):
             if text: _run(p, text, pt=11)
             _valign(cell, va)
 
-    # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
-    # Блок начинается на 2/3 ширины страницы (w:left = TW*2/3)
-    IND = round(115 * 1440 / 25.4)  # 6520 dxa — 115мм от левого поля
+    # ── УТВЕРЖДАЮ (таблица без рамок: tblInd=IND, width=TW-IND) ─────────────────
+    IND   = round(115 * 1440 / 25.4)   # 6520 dxa — 115мм от левого поля
+    W_UTV = TW - IND                    # ширина блока = оставшаяся правая часть
 
     _para()
-    _indent(_para('УТВЕРЖДАЮ', pt=13, bold=True, align=C), IND)
 
+    utv    = doc.add_table(rows=0, cols=1)
+    utv_tbl = utv._tbl
+    utv_pr  = utv_tbl.find(qn('w:tblPr'))
+    if utv_pr is None:
+        utv_pr = OxmlElement('w:tblPr'); utv_tbl.insert(0, utv_pr)
+    for s in utv_pr.findall(qn('w:tblStyle')): utv_pr.remove(s)
+    el = utv_pr.find(qn('w:tblW'))
+    if el is None: el = OxmlElement('w:tblW'); utv_pr.append(el)
+    el.set(qn('w:w'), str(W_UTV)); el.set(qn('w:type'), 'dxa')
+    ti = utv_pr.find(qn('w:tblInd'))
+    if ti is None: ti = OxmlElement('w:tblInd'); utv_pr.append(ti)
+    ti.set(qn('w:w'), str(IND)); ti.set(qn('w:type'), 'dxa')
+    lay = utv_pr.find(qn('w:tblLayout'))
+    if lay is None: lay = OxmlElement('w:tblLayout'); utv_pr.append(lay)
+    lay.set(qn('w:type'), 'fixed')
+    _set_grid(utv, [W_UTV])
+
+    def _utv(text, align=C, pt=11, bold=False, after=0):
+        r    = utv.add_row()
+        cell = r.cells[0]
+        _cw(cell, W_UTV); _no_border(cell)
+        _fill(cell, text, align=align, pt=pt, bold=bold)
+        if after:
+            cell.paragraphs[0].paragraph_format.space_after = Pt(after)
+
+    _utv('УТВЕРЖДАЮ', align=C, pt=13, bold=True)
     if сор.проводящая_орг_должность:
-        _indent(_para(сор.проводящая_орг_должность.strip(), pt=11, after=3, align=C), IND)
-
+        _utv(сор.проводящая_орг_должность.strip(), align=C, pt=11, after=3)
     if сор.проводящая_орг_название:
         for line in сор.проводящая_орг_название.split('\n'):
             if line.strip():
-                _indent(_para(line.strip(), pt=11, after=3, align=C), IND)
+                _utv(line.strip(), align=C, pt=11, after=3)
+    _utv('')
+    руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
+    _utv(руков, align=R, pt=11)
+    _utv('')
+    _utv('«____» ___________ 202__ г.', align=C, pt=11)
 
     _para()
-    руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
-    _indent(_para(руков, pt=11, align=R), IND)
-    _para()
-    _indent(_para('«____» ___________ 202__ г.', pt=11, align=C), IND)
-    _para()
+
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
 
