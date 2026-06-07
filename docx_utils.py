@@ -9426,7 +9426,7 @@ def create_гск_docx(сор, судьи, filename):
         строки = сор.организаторы_блок.split('\n')
         for i, s in enumerate(строки):
             after = 3 if i < len(строки) - 1 else 0
-            _para(s.strip(), align=C, pt=14, after=after)
+            _para(s.strip(), align=C, pt=11, after=after)
 
     _para(сор.название or '', align=C, pt=14, bold=True, after=6)
 
@@ -9439,17 +9439,17 @@ def create_гск_docx(сор, судьи, filename):
     _w_mid = max(200, TW - _w_dt - _w_pl)
     dt = _make_tbl(3)
     _set_grid(dt, [_w_dt, _w_mid, _w_pl])
-    for idx, (лево, право, pt_v) in enumerate([
-        (сор.даты_проведения  or '', сор.место_проведения or '', 10),
-        ('Дата проведения', 'Место проведения', 8),
+    for idx, (лево, право) in enumerate([
+        (сор.даты_проведения  or '', сор.место_проведения or ''),
+        ('Дата проведения', 'Место проведения'),
     ]):
         r = dt.add_row()
         cs = list(r.cells)
         for c in cs: _no_border(c); _valign(c, 'center')
         if idx == 0:
             _bottom_border(cs[0]); _bottom_border(cs[2])
-        _fill(cs[0], лево,  align=C, pt=pt_v)
-        _fill(cs[2], право, align=C, pt=pt_v)
+        _fill(cs[0], лево,  align=C, pt=11)
+        _fill(cs[2], право, align=C, pt=11)
 
     # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
 
@@ -9457,18 +9457,18 @@ def create_гск_docx(сор, судьи, filename):
     _para('УТВЕРЖДАЮ', pt=14, bold=True)
 
     if сор.проводящая_орг_должность:
-        _para(сор.проводящая_орг_должность.strip(), pt=14, after=3)
+        _para(сор.проводящая_орг_должность.strip(), pt=11, after=3)
 
     if сор.проводящая_орг_название:
         for line in сор.проводящая_орг_название.split('\n'):
             if line.strip():
-                _para(line.strip(), pt=14, after=3)
+                _para(line.strip(), pt=11, after=3)
 
     _para()
     руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
-    _para(руков, pt=14, bold=True)
+    _para(руков, pt=11, bold=True)
     _para()
-    _para('«____» ___________ 202__ г.', pt=14)
+    _para('«____» ___________ 202__ г.', pt=11)
     _para()
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
@@ -9486,21 +9486,21 @@ def create_гск_docx(сор, судьи, filename):
     rh = tbl.add_row(); _row_h(rh, 1.0)
     cs = list(rh.cells)
     for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
-    _fill(cs[0], '№',                               align=C, pt=10, bold=True)
-    _fill(cs[1], 'Должность',                       align=C, pt=10, bold=True)
-    _fill(cs[2], 'Фамилия, имя, отчество',          align=C, pt=10, bold=True)
-    _fill(cs[3], 'Квалификация спортивного судьи',  align=C, pt=10, bold=True)
-    _fill(cs[4], 'Субъект Российской Федерации',    align=C, pt=10, bold=True)
+    _fill(cs[0], '№',                               align=C, pt=11, bold=True)
+    _fill(cs[1], 'Должность',                       align=C, pt=11, bold=True)
+    _fill(cs[2], 'Фамилия, имя, отчество',          align=C, pt=11, bold=True)
+    _fill(cs[3], 'Квалификация спортивного судьи',  align=C, pt=11, bold=True)
+    _fill(cs[4], 'Субъект Российской Федерации',    align=C, pt=11, bold=True)
 
     for пп, с in enumerate(судьи, 1):
         rd = tbl.add_row(); _row_h(rd, 1.0)
         cd = list(rd.cells)
         for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
-        _fill(cd[0], str(пп),                         align=C, pt=10)
-        _fill(cd[1], с.должность or '—',              pt=10)
+        _fill(cd[0], str(пп),                         align=C, pt=11)
+        _fill(cd[1], с.должность or '—',              pt=11)
         _fill(cd[2], с.фамилия_имя_отчество or '—',   pt=10)
-        _fill(cd[3], с.квалификация or '—',           align=C, pt=10)
-        _fill(cd[4], с.субъект_рф or '—',             align=C, pt=10)
+        _fill(cd[3], с.квалификация or '—',           align=C, pt=11)
+        _fill(cd[4], с.субъект_рф or '—',             align=C, pt=11)
 
     # ── Подпись: Главный судья ────────────────────────────────────────────────
 
@@ -9518,8 +9518,8 @@ def create_гск_docx(сор, судьи, filename):
     _cw(cs[0], w_l); _cw(cs[1], w_r)
     _no_border(cs[0]); _no_border(cs[1])
     _valign(cs[0]); _valign(cs[1])
-    _fill(cs[0], 'Главный судья', align=L, pt=14)
-    _fill(cs[1], _гс_аббр,        align=L, pt=14)
+    _fill(cs[0], 'Главный судья', align=L, pt=11)
+    _fill(cs[1], _гс_аббр,        align=L, pt=11)
 
     buf = BytesIO()
     _apply_no_break(doc)
