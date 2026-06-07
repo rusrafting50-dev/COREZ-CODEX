@@ -9540,7 +9540,7 @@ def create_гск_docx(сор, судьи, filename):
         for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
         _fill(cd[0], str(пп),                         align=C, pt=11)
         _fill(cd[1], с.должность or '—',              pt=11)
-        _fill(cd[2], с.фамилия_имя_отчество or '—',   pt=10)
+        _fill(cd[2], с.фамилия_имя_отчество or '—',   pt=11)
         _fill(cd[3], с.квалификация or '—',           align=C, pt=11)
         _fill(cd[4], с.субъект_рф or '—',             align=C, pt=11)
 
