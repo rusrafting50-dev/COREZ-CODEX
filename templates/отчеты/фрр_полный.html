@@ -344,110 +344,79 @@ function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
-  // Replace sig-table: borderless 3-col table + <u> underlines (no CSS border-bottom)
   var sigTbl = clone.querySelector('table.sig-table');
-  console.error('exportWord: sigTbl=', sigTbl ? 'FOUND' : 'NULL');
   if (sigTbl) {
     var rows      = sigTbl.querySelectorAll('tr');
     var судья     = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
     var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
 
-    // Measure rendered width in pt (px × 0.75) via hidden span
     function txtW(s) {
       var el = document.createElement('span');
-      el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;' +
-                         'font-family:"Times New Roman",serif;font-size:11pt;';
+      el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;'
+                       + 'font-family:"Times New Roman",serif;font-size:11pt;';
       el.textContent = s;
       document.body.appendChild(el);
       var w = el.getBoundingClientRect().width;
       document.body.removeChild(el);
-      return w;  // px
+      return w;
     }
+    function toCm(px) { return (px / 96 * 2.54).toFixed(3); }
 
-    var BLANK = '\u00a0'.repeat(33);           // 1.5× blank underline
-    var wSud  = txtW(судья);
-    var wSekr = txtW(секретарь);
-    var wFIO  = Math.max(wSud, wSekr);         // max ФИО width (px)
-    var spW   = txtW('\u00a0');
+    var BLANK   = '\u00a0'.repeat(33);
+    var wFIO    = Math.max(txtW(судья), txtW(секретарь));
+    var posCm   = toCm(txtW('Главный секретарь соревнований') + 8);
+    var bCm     = toCm(txtW(BLANK));
+    var gapCm   = '0.212';
+    var fCm     = toCm(Math.max(wFIO, txtW('(расшифровка подписи)')) + 8);
+    var rightCm = (18.0 - parseFloat(posCm) - parseFloat(bCm)
+                       - parseFloat(gapCm) - parseFloat(fCm)).toFixed(3);
 
-    // Pad text with NBSP so both FIOs fill the same width
-    function padCtr(text, targetPx) {
-      var pad = Math.max(0, targetPx - txtW(text));
-      var n   = Math.round(pad / 2 / spW);
-      return '\u00a0'.repeat(n) + text + '\u00a0'.repeat(n);
+    var P0  = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
+    var TBL = 'border:none;mso-border-alt:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
+    var TOP = 'border:none;mso-border-alt:none;border-top:1px solid #000;'
+            + 'mso-border-top-alt:solid windowtext .75pt;padding:2px 0 0;'
+            + 'line-height:normal;mso-line-height-rule:exactly;';
+    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
+
+    function cell(wCm, cellStyle, pStyle, content) {
+      return '<td style="width:' + wCm + 'cm;' + cellStyle + '">'
+           + '<p class="MsoNoSpacing" style="' + P0 + (pStyle || '') + '">' + content + '</p>'
+           + '</td>';
     }
-
-    var GAP   = 8;
-    var LH    = 'line-height:normal;mso-line-height-rule:exactly;';
-    var BN    = 'border:none;mso-border-alt:none;';
-    var NC    = BN + 'padding:0;' + LH;
-    var VALB  = 'vertical-align:bottom;';
-    var VALM  = 'vertical-align:middle;';
-    var FONT  = 'font-family:\'Times New Roman\',serif;font-size:11pt;' + LH;
-    var TOPB  = BN + 'border-top:1px solid #000;mso-border-top-alt:solid #000 .75pt;padding:2px 0 0;' + LH;
-    var CENT  = 'text-align:center;';
-
-    // Вычисляем posPx ДО sigRow — нужен внутри функции
-    var bPx     = Math.round(txtW(BLANK));
-    var fPx     = Math.max(Math.round(wFIO), Math.round(txtW('(расшифровка подписи)'))) + 12;
-    var textW   = Math.round(txtW('Главный секретарь соревнований'));
-    var posPx   = textW + 8;              // +8px = padding-right ячейки
-    // A4 portrait: 210мм − 15мм − 15мм = 180мм = 680px при 96dpi
-    var pageW   = Math.round(180 * 96 / 25.4);
-    var rightPx = pageW - posPx - bPx - GAP - fPx; // правый столбец = весь остаток страницы
-
-    // «Без интервала»: все 4 свойства, class MsoNoSpacing = нативный стиль Word
-    var P = 'margin:0;margin-top:0;margin-bottom:0;'
-          + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
-          + LH;
-
-    function mkP(extra, text) {
-      return '<p class="MsoNoSpacing" style="' + P + (extra || '') + '">' + text + '</p>';
-    }
-
-    // HTML-атрибут width="X" на <col> и <td> — Word читает именно его, не CSS style="width"
-    function td(w, style, content) {
-      return '<td width="' + w + '" style="' + style + '">' + content + '</td>';
-    }
-
     function sigRow(pos, fio) {
-      return '<tr style="height:22px">'
-           + td(posPx,   NC + VALB + 'white-space:nowrap;padding-right:8px',
-                mkP('white-space:nowrap', pos))
-           + td(bPx,     NC + VALM + CENT,
-                mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>'))
-           + td(GAP,     NC + VALB, mkP('', ''))
-           + td(fPx,     NC + VALM + CENT,
-                mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>'))
-           + td(rightPx, NC, mkP('', ''))
-           + '</tr>';
-    }
-    function lblRow(pb) {
       return '<tr>'
-           + td(posPx,   NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : ''), mkP('', ''))
-           + td(bPx,     TOPB + VALM + CENT,
-                mkP('font-size:8pt;text-align:center;white-space:nowrap', '(подпись)'))
-           + td(GAP,     NC + VALM, mkP('', ''))
-           + td(fPx,     TOPB + VALM + CENT,
-                mkP('font-size:8pt;text-align:center;white-space:nowrap', '(расшифровка подписи)'))
-           + td(rightPx, NC, mkP('', ''))
+           + cell(posCm,   TBL + 'vertical-align:bottom;white-space:nowrap;padding-right:8px;',
+                           'white-space:nowrap;', pos)
+           + cell(bCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + BLANK + '</span>')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + fio + '</span>')
+           + cell(rightCm, TBL, '', '')
+           + '</tr>';
+    }
+    function lblRow(pbPx) {
+      return '<tr>'
+           + cell(posCm,   TBL + (pbPx ? 'padding-bottom:' + pbPx + ';' : ''), '', '')
+           + cell(bCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(подпись)')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
+           + cell(rightCm, TBL, '', '')
            + '</tr>';
     }
 
-    var totalW = posPx + bPx + GAP + fPx + rightPx;
-    console.error('sig-out cols px:', posPx, bPx, GAP, fPx, rightPx, '| total:', totalW);
-    console.error('sig-out cols %:',
-      (posPx/totalW*100).toFixed(1)+'%',
-      (bPx/totalW*100).toFixed(1)+'%',
-      (GAP/totalW*100).toFixed(1)+'%',
-      (fPx/totalW*100).toFixed(1)+'%',
-      (rightPx/totalW*100).toFixed(1)+'%');
-
-    var html = '<table class="sig-out" width="' + totalW + '" border="0" cellspacing="0" cellpadding="0"'
-             + ' style="border:none;border-collapse:collapse;margin-top:20px">'
-             + '<col width="' + posPx + '"><col width="' + bPx + '">'
-             + '<col width="' + GAP + '"><col width="' + fPx + '">'
-             + '<col width="' + rightPx + '">'
+    var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
+             + ' style="table-layout:fixed;mso-table-layout-alt:fixed;width:18.0cm;'
+             + 'border-collapse:collapse;border:none;margin-top:20px;">'
+             + '<col style="width:' + posCm   + 'cm">'
+             + '<col style="width:' + bCm     + 'cm">'
+             + '<col style="width:' + gapCm   + 'cm">'
+             + '<col style="width:' + fCm     + 'cm">'
+             + '<col style="width:' + rightCm + 'cm">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
@@ -483,19 +452,13 @@ function exportWord() {
        + 'margin:0;margin-top:0;margin-bottom:0;'
        + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
        + 'line-height:normal;mso-line-height-rule:exactly;}';
-  // sig-out: отдельный блок !important чтобы перекрыть table{width:100%} и table td{border:1px}
-  css += 'table.sig-out{'
-       + 'border:none!important;border-collapse:collapse;}'
-       + 'table.sig-out td,table.sig-out th{'
-       + 'border:none!important;mso-border-alt:none!important;'
-       + 'padding:0!important;vertical-align:middle!important;'
+  css += 'table.sig-out{table-layout:fixed;mso-table-layout-alt:fixed;'
+       + 'width:18.0cm;border:none!important;border-collapse:collapse;}'
+       + 'table.sig-out td{'
+       + 'border:none!important;mso-border-alt:none!important;padding:0!important;'
        + 'line-height:normal;mso-line-height-rule:exactly;}'
-       + 'table.sig-out td:first-child{'
-       + 'vertical-align:bottom!important;text-align:left!important;white-space:nowrap;}'
-       // Специфичный оверрайд для p внутри sig-out (0,1,1 > 0,0,1)
        + 'table.sig-out p,table.sig-out p.MsoNoSpacing{'
-       + 'margin:0!important;margin-top:0!important;margin-bottom:0!important;'
-       + 'mso-para-margin:0cm!important;mso-para-margin-top:0cm!important;mso-para-margin-bottom:0cm!important;'
+       + 'margin:0!important;mso-para-margin:0cm!important;'
        + 'line-height:normal!important;mso-line-height-rule:exactly!important;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm 14mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
