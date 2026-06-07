@@ -389,7 +389,7 @@ function exportWord() {
     // Вычисляем posPx ДО sigRow — нужен внутри функции
     var bPx   = Math.round(txtW(BLANK));
     var fPx   = Math.round(wFIO) + 12;
-    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 20; // +20px запас на Word
+    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 8; // +8px = padding-right ячейки
 
     // «Без интервала»: все 4 свойства, class MsoNoSpacing = нативный стиль Word
     var P = 'margin:0;margin-top:0;margin-bottom:0;'
