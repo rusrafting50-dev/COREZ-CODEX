@@ -9420,8 +9420,8 @@ def create_гск_docx(сор, судьи, filename):
             return f"{p[0]} {p[1][0]}."
         return фио or ''
 
-    def _indent(p, left, first=0):
-        """Установить левый отступ параграфа (dxa)."""
+    def _indent(p, left, first=0, right=0):
+        """Установить отступы параграфа (dxa). right — от правого поля."""
         pPr = p._p.find(qn('w:pPr'))
         if pPr is None:
             pPr = OxmlElement('w:pPr'); p._p.insert(0, pPr)
@@ -9429,6 +9429,7 @@ def create_гск_docx(сор, судьи, filename):
         if ind is None:
             ind = OxmlElement('w:ind'); pPr.append(ind)
         ind.set(qn('w:left'), str(left))
+        ind.set(qn('w:right'), str(right))
         if first:
             ind.set(qn('w:firstLine'), str(first))
 
