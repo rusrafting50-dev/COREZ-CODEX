@@ -9567,3 +9567,473 @@ def create_гск_docx(сор, судьи, filename):
     _apply_no_break(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_минспорта_docx(сор, судьи, filename):
+    """Список судейской коллегии по форме Минспорта — Portrait A4, L=30 R=15 T=7.5 B=10."""
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+
+    # A4 portrait, L=30, R=15, T=7.5, B=10
+    TW   = round((210 - 30 - 15) * 1440 / 25.4)   # 9354 dxa
+    GRID = [420, 3265, 2456, 1356, 1857]            # №, ФИО, Должность, Кв, Субъект
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(210)
+    sect.page_height   = Mm(297)
+    sect.left_margin   = Mm(30)
+    sect.right_margin  = Mm(15)
+    sect.top_margin    = Mm(7)
+    sect.bottom_margin = Mm(10)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.attrib.pop(qn('w:orient'), None)
+    doc.styles['Normal'].font.name = TNR
+    doc.styles['Normal'].font.size = Pt(11)
+
+    # ── хелперы ──────────────────────────────────────────────────────────────
+
+    def _sp(p):
+        pPr = p._p.get_or_add_pPr()
+        for tag in ('w:spacing', 'w:contextualSpacing'):
+            old = pPr.find(qn(tag))
+            if old is not None: pPr.remove(old)
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        pPr.append(sp)
+
+    def _run(p, text, pt=11, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        r.bold      = bold
+        try:
+            r._r.get_or_add_rPr().get_or_add_rFonts().set(qn('w:eastAsia'), TNR)
+        except Exception:
+            pass
+        return r
+
+    def _para(text='', align=L, pt=11, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        p.alignment = align
+        if text:
+            _run(p, text, pt=pt, bold=bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+            b.append(el)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+            b.append(el)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tw = pr.find(qn('w:tcW'))
+        if tw is None:
+            tw = OxmlElement('w:tcW'); pr.append(tw)
+        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        va = pr.find(qn('w:vAlign'))
+        if va is None:
+            va = OxmlElement('w:vAlign'); pr.append(va)
+        va.set(qn('w:val'), val)
+
+    def _row_h(row, cm):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr'); row._tr.insert(0, trPr)
+        rh = trPr.find(qn('w:trHeight'))
+        if rh is None:
+            rh = OxmlElement('w:trHeight'); trPr.append(rh)
+        rh.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
+        rh.set(qn('w:hRule'), 'atLeast')
+
+    def _fill(cell, text, align=None, pt=11, bold=False):
+        p = cell.paragraphs[0]; p.clear(); _sp(p)
+        if align: p.alignment = align
+        if text:  _run(p, str(text), pt, bold)
+        _valign(cell)
+
+    def _make_tbl(ncols):
+        t    = doc.add_table(rows=0, cols=ncols)
+        tbl  = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
+
+    def _set_grid(tbl, grid):
+        t = tbl._tbl
+        for old in t.findall(qn('w:tblGrid')): t.remove(old)
+        g = OxmlElement('w:tblGrid')
+        for w in grid:
+            col = OxmlElement('w:gridCol'); col.set(qn('w:w'), str(w)); g.append(col)
+        pr = t.find(qn('w:tblPr'))
+        pr.addnext(g) if pr is not None else t.insert(0, g)
+
+    def _abbr(фио):
+        p = (фио or '').split()
+        if len(p) >= 3: return f"{p[0]} {p[1][0]}. {p[2][0]}."
+        if len(p) == 2: return f"{p[0]} {p[1][0]}."
+        return фио or ''
+
+    # ── Организаторы ──────────────────────────────────────────────────────────
+
+    if сор.организаторы_блок:
+        for line in сор.организаторы_блок.split('\n'):
+            if line.strip():
+                _para(line.strip(), align=C, pt=9, bold=True)
+
+    _para()
+
+    # ── Заголовок ─────────────────────────────────────────────────────────────
+
+    _para('СПИСОК', align=C, pt=18, bold=True)
+    _para('СУДЕЙСКОЙ КОЛЛЕГИИ ДЛЯ ПРОВЕДЕНИЯ', align=C, pt=14, bold=True)
+    for line in (сор.название or '').split('\n'):
+        if line.strip():
+            _para(line.strip(), align=C, pt=14, bold=True)
+
+    _para()
+
+    # ── Дата и место ─────────────────────────────────────────────────────────
+
+    date_place = ', '.join(x for x in (сор.даты_проведения or '', сор.место_проведения or '') if x)
+    if date_place:
+        _para(date_place, align=L, pt=10, bold=True)
+
+    _para()
+    _para()
+
+    # ── Основная таблица ─────────────────────────────────────────────────────
+
+    tbl = _make_tbl(5)
+    _set_grid(tbl, GRID)
+
+    rh = tbl.add_row(); _row_h(rh, 1.0)
+    cs = list(rh.cells)
+    for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
+    _fill(cs[0], '№',                              align=C, pt=11, bold=True)
+    _fill(cs[1], 'Фамилия, имя, отчество',         align=C, pt=11, bold=True)
+    _fill(cs[2], 'Должность',                      align=C, pt=11, bold=True)
+    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=11, bold=True)
+    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=11, bold=True)
+
+    for пп, с in enumerate(судьи, 1):
+        rd = tbl.add_row(); _row_h(rd, 0.7)
+        cd = list(rd.cells)
+        for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
+        _fill(cd[0], str(пп),                       align=C, pt=11)
+        _fill(cd[1], с.фамилия_имя_отчество or '—', pt=11)
+        _fill(cd[2], с.должность or '—',            pt=11)
+        _fill(cd[3], с.квалификация or '—',         align=C, pt=11)
+        _fill(cd[4], с.субъект_рф or '—',           align=C, pt=11)
+
+    # ── Подписи ───────────────────────────────────────────────────────────────
+
+    _para()
+
+    w_l = TW * 45 // 100
+    w_r = TW - w_l
+    for pos, фио in (
+        ('Главный судья',    сор.главный_судья     or ''),
+        ('Главный секретарь', сор.главный_секретарь or ''),
+    ):
+        sig = _make_tbl(2)
+        _set_grid(sig, [w_l, w_r])
+        rs = sig.add_row(); _row_h(rs, 1.2)
+        cs = list(rs.cells)
+        _cw(cs[0], w_l); _cw(cs[1], w_r)
+        _no_border(cs[0]); _no_border(cs[1])
+        _valign(cs[0]); _valign(cs[1])
+        _fill(cs[0], pos,       align=L, pt=10, bold=True)
+        _fill(cs[1], _abbr(фио), align=L, pt=10, bold=True)
+
+    buf = BytesIO()
+    _apply_no_break(doc)
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_справка_docx(сор, судьи, стат, filename):
+    """Справка о составе и квалификации судейской коллегии — Portrait A4, L=10 R=15 T=15 B=15."""
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+
+    # A4 portrait, L=10, R=15, T=15, B=15
+    TW   = round((210 - 10 - 15) * 1440 / 25.4)   # 10488 dxa
+    GRID = [473, 2647, 3739, 1647, 1982]            # №, Должность, ФИО, Кв, Субъект
+    INFO = [TW // 2, TW - TW // 2]                  # инфо-таблица: равные половины
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(210)
+    sect.page_height   = Mm(297)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(15)
+    sect.top_margin    = Mm(15)
+    sect.bottom_margin = Mm(15)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.attrib.pop(qn('w:orient'), None)
+    doc.styles['Normal'].font.name = TNR
+    doc.styles['Normal'].font.size = Pt(14)
+
+    # ── хелперы ──────────────────────────────────────────────────────────────
+
+    def _sp(p):
+        pPr = p._p.get_or_add_pPr()
+        for tag in ('w:spacing', 'w:contextualSpacing'):
+            old = pPr.find(qn(tag))
+            if old is not None: pPr.remove(old)
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        pPr.append(sp)
+
+    def _run(p, text, pt=14, bold=False):
+        r = p.add_run(text)
+        r.font.name = TNR
+        r.font.size = Pt(pt)
+        r.bold      = bold
+        try:
+            r._r.get_or_add_rPr().get_or_add_rFonts().set(qn('w:eastAsia'), TNR)
+        except Exception:
+            pass
+        return r
+
+    def _para(text='', align=L, pt=14, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        p.alignment = align
+        if text:
+            _run(p, text, pt=pt, bold=bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0');    el.set(qn('w:color'), '000000')
+            b.append(el)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = pr.find(qn('w:tcBorders'))
+        if b is None:
+            b = OxmlElement('w:tcBorders'); pr.append(b)
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none'); el.set(qn('w:sz'), '0')
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+            b.append(el)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tw = pr.find(qn('w:tcW'))
+        if tw is None:
+            tw = OxmlElement('w:tcW'); pr.append(tw)
+        tw.set(qn('w:w'), str(w)); tw.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        va = pr.find(qn('w:vAlign'))
+        if va is None:
+            va = OxmlElement('w:vAlign'); pr.append(va)
+        va.set(qn('w:val'), val)
+
+    def _row_h(row, cm):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr'); row._tr.insert(0, trPr)
+        rh = trPr.find(qn('w:trHeight'))
+        if rh is None:
+            rh = OxmlElement('w:trHeight'); trPr.append(rh)
+        rh.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
+        rh.set(qn('w:hRule'), 'atLeast')
+
+    def _fill(cell, text, align=None, pt=14, bold=False):
+        p = cell.paragraphs[0]; p.clear(); _sp(p)
+        if align: p.alignment = align
+        if text:  _run(p, str(text), pt, bold)
+        _valign(cell)
+
+    def _make_tbl(ncols, tw=None):
+        t    = doc.add_table(rows=0, cols=ncols)
+        tbl  = t._tbl
+        tblPr = tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr'); tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        el = tblPr.find(qn('w:tblW'))
+        if el is None: el = OxmlElement('w:tblW'); tblPr.append(el)
+        el.set(qn('w:w'), str(tw or TW)); el.set(qn('w:type'), 'dxa')
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'fixed')
+        return t
+
+    def _set_grid(tbl, grid):
+        t = tbl._tbl
+        for old in t.findall(qn('w:tblGrid')): t.remove(old)
+        g = OxmlElement('w:tblGrid')
+        for w in grid:
+            col = OxmlElement('w:gridCol'); col.set(qn('w:w'), str(w)); g.append(col)
+        pr = t.find(qn('w:tblPr'))
+        pr.addnext(g) if pr is not None else t.insert(0, g)
+
+    def _abbr(фио):
+        p = (фио or '').split()
+        if len(p) >= 3: return f"{p[0]} {p[1][0]}. {p[2][0]}."
+        if len(p) == 2: return f"{p[0]} {p[1][0]}."
+        return фио or ''
+
+    # ── Организаторы ──────────────────────────────────────────────────────────
+
+    if сор.организаторы_блок:
+        for line in сор.организаторы_блок.split('\n'):
+            if line.strip():
+                _para(line.strip(), align=C, pt=14)
+
+    _para()
+    _para()
+
+    # ── Заголовок ─────────────────────────────────────────────────────────────
+
+    _para('СПРАВКА', align=C, pt=14, bold=True)
+    _para('о составе и квалификации судейской коллегии', align=C, pt=14, bold=True)
+
+    _para()
+    _para()
+
+    # ── Инфо-таблица ─────────────────────────────────────────────────────────
+
+    info = _make_tbl(2)
+    _set_grid(info, INFO)
+    for лейбл, значение in (
+        ('Наименование соревнований', сор.название or ''),
+        ('Дата проведения',           сор.даты_проведения or ''),
+        ('Место проведения',          сор.место_проведения or ''),
+    ):
+        ri = info.add_row(); _row_h(ri, 0.8)
+        cs = list(ri.cells)
+        _cw(cs[0], INFO[0]); _cw(cs[1], INFO[1])
+        _borders(cs[0]); _borders(cs[1])
+        _fill(cs[0], лейбл,   align=L, pt=14, bold=True)
+        _fill(cs[1], значение, align=L, pt=14)
+
+    _para()
+
+    # ── Статистика ────────────────────────────────────────────────────────────
+
+    всего      = стат.get('всего', 0)
+    иногородних = стат.get('иногородних', 0)
+    по_квал    = стат.get('по_квал', {})
+
+    _para(f'Всего спортивных судей {всего} человек, в том числе из других регионов {иногородних} человек.', pt=14)
+    _para(f'Спортивных судей всероссийской категории (ССВК) – {по_квал.get("ССВК", 0)} человек.', pt=14)
+    _para(f'Спортивных судей первой категории (СС1К) – {по_квал.get("СС1К", 0)} человек.', pt=14)
+    _para(f'Спортивных судей второй категории (СС2К) – {по_квал.get("СС2К", 0)} человек.', pt=14)
+    _para(f'Спортивных судей третьей категории (СС3К) – {по_квал.get("СС3К", 0)} человек.', pt=14)
+
+    _para()
+    _para()
+
+    # ── Основная таблица ─────────────────────────────────────────────────────
+
+    tbl = _make_tbl(5)
+    _set_grid(tbl, GRID)
+
+    rh = tbl.add_row(); _row_h(rh, 1.0)
+    cs = list(rh.cells)
+    for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
+    _fill(cs[0], '№',                              align=C, pt=11, bold=True)
+    _fill(cs[1], 'Должность',                      align=C, pt=11, bold=True)
+    _fill(cs[2], 'Фамилия, имя, отчество',         align=C, pt=11, bold=True)
+    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=11, bold=True)
+    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=11, bold=True)
+
+    for пп, с in enumerate(судьи, 1):
+        rd = tbl.add_row(); _row_h(rd, 0.7)
+        cd = list(rd.cells)
+        for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
+        _fill(cd[0], str(пп),                       align=C, pt=11)
+        _fill(cd[1], с.должность or '—',            pt=11)
+        _fill(cd[2], с.фамилия_имя_отчество or '—', pt=11)
+        _fill(cd[3], с.квалификация or '—',         align=C, pt=11)
+        _fill(cd[4], с.субъект_рф or '—',           align=C, pt=11)
+
+    # ── Подпись: Главный судья ────────────────────────────────────────────────
+
+    _para()
+
+    _гс = next((с for с in судьи if с.должность == 'Главный судья'), None)
+    _гс_фио = _гс.фамилия_имя_отчество if _гс else (сор.главный_судья or '')
+    _гс_аббр = _abbr(_гс_фио)
+
+    w_l = TW * 45 // 100
+    w_r = TW - w_l
+    sig = _make_tbl(2)
+    _set_grid(sig, [w_l, w_r])
+    rs = sig.add_row(); _row_h(rs, 1.2)
+    cs = list(rs.cells)
+    _cw(cs[0], w_l); _cw(cs[1], w_r)
+    _no_border(cs[0]); _no_border(cs[1])
+    _valign(cs[0]); _valign(cs[1])
+    _fill(cs[0], 'Главный судья', align=L, pt=14)
+    _fill(cs[1], _гс_аббр,        align=L, pt=14)
+
+    buf = BytesIO()
+    _apply_no_break(doc)
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
