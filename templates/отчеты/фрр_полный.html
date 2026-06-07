@@ -308,9 +308,10 @@
   {%- elif p|length == 2 -%}{{ p[1][0] }}.&nbsp;{{ p[0] }}
   {%- else -%}{{ фио or '' }}{%- endif -%}
 {% endmacro %}
-{% set tdN  = 'border:none;padding:0;' %}
-{% set tdUL = 'border:none;border-bottom:1px solid #000;mso-border-alt:none;mso-border-bottom-alt:solid #000 .75pt;padding:0;text-align:center;vertical-align:bottom;' %}
-{% set tdLB = 'border:none;padding:0;font-size:8pt;text-align:center;' %}
+{% set LH   = 'line-height:normal;mso-line-height-rule:exactly;' %}
+{% set tdN  = 'border:none;padding:0;' + LH %}
+{% set tdUL = 'border:none;border-bottom:1px solid #000;padding:0;text-align:center;vertical-align:middle;' + LH %}
+{% set tdLB = 'border:none;padding:2px 0 0;font-size:8pt;text-align:center;vertical-align:middle;' + LH %}
 <table class="sig-table" style="border-collapse:collapse;border:none;margin-top:28px">
   <col style="width:270px"><col style="width:90px"><col style="width:200px">
   <tr style="height:24px">
