@@ -11,18 +11,14 @@
     body { font-family: "Times New Roman", serif; font-size: 10pt; }
     @media print {
       .no-print { display: none !important; }
-      @page { margin: 12mm 12mm 12mm 15mm; size: A4 portrait; }
+      @page { margin: 12mm 15mm; size: A4 portrait; }
       table { page-break-inside: auto; }
       tr    { page-break-inside: avoid; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 9pt; font-family: "Times New Roman", serif; }
     th { text-align: center; background: #fff; font-weight: bold; }
-    .underline-field { border-bottom: 0.75pt solid #000; min-width: 120px; display: block; }
-    .utv-table { border-collapse: collapse; width: 100%; margin: 8px 0 16px; }
-    .utv-table td { border: none; padding: 1pt 4pt; vertical-align: top; text-align: center; }
-    .sig-table { border-collapse: collapse; border: none; width: auto; }
-    .sig-table td { border: none; padding: 0; }
+    .utv-table, .utv-table td, .hdr-table, .hdr-table td, .sig-bottom, .sig-bottom td { border: none !important; }
   </style>
 </head>
 <body class="px-3 py-3">
@@ -39,9 +35,9 @@
   </div>
 </div>
 
-{# ── Шапка (как в протоколе жеребьёвки) ── #}
+{# ── Шапка (как в стартовом протоколе спринт) ── #}
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt;font-weight:bold">
+<div class="text-center" style="font-size:10pt;font-weight:normal">
 {%- for строка in сор.организаторы_блок.split('\n') -%}
   {%- if '"' in строка -%}
     {%- set ч = строка.split('"', 1) -%}
@@ -62,42 +58,29 @@
   {% if сор.номер_екп %}<br><span style="font-size:10pt">ЕКП № {{ сор.номер_екп }}</span>{% endif %}
 </div>
 
-<div class="d-flex justify-content-between" style="font-size:10pt;font-weight:bold;margin-top:8px;margin-bottom:4px">
-  <div style="text-align:center">
-    <div class="underline-field" style="min-width:120px;display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt;font-weight:normal">Дата проведения</div>
-  </div>
-  <div style="text-align:center">
-    <div class="underline-field" style="min-width:200px;display:block">{{ сор.место_проведения or '&nbsp;' }}</div>
-    <div style="font-size:8pt;font-weight:normal">Место проведения</div>
-  </div>
-</div>
+<table class="hdr-table" style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-top:8px;margin-bottom:8px">
+  <tr>
+    <td style="width:140px;white-space:nowrap;text-align:center;border-bottom:0.75pt solid #000 !important;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="padding:0"></td>
+    <td style="width:200px;white-space:nowrap;text-align:center;border-bottom:0.75pt solid #000 !important;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+  </tr>
+  <tr>
+    <td style="text-align:center;padding:0 4px;font-size:8pt;font-weight:bold">Дата проведения</td>
+    <td style="padding:0"></td>
+    <td style="white-space:nowrap;text-align:center;padding:0 4px;font-size:8pt;font-weight:bold">Место проведения</td>
+  </tr>
+</table>
 
-{# ── Блок УТВЕРЖДАЮ (двухколонная таблица как в регламенте) ── #}
+{# ── Блок УТВЕРЖДАЮ — только проводящая организация, выровнен вправо ── #}
 {% macro сокр(фио) %}
 {%- set p = (фио or '').split() -%}
 {%- if p|length >= 3 -%}{{ p[1][0] }}.{{ p[2][0] }}.&nbsp;{{ p[0] }}
 {%- elif p|length == 2 -%}{{ p[1][0] }}.&nbsp;{{ p[0] }}
 {%- else -%}{{ фио or '' }}{%- endif -%}
 {% endmacro %}
-<table class="utv-table">
+<table class="utv-table" style="width:47%;margin-left:auto;border-collapse:collapse;margin-bottom:12px">
   <tr>
-    <td style="width:47%;text-align:center;font-size:10pt;line-height:1.4">
-      <p style="font-weight:bold;text-transform:uppercase;margin:0 0 4px">УТВЕРЖДАЮ</p>
-      {% if сор.федерация_должность %}<p style="margin:0">{{ сор.федерация_должность }}</p>{% endif %}
-      {% if сор.федерация_название %}
-        {%- if '«' in сор.федерация_название -%}
-          {%- set ч = сор.федерация_название.split('«', 1) -%}
-          <p style="margin:0">{{ ч[0] | trim }}</p><p style="margin:0">«{{ ч[1] | trim }}</p>
-        {%- else -%}
-          <p style="margin:0">{{ сор.федерация_название }}</p>
-        {%- endif -%}
-      {% endif %}
-      <p style="margin:6pt 0 0;text-align:right">___________&nbsp;{% if сор.федерация_руководитель %}{{ сокр(сор.федерация_руководитель) }}{% else %}___________{% endif %}</p>
-      <p style="margin:4px 0 0;text-align:center">«____»&nbsp;___________&nbsp;202__&nbsp;г.</p>
-    </td>
-    <td style="width:6%"></td>
-    <td style="width:47%;text-align:center;font-size:10pt;line-height:1.4">
+    <td style="text-align:center;font-size:10pt;line-height:1.4;padding:2px 4px">
       <p style="font-weight:bold;text-transform:uppercase;margin:0 0 4px">УТВЕРЖДАЮ</p>
       {% if сор.проводящая_орг_должность %}<p style="margin:0">{{ сор.проводящая_орг_должность }}</p>{% endif %}
       {% if сор.проводящая_орг_название %}
@@ -135,42 +118,26 @@
     <tr>
       <td class="text-center">{{ loop.index }}</td>
       <td>{{ с.должность or '—' }}</td>
-      <td><strong>{{ с.фамилия_имя_отчество }}</strong></td>
-      <td class="text-center"><strong>{{ с.квалификация or '—' }}</strong></td>
+      <td>{{ с.фамилия_имя_отчество }}</td>
+      <td class="text-center">{{ с.квалификация or '—' }}</td>
       <td>{{ с.субъект_рф or '—' }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 
-{# ── Подпись — Главный судья на одной строке ── #}
+{# ── Подпись (как в стартовом протоколе спринт) ── #}
 {% set _гс = судьи | selectattr('должность', 'equalto', 'Главный судья') | list | first | default(none) %}
-{% if not _гс and сор.главный_судья %}
-  {# fallback: если в списке ГСК нет, показать из сор #}
-  {% set _гс_фио = сор.главный_судья %}
-{% else %}
-  {% set _гс_фио = _гс.фамилия_имя_отчество if _гс else '' %}
-{% endif %}
-{% set _гс_ч = (_гс_фио or '').split() %}
+{% set _гс_фио = _гс.фамилия_имя_отчество if _гс else (сор.главный_судья or '') %}
+{% set _гс_ч = _гс_фио.split() %}
 {% set _гс_аббр = _гс_ч[1][0] ~ '.' ~ _гс_ч[2][0] ~ '.\u00a0' ~ _гс_ч[0] if _гс_ч|length >= 3 else (_гс_ч[1][0] ~ '.\u00a0' ~ _гс_ч[0] if _гс_ч|length == 2 else _гс_фио) %}
 {% set _гс_текст = _гс_аббр
     ~ (', ' ~ _гс.квалификация if _гс and _гс.квалификация else '')
     ~ (', ' ~ _гс.субъект_рф if _гс and _гс.субъект_рф else '') %}
-{% set LH   = 'line-height:normal;mso-line-height-rule:exactly;' %}
-{% set tdN  = 'border:none;padding:0;' + LH %}
-{% set tdUL = 'border:none;border-bottom:1px solid #000;padding:0;text-align:center;vertical-align:middle;' + LH %}
-{% set tdLB = 'border:none;padding:2px 0 0;font-size:8pt;text-align:center;vertical-align:middle;' + LH %}
-<table class="sig-table" style="border-collapse:collapse;border:none;margin-top:28px">
-  <col style="width:200px"><col style="width:90px"><col style="width:300px">
-  <tr style="height:24px">
-    <td style="{{ tdN }}padding-right:6px;white-space:nowrap;vertical-align:bottom">Главный судья</td>
-    <td style="{{ tdUL }}">&nbsp;</td>
-    <td style="{{ tdUL }}">{{ _гс_текст }}</td>
-  </tr>
+<table class="sig-bottom" style="width:100%;border-collapse:collapse;font-size:10pt;font-weight:bold;margin-top:20px">
   <tr>
-    <td style="{{ tdN }}"></td>
-    <td style="{{ tdLB }}">(подпись)</td>
-    <td style="{{ tdLB }}">(расшифровка подписи)</td>
+    <td style="width:33%;border:none;padding:0">Главный судья</td>
+    <td style="border:none;padding:0">{{ _гс_текст }}</td>
   </tr>
 </table>
 
@@ -180,81 +147,11 @@ function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
-  var sigTbl = clone.querySelector('table.sig-table');
-  if (sigTbl) {
-    var rows  = sigTbl.querySelectorAll('tr');
-    var судья = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
+  // Таблица УТВЕРЖДАЮ: выровнять вправо в Word
+  var utvTbl = clone.querySelector('table.utv-table');
+  if (utvTbl) { utvTbl.setAttribute('align', 'right'); }
 
-    function txtW(s) {
-      var el = document.createElement('span');
-      el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;'
-                       + 'font-family:"Times New Roman",serif;font-size:11pt;';
-      el.textContent = s;
-      document.body.appendChild(el);
-      var w = el.getBoundingClientRect().width;
-      document.body.removeChild(el);
-      return w;
-    }
-    function toCm(px) { return (px / 96 * 2.54).toFixed(3); }
-
-    var BLANK   = '\u00a0'.repeat(33);
-    var posCm   = toCm(txtW('Главный судья') + 8);
-    var bCm     = toCm(txtW(BLANK));
-    var gapCm   = '0.212';
-    var fCm     = toCm(Math.max(txtW(судья), txtW('(расшифровка подписи)')) + 8);
-    var rightCm = (18.0 - parseFloat(posCm) - parseFloat(bCm)
-                       - parseFloat(gapCm) - parseFloat(fCm)).toFixed(3);
-
-    var P0  = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
-    var TBL = 'border:none;mso-border-alt:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
-    var TOP = 'border:none;mso-border-alt:none;border-top:1px solid #000;'
-            + 'mso-border-top-alt:solid windowtext .75pt;padding:2px 0 0;'
-            + 'line-height:normal;mso-line-height-rule:exactly;';
-    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
-
-    function cell(wCm, cellStyle, pStyle, content) {
-      return '<td style="width:' + wCm + 'cm;' + cellStyle + '">' 
-           + '<p class="MsoNoSpacing" style="' + P0 + (pStyle || '') + '">' + content + '</p>'
-           + '</td>';
-    }
-    var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
-             + ' style="table-layout:fixed;mso-table-layout-alt:fixed;width:18.0cm;'
-             + 'border-collapse:collapse;border:none;margin-top:20px;">'
-             + '<col style="width:' + posCm   + 'cm">'
-             + '<col style="width:' + bCm     + 'cm">'
-             + '<col style="width:' + gapCm   + 'cm">'
-             + '<col style="width:' + fCm     + 'cm">'
-             + '<col style="width:' + rightCm + 'cm">'
-             + '<tr>'
-             + cell(posCm,   TBL + 'vertical-align:bottom;white-space:nowrap;padding-right:8px;',
-                             'white-space:nowrap;', 'Главный судья')
-             + cell(bCm,     TBL + 'vertical-align:bottom;text-align:center;',
-                             'text-align:center;',
-                             '<span style="' + FONT + '">' + BLANK + '</span>')
-             + cell(gapCm,   TBL, '', '')
-             + cell(fCm,     TBL + 'vertical-align:bottom;text-align:center;',
-                             'text-align:center;',
-                             '<span style="' + FONT + '">' + судья + '</span>')
-             + cell(rightCm, TBL, '', '')
-             + '</tr>'
-             + '<tr>'
-             + cell(posCm,   TBL, '', '')
-             + cell(bCm,     TOP + 'text-align:center;',
-                             'font-size:8pt;text-align:center;white-space:nowrap;', '(подпись)')
-             + cell(gapCm,   TBL, '', '')
-             + cell(fCm,     TOP + 'text-align:center;',
-                             'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
-             + cell(rightCm, TBL, '', '')
-             + '</tr>'
-             + '</table>';
-
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    var par = sigTbl.parentNode;
-    while (wrap.firstChild) par.insertBefore(wrap.firstChild, sigTbl);
-    par.removeChild(sigTbl);
-  }
-  clone.querySelectorAll('table:not(.sig-out):not(.utv-table)').forEach(function(t){
+  clone.querySelectorAll('table:not(.utv-table):not(.hdr-table):not(.sig-bottom)').forEach(function(t){
     t.setAttribute('border', '1');
     t.setAttribute('cellspacing', '0');
     t.style.borderCollapse = 'collapse';
@@ -270,19 +167,8 @@ function exportWord() {
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
-  css += 'p,p.MsoNoSpacing{margin:0;margin-top:0;margin-bottom:0;'
-       + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
-       + 'line-height:normal;mso-line-height-rule:exactly;}';
-  css += 'table.utv-table{border:none!important;border-collapse:collapse;width:100%;}' 
-       + 'table.utv-table td{border:none!important;mso-border-alt:none!important;vertical-align:top;}';
-  css += 'table.sig-out{table-layout:fixed;mso-table-layout-alt:fixed;'
-       + 'width:18.0cm;border:none!important;border-collapse:collapse;}'
-       + 'table.sig-out td{'
-       + 'border:none!important;mso-border-alt:none!important;padding:0!important;'
-       + 'line-height:normal;mso-line-height-rule:exactly;}'
-       + 'table.sig-out p,table.sig-out p.MsoNoSpacing{'
-       + 'margin:0!important;mso-para-margin:0cm!important;'
-       + 'line-height:normal!important;mso-line-height-rule:exactly!important;}';
+  css += 'table.utv-table,table.utv-table td,table.hdr-table,table.hdr-table td,'
+       + 'table.sig-bottom,table.sig-bottom td{border:none!important;mso-border-alt:none!important;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
