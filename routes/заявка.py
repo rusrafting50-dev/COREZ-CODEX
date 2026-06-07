@@ -94,6 +94,17 @@ def печать(sor_id, z_id):
                            сегодня=date.today())
 
 
+@bp_заявка.route('/<int:sor_id>/<int:z_id>/word')
+def word(sor_id, z_id):
+    from docx_utils import create_предварительная_заявка_docx
+    сор = Соревнование.query.get_or_404(sor_id)
+    з   = ПредварительнаяЗаявка.query.get_or_404(z_id)
+    return create_предварительная_заявка_docx(
+        сор, з,
+        f'Предварительная заявка — {(з.наименование_команды or з.субъект_рф or str(z_id))[:50]}.docx'
+    )
+
+
 def _сохранить_спортсменов(з, form):
     фио_list  = form.getlist('фио[]')
     полы      = form.getlist('пол[]')
