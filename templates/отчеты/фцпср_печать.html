@@ -232,6 +232,12 @@
 function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
+  // border="1" on data tables → Word renders shared grid lines, not individual cell boxes
+  clone.querySelectorAll('table:not(.sig-table)').forEach(function(t){
+    t.setAttribute('border', '1');
+    t.setAttribute('cellspacing', '0');
+    t.style.borderCollapse = 'collapse';
+  });
   var css = '';
   try {
     for (var i = 0; i < document.styleSheets.length; i++) {
@@ -242,7 +248,7 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
+  css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
