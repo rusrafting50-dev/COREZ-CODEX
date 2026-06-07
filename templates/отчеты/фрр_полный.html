@@ -400,39 +400,38 @@ function exportWord() {
       return '<p class="MsoNoSpacing" style="' + P + (extra || '') + '">' + text + '</p>';
     }
 
-    // Строки ширин на каждый <td> — Word игнорирует <col>, но уважает inline width на ячейках
-    var W1 = 'width:' + posPx + 'px;';
-    var W2 = 'width:' + bPx   + 'px;';
-    var W3 = 'width:' + GAP   + 'px;';
-    var W4 = 'width:' + fPx   + 'px;';
+    // HTML-атрибут width="X" на <col> и <td> — Word читает именно его, не CSS style="width"
+    function td(w, style, content) {
+      return '<td width="' + w + '" style="' + style + '">' + content + '</td>';
+    }
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
-           + '<td style="' + NC + VALB + W1 + 'white-space:nowrap;padding-right:8px">'
-           +   mkP('white-space:nowrap', pos) + '</td>'
-           + '<td style="' + NC + VALM + W2 + CENT + '">'
-           +   mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>') + '</td>'
-           + '<td style="' + NC + VALB + W3 + '">' + mkP('', '') + '</td>'
-           + '<td style="' + NC + VALM + W4 + CENT + '">'
-           +   mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>') + '</td>'
+           + td(posPx, NC + VALB + 'white-space:nowrap;padding-right:8px',
+                mkP('white-space:nowrap', pos))
+           + td(bPx,   NC + VALM + CENT,
+                mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>'))
+           + td(GAP,   NC + VALB, mkP('', ''))
+           + td(fPx,   NC + VALM + CENT,
+                mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>'))
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + '<td style="' + NC + VALM + W1 + (pb ? 'padding-bottom:' + pb + ';' : '') + '">'
-           +   mkP('', '') + '</td>'
-           + '<td style="' + TOPB + VALM + W2 + CENT + '">'
-           +   mkP('font-size:8pt;text-align:center', '(подпись)') + '</td>'
-           + '<td style="' + NC + VALM + W3 + '">' + mkP('', '') + '</td>'
-           + '<td style="' + TOPB + VALM + W4 + CENT + '">'
-           +   mkP('font-size:8pt;text-align:center', '(расшифровка подписи)') + '</td>'
+           + td(posPx, NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : ''), mkP('', ''))
+           + td(bPx,   TOPB + VALM + CENT,
+                mkP('font-size:8pt;text-align:center', '(подпись)'))
+           + td(GAP,   NC + VALM, mkP('', ''))
+           + td(fPx,   TOPB + VALM + CENT,
+                mkP('font-size:8pt;text-align:center', '(расшифровка подписи)'))
            + '</tr>';
     }
 
-    var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
-             + ' style="border:none;border-collapse:collapse;margin-top:20px;width:auto">'
-             + '<col style="width:' + posPx + 'px"><col style="width:' + bPx + 'px">'
-             + '<col style="width:' + GAP + 'px"><col style="width:' + fPx + 'px">'
+    var totalW = posPx + bPx + GAP + fPx;
+    var html = '<table class="sig-out" width="' + totalW + '" border="0" cellspacing="0" cellpadding="0"'
+             + ' style="border:none;border-collapse:collapse;margin-top:20px;width:' + totalW + 'px">'
+             + '<col width="' + posPx + '"><col width="' + bPx + '">'
+             + '<col width="' + GAP + '"><col width="' + fPx + '">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
