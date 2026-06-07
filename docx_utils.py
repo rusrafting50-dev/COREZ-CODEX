@@ -9826,9 +9826,9 @@ def create_справка_docx(сор, судьи, стат, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    # A4 portrait, L=10, R=15, T=15, B=15
-    TW   = round((210 - 10 - 15) * 1440 / 25.4)   # 10488 dxa
-    GRID = [473, 2647, 3739, 1647, 1982]            # №, Должность, ФИО, Кв, Субъект
+    # A4 portrait, L=10, R=5, T=15, B=15
+    TW   = round((210 - 10 - 5) * 1440 / 25.4)    # 11054 dxa
+    GRID = [473, 2647, 3739, 2213, 1982]            # №, Должность, ФИО, Кв, Субъект
     INFO = [TW // 2, TW - TW // 2]                  # инфо-таблица: равные половины
 
     doc  = Document()
@@ -9836,7 +9836,7 @@ def create_справка_docx(сор, судьи, стат, filename):
     sect.page_width    = Mm(210)
     sect.page_height   = Mm(297)
     sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(15)
+    sect.right_margin  = Mm(5)
     sect.top_margin    = Mm(15)
     sect.bottom_margin = Mm(15)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
