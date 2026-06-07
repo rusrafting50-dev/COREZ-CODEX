@@ -376,28 +376,31 @@ function exportWord() {
     }
 
     var GAP  = 8;   // 0.2 cm gap between (подпись) and (расшифровка подписи) columns
-    var NC   = 'border:none;padding:0;';
+    var NC   = 'border:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
     var VALB = 'vertical-align:bottom;';
-    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
+    var VALT = 'vertical-align:top;';
+    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;'
+             + 'line-height:normal;mso-line-height-rule:exactly;';
     var TOPB = 'border:none;border-top:1px solid #000;'
-             + 'mso-border-alt:none;mso-border-top-alt:solid #000 .75pt;padding:2px 0 0;';
+             + 'mso-border-alt:none;mso-border-top-alt:solid #000 .75pt;'
+             + 'padding:2px 0 0;line-height:normal;mso-line-height-rule:exactly;';
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
            + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">' + pos + '</td>'
            + '<td style="' + NC + VALB + 'text-align:center">'
            +   '<span style="' + FONT + '">' + BLANK + '</span></td>'
-           + '<td style="' + NC + 'width:' + GAP + 'px"></td>'
+           + '<td style="' + NC + VALB + 'width:' + GAP + 'px"></td>'
            + '<td style="' + NC + VALB + 'text-align:center">'
            +   '<span style="' + FONT + '">' + padCtr(fio, wFIO) + '</span></td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + '<td style="' + NC + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
-           + '<td style="' + TOPB + 'font-size:8pt;text-align:center">(подпись)</td>'
-           + '<td style="' + NC + '"></td>'
-           + '<td style="' + TOPB + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
+           + '<td style="' + NC + VALT + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
+           + '<td style="' + TOPB + VALT + 'font-size:8pt;text-align:center">(подпись)</td>'
+           + '<td style="' + NC + VALT + '"></td>'
+           + '<td style="' + TOPB + VALT + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
            + '</tr>';
     }
 
