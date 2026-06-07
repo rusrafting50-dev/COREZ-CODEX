@@ -387,9 +387,11 @@ function exportWord() {
     var CENT  = 'text-align:center;';
 
     // Вычисляем posPx ДО sigRow — нужен внутри функции
-    var bPx   = Math.round(txtW(BLANK));
-    var fPx   = Math.round(wFIO) + 12;
-    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 8; // +8px = padding-right ячейки
+    var bPx    = Math.round(txtW(BLANK));
+    var fPx    = Math.round(wFIO) + 12;
+    var textW  = Math.round(txtW('Главный секретарь соревнований'));
+    var posPx  = textW + 8;                // +8px = padding-right ячейки
+    var rightPx = posPx - textW;           // пустой правый столбец = разница
 
     // «Без интервала»: все 4 свойства, class MsoNoSpacing = нативный стиль Word
     var P = 'margin:0;margin-top:0;margin-bottom:0;'
@@ -407,23 +409,25 @@ function exportWord() {
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
-           + td(posPx, NC + VALB + 'white-space:nowrap;padding-right:8px',
+           + td(posPx,   NC + VALB + 'white-space:nowrap;padding-right:8px',
                 mkP('white-space:nowrap', pos))
-           + td(bPx,   NC + VALM + CENT,
+           + td(bPx,     NC + VALM + CENT,
                 mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>'))
-           + td(GAP,   NC + VALB, mkP('', ''))
-           + td(fPx,   NC + VALM + CENT,
+           + td(GAP,     NC + VALB, mkP('', ''))
+           + td(fPx,     NC + VALM + CENT,
                 mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>'))
+           + td(rightPx, NC, mkP('', ''))
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + td(posPx, NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : ''), mkP('', ''))
-           + td(bPx,   TOPB + VALM + CENT,
+           + td(posPx,   NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : ''), mkP('', ''))
+           + td(bPx,     TOPB + VALM + CENT,
                 mkP('font-size:8pt;text-align:center', '(подпись)'))
-           + td(GAP,   NC + VALM, mkP('', ''))
-           + td(fPx,   TOPB + VALM + CENT,
+           + td(GAP,     NC + VALM, mkP('', ''))
+           + td(fPx,     TOPB + VALM + CENT,
                 mkP('font-size:8pt;text-align:center', '(расшифровка подписи)'))
+           + td(rightPx, NC, mkP('', ''))
            + '</tr>';
     }
 
@@ -431,6 +435,7 @@ function exportWord() {
              + ' style="border:none;border-collapse:collapse;margin-top:20px">'
              + '<col width="' + posPx + '"><col width="' + bPx + '">'
              + '<col width="' + GAP + '"><col width="' + fPx + '">'
+             + '<col width="' + rightPx + '">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
