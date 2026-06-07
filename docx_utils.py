@@ -9743,15 +9743,46 @@ def create_минспорта_docx(сор, судьи, filename):
     # ── Организаторы ──────────────────────────────────────────────────────────
 
     if сор.организаторы_блок:
-        for line in сор.организаторы_блок.split('\n'):
-            if line.strip():
-                _para(line.strip(), align=C, pt=9, bold=True)
+        raw = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
+        groups = []
+        for line in raw:
+            if (line.startswith('«') or line.startswith('"')) and groups:
+                prev = groups[-1]
+                if isinstance(prev, str):
+                    groups[-1] = (prev, line)
+                    continue
+            groups.append(line)
+
+        for group in groups:
+            if isinstance(group, tuple):
+                before, quoted = group
+                combined = before + ' ' + quoted
+                if len(combined) <= 55:
+                    _para(combined, align=C, pt=12, bold=True)
+                else:
+                    _para(before, align=C, pt=12, bold=True)
+                    _para(quoted, align=C, pt=12, bold=True)
+            else:
+                line = group
+                qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+                if qi is None:
+                    _para(line, align=C, pt=12, bold=True)
+                else:
+                    before = line[:qi].strip()
+                    quoted = line[qi:]
+                    combined = (before + ' ' + quoted) if before else quoted
+                    if len(combined) <= 55:
+                        _para(combined, align=C, pt=12, bold=True)
+                    else:
+                        if before:
+                            _para(before, align=C, pt=12, bold=True)
+                        _para(quoted, align=C, pt=12, bold=True)
 
     _para()
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
 
-    _para('СПИСОК', align=C, pt=18, bold=True)
+    _para('СПИСОК', align=C, pt=14, bold=True)
     _para('СУДЕЙСКОЙ КОЛЛЕГИИ ДЛЯ ПРОВЕДЕНИЯ', align=C, pt=14, bold=True)
     for line in (сор.название or '').split('\n'):
         if line.strip():
@@ -9761,9 +9792,15 @@ def create_минспорта_docx(сор, судьи, filename):
 
     # ── Дата и место ─────────────────────────────────────────────────────────
 
-    date_place = ', '.join(x for x in (сор.даты_проведения or '', сор.место_проведения or '') if x)
-    if date_place:
-        _para(date_place, align=L, pt=10, bold=True)
+    R = WD_ALIGN_PARAGRAPH.RIGHT
+    dp = _make_tbl(2)
+    _set_grid(dp, [TW // 2, TW - TW // 2])
+    r_dp = dp.add_row(); _row_h(r_dp, 0.7)
+    cs_dp = list(r_dp.cells)
+    _cw(cs_dp[0], TW // 2); _cw(cs_dp[1], TW - TW // 2)
+    _no_border(cs_dp[0]); _no_border(cs_dp[1])
+    _fill(cs_dp[0], сор.даты_проведения  or '', align=L, pt=10, bold=True)
+    _fill(cs_dp[1], сор.место_проведения or '', align=R, pt=10, bold=True)
 
     _para()
     _para()
