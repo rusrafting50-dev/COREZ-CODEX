@@ -9967,9 +9967,41 @@ def create_справка_docx(сор, судьи, стат, filename):
     # ── Организаторы ──────────────────────────────────────────────────────────
 
     if сор.организаторы_блок:
-        for line in сор.организаторы_блок.split('\n'):
-            if line.strip():
-                _para(line.strip(), align=C, pt=14)
+        raw = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
+        # Объединяем пары строк «без кавычек» + «в кавычках» в одну группу
+        groups = []
+        for line in raw:
+            if (line.startswith('«') or line.startswith('"')) and groups:
+                prev = groups[-1]
+                if isinstance(prev, str):
+                    groups[-1] = (prev, line)
+                    continue
+            groups.append(line)
+
+        for group in groups:
+            if isinstance(group, tuple):
+                before, quoted = group
+                combined = before + ' ' + quoted
+                if len(combined) <= 60:
+                    _para(combined, align=C, pt=14)
+                else:
+                    _para(before, align=C, pt=14)
+                    _para(quoted, align=C, pt=14)
+            else:
+                line = group
+                qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+                if qi is None:
+                    _para(line, align=C, pt=14)
+                else:
+                    before = line[:qi].strip()
+                    quoted = line[qi:]
+                    combined = (before + ' ' + quoted) if before else quoted
+                    if len(combined) <= 60:
+                        _para(combined, align=C, pt=14)
+                    else:
+                        if before:
+                            _para(before, align=C, pt=14)
+                        _para(quoted, align=C, pt=14)
 
     _para()
     _para()
