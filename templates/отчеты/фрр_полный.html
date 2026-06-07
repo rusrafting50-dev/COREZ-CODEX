@@ -400,26 +400,31 @@ function exportWord() {
       return '<p class="MsoNoSpacing" style="' + P + (extra || '') + '">' + text + '</p>';
     }
 
+    // Строки ширин на каждый <td> — Word игнорирует <col>, но уважает inline width на ячейках
+    var W1 = 'width:' + posPx + 'px;';
+    var W2 = 'width:' + bPx   + 'px;';
+    var W3 = 'width:' + GAP   + 'px;';
+    var W4 = 'width:' + fPx   + 'px;';
+
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
-           // col1: фиксированная ширина + nowrap и на td и на p — чтобы Word не переносил
-           + '<td style="' + NC + VALB + 'white-space:nowrap;width:' + posPx + 'px;padding-right:8px">'
+           + '<td style="' + NC + VALB + W1 + 'white-space:nowrap;padding-right:8px">'
            +   mkP('white-space:nowrap', pos) + '</td>'
-           + '<td style="' + NC + VALM + CENT + '">'
+           + '<td style="' + NC + VALM + W2 + CENT + '">'
            +   mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>') + '</td>'
-           + '<td style="' + NC + VALB + 'width:' + GAP + 'px">' + mkP('', '') + '</td>'
-           + '<td style="' + NC + VALM + CENT + '">'
+           + '<td style="' + NC + VALB + W3 + '">' + mkP('', '') + '</td>'
+           + '<td style="' + NC + VALM + W4 + CENT + '">'
            +   mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>') + '</td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + '<td style="' + NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : '') + '">'
+           + '<td style="' + NC + VALM + W1 + (pb ? 'padding-bottom:' + pb + ';' : '') + '">'
            +   mkP('', '') + '</td>'
-           + '<td style="' + TOPB + VALM + CENT + '">'
+           + '<td style="' + TOPB + VALM + W2 + CENT + '">'
            +   mkP('font-size:8pt;text-align:center', '(подпись)') + '</td>'
-           + '<td style="' + NC + VALM + '">' + mkP('', '') + '</td>'
-           + '<td style="' + TOPB + VALM + CENT + '">'
+           + '<td style="' + NC + VALM + W3 + '">' + mkP('', '') + '</td>'
+           + '<td style="' + TOPB + VALM + W4 + CENT + '">'
            +   mkP('font-size:8pt;text-align:center', '(расшифровка подписи)') + '</td>'
            + '</tr>';
     }
@@ -469,7 +474,7 @@ function exportWord() {
        + 'table.sig-out td,table.sig-out th{'
        + 'border:none!important;mso-border-alt:none!important;'
        + 'padding:0!important;vertical-align:middle!important;'
-       + 'white-space:nowrap;line-height:normal;mso-line-height-rule:exactly;}'
+       + 'line-height:normal;mso-line-height-rule:exactly;}'
        + 'table.sig-out td:first-child{'
        + 'vertical-align:bottom!important;text-align:left!important;white-space:nowrap;}'
        // Специфичный оверрайд для p внутри sig-out (0,1,1 > 0,0,1)
