@@ -9420,6 +9420,18 @@ def create_гск_docx(сор, судьи, filename):
             return f"{p[0]} {p[1][0]}."
         return фио or ''
 
+    def _indent(p, left, first=0):
+        """Установить левый отступ параграфа (dxa)."""
+        pPr = p._p.find(qn('w:pPr'))
+        if pPr is None:
+            pPr = OxmlElement('w:pPr'); p._p.insert(0, pPr)
+        ind = pPr.find(qn('w:ind'))
+        if ind is None:
+            ind = OxmlElement('w:ind'); pPr.append(ind)
+        ind.set(qn('w:left'), str(left))
+        if first:
+            ind.set(qn('w:firstLine'), str(first))
+
     # ── Шапка: организаторы ───────────────────────────────────────────────────
 
     if сор.организаторы_блок:
@@ -9452,23 +9464,26 @@ def create_гск_docx(сор, судьи, filename):
         _fill(cs[2], право, align=C, pt=11)
 
     # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
+    # Отступы по образцу (dxa, text area = 10560 dxa = 185mm)
+    I_MAIN = 5664; I_ORG = 4956; I_FIO = 7788; FIRST = 708
 
     _para()
-    _para('УТВЕРЖДАЮ', pt=14, bold=True)
+    _indent(_para('УТВЕРЖДАЮ', pt=14, bold=True), I_MAIN, FIRST)
 
     if сор.проводящая_орг_должность:
-        _para(сор.проводящая_орг_должность.strip(), pt=11, after=3)
+        _indent(_para(сор.проводящая_орг_должность.strip(), pt=11, after=3), I_ORG, FIRST)
 
     if сор.проводящая_орг_название:
-        for line in сор.проводящая_орг_название.split('\n'):
+        for i_line, line in enumerate(сор.проводящая_орг_название.split('\n')):
             if line.strip():
-                _para(line.strip(), pt=11, after=3)
+                _indent(_para(line.strip(), pt=11, after=3),
+                        I_MAIN if i_line % 2 else I_ORG, FIRST)
 
-    _para()
+    _indent(_para(), I_FIO, FIRST)
     руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
-    _para(руков, pt=11, bold=True)
-    _para()
-    _para('«____» ___________ 202__ г.', pt=11)
+    _indent(_para(руков, pt=11, bold=True), I_FIO, FIRST)
+    _indent(_para(), I_ORG, FIRST)
+    _indent(_para('«____» ___________ 202__ г.', pt=11), I_ORG, FIRST)
     _para()
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
