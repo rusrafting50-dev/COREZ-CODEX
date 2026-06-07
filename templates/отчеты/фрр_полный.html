@@ -349,15 +349,16 @@ function exportWord() {
     var rows = sigTbl.querySelectorAll('tr');
     var судья   = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
     var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
-    var TS  = 'mso-tab-stops:200.0pt 270.0pt;';
+    var TS_DATA = 'mso-tab-stops:202.5pt left 270.0pt left;';
+    var TS_LBL  = 'mso-tab-stops:236.25pt center 345.0pt center;';
     var TAB = '<span style="mso-tab-count:1">\t</span>';
-    var NBS = ' '.repeat(22);  // ширина колонки «подпись»
+    var NBS = ' '.repeat(22);  // неразрывные пробелы — не схлопываются в Word
     function sigP(pos, fio, mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.8;' + TS + '">'
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.5;' + TS_DATA + '">'
            + pos + TAB + '<u>' + NBS + '</u>' + TAB + '<u>' + fio + '</u>' + '</p>';
     }
     function lblP(mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS + '">'
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS_LBL + '">'
            + TAB + '(подпись)' + TAB + '(расшифровка подписи)</p>';
     }
     var tmp = document.createElement('div');
