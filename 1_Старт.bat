@@ -1,6 +1,16 @@
+@echo off
 cd /d "D:\Projects Claude Code\COREZ"
-git fetch origin
+
+echo [1/4] Останавливаем старый Flask...
+taskkill /f /im python.exe 2>nul
+timeout /t 2 /nobreak >nul
+
+echo [2/4] Получаем обновления...
 git pull origin main
-pip install -r requirements.txt
+
+echo [3/4] Проверяем зависимости...
+pip install -r requirements.txt --quiet
+
+echo [4/4] Запускаем Flask...
 python app.py
 pause
