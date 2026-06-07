@@ -343,14 +343,14 @@ function exportWord() {
   var clone = document.body.cloneNode(true);
   clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
 
-  // Replace sig-table with tab-stop paragraphs + underlined text (no table in Word)
+  // Replace sig-table: borderless 3-col table + <u> underlines (no CSS border-bottom)
   var sigTbl = clone.querySelector('table.sig-table');
   if (sigTbl) {
-    var rows = sigTbl.querySelectorAll('tr');
+    var rows      = sigTbl.querySelectorAll('tr');
     var судья     = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
     var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
 
-    // Measure rendered text width (px→pt) using temporary invisible span
+    // Measure rendered width in pt (px × 0.75) via hidden span
     function txtW(s) {
       var el = document.createElement('span');
       el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;' +
@@ -359,55 +359,58 @@ function exportWord() {
       document.body.appendChild(el);
       var w = el.getBoundingClientRect().width;
       document.body.removeChild(el);
-      return w * 0.75; // px → pt
+      return w;  // px
     }
 
-    // Blank underline: 1.5× wider than before (33 NBSP)
-    var BLANK = ' '.repeat(33);
-    var wBlank = txtW(BLANK);
-
-    // FIO underline: same width for both = max of the two FIOs
+    var BLANK = '\u00a0'.repeat(33);           // 1.5× blank underline
     var wSud  = txtW(судья);
     var wSekr = txtW(секретарь);
-    var wFIO  = Math.max(wSud, wSekr);
-    var spW   = txtW(' ');
+    var wFIO  = Math.max(wSud, wSekr);         // max ФИО width (px)
+    var spW   = txtW('\u00a0');
 
-    // Center text inside fixed-width underline by padding with NBSP
-    function padCtr(text, targetW) {
-      var pad = Math.max(0, targetW - txtW(text));
+    // Pad text with NBSP so both FIOs fill the same width
+    function padCtr(text, targetPx) {
+      var pad = Math.max(0, targetPx - txtW(text));
       var n   = Math.round(pad / 2 / spW);
-      return ' '.repeat(n) + text + ' '.repeat(n);
+      return '\u00a0'.repeat(n) + text + '\u00a0'.repeat(n);
     }
 
-    // Tab stop positions in pt from left content edge
-    var T1  = 202.5;              // start of blank column (W0=270px)
-    var T2  = T1 + wBlank;        // start of FIO column
-    var T1c = T1 + wBlank / 2;    // center of blank  → "(подпись)"
-    var T2c = T2 + wFIO   / 2;    // center of FIO    → "(расшифровка подписи)"
-    var TS_D = 'mso-tab-stops:' + T1.toFixed(1) + 'pt ' + T2.toFixed(1) + 'pt;';
-    var TS_L = 'mso-tab-stops:center ' + T1c.toFixed(1) + 'pt center ' + T2c.toFixed(1) + 'pt;';
-    var TAB  = '<span style="mso-tab-count:1">\t</span>';
+    var NC   = 'border:none;padding:0;';
+    var VALB = 'vertical-align:bottom;';
+    function sigRow(pos, fio) {
+      return '<tr style="height:22px">'
+           + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">' + pos + '</td>'
+           + '<td style="' + NC + VALB + 'text-align:center"><u>' + BLANK + '</u></td>'
+           + '<td style="' + NC + VALB + 'text-align:center"><u>' + padCtr(fio, wFIO) + '</u></td>'
+           + '</tr>';
+    }
+    function lblRow(pb) {
+      return '<tr>'
+           + '<td style="' + NC + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
+           + '<td style="' + NC + 'font-size:8pt;text-align:center">(подпись)</td>'
+           + '<td style="' + NC + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
+           + '</tr>';
+    }
 
-    function sigP(pos, fio, mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.2;' + TS_D + '">'
-           + pos + TAB + '<u>' + BLANK + '</u>' + TAB + '<u>' + padCtr(fio, wFIO) + '</u></p>';
-    }
-    function lblP(mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS_L + '">'
-           + TAB + '(подпись)' + TAB + '(расшифровка подписи)</p>';
-    }
-    var tmp = document.createElement('div');
-    tmp.innerHTML = sigP('Главный судья соревнований', судья, '')
-                  + lblP('8px')
-                  + sigP('Главный секретарь соревнований', секретарь, '')
-                  + lblP('');
+    var bPx  = Math.round(txtW(BLANK));
+    var fPx  = Math.round(wFIO) + 12;
+    var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
+             + ' style="border:none;border-collapse:collapse;margin-top:20px">'
+             + '<col style=""><col style="width:' + bPx + 'px"><col style="width:' + fPx + 'px">'
+             + sigRow('Главный судья соревнований', судья)
+             + lblRow('10px')
+             + sigRow('Главный секретарь соревнований', секретарь)
+             + lblRow('')
+             + '</table>';
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = html;
     var par = sigTbl.parentNode;
-    while (tmp.firstChild) par.insertBefore(tmp.firstChild, sigTbl);
+    while (wrap.firstChild) par.insertBefore(wrap.firstChild, sigTbl);
     par.removeChild(sigTbl);
   }
-
   // border="1" on data tables → Word renders shared grid lines, not individual cell boxes
-  clone.querySelectorAll('table').forEach(function(t){
+  clone.querySelectorAll('table:not(.sig-out)').forEach(function(t){
     t.setAttribute('border', '1');
     t.setAttribute('cellspacing', '0');
     t.style.borderCollapse = 'collapse';
