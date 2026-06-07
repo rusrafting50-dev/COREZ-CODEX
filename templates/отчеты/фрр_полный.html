@@ -388,11 +388,13 @@ function exportWord() {
     var CENT  = 'text-align:center;';
 
     // Вычисляем posPx ДО sigRow — нужен внутри функции
-    var bPx    = Math.round(txtW(BLANK));
-    var fPx    = Math.round(wFIO) + 12;
-    var textW  = Math.round(txtW('Главный секретарь соревнований'));
-    var posPx  = textW + 8;                // +8px = padding-right ячейки
-    var rightPx = posPx - textW;           // пустой правый столбец = разница
+    var bPx     = Math.round(txtW(BLANK));
+    var fPx     = Math.round(wFIO) + 12;
+    var textW   = Math.round(txtW('Главный секретарь соревнований'));
+    var posPx   = textW + 8;              // +8px = padding-right ячейки
+    // A4 portrait: 210мм − 15мм − 15мм = 180мм = 680px при 96dpi
+    var pageW   = Math.round(180 * 96 / 25.4);
+    var rightPx = pageW - posPx - bPx - GAP - fPx; // правый столбец = весь остаток страницы
 
     // «Без интервала»: все 4 свойства, class MsoNoSpacing = нативный стиль Word
     var P = 'margin:0;margin-top:0;margin-bottom:0;'
