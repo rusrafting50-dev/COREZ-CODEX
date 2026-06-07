@@ -387,22 +387,28 @@ function exportWord() {
              + 'padding:2px 0 0;' + LH;
     var CENT = 'text-align:center;';
 
+    var P = 'margin:0;mso-para-margin:0cm;' + LH;  // «Без интервала» на параграф внутри ячейки
+
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
-           + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">' + pos + '</td>'
+           + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">'
+           +   '<p style="' + P + '">' + pos + '</p></td>'
            + '<td style="' + NC + VALM + CENT + '">'
-           +   '<span style="' + FONT + '">' + BLANK + '</span></td>'
-           + '<td style="' + NC + VALB + 'width:' + GAP + 'px"></td>'
+           +   '<p style="' + P + 'text-align:center"><span style="' + FONT + '">' + BLANK + '</span></p></td>'
+           + '<td style="' + NC + VALB + 'width:' + GAP + 'px"><p style="' + P + '"></p></td>'
            + '<td style="' + NC + VALM + CENT + '">'
-           +   '<span style="' + FONT + '">' + fio + '</span></td>'
+           +   '<p style="' + P + 'text-align:center"><span style="' + FONT + '">' + fio + '</span></p></td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + '<td style="' + NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
-           + '<td style="' + TOPB + VALM + 'font-size:8pt;' + CENT + '">(подпись)</td>'
-           + '<td style="' + NC + VALM + '"></td>'
-           + '<td style="' + TOPB + VALM + 'font-size:8pt;' + CENT + '">(расшифровка подписи)</td>'
+           + '<td style="' + NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : '') + '">'
+           +   '<p style="' + P + '"></p></td>'
+           + '<td style="' + TOPB + VALM + CENT + '">'
+           +   '<p style="' + P + 'font-size:8pt;text-align:center">(подпись)</p></td>'
+           + '<td style="' + NC + VALM + '"><p style="' + P + '"></p></td>'
+           + '<td style="' + TOPB + VALM + CENT + '">'
+           +   '<p style="' + P + 'font-size:8pt;text-align:center">(расшифровка подписи)</p></td>'
            + '</tr>';
     }
 
