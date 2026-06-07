@@ -9275,6 +9275,7 @@ def create_гск_docx(сор, судьи, filename):
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
+    R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # A4 portrait, L=10, R=15, T=15, B=15 (from sample)
     TW = round((210 - 10 - 15) * 1440 / 25.4)  # 10560 dxa
@@ -9458,7 +9459,7 @@ def create_гск_docx(сор, судьи, filename):
                         _line_br_org(p_org)
                     _run(p_org, quoted, pt=11)
 
-    _para(сор.название or '', align=C, pt=12, bold=True, after=6)
+    _para(сор.название or '', align=C, pt=13, bold=True, after=6)
 
     # ── Дата / место (таблица без рамок, нижняя черта) ───────────────────────
 
@@ -9475,7 +9476,8 @@ def create_гск_docx(сор, судьи, filename):
     ]):
         r = dt.add_row()
         cs = list(r.cells)
-        for c in cs: _no_border(c); _valign(c, 'center')
+        va = 'bottom' if idx == 0 else 'top'
+        for c in cs: _no_border(c); _valign(c, va)
         if idx == 0:
             _bottom_border(cs[0]); _bottom_border(cs[2])
         for cell, text in ((cs[0], лево), (cs[2], право)):
@@ -9487,34 +9489,30 @@ def create_гск_docx(сор, судьи, filename):
             pStyle.set(qn('w:val'), 'NoSpacing')
             p.alignment = C
             if text: _run(p, text, pt=11)
-            _valign(cell)
+            _valign(cell, va)
 
     # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
-    # Отступы по образцу (dxa, text area = 10560 dxa = 185mm)
-    I_MAIN = 5664; I_ORG = 4956; I_FIO = 7788; FIRST = 708
-
     _para()
-    _indent(_para('УТВЕРЖДАЮ', pt=12, bold=True), I_MAIN, FIRST)
+    _para('УТВЕРЖДАЮ', pt=13, bold=True, align=C)
 
     if сор.проводящая_орг_должность:
-        _indent(_para(сор.проводящая_орг_должность.strip(), pt=11, after=3), I_ORG, FIRST)
+        _para(сор.проводящая_орг_должность.strip(), pt=11, after=3, align=C)
 
     if сор.проводящая_орг_название:
-        for i_line, line in enumerate(сор.проводящая_орг_название.split('\n')):
+        for line in сор.проводящая_орг_название.split('\n'):
             if line.strip():
-                _indent(_para(line.strip(), pt=11, after=3),
-                        I_MAIN if i_line % 2 else I_ORG, FIRST)
+                _para(line.strip(), pt=11, after=3, align=C)
 
-    _indent(_para(), I_FIO, FIRST)
+    _para()
     руков = _abbr_surname_first(сор.проводящая_орг_руководитель or '')
-    _indent(_para(руков, pt=11, bold=True), I_FIO, FIRST)
-    _indent(_para(), I_ORG, FIRST)
-    _indent(_para('«____» ___________ 202__ г.', pt=11), I_ORG, FIRST)
+    _para(руков, pt=11, bold=True, align=R)
+    _para()
+    _para('«____» ___________ 202__ г.', pt=11, align=C)
     _para()
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
 
-    _para('Состав главной судейской коллегии', align=C, pt=12, bold=True)
+    _para('Состав главной судейской коллегии', align=C, pt=13, bold=True)
     _para()
     _para()
 
