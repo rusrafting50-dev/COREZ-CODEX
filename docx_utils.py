@@ -9280,10 +9280,9 @@ def create_гск_docx(сор, судьи, filename):
     TW = round((210 - 10 - 15) * 1440 / 25.4)  # 10560 dxa
 
     # Column widths scaled from sample proportions (494:2762:3901:1719:2068)
-    _ORIG = [494, 2762, 3901, 1719, 2068]
-    _TOT  = sum(_ORIG)
-    GRID  = [round(TW * w / _TOT) for w in _ORIG]
-    GRID[-1] += TW - sum(GRID)
+    # Column widths: №=477, Должность=2664, ФИО=3024, Квалификация=2400, Субъект=1995
+    GRID = [477, 2664, 3024, 2400, 1995]
+
 
     doc  = Document()
     sect = doc.sections[0]
@@ -9435,12 +9434,31 @@ def create_гск_docx(сор, судьи, filename):
     # ── Шапка: организаторы ───────────────────────────────────────────────────
 
     if сор.организаторы_блок:
-        строки = сор.организаторы_блок.split('\n')
-        for i, s in enumerate(строки):
-            after = 3 if i < len(строки) - 1 else 0
-            _para(s.strip(), align=C, pt=11, after=after)
+        lines = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
+        p_org = _para(align=C, pt=11)
 
-    _para(сор.название or '', align=C, pt=14, bold=True, after=6)
+        def _line_br_org(p):
+            p.add_run()._r.append(OxmlElement('w:br'))
+
+        for i, line in enumerate(lines):
+            if i > 0:
+                _line_br_org(p_org)
+            qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+            if qi is None:
+                _run(p_org, line, pt=11)
+            else:
+                before  = line[:qi].strip()
+                quoted  = line[qi:]
+                combined = (before + ' ' + quoted) if before else quoted
+                if len(combined) <= 80:
+                    _run(p_org, combined, pt=11)
+                else:
+                    if before:
+                        _run(p_org, before, pt=11)
+                        _line_br_org(p_org)
+                    _run(p_org, quoted, pt=11)
+
+    _para(сор.название or '', align=C, pt=12, bold=True, after=6)
 
     # ── Дата / место (таблица без рамок, нижняя черта) ───────────────────────
 
@@ -9460,15 +9478,23 @@ def create_гск_docx(сор, судьи, filename):
         for c in cs: _no_border(c); _valign(c, 'center')
         if idx == 0:
             _bottom_border(cs[0]); _bottom_border(cs[2])
-        _fill(cs[0], лево,  align=C, pt=11)
-        _fill(cs[2], право, align=C, pt=11)
+        for cell, text in ((cs[0], лево), (cs[2], право)):
+            p = cell.paragraphs[0]; p.clear(); _sp(p)
+            pPr = p._p.get_or_add_pPr()
+            pStyle = pPr.find(qn('w:pStyle'))
+            if pStyle is None:
+                pStyle = OxmlElement('w:pStyle'); pPr.insert(0, pStyle)
+            pStyle.set(qn('w:val'), 'NoSpacing')
+            p.alignment = C
+            if text: _run(p, text, pt=11)
+            _valign(cell)
 
     # ── УТВЕРЖДАЮ ─────────────────────────────────────────────────────────────
     # Отступы по образцу (dxa, text area = 10560 dxa = 185mm)
     I_MAIN = 5664; I_ORG = 4956; I_FIO = 7788; FIRST = 708
 
     _para()
-    _indent(_para('УТВЕРЖДАЮ', pt=14, bold=True), I_MAIN, FIRST)
+    _indent(_para('УТВЕРЖДАЮ', pt=12, bold=True), I_MAIN, FIRST)
 
     if сор.проводящая_орг_должность:
         _indent(_para(сор.проводящая_орг_должность.strip(), pt=11, after=3), I_ORG, FIRST)
@@ -9488,7 +9514,7 @@ def create_гск_docx(сор, судьи, filename):
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
 
-    _para('Состав главной судейской коллегии', align=C, pt=14, bold=True)
+    _para('Состав главной судейской коллегии', align=C, pt=12, bold=True)
     _para()
     _para()
 
