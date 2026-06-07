@@ -414,7 +414,6 @@ function exportWord() {
            + td(GAP,   NC + VALB, mkP('', ''))
            + td(fPx,   NC + VALM + CENT,
                 mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>'))
-           + td(posPx, NC, mkP('', ''))
            + '</tr>';
     }
     function lblRow(pb) {
@@ -425,7 +424,6 @@ function exportWord() {
            + td(GAP,   NC + VALM, mkP('', ''))
            + td(fPx,   TOPB + VALM + CENT,
                 mkP('font-size:8pt;text-align:center', '(расшифровка подписи)'))
-           + td(posPx, NC, mkP('', ''))
            + '</tr>';
     }
 
@@ -433,7 +431,6 @@ function exportWord() {
              + ' style="border:none;border-collapse:collapse;margin-top:20px">'
              + '<col width="' + posPx + '"><col width="' + bPx + '">'
              + '<col width="' + GAP + '"><col width="' + fPx + '">'
-             + '<col width="' + posPx + '">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
