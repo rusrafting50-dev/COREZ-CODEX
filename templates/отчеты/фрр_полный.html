@@ -384,12 +384,12 @@ function exportWord() {
     var T2  = T1 + wBlank;        // start of FIO column
     var T1c = T1 + wBlank / 2;    // center of blank  → "(подпись)"
     var T2c = T2 + wFIO   / 2;    // center of FIO    → "(расшифровка подписи)"
-    var TS_D = 'mso-tab-stops:' + T1.toFixed(1) + 'pt left ' + T2.toFixed(1) + 'pt left;';
-    var TS_L = 'mso-tab-stops:' + T1c.toFixed(1) + 'pt center ' + T2c.toFixed(1) + 'pt center;';
+    var TS_D = 'mso-tab-stops:' + T1.toFixed(1) + 'pt ' + T2.toFixed(1) + 'pt;';
+    var TS_L = 'mso-tab-stops:center ' + T1c.toFixed(1) + 'pt center ' + T2c.toFixed(1) + 'pt;';
     var TAB  = '<span style="mso-tab-count:1">\t</span>';
 
     function sigP(pos, fio, mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.5;' + TS_D + '">'
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.2;' + TS_D + '">'
            + pos + TAB + '<u>' + BLANK + '</u>' + TAB + '<u>' + padCtr(fio, wFIO) + '</u></p>';
     }
     function lblP(mb) {
@@ -398,7 +398,7 @@ function exportWord() {
     }
     var tmp = document.createElement('div');
     tmp.innerHTML = sigP('Главный судья соревнований', судья, '')
-                  + lblP('14px')
+                  + lblP('8px')
                   + sigP('Главный секретарь соревнований', секретарь, '')
                   + lblP('');
     var par = sigTbl.parentNode;
