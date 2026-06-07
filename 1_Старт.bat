@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 cd /d "D:\Projects Claude Code\COREZ"
 
 echo [1/4] Останавливаем старый Flask...
