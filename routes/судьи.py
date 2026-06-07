@@ -243,6 +243,19 @@ def гск(sor_id):
                            сегодня=сегодня)
 
 
+@bp_судьи.route('/<int:sor_id>/гск-word')
+def гск_word(sor_id):
+    """Состав ГСК — выгрузка Word."""
+    from docx_utils import create_гск_docx
+    сор = Соревнование.query.get_or_404(sor_id)
+    все = Судья.query.filter_by(соревнование_id=sor_id).all()
+    судьи = sorted(
+        [с for с in все if с.должность in _ГСК_ПРИОРИТЕТ],
+        key=lambda с: _ГСК_ПРИОРИТЕТ[с.должность]
+    )
+    return create_гск_docx(сор, судьи, f'Состав ГСК — {сор.название[:40]}.docx')
+
+
 @bp_судьи.route('/<int:sor_id>/минспорта')
 def минспорта(sor_id):
     """Список судейской коллегии по форме Минспорта."""
