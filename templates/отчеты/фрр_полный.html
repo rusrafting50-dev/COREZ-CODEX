@@ -421,9 +421,10 @@ function exportWord() {
 
     var bPx  = Math.round(txtW(BLANK));
     var fPx  = Math.round(wFIO) + 12;
+    var posPx = Math.round(txtW('Главный секретарь соревнований')) + 8; // ширина по длиннейшему тексту + padding-right
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
              + ' style="border:none;border-collapse:collapse;margin-top:20px;width:auto">'
-             + '<col><col style="width:' + bPx + 'px">'
+             + '<col style="width:' + posPx + 'px"><col style="width:' + bPx + 'px">'
              + '<col style="width:' + GAP + 'px"><col style="width:' + fPx + 'px">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
