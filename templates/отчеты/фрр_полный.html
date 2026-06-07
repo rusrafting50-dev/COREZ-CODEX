@@ -432,8 +432,8 @@ function exportWord() {
     }
 
     var totalW = posPx + bPx + GAP + fPx + rightPx;
-    console.log('sig-out cols px:', posPx, bPx, GAP, fPx, rightPx, '| total:', totalW);
-    console.log('sig-out cols %:',
+    console.error('sig-out cols px:', posPx, bPx, GAP, fPx, rightPx, '| total:', totalW);
+    console.error('sig-out cols %:',
       (posPx/totalW*100).toFixed(1)+'%',
       (bPx/totalW*100).toFixed(1)+'%',
       (GAP/totalW*100).toFixed(1)+'%',
