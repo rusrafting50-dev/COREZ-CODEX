@@ -9596,23 +9596,23 @@ def create_гск_docx(сор, судьи, filename):
 
 
 def create_минспорта_docx(сор, судьи, filename):
-    """Список судейской коллегии по форме Минспорта — Portrait A4, L=30 R=15 T=7.5 B=10."""
+    """Список судейской коллегии по форме Минспорта — Portrait A4, L=10 R=5 T=7 B=10."""
     from docx.shared import Mm, Pt
 
     TNR = 'Times New Roman'
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    # A4 portrait, L=30, R=15, T=7.5, B=10
-    TW   = round((210 - 30 - 15) * 1440 / 25.4)   # 9354 dxa
-    GRID = [420, 3265, 2456, 1356, 1857]            # №, ФИО, Должность, Кв, Субъект
+    # A4 portrait, L=10, R=5, T=7, B=10
+    TW   = round((210 - 10 - 5) * 1440 / 25.4)    # 11054 dxa
+    GRID = [496, 3858, 2902, 1602, 2196]            # №, ФИО, Должность, Кв, Субъект
 
     doc  = Document()
     sect = doc.sections[0]
     sect.page_width    = Mm(210)
     sect.page_height   = Mm(297)
-    sect.left_margin   = Mm(30)
-    sect.right_margin  = Mm(15)
+    sect.left_margin   = Mm(10)
+    sect.right_margin  = Mm(5)
     sect.top_margin    = Mm(7)
     sect.bottom_margin = Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
@@ -9813,21 +9813,21 @@ def create_минспорта_docx(сор, судьи, filename):
     rh = tbl.add_row(); _row_h(rh, 1.0)
     cs = list(rh.cells)
     for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
-    _fill(cs[0], '№',                              align=C, pt=11, bold=True)
-    _fill(cs[1], 'Фамилия, имя, отчество',         align=C, pt=11, bold=True)
-    _fill(cs[2], 'Должность',                      align=C, pt=11, bold=True)
-    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=11, bold=True)
-    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=11, bold=True)
+    _fill(cs[0], '№',                              align=C, pt=12, bold=True)
+    _fill(cs[1], 'Фамилия, имя, отчество',         align=C, pt=12, bold=True)
+    _fill(cs[2], 'Должность',                      align=C, pt=12, bold=True)
+    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=12, bold=True)
+    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=12, bold=True)
 
     for пп, с in enumerate(судьи, 1):
         rd = tbl.add_row(); _row_h(rd, 0.7)
         cd = list(rd.cells)
         for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
-        _fill(cd[0], str(пп),                       align=C, pt=11)
-        _fill(cd[1], с.фамилия_имя_отчество or '—', pt=11)
-        _fill(cd[2], с.должность or '—',            pt=11)
-        _fill(cd[3], с.квалификация or '—',         align=C, pt=11)
-        _fill(cd[4], с.субъект_рф or '—',           align=C, pt=11)
+        _fill(cd[0], str(пп),                       align=C, pt=12)
+        _fill(cd[1], с.фамилия_имя_отчество or '—', pt=12)
+        _fill(cd[2], с.должность or '—',            pt=12)
+        _fill(cd[3], с.квалификация or '—',         align=C, pt=12)
+        _fill(cd[4], с.субъект_рф or '—',           align=C, pt=12)
 
     # ── Подписи ───────────────────────────────────────────────────────────────
 
