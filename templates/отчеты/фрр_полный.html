@@ -368,8 +368,6 @@ function exportWord() {
     var bCm     = toCm(txtW(BLANK));
     var gapCm   = '0.212';
     var fCm     = toCm(Math.max(wFIO, txtW('(расшифровка подписи)')) + 8);
-    var rightCm = (18.0 - parseFloat(posCm) - parseFloat(bCm)
-                       - parseFloat(gapCm) - parseFloat(fCm)).toFixed(3);
 
     var P0  = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
     var TBL = 'border:none;mso-border-alt:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
@@ -394,7 +392,6 @@ function exportWord() {
            + cell(fCm,     TBL + 'vertical-align:bottom;text-align:center;',
                            'text-align:center;',
                            '<span style="' + FONT + '">' + fio + '</span>')
-           + cell(rightCm, TBL, '', '')
            + '</tr>';
     }
     function lblRow(pbPx) {
@@ -405,7 +402,6 @@ function exportWord() {
            + cell(gapCm,   TBL, '', '')
            + cell(fCm,     TOP + 'text-align:center;',
                            'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
-           + cell(rightCm, TBL, '', '')
            + '</tr>';
     }
 
@@ -416,7 +412,6 @@ function exportWord() {
              + '<col style="width:' + bCm     + 'cm">'
              + '<col style="width:' + gapCm   + 'cm">'
              + '<col style="width:' + fCm     + 'cm">'
-             + '<col style="width:' + rightCm + 'cm">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
