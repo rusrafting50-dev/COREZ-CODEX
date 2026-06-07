@@ -387,35 +387,42 @@ function exportWord() {
              + 'padding:2px 0 0;' + LH;
     var CENT = 'text-align:center;';
 
-    var P = 'margin:0;mso-para-margin:0cm;' + LH;  // «Без интервала» на параграф внутри ячейки
+    // «Без интервала»: margin:0 + mso-para-margin + class MsoNoSpacing (Word распознаёт нативно)
+    var P = 'margin:0;margin-top:0;margin-bottom:0;'
+          + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
+          + LH;
+
+    function mkP(extraStyle, text) {
+      return '<p class="MsoNoSpacing" style="' + P + (extraStyle || '') + '">' + text + '</p>';
+    }
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
            + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">'
-           +   '<p style="' + P + '">' + pos + '</p></td>'
+           +   mkP('', pos) + '</td>'
            + '<td style="' + NC + VALM + CENT + '">'
-           +   '<p style="' + P + 'text-align:center"><span style="' + FONT + '">' + BLANK + '</span></p></td>'
-           + '<td style="' + NC + VALB + 'width:' + GAP + 'px"><p style="' + P + '"></p></td>'
+           +   mkP('text-align:center', '<span style="' + FONT + '">' + BLANK + '</span>') + '</td>'
+           + '<td style="' + NC + VALB + 'width:' + GAP + 'px">' + mkP('', '') + '</td>'
            + '<td style="' + NC + VALM + CENT + '">'
-           +   '<p style="' + P + 'text-align:center"><span style="' + FONT + '">' + fio + '</span></p></td>'
+           +   mkP('text-align:center', '<span style="' + FONT + '">' + fio + '</span>') + '</td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
            + '<td style="' + NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : '') + '">'
-           +   '<p style="' + P + '"></p></td>'
+           +   mkP('', '') + '</td>'
            + '<td style="' + TOPB + VALM + CENT + '">'
-           +   '<p style="' + P + 'font-size:8pt;text-align:center">(подпись)</p></td>'
-           + '<td style="' + NC + VALM + '"><p style="' + P + '"></p></td>'
+           +   mkP('font-size:8pt;text-align:center', '(подпись)') + '</td>'
+           + '<td style="' + NC + VALM + '">' + mkP('', '') + '</td>'
            + '<td style="' + TOPB + VALM + CENT + '">'
-           +   '<p style="' + P + 'font-size:8pt;text-align:center">(расшифровка подписи)</p></td>'
+           +   mkP('font-size:8pt;text-align:center', '(расшифровка подписи)') + '</td>'
            + '</tr>';
     }
 
     var bPx  = Math.round(txtW(BLANK));
     var fPx  = Math.round(wFIO) + 12;
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
-             + ' style="border:none;border-collapse:collapse;margin-top:20px">'
+             + ' style="border:none;border-collapse:collapse;margin-top:20px;width:auto">'
              + '<col><col style="width:' + bPx + 'px">'
              + '<col style="width:' + GAP + 'px"><col style="width:' + fPx + 'px">'
              + sigRow('Главный судья соревнований', судья)
@@ -446,8 +453,18 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  // remove CSS-based cell borders; grid comes from border="1" attribute
   css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
+  // «Без интервала» — переопределяем p{margin:3px 0} из CSS страницы; последнее правило побеждает
+  css += 'p,p.MsoNoSpacing{'
+       + 'margin:0;margin-top:0;margin-bottom:0;'
+       + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
+       + 'line-height:normal;mso-line-height-rule:exactly;}';
+  // sig-out: auto-ширина (не 100%), принудительные padding и выравнивание ячеек
+  css += 'table.sig-out{width:auto!important;}'
+       + 'table.sig-out td{'
+       + 'padding:0!important;vertical-align:middle!important;'
+       + 'line-height:normal;mso-line-height-rule:exactly;}'
+       + 'table.sig-out td:first-child{vertical-align:bottom!important;text-align:left;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm 14mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
