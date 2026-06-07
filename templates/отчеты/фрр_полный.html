@@ -347,18 +347,53 @@ function exportWord() {
   var sigTbl = clone.querySelector('table.sig-table');
   if (sigTbl) {
     var rows = sigTbl.querySelectorAll('tr');
-    var судья   = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
+    var судья     = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
     var секретарь = rows.length > 2 ? rows[2].cells[2].textContent.trim() : '';
-    var TS_DATA = 'mso-tab-stops:202.5pt left 270.0pt left;';
-    var TS_LBL  = 'mso-tab-stops:236.25pt center 345.0pt center;';
-    var TAB = '<span style="mso-tab-count:1">\t</span>';
-    var NBS = ' '.repeat(22);  // неразрывные пробелы — не схлопываются в Word
+
+    // Measure rendered text width (px→pt) using temporary invisible span
+    function txtW(s) {
+      var el = document.createElement('span');
+      el.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;' +
+                         'font-family:"Times New Roman",serif;font-size:11pt;';
+      el.textContent = s;
+      document.body.appendChild(el);
+      var w = el.getBoundingClientRect().width;
+      document.body.removeChild(el);
+      return w * 0.75; // px → pt
+    }
+
+    // Blank underline: 1.5× wider than before (33 NBSP)
+    var BLANK = ' '.repeat(33);
+    var wBlank = txtW(BLANK);
+
+    // FIO underline: same width for both = max of the two FIOs
+    var wSud  = txtW(судья);
+    var wSekr = txtW(секретарь);
+    var wFIO  = Math.max(wSud, wSekr);
+    var spW   = txtW(' ');
+
+    // Center text inside fixed-width underline by padding with NBSP
+    function padCtr(text, targetW) {
+      var pad = Math.max(0, targetW - txtW(text));
+      var n   = Math.round(pad / 2 / spW);
+      return ' '.repeat(n) + text + ' '.repeat(n);
+    }
+
+    // Tab stop positions in pt from left content edge
+    var T1  = 202.5;              // start of blank column (W0=270px)
+    var T2  = T1 + wBlank;        // start of FIO column
+    var T1c = T1 + wBlank / 2;    // center of blank  → "(подпись)"
+    var T2c = T2 + wFIO   / 2;    // center of FIO    → "(расшифровка подписи)"
+    var TS_D = 'mso-tab-stops:' + T1.toFixed(1) + 'pt left ' + T2.toFixed(1) + 'pt left;';
+    var TS_L = 'mso-tab-stops:' + T1c.toFixed(1) + 'pt center ' + T2c.toFixed(1) + 'pt center;';
+    var TAB  = '<span style="mso-tab-count:1">\t</span>';
+
     function sigP(pos, fio, mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.5;' + TS_DATA + '">'
-           + pos + TAB + '<u>' + NBS + '</u>' + TAB + '<u>' + fio + '</u>' + '</p>';
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';line-height:1.5;' + TS_D + '">'
+           + pos + TAB + '<u>' + BLANK + '</u>' + TAB + '<u>' + padCtr(fio, wFIO) + '</u></p>';
     }
     function lblP(mb) {
-      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS_LBL + '">'
+      return '<p style="margin:0' + (mb ? ' 0 ' + mb : '') + ';font-size:8pt;' + TS_L + '">'
            + TAB + '(подпись)' + TAB + '(расшифровка подписи)</p>';
     }
     var tmp = document.createElement('div');
