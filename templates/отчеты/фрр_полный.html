@@ -375,20 +375,29 @@ function exportWord() {
       return '\u00a0'.repeat(n) + text + '\u00a0'.repeat(n);
     }
 
+    var GAP  = 8;   // 0.2 cm gap between (подпись) and (расшифровка подписи) columns
     var NC   = 'border:none;padding:0;';
     var VALB = 'vertical-align:bottom;';
+    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
+    var TOPB = 'border:none;border-top:1px solid #000;'
+             + 'mso-border-alt:none;mso-border-top-alt:solid #000 .75pt;padding:2px 0 0;';
+
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
            + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">' + pos + '</td>'
-           + '<td style="' + NC + VALB + 'text-align:center"><u>' + BLANK + '</u></td>'
-           + '<td style="' + NC + VALB + 'text-align:center"><u>' + padCtr(fio, wFIO) + '</u></td>'
+           + '<td style="' + NC + VALB + 'text-align:center">'
+           +   '<span style="' + FONT + '">' + BLANK + '</span></td>'
+           + '<td style="' + NC + 'width:' + GAP + 'px"></td>'
+           + '<td style="' + NC + VALB + 'text-align:center">'
+           +   '<span style="' + FONT + '">' + padCtr(fio, wFIO) + '</span></td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
            + '<td style="' + NC + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
-           + '<td style="' + NC + 'font-size:8pt;text-align:center">(подпись)</td>'
-           + '<td style="' + NC + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
+           + '<td style="' + TOPB + 'font-size:8pt;text-align:center">(подпись)</td>'
+           + '<td style="' + NC + '"></td>'
+           + '<td style="' + TOPB + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
            + '</tr>';
     }
 
@@ -396,7 +405,8 @@ function exportWord() {
     var fPx  = Math.round(wFIO) + 12;
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
              + ' style="border:none;border-collapse:collapse;margin-top:20px">'
-             + '<col style=""><col style="width:' + bPx + 'px"><col style="width:' + fPx + 'px">'
+             + '<col><col style="width:' + bPx + 'px">'
+             + '<col style="width:' + GAP + 'px"><col style="width:' + fPx + 'px">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
