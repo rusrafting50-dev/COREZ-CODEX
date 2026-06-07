@@ -376,31 +376,32 @@ function exportWord() {
     }
 
     var GAP  = 8;   // 0.2 cm gap between (подпись) and (расшифровка подписи) columns
-    var NC   = 'border:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
+    var LH   = 'line-height:normal;mso-line-height-rule:exactly;';
+    var NC   = 'border:none;padding:0;' + LH;
     var VALB = 'vertical-align:bottom;';
-    var VALT = 'vertical-align:top;';
-    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;'
-             + 'line-height:normal;mso-line-height-rule:exactly;';
+    var VALM = 'vertical-align:middle;';
+    var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;' + LH;
     var TOPB = 'border:none;border-top:1px solid #000;'
              + 'mso-border-alt:none;mso-border-top-alt:solid #000 .75pt;'
-             + 'padding:2px 0 0;line-height:normal;mso-line-height-rule:exactly;';
+             + 'padding:2px 0 0;' + LH;
+    var CENT = 'text-align:center;';
 
     function sigRow(pos, fio) {
       return '<tr style="height:22px">'
            + '<td style="' + NC + VALB + 'white-space:nowrap;padding-right:8px">' + pos + '</td>'
-           + '<td style="' + NC + VALB + 'text-align:center">'
+           + '<td style="' + NC + VALM + CENT + '">'
            +   '<span style="' + FONT + '">' + BLANK + '</span></td>'
            + '<td style="' + NC + VALB + 'width:' + GAP + 'px"></td>'
-           + '<td style="' + NC + VALB + 'text-align:center">'
-           +   '<span style="' + FONT + '">' + padCtr(fio, wFIO) + '</span></td>'
+           + '<td style="' + NC + VALM + CENT + '">'
+           +   '<span style="' + FONT + '">' + fio + '</span></td>'
            + '</tr>';
     }
     function lblRow(pb) {
       return '<tr>'
-           + '<td style="' + NC + VALT + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
-           + '<td style="' + TOPB + VALT + 'font-size:8pt;text-align:center">(подпись)</td>'
-           + '<td style="' + NC + VALT + '"></td>'
-           + '<td style="' + TOPB + VALT + 'font-size:8pt;text-align:center">(расшифровка подписи)</td>'
+           + '<td style="' + NC + VALM + (pb ? 'padding-bottom:' + pb + ';' : '') + '"></td>'
+           + '<td style="' + TOPB + VALM + 'font-size:8pt;' + CENT + '">(подпись)</td>'
+           + '<td style="' + NC + VALM + '"></td>'
+           + '<td style="' + TOPB + VALM + 'font-size:8pt;' + CENT + '">(расшифровка подписи)</td>'
            + '</tr>';
     }
 
@@ -440,7 +441,7 @@ function exportWord() {
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
   // remove CSS-based cell borders; grid comes from border="1" attribute
   css += 'td,th{border:none;mso-border-alt:none;padding:3px 5px;}';
-  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
+  css += '@page{size:A4 portrait;margin:20mm 15mm 14mm;}';
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
     + ' xmlns="http://www.w3.org/TR/REC-html40">'
