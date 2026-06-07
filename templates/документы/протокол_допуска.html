@@ -203,10 +203,13 @@ function exportWord() {
     }
   } catch(e) {}
   css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
   css += '@page{size:A4 portrait;margin:20mm 15mm;}';
   clone.querySelectorAll('table:not(.sig-table)').forEach(function(t){
     t.setAttribute('border','1'); t.setAttribute('cellspacing','0');
+    t.querySelectorAll('td,th').forEach(function(c){
+      c.style.border = '1px solid #333';
+      c.style.padding = '3px 5px';
+    });
   });
   var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
     + ' xmlns:w="urn:schemas-microsoft-com:office:word"'

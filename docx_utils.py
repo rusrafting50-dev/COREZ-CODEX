@@ -10314,9 +10314,15 @@ def create_предварительная_заявка_docx(сор, з, filename
         if len(p) == 2: return f"{p[0]} {p[1][0]}."
         return фио or ''
 
+    def _abbr_slash(фио):
+        p = (фио or '').split()
+        if len(p) >= 3: return f"/{p[1][0]}. {p[2][0]}. {p[0]}/"
+        if len(p) == 2: return f"/{p[1][0]}. {p[0]}/"
+        return f"/{фио}/" if фио else ''
+
     HGRID = [HA, HB, HC, HD, HE, HF, HG]
 
-    def _info_tbl_row3_6(label1, val1, label2, val2):
+    def _info_tbl_row3_6(label1, val1, label2, val2, label2_align=L):
         """Строка вида: label1 | [spacer] | val1 (C+D, underline) | label2 | val2 (F+G, underline)."""
         t = _make_tbl(7)
         _set_grid(t, HGRID)
@@ -10329,7 +10335,7 @@ def create_предварительная_заявка_docx(сор, з, filename
         _fill(cells[0], label1, align=L, pt=14); _cw(cells[0], HA)
         _fill(cells[1], '',     align=L, pt=14); _cw(cells[1], HB)
         _fill(cells[2], val1,   align=C, pt=14); _cw(cells[2], HC + HD); _bottom_border(cells[2])
-        _fill(cells[3], label2, align=L, pt=14); _cw(cells[3], HE)
+        _fill(cells[3], label2, align=label2_align, pt=14); _cw(cells[3], HE)
         _fill(cells[4], val2,   align=C, pt=14); _cw(cells[4], HF + HG); _bottom_border(cells[4])
 
     # ── Заголовок ────────────────────────────────────────────────────────────
@@ -10351,11 +10357,12 @@ def create_предварительная_заявка_docx(сор, з, filename
     r4 = t4.add_row(); _row_h(r4, H_STD)
     cs4 = list(r4.cells)
     for c in cs4: _no_border(c)
-    cs4[1].merge(cs4[6])
+    cs4[2].merge(cs4[6])
     cells4 = list(r4.cells)
     _fill(cells4[0], 'Субъект', align=L, pt=14); _cw(cells4[0], HA)
-    _fill(cells4[1], з.субъект_рф or '', align=C, pt=14)
-    _cw(cells4[1], TW - HA); _bottom_border(cells4[1])
+    _fill(cells4[1], '', align=L, pt=14); _cw(cells4[1], HB)
+    _fill(cells4[2], з.субъект_рф or '', align=C, pt=14)
+    _cw(cells4[2], HC + HD + HE + HF + HG); _bottom_border(cells4[2])
 
     # Строка 5: На участие
     t5 = _make_tbl(7)
@@ -10373,7 +10380,7 @@ def create_предварительная_заявка_docx(сор, з, filename
 
     # Строка 6: Проводимых в / в период
     _info_tbl_row3_6('Проводимых в ', сор.место_проведения or '',
-                     'в период ', сор.даты_проведения or '')
+                     'в период ', сор.даты_проведения or '', label2_align=C)
 
     _para()
 
@@ -10424,8 +10431,14 @@ def create_предварительная_заявка_docx(сор, з, filename
     должн_орг = ' '.join(x for x in [з.орг_должность_руководителя or '',
                                        з.орг_наименование or ''] if x)
     _fill(cells_s[0], должн_орг, align=L, pt=14); _cw(cells_s[0], HA + HB + HC)
-    _fill(cells_s[1], _abbr(з.орг_фио_руководителя or ''), align=C, pt=14)
-    _cw(cells_s[1], HD + HE + HF + HG)
+    _fill(cells_s[1], _abbr_slash(з.орг_фио_руководителя or ''), align=C, pt=14)
+    _cw(cells_s[1], HD + HE + HF + HG); _bottom_border(cells_s[1])
+
+    from datetime import date as _date
+    _месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',
+               7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'}
+    _today = _date.today()
+    _para(f'{_today.day} {_месяцы[_today.month]} {_today.year} г.', align=L, pt=14)
 
     buf = BytesIO()
     _apply_no_break(doc)
