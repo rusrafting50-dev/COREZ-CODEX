@@ -431,6 +431,15 @@ function exportWord() {
            + '</tr>';
     }
 
+    var totalW = posPx + bPx + GAP + fPx + rightPx;
+    console.log('sig-out cols px:', posPx, bPx, GAP, fPx, rightPx, '| total:', totalW);
+    console.log('sig-out cols %:',
+      Math.round(posPx/totalW*100)+'%',
+      Math.round(bPx/totalW*100)+'%',
+      Math.round(GAP/totalW*100)+'%',
+      Math.round(fPx/totalW*100)+'%',
+      Math.round(rightPx/totalW*100)+'%');
+
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
              + ' style="border:none;border-collapse:collapse;margin-top:20px">'
              + '<col width="' + posPx + '"><col width="' + bPx + '">'
