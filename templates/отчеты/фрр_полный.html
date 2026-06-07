@@ -414,9 +414,7 @@ function exportWord() {
     }
 
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
-             + ' width="' + Math.round(totalDxa/15) + '"'
-             + ' style="width:' + toPt(totalDxa) + 'pt;'
-             + 'table-layout:fixed;mso-table-layout-alt:fixed;'
+             + ' style="table-layout:fixed;mso-table-layout-alt:fixed;'
              + 'border-collapse:collapse;border:none;margin-top:20px;">'
              + col(posDxa) + col(bDxa) + col(gapDxa) + col(fDxa)
              + sigRow('Главный судья соревнований', судья)
@@ -455,7 +453,7 @@ function exportWord() {
        + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
        + 'line-height:normal;mso-line-height-rule:exactly;}';
   css += 'table.sig-out{table-layout:fixed;mso-table-layout-alt:fixed;'
-       + 'width:auto!important;border:none!important;border-collapse:collapse;}'
+       + 'width:auto;border:none!important;border-collapse:collapse;}'
        + 'table.sig-out td{'
        + 'border:none!important;mso-border-alt:none!important;padding:0!important;'
        + 'mso-width-source:userset;line-height:normal;mso-line-height-rule:exactly;}'
