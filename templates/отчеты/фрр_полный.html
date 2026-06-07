@@ -346,6 +346,7 @@ function exportWord() {
 
   // Replace sig-table: borderless 3-col table + <u> underlines (no CSS border-bottom)
   var sigTbl = clone.querySelector('table.sig-table');
+  console.error('exportWord: sigTbl=', sigTbl ? 'FOUND' : 'NULL');
   if (sigTbl) {
     var rows      = sigTbl.querySelectorAll('tr');
     var судья     = rows.length > 0 ? rows[0].cells[2].textContent.trim() : '';
