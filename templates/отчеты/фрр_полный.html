@@ -360,65 +360,63 @@ function exportWord() {
       document.body.removeChild(el);
       return w;
     }
-    function toDxa(px) { return Math.round(px * 15); }
-    function toPt(dxa)  { return (dxa / 20).toFixed(1); }
+    function toCm(px) { return (px / 96 * 2.54).toFixed(3); }
 
-    var BLANK    = '\u00a0'.repeat(33);
-    var wFIO     = Math.max(txtW(судья), txtW(секретарь));
-    var posDxa   = toDxa(txtW('Главный секретарь соревнований') + 8);
-    var bDxa     = toDxa(txtW(BLANK));
-    var gapDxa   = 120;
-    var fDxa     = toDxa(Math.max(wFIO, txtW('(расшифровка подписи)')) + 8);
-    var totalDxa = posDxa + bDxa + gapDxa + fDxa;
+    var BLANK   = '\u00a0'.repeat(33);
+    var wFIO    = Math.max(txtW(судья), txtW(секретарь));
+    var posCm   = toCm(txtW('Главный секретарь соревнований') + 8);
+    var bCm     = toCm(txtW(BLANK));
+    var gapCm   = '0.212';
+    var fCm     = toCm(Math.max(wFIO, txtW('(расшифровка подписи)')) + 8);
+    var rightCm = (18.0 - parseFloat(posCm) - parseFloat(bCm)
+                       - parseFloat(gapCm) - parseFloat(fCm)).toFixed(3);
 
-    var P0   = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
-    var BASE = 'mso-width-source:userset;border:none;mso-border-alt:none;padding:0;'
-             + 'line-height:normal;mso-line-height-rule:exactly;';
-    var TOP  = 'mso-width-source:userset;border:none;mso-border-alt:none;border-top:1px solid #000;'
-             + 'mso-border-top-alt:solid windowtext .75pt;padding:2px 0 0;'
-             + 'line-height:normal;mso-line-height-rule:exactly;';
+    var P0  = 'margin:0;mso-para-margin:0cm;line-height:normal;mso-line-height-rule:exactly;';
+    var TBL = 'border:none;mso-border-alt:none;padding:0;line-height:normal;mso-line-height-rule:exactly;';
+    var TOP = 'border:none;mso-border-alt:none;border-top:1px solid #000;'
+            + 'mso-border-top-alt:solid windowtext .75pt;padding:2px 0 0;'
+            + 'line-height:normal;mso-line-height-rule:exactly;';
     var FONT = 'font-family:\'Times New Roman\',serif;font-size:11pt;';
 
-    function col(dxa) {
-      return '<col width="' + Math.round(dxa/15) + '"'
-           + ' style="width:' + toPt(dxa) + 'pt;mso-width-source:userset;mso-width-alt:' + dxa + ';">';
-    }
-    function cell(dxa, cellStyle, pStyle, content) {
-      return '<td width="' + Math.round(dxa/15) + '"'
-           + ' style="width:' + toPt(dxa) + 'pt;mso-width-alt:' + dxa + ';' + cellStyle + '">'
+    function cell(wCm, cellStyle, pStyle, content) {
+      return '<td style="width:' + wCm + 'cm;' + cellStyle + '">'
            + '<p class="MsoNoSpacing" style="' + P0 + (pStyle || '') + '">' + content + '</p>'
            + '</td>';
     }
     function sigRow(pos, fio) {
       return '<tr>'
-           + cell(posDxa, BASE + 'vertical-align:bottom;white-space:nowrap;padding-right:8px;',
-                          'white-space:nowrap;', pos)
-           + cell(bDxa,   BASE + 'vertical-align:bottom;text-align:center;',
-                          'text-align:center;',
-                          '<span style="' + FONT + '">' + BLANK + '</span>')
-           + cell(gapDxa, BASE, '', '')
-           + cell(fDxa,   BASE + 'vertical-align:bottom;text-align:center;',
-                          'text-align:center;',
-                          '<span style="' + FONT + '">' + fio + '</span>')
+           + cell(posCm,   TBL + 'vertical-align:bottom;white-space:nowrap;padding-right:8px;',
+                           'white-space:nowrap;', pos)
+           + cell(bCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + BLANK + '</span>')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TBL + 'vertical-align:bottom;text-align:center;',
+                           'text-align:center;',
+                           '<span style="' + FONT + '">' + fio + '</span>')
+           + cell(rightCm, TBL, '', '')
            + '</tr>';
     }
     function lblRow(pbPx) {
       return '<tr>'
-           + cell(posDxa, BASE + (pbPx ? 'padding-bottom:' + pbPx + ';' : ''), '', '')
-           + cell(bDxa,   TOP  + 'text-align:center;',
-                          'font-size:8pt;text-align:center;white-space:nowrap;', '(подпись)')
-           + cell(gapDxa, BASE, '', '')
-           + cell(fDxa,   TOP  + 'text-align:center;',
-                          'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
+           + cell(posCm,   TBL + (pbPx ? 'padding-bottom:' + pbPx + ';' : ''), '', '')
+           + cell(bCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(подпись)')
+           + cell(gapCm,   TBL, '', '')
+           + cell(fCm,     TOP + 'text-align:center;',
+                           'font-size:8pt;text-align:center;white-space:nowrap;', '(расшифровка подписи)')
+           + cell(rightCm, TBL, '', '')
            + '</tr>';
     }
 
     var html = '<table class="sig-out" border="0" cellspacing="0" cellpadding="0"'
-             + ' width="' + Math.round(totalDxa/15) + '"'
-             + ' style="width:' + toPt(totalDxa) + 'pt;'
-             + 'table-layout:fixed;mso-table-layout-alt:fixed;'
+             + ' style="table-layout:fixed;mso-table-layout-alt:fixed;width:18.0cm;'
              + 'border-collapse:collapse;border:none;margin-top:20px;">'
-             + col(posDxa) + col(bDxa) + col(gapDxa) + col(fDxa)
+             + '<col style="width:' + posCm   + 'cm">'
+             + '<col style="width:' + bCm     + 'cm">'
+             + '<col style="width:' + gapCm   + 'cm">'
+             + '<col style="width:' + fCm     + 'cm">'
+             + '<col style="width:' + rightCm + 'cm">'
              + sigRow('Главный судья соревнований', судья)
              + lblRow('10px')
              + sigRow('Главный секретарь соревнований', секретарь)
@@ -455,10 +453,10 @@ function exportWord() {
        + 'mso-para-margin:0cm;mso-para-margin-top:0cm;mso-para-margin-bottom:0cm;'
        + 'line-height:normal;mso-line-height-rule:exactly;}';
   css += 'table.sig-out{table-layout:fixed;mso-table-layout-alt:fixed;'
-       + 'border:none!important;border-collapse:collapse;}'
+       + 'width:18.0cm;border:none!important;border-collapse:collapse;}'
        + 'table.sig-out td{'
        + 'border:none!important;mso-border-alt:none!important;padding:0!important;'
-       + 'mso-width-source:userset;line-height:normal;mso-line-height-rule:exactly;}'
+       + 'line-height:normal;mso-line-height-rule:exactly;}'
        + 'table.sig-out p,table.sig-out p.MsoNoSpacing{'
        + 'margin:0!important;mso-para-margin:0cm!important;'
        + 'line-height:normal!important;mso-line-height-rule:exactly!important;}';
