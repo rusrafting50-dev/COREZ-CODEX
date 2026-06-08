@@ -9757,6 +9757,8 @@ def create_минспорта_docx(сор, судьи, filename):
     if сор.организаторы_блок:
         lines = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
         p_org = _para(align=C, pt=10, bold=True)
+        # Максимум символов на строке: ширина страницы (pt) / средняя ширина символа TNR 10pt bold
+        _max_org = int(TW / 20 / (10 * 0.52))
 
         def _br_org(p):
             p.add_run()._r.append(OxmlElement('w:br'))
@@ -9771,7 +9773,7 @@ def create_минспорта_docx(сор, судьи, filename):
                 before = line[:qi].strip()
                 quoted = line[qi:]
                 combined = (before + ' ' + quoted) if before else quoted
-                if len(combined) <= 80:
+                if len(combined) <= _max_org:
                     _run(p_org, combined, pt=10, bold=True)
                 else:
                     if before:
