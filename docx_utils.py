@@ -10890,6 +10890,10 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
     _fill(c1[0], 'дата проведения', align=C, pt=8)
     _fill(c1[2], 'место проведения', align=C, pt=8)
 
+    # ── Separator 1pt ─────────────────────────────────────────────────────────
+    p_sep0 = doc.add_paragraph(); _sp(p_sep0); _pmark(p_sep0, 1)
+    r_sep0 = p_sep0.add_run(' '); r_sep0.font.name = TNR; r_sep0.font.size = Pt(1)
+
     # ── АКТ / РАБОТЫ ─────────────────────────────────────────────────────────
     _para('АКТ', align=C, pt=10, bold=True)
     _para('РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ', align=C, pt=10, bold=True)
