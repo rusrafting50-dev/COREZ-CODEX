@@ -11011,9 +11011,9 @@ def create_протокол_допуска_docx(сор, секции, загол
 
     # A4 portrait, margins from sample: L=12.5, R=10, T=10, B=20
     TW      = 10632   # date/sig tables
-    TW_MAIN = 10627   # main table (exact from sample)
+    TW_MAIN = 10660   # main table (exact from sample)
     GRID_DT  = [2268, 2127, 6237]
-    GRID_MAIN = [480, 1145, 1366, 1519, 2715, 1397, 1056, 949]
+    GRID_MAIN = [480, 1145, 1366, 1519, 3173, 992, 851, 1134]
     GRID_SIG  = [5387, 5245]
 
     doc  = Document()
