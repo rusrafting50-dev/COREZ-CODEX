@@ -49,6 +49,8 @@
 {% else %}
 
 {% for ворота in связки %}
+{% set _idx = loop.index0 %}
+{% set _судья = судьи_св[_idx] if судьи_св and _idx < судьи_св|length else '' %}
 {% if ворота %}
 <div class="{{ 'разрыв' if not loop.last else '' }}">
   <div class="header-block">
@@ -108,7 +110,7 @@
 
   <div class="sig-row">
     <span class="sig-pos">Старший судья на связке ворот</span>
-    <span class="sig-line">&nbsp;</span>
+    <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}&nbsp;{% else %}&nbsp;{% endif %}</span>
   </div>
 </div>
 {% endif %}

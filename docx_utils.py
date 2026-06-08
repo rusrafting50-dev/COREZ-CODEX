@@ -11414,7 +11414,7 @@ def create_протокол_допуска_docx(сор, секции, загол
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_протокол_ворота_docx(сор, связки, группы, попытка, filename):
+def create_протокол_ворота_docx(сор, связки, судьи_св, группы, попытка, filename):
     """Протокол судейства на воротах для слалома."""
     from docx.shared import Mm, Pt
     from docx.enum.text import WD_ALIGN_PARAGRAPH as WDA
@@ -11597,7 +11597,7 @@ def create_протокол_ворота_docx(сор, связки, группы
         else:
             pr.insert(0, gs)
 
-    def _add_sheet(doc, ворота_в_связке, first):
+    def _add_sheet(doc, ворота_в_связке, судья, first):
         if not first:
             _page_break(doc)
 
@@ -11704,7 +11704,7 @@ def create_протокол_ворота_docx(сор, связки, группы
         _no_border(cs_sig[0]); _no_border(cs_sig[1])
         _bottom_border(cs_sig[1])
         _fill(cs_sig[0], 'Старший судья на связке ворот', align=L, pt=PT); _cw(cs_sig[0], W_SIG_L)
-        _fill(cs_sig[1], '', align=L, pt=PT); _cw(cs_sig[1], W_SIG_R)
+        _fill(cs_sig[1], f'  {судья}  ' if судья else '', align=C, pt=PT); _cw(cs_sig[1], W_SIG_R)
 
     doc = Document()
 
@@ -11720,9 +11720,9 @@ def create_протокол_ворота_docx(сор, связки, группы
     for p in list(doc.paragraphs):
         p._element.getparent().remove(p._element)
 
-    valid_связки = [св for св in связки if св]
-    for idx, ворота_в_связке in enumerate(valid_связки):
-        _add_sheet(doc, ворота_в_связке, first=(idx == 0))
+    valid_данные = [(св, судьи_св[i] if i < len(судьи_св) else '') for i, св in enumerate(связки) if св]
+    for idx, (ворота_в_связке, судья) in enumerate(valid_данные):
+        _add_sheet(doc, ворота_в_связке, судья, first=(idx == 0))
 
     buf = BytesIO()
     doc.save(buf)

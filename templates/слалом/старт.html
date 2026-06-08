@@ -166,8 +166,10 @@
       <div id="связки-контейнер">
         {% for i in range(1, (связки_ворот.кол or 0) + 1) %}
         {% set выбраны = связки_ворот.связки[i-1] if (i-1) < (связки_ворот.связки | length) else [] %}
-        <div class="mb-3 связка-блок d-flex flex-wrap align-items-center gap-2">
-          <span class="fw-semibold small text-nowrap">{{ i }} связка ворота №</span>
+        {% set выбр_судья = (связки_ворот.судьи[i-1] if связки_ворот.судьи is defined and (i-1) < (связки_ворот.судьи | length) else '') %}
+        <div class="mb-2 связка-блок">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <span class="fw-semibold small text-nowrap">{{ i }} связка ворота №</span>
             {% for г in range(1, кол_ворот + 1) %}
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="checkbox" name="связка_{{ i }}" value="{{ г }}"
@@ -176,6 +178,16 @@
               <label class="form-check-label small" for="св{{ i }}_в{{ г }}">{{ г }}</label>
             </div>
             {% endfor %}
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 text-nowrap">Старший судья:</label>
+            <select name="судья_{{ i }}" class="form-select form-select-sm" style="max-width:320px">
+              <option value="">—</option>
+              {% for с in судьи %}
+              <option value="{{ с.фамилия_имя_отчество }}" {% if выбр_судья == с.фамилия_имя_отчество %}selected{% endif %}>{{ с.фамилия_имя_отчество }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -186,14 +198,25 @@
 </div>
 
 <template id="связка-шаблон">
-  <div class="mb-3 связка-блок d-flex flex-wrap align-items-center gap-2">
-    <span class="fw-semibold small text-nowrap"></span>
+  <div class="mb-2 связка-блок">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+      <span class="fw-semibold small text-nowrap"></span>
       {% for г in range(1, кол_ворот + 1) %}
       <div class="form-check form-check-inline">
         <input class="form-check-input" type="checkbox" name="" value="{{ г }}" id="">
         <label class="form-check-label small" for="">{{ г }}</label>
       </div>
       {% endfor %}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label small mb-0 text-nowrap">Старший судья:</label>
+      <select name="" class="form-select form-select-sm судья-связки-sel" style="max-width:320px">
+        <option value="">—</option>
+        {% for с in судьи %}
+        <option value="{{ с.фамилия_имя_отчество }}">{{ с.фамилия_имя_отчество }}</option>
+        {% endfor %}
+      </select>
+    </div>
   </div>
 </template>
 
@@ -229,6 +252,8 @@ document.getElementById('кол-связок').addEventListener('change', functi
       const cb = блок.querySelector('input[value="' + lbl.textContent.trim() + '"]');
       if (cb) lbl.setAttribute('for', cb.id);
     });
+    const sel = блок.querySelector('.судья-связки-sel');
+    if (sel) sel.name = 'судья_' + i;
     cont.appendChild(блок);
   }
   while (cont.querySelectorAll('.связка-блок').length > n) {
