@@ -9803,7 +9803,8 @@ def create_минспорта_docx(сор, судьи, filename):
     _fill(cs_dp[0], сор.даты_проведения  or '', align=L, pt=10, bold=True)
     _fill(cs_dp[1], сор.место_проведения or '', align=R, pt=10, bold=True)
 
-    _para(pt=1)
+    _para(pt=4)
+    _para(pt=4)
 
     # ── Основная таблица ─────────────────────────────────────────────────────
 
@@ -9835,20 +9836,18 @@ def create_минспорта_docx(сор, судьи, filename):
 
     w_l = TW * 45 // 100
     w_r = TW - w_l
-    for idx, (pos, фио) in enumerate((
+    for pos, фио in (
         ('Главный судья',    сор.главный_судья     or ''),
         ('Главный секретарь', сор.главный_секретарь or ''),
-    )):
-        if idx > 0:
-            _para(pt=1)
+    ):
         sig = _make_tbl(2)
         _set_grid(sig, [w_l, w_r])
-        rs = sig.add_row(); _row_h(rs, 0.8)
+        rs = sig.add_row(); _row_h(rs, 1.2)
         cs = list(rs.cells)
         _cw(cs[0], w_l); _cw(cs[1], w_r)
         _no_border(cs[0]); _no_border(cs[1])
         _valign(cs[0]); _valign(cs[1])
-        _fill(cs[0], pos,        align=L, pt=10, bold=True)
+        _fill(cs[0], pos,       align=L, pt=10, bold=True)
         _fill(cs[1], _abbr(фио), align=L, pt=10, bold=True)
 
     buf = BytesIO()
