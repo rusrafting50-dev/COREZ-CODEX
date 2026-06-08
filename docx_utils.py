@@ -10822,7 +10822,11 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
             pr.append(OxmlElement('w:hideMark'))
 
     def _fill(cell, text='', align=C, pt=10, bold=False):
-        p = cell.paragraphs[0]; p.clear(); _sp(p); p.alignment = align
+        p = cell.paragraphs[0]; p.clear()
+        pPr = p._p.get_or_add_pPr()
+        for old in pPr.findall(qn('w:pStyle')): pPr.remove(old)
+        ps = OxmlElement('w:pStyle'); ps.set(qn('w:val'), 'NoSpacing'); pPr.insert(0, ps)
+        _sp(p); p.alignment = align
         if text: _run(p, str(text), pt=pt, bold=bold)
 
     def _row_h(row, cm):
