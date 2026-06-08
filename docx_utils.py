@@ -9649,8 +9649,7 @@ def create_минспорта_docx(сор, судьи, filename):
         p = doc.add_paragraph()
         _sp(p)
         p.alignment = align
-        if text:
-            _run(p, text, pt=pt, bold=bold)
+        _run(p, text, pt=pt, bold=bold)   # always add run so pt controls paragraph height
         return p
 
     def _tcpr(cell):
@@ -9706,7 +9705,7 @@ def create_минспорта_docx(сор, судьи, filename):
         rh.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
         rh.set(qn('w:hRule'), 'atLeast')
 
-    def _fill(cell, text, align=None, pt=11, bold=False):
+    def _fill(cell, text, align=None, pt=10, bold=False):
         p = cell.paragraphs[0]; p.clear(); _sp(p)
         if align: p.alignment = align
         if text:  _run(p, str(text), pt, bold)
@@ -9760,37 +9759,37 @@ def create_минспорта_docx(сор, судьи, filename):
                 before, quoted = group
                 combined = before + ' ' + quoted
                 if len(combined) <= 55:
-                    _para(combined, align=C, pt=12, bold=True)
+                    _para(combined, align=C, pt=10, bold=True)
                 else:
-                    _para(before, align=C, pt=12, bold=True)
-                    _para(quoted, align=C, pt=12, bold=True)
+                    _para(before, align=C, pt=10, bold=True)
+                    _para(quoted, align=C, pt=10, bold=True)
             else:
                 line = group
                 qi = next((line.index(q) for q in ('"', '«') if q in line), None)
                 if qi is None:
-                    _para(line, align=C, pt=12, bold=True)
+                    _para(line, align=C, pt=10, bold=True)
                 else:
                     before = line[:qi].strip()
                     quoted = line[qi:]
                     combined = (before + ' ' + quoted) if before else quoted
                     if len(combined) <= 55:
-                        _para(combined, align=C, pt=12, bold=True)
+                        _para(combined, align=C, pt=10, bold=True)
                     else:
                         if before:
-                            _para(before, align=C, pt=12, bold=True)
-                        _para(quoted, align=C, pt=12, bold=True)
+                            _para(before, align=C, pt=10, bold=True)
+                        _para(quoted, align=C, pt=10, bold=True)
 
-    _para()
+    _para(pt=4)
 
     # ── Заголовок ─────────────────────────────────────────────────────────────
 
-    _para('СПИСОК', align=C, pt=14, bold=True)
-    _para('СУДЕЙСКОЙ КОЛЛЕГИИ ДЛЯ ПРОВЕДЕНИЯ', align=C, pt=14, bold=True)
+    _para('СПИСОК', align=C, pt=12, bold=True)
+    _para('СУДЕЙСКОЙ КОЛЛЕГИИ ДЛЯ ПРОВЕДЕНИЯ', align=C, pt=12, bold=True)
     for line in (сор.название or '').split('\n'):
         if line.strip():
-            _para(line.strip(), align=C, pt=14, bold=True)
+            _para(line.strip(), align=C, pt=12, bold=True)
 
-    _para()
+    _para(pt=4)
 
     # ── Дата и место ─────────────────────────────────────────────────────────
 
@@ -9804,8 +9803,8 @@ def create_минспорта_docx(сор, судьи, filename):
     _fill(cs_dp[0], сор.даты_проведения  or '', align=L, pt=10, bold=True)
     _fill(cs_dp[1], сор.место_проведения or '', align=R, pt=10, bold=True)
 
-    _para()
-    _para()
+    _para(pt=4)
+    _para(pt=4)
 
     # ── Основная таблица ─────────────────────────────────────────────────────
 
@@ -9815,25 +9814,25 @@ def create_минспорта_docx(сор, судьи, filename):
     rh = tbl.add_row(); _row_h(rh, 1.0)
     cs = list(rh.cells)
     for i, w in enumerate(GRID): _cw(cs[i], w); _borders(cs[i])
-    _fill(cs[0], '№',                              align=C, pt=12, bold=True)
-    _fill(cs[1], 'Фамилия, имя, отчество',         align=C, pt=12, bold=True)
-    _fill(cs[2], 'Должность',                      align=C, pt=12, bold=True)
-    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=12, bold=True)
-    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=12, bold=True)
+    _fill(cs[0], '№',                              align=C, pt=10, bold=True)
+    _fill(cs[1], 'Фамилия, имя, отчество',         align=C, pt=10, bold=True)
+    _fill(cs[2], 'Должность',                      align=C, pt=10, bold=True)
+    _fill(cs[3], 'Квалификация спортивного судьи', align=C, pt=10, bold=True)
+    _fill(cs[4], 'Субъект Российской Федерации',   align=C, pt=10, bold=True)
 
     for пп, с in enumerate(судьи, 1):
         rd = tbl.add_row(); _row_h(rd, 0.7)
         cd = list(rd.cells)
         for i, w in enumerate(GRID): _cw(cd[i], w); _borders(cd[i])
-        _fill(cd[0], str(пп),                       align=C, pt=12)
-        _fill(cd[1], с.фамилия_имя_отчество or '—', pt=12)
-        _fill(cd[2], с.должность or '—',            pt=12)
-        _fill(cd[3], с.квалификация or '—',         align=C, pt=12)
-        _fill(cd[4], с.субъект_рф or '—',           align=C, pt=12)
+        _fill(cd[0], str(пп),                       align=C)
+        _fill(cd[1], с.фамилия_имя_отчество or '—')
+        _fill(cd[2], с.должность or '—')
+        _fill(cd[3], с.квалификация or '—',         align=C)
+        _fill(cd[4], с.субъект_рф or '—',           align=C)
 
     # ── Подписи ───────────────────────────────────────────────────────────────
 
-    _para()
+    _para(pt=1)
 
     w_l = TW * 45 // 100
     w_r = TW - w_l
