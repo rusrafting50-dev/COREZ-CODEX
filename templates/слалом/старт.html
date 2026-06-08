@@ -27,6 +27,8 @@
   <div class="d-flex gap-2 flex-wrap">
     <a href="{{ url_for('слалом.протокол_старт', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
+    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протоколы ворота</a>
     <a href="{{ url_for('слалом.финиш', sor_id=сор.id) }}"
        class="btn btn-outline-success btn-sm">Результаты попыток →</a>
     <a href="{{ url_for('слалом.результаты', sor_id=сор.id) }}"

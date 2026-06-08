@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Протокол ворота — {{ сор.название | truncate(60) }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 10pt; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 9pt; }
+      .разрыв { page-break-after: always; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
+    th { text-align: center; background: #fff; font-weight: bold; }
+    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; text-align: center; }
+    .sig-row { display: flex; align-items: baseline; margin-top: 16pt; }
+    .sig-pos { width: 45%; font-size: 10pt; }
+    .sig-line { flex: 1; border-bottom: 1px solid #000; }
+    .header-block { margin-bottom: 6pt; }
+    .header-block p { margin: 0; text-align: center; font-size: 10pt; font-family: "Times New Roman", serif; }
+    .date-place { display: flex; justify-content: space-between; margin-bottom: 8pt; font-size: 10pt; }
+    .date-cell { border-bottom: 1px solid #000; }
+  </style>
+  <style id="orient-style">@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }</style>
+</head>
+<body class="px-3 py-3">
+
+<div class="d-flex justify-content-between mb-3 no-print">
+  <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+  <div class="d-flex gap-2">
+    {% if попытка == 1 %}
+    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id, попытка=2) }}" class="btn btn-outline-warning btn-sm">Попытка 2</a>
+    {% else %}
+    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id, попытка=1) }}" class="btn btn-outline-warning btn-sm">Попытка 1</a>
+    {% endif %}
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
+    <a href="{{ url_for('слалом.протокол_ворота_word', sor_id=сор.id, попытка=попытка) }}" class="btn btn-success btn-sm">Word</a>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
+</div>
+
+{% if not связки %}
+<div class="alert alert-warning">Связки ворот не настроены. Настройте их в разделе «Параметры протоколов на воротах» на странице Стартовый протокол.</div>
+{% else %}
+
+{% for ворота in связки %}
+{% if ворота %}
+<div class="{{ 'разрыв' if not loop.last else '' }}">
+  <div class="header-block">
+    <p>{{ сор.название }}</p>
+    <p>Группа дисциплин Слалом</p>
+    <p><strong>Протокол судейства на воротах</strong></p>
+  </div>
+
+  <div class="date-place">
+    <span class="date-cell">{{ сор.даты_проведения or '' }}</span>
+    <span></span>
+    <span class="date-cell">{{ сор.место_проведения or '' }}</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:40px">№ п/п</th>
+        <th rowspan="2" style="width:110px">Нагрудный номер</th>
+        <th rowspan="2" style="width:80px">Время старта</th>
+        {% if ворота %}
+        <th colspan="{{ ворота|length }}">Ворота</th>
+        {% endif %}
+        <th rowspan="2">Описание штрафа</th>
+      </tr>
+      <tr>
+        {% for г in ворота %}
+        <th style="width:50px">{{ г }}</th>
+        {% endfor %}
+      </tr>
+      <tr>
+        <td colspan="{{ 4 + ворота|length }}" class="text-center" style="font-weight:bold">{{ попытка }} попытка</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for заг, команды in группы %}
+      {% if команды %}
+      <tr class="section-row">
+        <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
+      </tr>
+      {% for к in команды %}
+      {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
+      <tr>
+        <td class="text-center">{{ loop.index }}</td>
+        <td class="text-center">{{ к.нагрудный_номер }}</td>
+        <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
+        {% for г in ворота %}
+        <td></td>
+        {% endfor %}
+        <td></td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="sig-row">
+    <span class="sig-pos">Старший судья на связке ворот</span>
+    <span class="sig-line">&nbsp;</span>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+<script>
+function toggleOrient() {
+  const s = document.getElementById('orient-style');
+  const btn = document.getElementById('btn-orient');
+  if (s.textContent.includes('portrait')) {
+    s.textContent = '@media print { @page { margin:5mm 10mm 10mm 10mm; size:A4 landscape; } }';
+    btn.textContent = 'Портрет';
+  } else {
+    s.textContent = '@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }';
+    btn.textContent = 'Альбом';
+  }
+}
+</script>
+</body>
+</html>

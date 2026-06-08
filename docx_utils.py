@@ -11412,3 +11412,320 @@ def create_протокол_допуска_docx(сор, секции, загол
     _apply_no_break(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_протокол_ворота_docx(сор, связки, группы, попытка, filename):
+    """Протокол судейства на воротах для слалома."""
+    from docx.shared import Mm, Pt
+    from docx.enum.text import WD_ALIGN_PARAGRAPH as WDA
+
+    L = WDA.LEFT
+    C = WDA.CENTER
+
+    TW = round((210 - 15 - 5) * 1440 / 25.4)  # ~10772 dxa
+    W_NПП  = 817
+    W_НОМ  = 1701
+    W_ВРЕМ = 1276
+    W_GATE = 850
+    W_SIG_L = 4077
+    W_SIG_R = TW - W_SIG_L
+    PT = 10
+
+    def _sp(p):
+        pf = p.paragraph_format
+        pf.space_before = Pt(0)
+        pf.space_after  = Pt(0)
+
+    def _run(p, text, pt=PT, bold=False):
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(pt)
+        run.bold = bold
+        return run
+
+    def _para(doc, text='', align=L, pt=PT, bold=False):
+        p = doc.add_paragraph()
+        _sp(p)
+        p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        tcPr = tc.find(qn('w:tcPr'))
+        if tcPr is None:
+            tcPr = OxmlElement('w:tcPr')
+            tc.insert(0, tcPr)
+        return tcPr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single')
+            el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:color'), '000000')
+            b.append(el)
+        existing = pr.find(qn('w:tcBorders'))
+        if existing is not None:
+            pr.remove(existing)
+        pr.append(b)
+
+    def _bottom_border(cell, sz=4):
+        pr = _tcpr(cell)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            b.append(el)
+        bot = OxmlElement('w:bottom')
+        bot.set(qn('w:val'), 'single')
+        bot.set(qn('w:sz'), str(sz))
+        bot.set(qn('w:color'), '000000')
+        b.append(bot)
+        existing = pr.find(qn('w:tcBorders'))
+        if existing is not None:
+            pr.remove(existing)
+        pr.append(b)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        b = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'none')
+            el.set(qn('w:sz'), '0')
+            b.append(el)
+        existing = pr.find(qn('w:tcBorders'))
+        if existing is not None:
+            pr.remove(existing)
+        pr.append(b)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is None:
+            tcW = OxmlElement('w:tcW')
+            pr.append(tcW)
+        tcW.set(qn('w:w'), str(w))
+        tcW.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        vA = pr.find(qn('w:vAlign'))
+        if vA is None:
+            vA = OxmlElement('w:vAlign')
+            pr.append(vA)
+        vA.set(qn('w:val'), val)
+
+    def _fill(cell, text, align=C, pt=PT, bold=False):
+        for p in cell.paragraphs:
+            for r in p.runs:
+                r.text = ''
+        p = cell.paragraphs[0]
+        _sp(p)
+        p.alignment = align
+        if text:
+            _run(p, text, pt, bold)
+
+    def _row_h_min(row, cm):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
+        trH.set(qn('w:hRule'), 'atLeast')
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge')
+        vm.set(qn('w:val'), 'restart')
+        existing = pr.find(qn('w:vMerge'))
+        if existing is not None:
+            pr.remove(existing)
+        pr.append(vm)
+
+    def _set_grid(tbl, widths):
+        tblGrid = tbl._tbl.find(qn('w:tblGrid'))
+        if tblGrid is not None:
+            tbl._tbl.remove(tblGrid)
+        tblGrid = OxmlElement('w:tblGrid')
+        for w in widths:
+            gc = OxmlElement('w:gridCol')
+            gc.set(qn('w:w'), str(w))
+            tblGrid.append(gc)
+        tbl._tbl.insert(0, tblGrid)
+
+    def _tbl_w(tbl, w):
+        tblPr = tbl._tbl.find(qn('w:tblPr'))
+        if tblPr is None:
+            tblPr = OxmlElement('w:tblPr')
+            tbl._tbl.insert(0, tblPr)
+        tblW = tblPr.find(qn('w:tblW'))
+        if tblW is None:
+            tblW = OxmlElement('w:tblW')
+            tblPr.append(tblW)
+        tblW.set(qn('w:w'), str(w))
+        tblW.set(qn('w:type'), 'dxa')
+
+    def _page_break(doc):
+        p = doc.add_paragraph()
+        _sp(p)
+        run = p.add_run()
+        br = OxmlElement('w:br')
+        br.set(qn('w:type'), 'page')
+        run._r.append(br)
+
+    def _gridspan(cell, n):
+        pr = _tcpr(cell)
+        existing = pr.find(qn('w:gridSpan'))
+        if existing is not None:
+            pr.remove(existing)
+        gs = OxmlElement('w:gridSpan')
+        gs.set(qn('w:val'), str(n))
+        # Insert gridSpan after tcW if present, else prepend
+        tcW = pr.find(qn('w:tcW'))
+        if tcW is not None:
+            tcW.addnext(gs)
+        else:
+            pr.insert(0, gs)
+
+    def _add_sheet(doc, ворота_в_связке, first):
+        if not first:
+            _page_break(doc)
+
+        # Header paragraphs
+        _para(doc, сор.название, align=C, pt=PT, bold=False)
+        _para(doc, 'Группа дисциплин Слалом', align=C, pt=PT, bold=False)
+        _para(doc, 'Протокол судейства на воротах', align=C, pt=PT, bold=True)
+
+        # Date/place table
+        dt = doc.add_table(rows=1, cols=3)
+        _tbl_w(dt, TW)
+        _set_grid(dt, [2518, 3260, 4962])
+        r = dt.rows[0]
+        cs = list(r.cells)
+        _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
+        _bottom_border(cs[0]); _bottom_border(cs[2])
+        _fill(cs[0], сор.даты_проведения or '', align=C, pt=PT)
+        _fill(cs[1], '', align=C, pt=PT)
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=PT)
+
+        # Main table
+        N = len(ворота_в_связке)
+        W_ОПИС = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
+        NC = 3 + N + 1
+        widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ОПИС]
+
+        tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(tbl, TW)
+        _set_grid(tbl, widths)
+
+        # Row 0 - header A (Ворота spans N gate cols)
+        rh0 = tbl.add_row(); _row_h_min(rh0, 0.85)
+        cs0 = list(rh0.cells)
+        for c in cs0:
+            _borders(c)
+            _valign(c, 'center')
+        _vmerge_restart(cs0[0]); _fill(cs0[0], '№ п/п', align=C, pt=PT); _cw(cs0[0], W_NПП)
+        _vmerge_restart(cs0[1]); _fill(cs0[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs0[1], W_НОМ)
+        _vmerge_restart(cs0[2]); _fill(cs0[2], 'Время старта', align=C, pt=PT); _cw(cs0[2], W_ВРЕМ)
+        _fill(cs0[3], 'Ворота', align=C, pt=PT)
+        _cw(cs0[3], W_GATE * N)
+        if N > 1:
+            _gridspan(cs0[3], N)
+        _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ОПИС)
+
+        # Row 1 - header B (gate numbers)
+        rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
+        cs1 = list(rh1.cells)
+        for c in cs1:
+            _borders(c)
+            _valign(c, 'center')
+        _vmerge_restart(cs1[0]); _fill(cs1[0], '№ п/п', align=C, pt=PT); _cw(cs1[0], W_NПП)
+        _vmerge_restart(cs1[1]); _fill(cs1[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs1[1], W_НОМ)
+        _vmerge_restart(cs1[2]); _fill(cs1[2], 'Время старта', align=C, pt=PT); _cw(cs1[2], W_ВРЕМ)
+        for gi, г in enumerate(ворота_в_связке):
+            ci = 3 + gi
+            _fill(cs1[ci], str(г), align=C, pt=PT); _cw(cs1[ci], W_GATE)
+        _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
+
+        # Row 2 - попытка header
+        rp = tbl.add_row(); _row_h_min(rp, 0.8)
+        csp = list(rp.cells)
+        csp[0].merge(csp[NC-1])
+        _borders(csp[0]); _cw(csp[0], TW)
+        _fill(csp[0], f'{попытка} попытка', align=C, pt=PT, bold=True)
+
+        # Groups and teams
+        for заг, команды in группы:
+            if not команды:
+                continue
+            rg = tbl.add_row(); _row_h_min(rg, 0.8)
+            csg = list(rg.cells)
+            csg[0].merge(csg[NC-1])
+            _borders(csg[0]); _cw(csg[0], TW)
+            _fill(csg[0], заг, align=C, pt=PT, bold=True)
+
+            for seq_num, к in enumerate(команды, 1):
+                рез = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
+                вс = ''
+                if рез and рез.время_старта is not None:
+                    total_sec = int(рез.время_старта)
+                    h = total_sec // 3600
+                    m = (total_sec % 3600) // 60
+                    s = total_sec % 60
+                    вс = f'{h:02d}:{m:02d}:{s:02d}'
+
+                rd = tbl.add_row(); _row_h_min(rd, 0.8)
+                csd = list(rd.cells)
+                for c in csd:
+                    _borders(c)
+                _fill(csd[0], str(seq_num), align=C, pt=PT); _cw(csd[0], W_NПП)
+                _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
+                _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
+                for gi in range(N):
+                    _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
+                _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
+
+        # Signature table
+        sig = doc.add_table(rows=1, cols=2)
+        _tbl_w(sig, TW)
+        _set_grid(sig, [W_SIG_L, W_SIG_R])
+        rs = sig.rows[0]
+        cs_sig = list(rs.cells)
+        _no_border(cs_sig[0]); _no_border(cs_sig[1])
+        _bottom_border(cs_sig[1])
+        _fill(cs_sig[0], 'Старший судья на связке ворот', align=L, pt=PT); _cw(cs_sig[0], W_SIG_L)
+        _fill(cs_sig[1], '', align=L, pt=PT); _cw(cs_sig[1], W_SIG_R)
+
+    doc = Document()
+
+    sect = doc.sections[0]
+    sect.page_width   = Mm(210)
+    sect.page_height  = Mm(297)
+    sect.left_margin  = Mm(15)
+    sect.right_margin = Mm(5)
+    sect.top_margin   = Mm(10)
+    sect.bottom_margin = Mm(12)
+
+    # Remove default empty paragraph
+    for p in list(doc.paragraphs):
+        p._element.getparent().remove(p._element)
+
+    valid_связки = [св for св in связки if св]
+    for idx, ворота_в_связке in enumerate(valid_связки):
+        _add_sheet(doc, ворота_в_связке, first=(idx == 0))
+
+    buf = BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name=filename,
+                     mimetype=DOCX_MIME)
