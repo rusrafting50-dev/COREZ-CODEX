@@ -10057,17 +10057,21 @@ def create_справка_docx(сор, судьи, стат, filename):
 
     info = _make_tbl(2)
     _set_grid(info, INFO)
-    for лейбл, значение in (
+    for idx, (лейбл, значение) in enumerate([
         ('Наименование соревнований', сор.название or ''),
         ('Дата проведения',           сор.даты_проведения or ''),
         ('Место проведения',          сор.место_проведения or ''),
-    ):
+    ]):
         ri = info.add_row(); _row_h(ri, 0.8)
         cs = list(ri.cells)
         _cw(cs[0], INFO[0]); _cw(cs[1], INFO[1])
         _borders(cs[0]); _borders(cs[1])
         _fill(cs[0], лейбл,   align=L, pt=14, bold=True)
         _fill(cs[1], значение, align=L, pt=14)
+        if idx == 0 and сор.номер_екп:
+            p = cs[1].add_paragraph(); _sp(p)
+            p.alignment = L
+            _run(p, f'ЕКП № {сор.номер_екп}', pt=13, bold=True)
 
     _para()
 
