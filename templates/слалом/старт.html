@@ -117,10 +117,10 @@
 </form>
 {% endif %}
 
-{# ── Параметры стартового протокола ── #}
+{# ── Параметры спортивных соревнований ── #}
 <div class="card border-secondary mb-3 mt-4">
   <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
-    <span class="fw-semibold">Параметры стартового протокола</span>
+    <span class="fw-semibold">Параметры спортивных соревнований</span>
   </div>
   <div class="card-body py-3 px-3">
     <form method="post" action="{{ url_for('слалом.параметры_старт', sor_id=сор.id) }}">
@@ -141,17 +141,63 @@
           {% endfor %}
         </div>
       </div>
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <label class="form-label mb-0 fw-semibold">Выводить стартовый протокол по видам программы</label>
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-0">
+        <label class="form-label mb-0 fw-semibold">Выводить протоколы по видам программы</label>
         <select name="вывод_старт_слалом" class="form-select form-select-sm" style="width:auto">
           <option value="Попарно" {% if (сор.вывод_старт_слалом or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
           <option value="Раздельно" {% if сор.вывод_старт_слалом == 'Раздельно' %}selected{% endif %}>Раздельно</option>
         </select>
-        <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
       </div>
+
+      {# ── Параметры протоколов на воротах ── #}
+      <hr class="my-3">
+      <div class="fw-semibold mb-2">Параметры протоколов на воротах</div>
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <label class="form-label mb-0">Количество связок</label>
+        <select name="кол_связок" id="кол-связок" class="form-select form-select-sm" style="width:auto">
+          <option value="">—</option>
+          {% for n in range(1, 15) %}
+          <option value="{{ n }}" {% if связки_ворот.кол == n %}selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="связки-контейнер">
+        {% for i in range(1, (связки_ворот.кол or 0) + 1) %}
+        {% set выбраны = связки_ворот.связки[i-1] if (i-1) < (связки_ворот.связки | length) else [] %}
+        <div class="mb-3 связка-блок">
+          <div class="fw-semibold small mb-1">{{ i }} связка ворота №</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for г in range(1, кол_ворот + 1) %}
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="связка_{{ i }}" value="{{ г }}"
+                     id="св{{ i }}_в{{ г }}"
+                     {% if г in выбраны %}checked{% endif %}>
+              <label class="form-check-label small" for="св{{ i }}_в{{ г }}">{{ г }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-success btn-sm mt-1">Сохранить</button>
     </form>
   </div>
 </div>
+
+<template id="связка-шаблон">
+  <div class="mb-3 связка-блок">
+    <div class="fw-semibold small mb-1"></div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for г in range(1, кол_ворот + 1) %}
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="checkbox" name="" value="{{ г }}" id="">
+        <label class="form-check-label small" for="">{{ г }}</label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</template>
 
 <script>
 document.querySelectorAll('.время-ввод').forEach(inp => {
@@ -165,6 +211,31 @@ document.querySelectorAll('.время-ввод').forEach(inp => {
     }
     this.value = out;
   });
+});
+
+const _кол_ворот = {{ кол_ворот }};
+document.getElementById('кол-связок').addEventListener('change', function () {
+  const n = parseInt(this.value) || 0;
+  const cont = document.getElementById('связки-контейнер');
+  const tmpl = document.getElementById('связка-шаблон');
+  const текущих = cont.querySelectorAll('.связка-блок').length;
+  for (let i = текущих + 1; i <= n; i++) {
+    const clone = tmpl.content.cloneNode(true);
+    const блок = clone.querySelector('.связка-блок');
+    блок.querySelector('.fw-semibold').textContent = i + ' связка ворота №';
+    блок.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.name = 'связка_' + i;
+      cb.id = 'св' + i + '_в' + cb.value;
+    });
+    блок.querySelectorAll('label').forEach(lbl => {
+      const cb = блок.querySelector('input[value="' + lbl.textContent.trim() + '"]');
+      if (cb) lbl.setAttribute('for', cb.id);
+    });
+    cont.appendChild(блок);
+  }
+  while (cont.querySelectorAll('.связка-блок').length > n) {
+    cont.lastElementChild.remove();
+  }
 });
 
 document.querySelectorAll('.вид-слалом').forEach(sel => {
