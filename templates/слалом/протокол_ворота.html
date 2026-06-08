@@ -167,18 +167,17 @@ function toggleOrient() {
   }
 }
 
-// ─── Инъекция строк подписи перед каждым разрывом страницы ───────────────────
-//
-// Оценка строк на первой странице (портрет A4, поля T=10 B=12):
-//   275мм - ~15(шапка) - ~10(дата) - ~15(thead) - ~12(sig) = 223мм / 8мм = ~27 строк
-// Последующие страницы (с запасом):
-//   275мм - ~12(sig) = 263мм / 8мм = ~32 строки
-// Ландшафт A4 (поля T=5 B=10): usable = 195мм
-//   Первая: 195 - 35 - 12 = 148мм / 8мм = ~18 строк
-//   Последующие: 195 - 12 = 183мм / 8мм = ~22 строки
+// Инъекция строк подписи перед каждым разрывом страницы.
+// Место разрыва определяется по реальным высотам строк (getBoundingClientRect),
+// масштабированным из экранных пикселей в печатные через ширину листа.
+// Portrait:  L=15 R=5  -> usable_w=190мм, usable_h=275мм
+// Landscape: L=10 R=10 -> usable_w=277мм, usable_h=195мм
+// Резерв под строку подписи: 12мм.
+
+const _MM = 3.7795; // CSS px на 1мм при 96 dpi
 
 function _sigText(судья) {
-  return 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
+  return 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
 }
 
 function _makeSigTr(судья, ncols, withPageBreak) {
@@ -194,49 +193,54 @@ function _makeSigTr(судья, ncols, withPageBreak) {
 
 function injectSigRows() {
   const isLandscape = document.getElementById('orient-style').textContent.includes('landscape');
-  // Строк на первой и последующих страницах
-  const rows1 = isLandscape ? 17 : 26;
-  const rowsN = isLandscape ? 21 : 31;
+  // Печатные размеры полезной зоны страницы
+  const usableWmm = isLandscape ? 277 : 190;
+  const usableHmm = isLandscape ? 195 : 275;
+  const sigResMm  = 12; // высота строки подписи с отступом
 
   document.querySelectorAll('.связка-sheet').forEach(sheet => {
-    // Убираем ранее инжектированные строки
     sheet.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
 
-    const судья = sheet.dataset.судья || '';
+    const судья = sheet.dataset['судья'] || '';
     const ncols = parseInt(sheet.dataset.ncols) || 7;
     const tbody = sheet.querySelector('tbody');
     if (!tbody) return;
 
+    // Масштаб: сколько экранных пикселей соответствует 1мм на печати
+    const sheetW = sheet.getBoundingClientRect().width;
+    const scale  = sheetW / (usableWmm * _MM);
+    const pageH  = usableHmm * _MM * scale;
+    const sigH   = sigResMm  * _MM * scale;
+
+    // Высота шапки (занимает место на первой странице)
+    let hdrH = 0;
+    ['.header-block', '.date-place', 'thead'].forEach(sel => {
+      const el = sheet.querySelector(sel);
+      if (el) hdrH += el.getBoundingClientRect().height;
+    });
+
     const allRows = Array.from(tbody.querySelectorAll('tr'));
-    let count = 0;
-    let limit = rows1;
-    let i = 0;
+    let acc   = hdrH;        // накоплено на текущей странице
+    let limit = pageH - sigH; // доступное место до подписи
+    let i     = 0;
 
     while (i < allRows.length) {
-      count++;
-      if (count >= limit) {
-        // Ищем удачное место для разрыва: если следующая строка — section-row,
-        // вставляем sig перед ней (не разрывая секцию)
-        let insertBefore = allRows[i + 1] || null;
-        // Если текущая строка section-row, откатываемся на одну назад
-        if (allRows[i].classList.contains('section-row') && i > 0) {
-          insertBefore = allRows[i];
-          i--;
-        }
-        const sigTr = _makeSigTr(судья, ncols, true);
-        if (insertBefore) {
-          tbody.insertBefore(sigTr, insertBefore);
-        } else {
-          tbody.appendChild(sigTr);
-        }
-        count = 0;
-        limit = rowsN;
-        i++;  // пропускаем только что вставленную строку
+      const rh = allRows[i].getBoundingClientRect().height || (6 * _MM * scale);
+
+      if (acc + rh > limit) {
+        // Если текущая строка — заголовок секции, sig вставляем перед ней
+        // (заголовок уйдёт на следующую страницу вместе со своими данными)
+        tbody.insertBefore(_makeSigTr(судья, ncols, true), allRows[i]);
+        acc   = 0;
+        limit = pageH - sigH;
+        // i не меняется: обрабатываем ту же строку на новой странице
+      } else {
+        acc += rh;
+        i++;
       }
-      i++;
     }
 
-    // Последняя строка — sig без разрыва страницы
+    // Подпись в конце последней страницы (без разрыва)
     tbody.appendChild(_makeSigTr(судья, ncols, false));
   });
 }
