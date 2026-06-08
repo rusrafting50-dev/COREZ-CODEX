@@ -10071,7 +10071,7 @@ def create_справка_docx(сор, судьи, стат, filename):
         if idx == 0 and сор.номер_екп:
             p = cs[1].add_paragraph(); _sp(p)
             p.alignment = L
-            _run(p, f'ЕКП № {сор.номер_екп}', pt=13, bold=True)
+            _run(p, f'ЕКП № {сор.номер_екп}', pt=14, bold=False)
 
     _para()
 
