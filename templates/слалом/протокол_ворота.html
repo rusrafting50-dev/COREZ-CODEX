@@ -19,14 +19,15 @@
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
     th { text-align: center; background: #fff; font-weight: bold; }
-    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; text-align: center; }
+    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; text-align: center; page-break-after: avoid; }
     .sig-row { display: flex; align-items: baseline; margin-top: 16pt; }
     .sig-pos { width: 45%; font-size: 10pt; }
-    .sig-line { flex: 1; border-bottom: 1px solid #000; }
+    .sig-line { flex: 1; }
     .header-block { margin-bottom: 6pt; }
     .header-block p { margin: 0; text-align: center; font-size: 10pt; font-family: "Times New Roman", serif; }
     .date-place { display: flex; justify-content: space-between; margin-bottom: 8pt; font-size: 10pt; }
     .date-cell { border-bottom: 1px solid #000; }
+    @media print { .sig-row { page-break-inside: avoid; } }
   </style>
   <style id="orient-style">@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }</style>
 </head>
@@ -139,7 +140,7 @@
 
   <div class="sig-row">
     <span class="sig-pos">Старший судья на связке ворот</span>
-    <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}&nbsp;{% else %}&nbsp;{% endif %}</span>
+    <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}{% endif %}</span>
   </div>
 </div>
 {% endif %}

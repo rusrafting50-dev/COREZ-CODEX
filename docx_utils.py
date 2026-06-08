@@ -11657,12 +11657,26 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
             _fill(cs1[ci], str(г), align=C, pt=PT); _cw(cs1[ci], W_GATE)
         _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
 
+        def _keep_with_next_row(row):
+            """Запретить разрыв страницы после строки (keepWithNext на параграфах)."""
+            for cell in row.cells:
+                for p in cell.paragraphs:
+                    pPr = p._p.find(qn('w:pPr'))
+                    if pPr is None:
+                        pPr = OxmlElement('w:pPr')
+                        p._p.insert(0, pPr)
+                    kwn = pPr.find(qn('w:keepWithNext'))
+                    if kwn is None:
+                        kwn = OxmlElement('w:keepWithNext')
+                        pPr.append(kwn)
+
         def _add_попытка_строки(номер_попытки, группы_список):
             rp = tbl.add_row(); _row_h_min(rp, 0.8)
             csp = list(rp.cells)
             csp[0].merge(csp[NC-1])
             _borders(csp[0]); _cw(csp[0], TW)
             _fill(csp[0], f'{номер_попытки} попытка', align=C, pt=PT, bold=True)
+            _keep_with_next_row(rp)
             for заг, команды in группы_список:
                 if not команды:
                     continue
@@ -11671,6 +11685,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                 csg[0].merge(csg[NC-1])
                 _borders(csg[0]); _cw(csg[0], TW)
                 _fill(csg[0], заг, align=C, pt=PT, bold=True)
+                _keep_with_next_row(rg)
                 for seq_num, к in enumerate(команды, 1):
                     рез = next((р for р in к.результат_слалом if р.номер_попытки == номер_попытки), None)
                     вс = ''
@@ -11711,7 +11726,6 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         rs = sig.rows[0]
         cs_sig = list(rs.cells)
         _no_border(cs_sig[0]); _no_border(cs_sig[1])
-        _bottom_border(cs_sig[1])
         _fill(cs_sig[0], 'Старший судья на связке ворот', align=L, pt=PT); _cw(cs_sig[0], W_SIG_L)
         _fill(cs_sig[1], f'  {судья}  ' if судья else '', align=C, pt=PT); _cw(cs_sig[1], W_SIG_R)
 
