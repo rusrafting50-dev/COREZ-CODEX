@@ -121,6 +121,19 @@ def акт(sor_id, klass):
                            ск=ск, класс=klass.upper())
 
 
+@bp_тех.route('/<int:sor_id>/акт-word')
+def акт_word(sor_id):
+    from docx_utils import create_акт_тх_docx
+    сор      = Соревнование.query.get_or_404(sor_id)
+    проверки = (ТехПроверка.query
+                .filter_by(соревнование_id=sor_id)
+                .order_by(ТехПроверка.id)
+                .all())
+    ск = ТехСоставКомиссии.query.filter_by(соревнование_id=sor_id).first()
+    safe = (сор.название or str(sor_id))[:50].replace('/', '_')
+    return create_акт_тх_docx(сор, проверки, ск, f'Акт ТК — {safe}.docx')
+
+
 def _сохранить_снаряжение(проверка, form):
     наим_список  = form.getlist('наименование[]')
     марка_список = form.getlist('марка[]')

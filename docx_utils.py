@@ -10687,3 +10687,331 @@ def create_справка_субъекты_docx(сор, субъекты, filena
     _apply_no_break(doc)
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
+
+
+def create_акт_тх_docx(сор, проверки, ск, filename):
+    """Акт работы технической комиссии — Landscape A4, L=12 R=8 T=10 B=10."""
+    from docx.shared import Mm, Pt
+
+    TNR = 'Times New Roman'
+    C   = WD_ALIGN_PARAGRAPH.CENTER
+    L   = WD_ALIGN_PARAGRAPH.LEFT
+    J   = WD_ALIGN_PARAGRAPH.JUSTIFY
+    R   = WD_ALIGN_PARAGRAPH.RIGHT
+
+    # Landscape A4: 297×210 mm, margins L=12 R=8 T=10 B=10
+    # Usable width = 277 mm
+    TW   = round((297 - 12 - 8) * 1440 / 25.4)   # 15704 dxa
+    NC   = 13
+    # Proportional to XLS column chars: 4.4+20.7+13.7+23.4+4.7+10.7+7.7+10.7+9.4+9.4+7.7+10.7+7.7
+    GRID = [490, 2305, 1526, 2615, 524, 1192, 858, 1192, 1047, 1047, 858, 1192, 858]
+
+    W_РАФТЫ  = GRID[4] + GRID[5] + GRID[6]   # 2574
+    W_КАСКИ  = GRID[7] + GRID[8]              # 2239
+    W_СПАСЖ  = GRID[9] + GRID[10]             # 1905
+    W_ВЕСЛА  = GRID[11] + GRID[12]            # 2050
+    W_SIG_L  = sum(GRID[:5])                  # ≈47% for signature left col
+    W_SIG_R  = TW - W_SIG_L
+
+    doc  = Document()
+    sect = doc.sections[0]
+    sect.page_width    = Mm(297)
+    sect.page_height   = Mm(210)
+    sect.left_margin   = Mm(12)
+    sect.right_margin  = Mm(8)
+    sect.top_margin    = Mm(10)
+    sect.bottom_margin = Mm(10)
+    pgSz = sect._sectPr.find(qn('w:pgSz'))
+    if pgSz is not None:
+        pgSz.set(qn('w:orient'), 'landscape')
+    doc.styles['Normal'].font.name = TNR
+    doc.styles['Normal'].font.size = Pt(12)
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+
+    def _sp(p):
+        pPr = p._p.get_or_add_pPr()
+        for tag in ('w:spacing', 'w:contextualSpacing'):
+            old = pPr.find(qn(tag))
+            if old is not None: pPr.remove(old)
+        sp = OxmlElement('w:spacing')
+        sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
+        pPr.append(sp)
+
+    def _pmark(p, pt):
+        pPr = p._p.get_or_add_pPr()
+        mark = pPr.find(qn('w:rPr'))
+        if mark is None:
+            mark = OxmlElement('w:rPr'); pPr.append(mark)
+        for tag in ('w:sz', 'w:szCs'):
+            el = mark.find(qn(tag))
+            if el is None: el = OxmlElement(tag); mark.append(el)
+            el.set(qn('w:val'), str(round(pt * 2)))
+
+    def _run(p, text, pt=12, bold=False):
+        r = p.add_run(str(text))
+        r.font.name = TNR; r.font.size = Pt(pt); r.bold = bold
+        return r
+
+    def _para(text='', align=C, pt=12, bold=False):
+        p = doc.add_paragraph(); _sp(p); p.alignment = align
+        _pmark(p, pt)
+        if text: _run(p, text, pt=pt, bold=bold)
+        return p
+
+    def _tcpr(cell):
+        tc = cell._tc
+        pr = tc.find(qn('w:tcPr'))
+        if pr is None:
+            pr = OxmlElement('w:tcPr'); tc.insert(0, pr)
+        return pr
+
+    def _borders(cell, sz=4):
+        pr = _tcpr(cell)
+        tb = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:val'), 'single'); el.set(qn('w:sz'), str(sz))
+            el.set(qn('w:space'), '0'); el.set(qn('w:color'), 'auto')
+            tb.append(el)
+        pr.append(tb)
+
+    def _no_border(cell):
+        pr = _tcpr(cell)
+        tb = OxmlElement('w:tcBorders')
+        for side in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+            el = OxmlElement(f'w:{side}'); el.set(qn('w:val'), 'nil'); tb.append(el)
+        pr.append(tb)
+
+    def _cw(cell, w):
+        pr = _tcpr(cell)
+        el = pr.find(qn('w:tcW'))
+        if el is None: el = OxmlElement('w:tcW'); pr.append(el)
+        el.set(qn('w:w'), str(w)); el.set(qn('w:type'), 'dxa')
+
+    def _valign(cell, val='center'):
+        pr = _tcpr(cell)
+        el = OxmlElement('w:vAlign'); el.set(qn('w:val'), val)
+        pr.append(el)
+
+    def _fill(cell, text='', align=C, pt=12, bold=False):
+        p = cell.paragraphs[0]; p.clear(); _sp(p); p.alignment = align
+        if text: _run(p, str(text), pt=pt, bold=bold)
+
+    def _row_h(row, cm, exact=False):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr'); row._tr.insert(0, trPr)
+        el = OxmlElement('w:trHeight')
+        el.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
+        el.set(qn('w:hRule'), 'exact' if exact else 'atLeast')
+        trPr.append(el)
+
+    def _set_grid(tbl, widths):
+        tbl_el = tbl._tbl
+        old = tbl_el.find(qn('w:tblGrid'))
+        if old is not None: tbl_el.remove(old)
+        grid_el = OxmlElement('w:tblGrid')
+        for w in widths:
+            col = OxmlElement('w:gridCol'); col.set(qn('w:w'), str(w)); grid_el.append(col)
+        rows = tbl_el.findall(qn('w:tr'))
+        if rows:
+            tbl_el.insert(list(tbl_el).index(rows[0]), grid_el)
+        else:
+            tbl_el.append(grid_el)
+
+    def _tbl_w(tbl):
+        tPr = tbl._tbl.find(qn('w:tblPr'))
+        if tPr is None:
+            tPr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, tPr)
+        el = OxmlElement('w:tblW')
+        el.set(qn('w:w'), str(TW)); el.set(qn('w:type'), 'dxa')
+        tPr.append(el)
+        lyt = OxmlElement('w:tblLayout'); lyt.set(qn('w:type'), 'fixed')
+        tPr.append(lyt)
+
+    def _make_tbl(nc):
+        tbl = doc.add_table(rows=0, cols=nc)
+        _tbl_w(tbl)
+        return tbl
+
+    def _vmerge_restart(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart'); pr.append(vm)
+
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge'); pr.append(vm)
+
+    def _abbr(fio):
+        if not fio: return ''
+        parts = fio.split()
+        if len(parts) >= 3:
+            return parts[0] + ' ' + parts[1][0] + '. ' + parts[2][0] + '.'
+        return fio
+
+    # ── Org block ─────────────────────────────────────────────────────────────
+    if сор.организаторы_блок:
+        lines = [ln.strip() for ln in сор.организаторы_блок.split('\n') if ln.strip()]
+        _max = int(TW / 20 / (11 * 0.52))
+        p_org = _para(align=C, pt=11)
+        def _br(p): p.add_run()._r.append(OxmlElement('w:br'))
+        for i, line in enumerate(lines):
+            if i > 0: _br(p_org)
+            qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+            if qi is None:
+                _run(p_org, line, pt=11)
+            else:
+                before = line[:qi].strip(); quoted = line[qi:]
+                combined = (before + ' ' + quoted).strip()
+                if len(combined) <= _max:
+                    _run(p_org, combined, pt=11)
+                else:
+                    if before: _run(p_org, before, pt=11); _br(p_org)
+                    _run(p_org, quoted, pt=11)
+
+    # ── Competition name ──────────────────────────────────────────────────────
+    _para(сор.название or '', align=C, pt=12, bold=True)
+
+    # ── Date / Place (no-border 2-col table) ──────────────────────────────────
+    dp = _make_tbl(2)
+    _set_grid(dp, [W_SIG_L, W_SIG_R])
+    rdp = dp.add_row(); _row_h(rdp, 0.5)
+    cdp = list(rdp.cells)
+    _cw(cdp[0], W_SIG_L); _cw(cdp[1], W_SIG_R)
+    _no_border(cdp[0]); _no_border(cdp[1])
+    _fill(cdp[0], сор.даты_проведения or '', align=L, pt=8)
+    _fill(cdp[1], сор.место_проведения or '', align=R, pt=8)
+
+    # ── Title ─────────────────────────────────────────────────────────────────
+    _para(pt=4)
+    _para('АКТ', align=C, pt=12, bold=True)
+    _para('РАБОТЫ ТЕХНИЧЕСКОЙ КОМИССИИ', align=C, pt=12, bold=True)
+
+    # ── Commission description ────────────────────────────────────────────────
+    _para(pt=4)
+    desc = doc.add_paragraph(); _sp(desc); desc.alignment = J
+    _pmark(desc, 12)
+    _run(desc, 'Техническая комиссия в составе: ', pt=12)
+    if ск:
+        members = []
+        for фио, должн in [
+            (ск.председатель_фио, ск.председатель_должность),
+            (ск.член_1_фио,       ск.член_1_должность),
+            (ск.член_2_фио,       ск.член_2_должность),
+        ]:
+            if фио or должн:
+                m = (фио or '').strip()
+                if должн: m += f' – {должн.strip()}'
+                members.append(m)
+        if members:
+            _run(desc, ', '.join(members) + ', ', pt=12)
+    _run(desc,
+         'проверила и промаркировала представленные суда, '
+         'а также снаряжение — каски, спасательные жилеты '
+         'на соответствие требованиям правил по виду '
+         'спорта «рафтинг».', pt=12)
+
+    # ── Main table ────────────────────────────────────────────────────────────
+    _para(pt=4)
+    tbl = _make_tbl(NC)
+    _set_grid(tbl, GRID)
+
+    # header row 1 — vMerge restart for cols 0-3, horizontal merge for equipment groups
+    rh1 = tbl.add_row(); _row_h(rh1, 0.7)
+    ch1 = list(rh1.cells)
+    ch1[4].merge(ch1[6])   # Рафты (3 cols)
+    ch1[7].merge(ch1[8])   # Каски  (2 cols)
+    ch1[9].merge(ch1[10])  # Спасжилеты (2 cols)
+    ch1[11].merge(ch1[12]) # Весла  (2 cols)
+    ch1 = list(rh1.cells)  # refresh after horizontal merges
+    for c in ch1: _borders(c); _valign(c)
+    _cw(ch1[0], GRID[0]);  _cw(ch1[1], GRID[1])
+    _cw(ch1[2], GRID[2]);  _cw(ch1[3], GRID[3])
+    _cw(ch1[4], W_РАФТЫ);  _cw(ch1[5], W_КАСКИ)
+    _cw(ch1[6], W_СПАСЖ);  _cw(ch1[7], W_ВЕСЛА)
+    for i in range(4): _vmerge_restart(ch1[i])
+    _fill(ch1[0], '№\nдел',       align=C, pt=12)
+    _fill(ch1[1], 'Команда',       align=C, pt=12)
+    _fill(ch1[2], 'Территория',    align=C, pt=12)
+    _fill(ch1[3], 'Представитель', align=C, pt=12)
+    _fill(ch1[4], 'Рафты',         align=C, pt=12)
+    _fill(ch1[5], 'Каски',         align=C, pt=12)
+    _fill(ch1[6], 'Спасжилеты',    align=C, pt=12)
+    _fill(ch1[7], 'Весла',         align=C, pt=12)
+
+    # header row 2 — vMerge continuation for cols 0-3, sub-headers for equipment
+    rh2 = tbl.add_row(); _row_h(rh2, 0.7)
+    ch2 = list(rh2.cells)
+    for c in ch2: _borders(c); _valign(c)
+    for i in range(4):
+        _vmerge_cont(ch2[i]); _cw(ch2[i], GRID[i])
+    for i, (lbl, w) in enumerate([
+        ('Вид',    GRID[4]),  ('Марка',  GRID[5]),  ('Кол-во', GRID[6]),
+        ('Марка',  GRID[7]),  ('Кол-во', GRID[8]),
+        ('Марка',  GRID[9]),  ('Кол-во', GRID[10]),
+        ('Марка',  GRID[11]), ('Кол-во', GRID[12]),
+    ]):
+        c = ch2[4 + i]; _cw(c, w); _fill(c, lbl, align=C, pt=12)
+
+    # data rows
+    for пп, п in enumerate(проверки, 1):
+        рафт  = next((с for с in п.снаряжение if 'Рафт' in с.наименование), None)
+        каска = next((с for с in п.снаряжение if с.наименование == 'Каска'), None)
+        спасж = next((с for с in п.снаряжение if с.наименование == 'Спасжилет'), None)
+        весло = next((с for с in п.снаряжение if с.наименование == 'Весло'), None)
+
+        rd = tbl.add_row(); _row_h(rd, 1.41)
+        cd = list(rd.cells)
+        for c in cd: _borders(c); _valign(c)
+        for i, w in enumerate(GRID): _cw(cd[i], w)
+
+        _fill(cd[0],  str(пп),                                               align=C, pt=12)
+        _fill(cd[1],  п.наименование_команды or '—',                         align=C, pt=9)
+        _fill(cd[2],  п.субъект_рф or '—',                                   align=C, pt=9)
+        _fill(cd[3],  п.тренер_фио or '—',                                   align=C, pt=9)
+        _fill(cd[4],  рафт.наименование.replace('Рафт', '').strip()
+                      if рафт else '—',                                       align=C, pt=12)
+        _fill(cd[5],  рафт.марка or '—'     if рафт  else '—',               align=C, pt=12)
+        _fill(cd[6],  рафт.количество or 1  if рафт  else '—',               align=C, pt=12)
+        _fill(cd[7],  каска.марка or '—'    if каска else '—',               align=C, pt=12)
+        _fill(cd[8],  каска.количество or 1 if каска else '—',               align=C, pt=12)
+        _fill(cd[9],  спасж.марка or '—'    if спасж else '—',               align=C, pt=12)
+        _fill(cd[10], спасж.количество or 1 if спасж else '—',               align=C, pt=12)
+        _fill(cd[11], весло.марка or '—'    if весло else '—',               align=C, pt=12)
+        _fill(cd[12], весло.количество or 1 if весло else '—',               align=C, pt=12)
+
+    # ── Signatures ────────────────────────────────────────────────────────────
+    _para(pt=4)
+    sig = _make_tbl(2)
+    _set_grid(sig, [W_SIG_L, W_SIG_R])
+
+    подписанты = []
+    if ск:
+        for должн, фио, квал, субъект in [
+            (ск.председатель_должность, ск.председатель_фио,
+             ск.председатель_квалификация, ск.председатель_субъект_рф),
+            (ск.член_1_должность, ск.член_1_фио,
+             ск.член_1_квалификация, ск.член_1_субъект_рф),
+            (ск.член_2_должность, ск.член_2_фио,
+             ск.член_2_квалификация, ск.член_2_субъект_рф),
+        ]:
+            if должн or фио:
+                подписанты.append((должн or '', фио, квал, субъект))
+
+    for должн, фио, квал, субъект in подписанты:
+        rs = sig.add_row(); _row_h(rs, 0.8)
+        cs = list(rs.cells)
+        _cw(cs[0], W_SIG_L); _cw(cs[1], W_SIG_R)
+        _no_border(cs[0]); _no_border(cs[1])
+        _valign(cs[0]); _valign(cs[1])
+        _fill(cs[0], должн, align=L, pt=11)
+        фио_str = _abbr(фио)
+        if квал:    фио_str += f', {квал}'
+        if субъект: фио_str += f', {субъект}'
+        _fill(cs[1], фио_str, align=L, pt=11)
+
+    buf = BytesIO()
+    _apply_no_break(doc)
+    doc.save(buf); buf.seek(0)
+    return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)

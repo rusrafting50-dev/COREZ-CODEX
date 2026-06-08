@@ -29,9 +29,9 @@
      style="font-size:.875rem; border:1px solid #6c757d; border-radius:.25rem; padding:.25rem .5rem;
             color:#6c757d; text-decoration:none; background:transparent;">← Техническая комиссия</a>
   <div style="display:flex;gap:6px">
-    <button onclick="exportWord()"
-            style="font-size:.875rem; border:1px solid #198754; border-radius:.25rem; padding:.25rem .5rem;
-                   background:#198754; color:#fff; cursor:pointer;">Word</button>
+    <a href="{{ url_for('тех.акт_word', sor_id=сор.id) }}"
+       style="font-size:.875rem; border:1px solid #198754; border-radius:.25rem; padding:.25rem .5rem;
+              background:#198754; color:#fff; text-decoration:none;">Word</a>
     <button onclick="window.print()"
             style="font-size:.875rem; border:1px solid #0d6efd; border-radius:.25rem; padding:.25rem .5rem;
                    background:#0d6efd; color:#fff; cursor:pointer;">Печать</button>
@@ -172,35 +172,5 @@
 </div>
 {% endif %}
 
-<script>
-function exportWord() {
-  var clone = document.body.cloneNode(true);
-  clone.querySelectorAll('.no-print').forEach(function(el){ el.remove(); });
-  var css = '';
-  try {
-    for (var i = 0; i < document.styleSheets.length; i++) {
-      try {
-        var rules = document.styleSheets[i].cssRules || document.styleSheets[i].rules || [];
-        for (var j = 0; j < rules.length; j++) { css += rules[j].cssText + ' '; }
-      } catch(e) {}
-    }
-  } catch(e) {}
-  css += 'table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}';
-  css += 'td,th{border:1px solid #333;mso-border-alt:solid #333 .5pt;padding:3px 5px;}';
-  css += '@page{size:A4 portrait;margin:20mm 15mm;}';
-  var pre = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office"'
-    + ' xmlns:w="urn:schemas-microsoft-com:office:word"'
-    + ' xmlns="http://www.w3.org/TR/REC-html40">'
-    + '<head><meta charset="UTF-8"><style>' + css + '</style></head><body>';
-  var post = '</body></html>';
-  var blob = new Blob(['﻿', pre + clone.innerHTML + post], {type: 'application/msword'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = (document.title || 'document') + '.doc';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-}
-</script>
 </body>
 </html>
