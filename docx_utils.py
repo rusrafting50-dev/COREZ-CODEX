@@ -9649,7 +9649,18 @@ def create_минспорта_docx(сор, судьи, filename):
         p = doc.add_paragraph()
         _sp(p)
         p.alignment = align
-        _run(p, text, pt=pt, bold=bold)   # always add run so pt controls paragraph height
+        # w:pPr/w:rPr/w:sz задаёт высоту маркера абзаца (paragraph mark).
+        # Без этого Word игнорирует размер run-а и берёт высоту из стиля Normal.
+        pPr = p._p.get_or_add_pPr()
+        mark_rPr = pPr.find(qn('w:rPr'))
+        if mark_rPr is None:
+            mark_rPr = OxmlElement('w:rPr'); pPr.append(mark_rPr)
+        for tag in ('w:sz', 'w:szCs'):
+            el = mark_rPr.find(qn(tag))
+            if el is None:
+                el = OxmlElement(tag); mark_rPr.append(el)
+            el.set(qn('w:val'), str(round(pt * 2)))   # half-points
+        _run(p, text, pt=pt, bold=bold)
         return p
 
     def _tcpr(cell):
