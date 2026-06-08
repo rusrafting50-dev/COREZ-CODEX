@@ -9803,8 +9803,7 @@ def create_минспорта_docx(сор, судьи, filename):
     _fill(cs_dp[0], сор.даты_проведения  or '', align=L, pt=10, bold=True)
     _fill(cs_dp[1], сор.место_проведения or '', align=R, pt=10, bold=True)
 
-    _para(pt=4)
-    _para(pt=4)
+    _para(pt=1)
 
     # ── Основная таблица ─────────────────────────────────────────────────────
 
@@ -9842,7 +9841,7 @@ def create_минспорта_docx(сор, судьи, filename):
     ):
         sig = _make_tbl(2)
         _set_grid(sig, [w_l, w_r])
-        rs = sig.add_row(); _row_h(rs, 1.2)
+        rs = sig.add_row(); _row_h(rs, 0.8)
         cs = list(rs.cells)
         _cw(cs[0], w_l); _cw(cs[1], w_r)
         _no_border(cs[0]); _no_border(cs[1])
