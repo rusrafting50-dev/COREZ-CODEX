@@ -83,38 +83,40 @@
       </tr>
     </thead>
     <tbody>
-    {% if вывод == 'Раздельно' %}
-      {# Раздельно: группа → попытка 1 → попытка 2 → следующая группа #}
-      {% for заг, команды in группы %}
-      {% if команды %}
-      {% for попытка in [1, 2] %}
-      <tr class="section-row">
-        <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
-      </tr>
-      <tr class="section-row">
-        <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
-      </tr>
-      {% for к in команды %}
-      {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
-      <tr>
-        <td class="text-center">{{ loop.index }}</td>
-        <td class="text-center">{{ к.нагрудный_номер }}</td>
-        <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
-        {% for г in ворота %}<td></td>{% endfor %}
-        <td></td>
-      </tr>
-      {% endfor %}
-      {% endfor %}
-      {% endif %}
+    {% if вывод == 'Попарно' %}
+      {# Группы попарно (1+2, 3+4): для каждой пары попытка 1 → попытка 2 #}
+      {% for пара in группы | batch(2) %}
+        {% for попытка in [1, 2] %}
+        <tr class="section-row">
+          <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
+        </tr>
+        {% for заг, команды in пара %}
+        {% if команды %}
+        <tr class="section-row">
+          <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
+        </tr>
+        {% for к in команды %}
+        {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
+        <tr>
+          <td class="text-center">{{ loop.index }}</td>
+          <td class="text-center">{{ к.нагрудный_номер }}</td>
+          <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
+          {% for г in ворота %}<td></td>{% endfor %}
+          <td></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
       {% endfor %}
     {% else %}
-      {# Попарно: попытка 1 все группы → попытка 2 все группы #}
+      {# Раздельно: каждая группа отдельно — попытка 1 → попытка 2 #}
+      {% for заг, команды in группы %}
+      {% if команды %}
       {% for попытка in [1, 2] %}
       <tr class="section-row">
         <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
       </tr>
-      {% for заг, команды in группы %}
-      {% if команды %}
       <tr class="section-row">
         <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
       </tr>
@@ -128,8 +130,8 @@
         <td></td>
       </tr>
       {% endfor %}
-      {% endif %}
       {% endfor %}
+      {% endif %}
       {% endfor %}
     {% endif %}
     </tbody>
