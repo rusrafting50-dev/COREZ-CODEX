@@ -9663,6 +9663,20 @@ def create_минспорта_docx(сор, судьи, filename):
         _run(p, text, pt=pt, bold=bold)
         return p
 
+    def _sep1pt():
+        p = doc.add_paragraph()
+        pPr = p._p.get_or_add_pPr()
+        ps = OxmlElement('w:pStyle'); ps.set(qn('w:val'), 'NoSpacing'); pPr.insert(0, ps)
+        _sp(p)
+        rPr = pPr.find(qn('w:rPr'))
+        if rPr is None: rPr = OxmlElement('w:rPr'); pPr.append(rPr)
+        for tag in ('w:sz', 'w:szCs'):
+            el = rPr.find(qn(tag))
+            if el is None: el = OxmlElement(tag); rPr.append(el)
+            el.set(qn('w:val'), '2')
+        r = p.add_run(' '); r.font.name = TNR; r.font.size = Pt(1)
+        return p
+
     def _tcpr(cell):
         tc = cell._tc
         pr = tc.find(qn('w:tcPr'))
@@ -9805,7 +9819,7 @@ def create_минспорта_docx(сор, судьи, filename):
     _fill(cs_dp[0], сор.даты_проведения  or '', align=L, pt=10, bold=True)
     _fill(cs_dp[1], сор.место_проведения or '', align=R, pt=10, bold=True)
 
-    _para(pt=1)
+    _sep1pt()
 
     # ── Основная таблица ─────────────────────────────────────────────────────
 
@@ -9833,7 +9847,7 @@ def create_минспорта_docx(сор, судьи, filename):
 
     # ── Подписи ───────────────────────────────────────────────────────────────
 
-    _para(pt=1)
+    _sep1pt()
 
     w_l = TW * 45 // 100
     w_r = TW - w_l
@@ -10865,6 +10879,20 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
             return parts[0] + ' ' + parts[1][0] + '. ' + parts[2][0] + '.'
         return fio
 
+    def _sep1pt():
+        p = doc.add_paragraph()
+        pPr = p._p.get_or_add_pPr()
+        ps = OxmlElement('w:pStyle'); ps.set(qn('w:val'), 'NoSpacing'); pPr.insert(0, ps)
+        _sp(p)
+        rPr = pPr.find(qn('w:rPr'))
+        if rPr is None: rPr = OxmlElement('w:rPr'); pPr.append(rPr)
+        for tag in ('w:sz', 'w:szCs'):
+            el = rPr.find(qn(tag))
+            if el is None: el = OxmlElement(tag); rPr.append(el)
+            el.set(qn('w:val'), '2')
+        r = p.add_run(' '); r.font.name = TNR; r.font.size = Pt(1)
+        return p
+
     # ── Org block ─────────────────────────────────────────────────────────────
     if сор.организаторы_блок:
         for line in сор.организаторы_блок.split('\n'):
@@ -10890,9 +10918,7 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
     _fill(c1[0], 'дата проведения', align=C, pt=8)
     _fill(c1[2], 'место проведения', align=C, pt=8)
 
-    # ── Separator 1pt ─────────────────────────────────────────────────────────
-    p_sep0 = doc.add_paragraph(); _sp(p_sep0); _pmark(p_sep0, 1)
-    r_sep0 = p_sep0.add_run(' '); r_sep0.font.name = TNR; r_sep0.font.size = Pt(1)
+    _sep1pt()
 
     # ── АКТ / РАБОТЫ ─────────────────────────────────────────────────────────
     _para('АКТ', align=C, pt=10, bold=True)
@@ -10992,9 +11018,7 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
         _fill(cd[11], весло.марка or '—'    if весло else '—', align=C, pt=10)
         _fill(cd[12], весло.количество or 1 if весло else '—', align=C, pt=10)
 
-    # ── Separator 1pt ─────────────────────────────────────────────────────────
-    p_sep = doc.add_paragraph(); _sp(p_sep); _pmark(p_sep, 1)
-    r_sep = p_sep.add_run(' '); r_sep.font.name = TNR; r_sep.font.size = Pt(1)
+    _sep1pt()
 
     # ── Signatures ────────────────────────────────────────────────────────────
     sig = _make_tbl(2)
@@ -11158,6 +11182,20 @@ def create_протокол_допуска_docx(сор, секции, загол
             _run(p, line, pt=pt, bold=bold)
         _valign(cell)
 
+    def _sep1pt():
+        p = doc.add_paragraph()
+        pPr = p._p.get_or_add_pPr()
+        ps = OxmlElement('w:pStyle'); ps.set(qn('w:val'), 'NoSpacing'); pPr.insert(0, ps)
+        _sp(p)
+        rPr = pPr.find(qn('w:rPr'))
+        if rPr is None: rPr = OxmlElement('w:rPr'); pPr.append(rPr)
+        for tag in ('w:sz', 'w:szCs'):
+            el = rPr.find(qn(tag))
+            if el is None: el = OxmlElement(tag); rPr.append(el)
+            el.set(qn('w:val'), '2')
+        r = p.add_run(' '); r.font.name = TNR; r.font.size = Pt(1)
+        return p
+
     def _make_tbl(nc, tw):
         tbl = doc.add_table(rows=0, cols=nc)
         tPr = tbl._tbl.find(qn('w:tblPr'))
@@ -11261,7 +11299,7 @@ def create_протокол_допуска_docx(сор, секции, загол
     _fill(cs1[0], 'Дата проведения', align=C, pt=10, bold=True)
     _fill(cs1[1], 'Место проведения', align=C, pt=10, bold=True)
 
-    p_sep1 = _para(); _run(p_sep1, ' ', pt=1)
+    _sep1pt()
 
     # ── Main table ────────────────────────────────────────────────────────────
     tbl = _make_tbl(8, TW_MAIN)
@@ -11333,7 +11371,7 @@ def create_протокол_допуска_docx(сор, секции, загол
                 _fill(cd[5], сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '', align=C, pt=10)
                 _fill(cd[6], сп.разряд or '', align=C, pt=10)
 
-    p_sep2 = _para(); _run(p_sep2, ' ', pt=1)
+    _sep1pt()
 
     # ── Signature table ───────────────────────────────────────────────────────
     sig = _make_tbl(2, TW)
