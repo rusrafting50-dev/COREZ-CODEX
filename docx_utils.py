@@ -11148,6 +11148,22 @@ def create_протокол_допуска_docx(сор, секции, загол
         pr = t.find(qn('w:tblPr'))
         pr.addnext(g) if pr is not None else t.insert(0, g)
 
+    def _tbl_center(tbl):
+        tPr = tbl._tbl.find(qn('w:tblPr'))
+        if tPr is None:
+            tPr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, tPr)
+        for old in tPr.findall(qn('w:jc')): tPr.remove(old)
+        jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); tPr.append(jc)
+
+    def _tcmar(cell, left=0, right=0):
+        pr = _tcpr(cell)
+        mar = OxmlElement('w:tcMar')
+        for side, val in (('top', 0), ('left', left), ('bottom', 0), ('right', right)):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(val)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
     def _vmerge_restart(cell):
         pr = _tcpr(cell)
         vm = OxmlElement('w:vMerge'); vm.set(qn('w:val'), 'restart'); pr.append(vm)
@@ -11167,10 +11183,25 @@ def create_протокол_допуска_docx(сор, секции, загол
 
     # ── Org block ─────────────────────────────────────────────────────────────
     if сор.организаторы_блок:
-        for line in сор.организаторы_блок.split('\n'):
-            line = line.strip()
-            if line:
-                _para(line, align=C, pt=10, bold=True)
+        lines = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
+        p = _para(align=C)
+        for i, line in enumerate(lines):
+            if i > 0:
+                _run(p, '')._r.append(OxmlElement('w:br'))
+            qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+            if qi is None:
+                _run(p, line, pt=10, bold=True)
+            else:
+                before  = line[:qi].strip()
+                quoted  = line[qi:]
+                combined = (before + ' ' + quoted) if before else quoted
+                if len(combined) <= 80:
+                    _run(p, combined, pt=10, bold=True)
+                else:
+                    if before:
+                        _run(p, before, pt=10, bold=True)
+                        _run(p, '')._r.append(OxmlElement('w:br'))
+                    _run(p, quoted, pt=10, bold=True)
 
     # ── Title paragraphs ──────────────────────────────────────────────────────
     _para(сор.название or '', align=C, pt=10, bold=True)
@@ -11181,37 +11212,40 @@ def create_протокол_допуска_docx(сор, секции, загол
     # ── Date / Place table ────────────────────────────────────────────────────
     dt = _make_tbl(3, TW)
     _set_grid(dt, GRID_DT)
+    _tbl_center(dt)
     r0 = dt.add_row(); cs0 = list(r0.cells)
-    _cw(cs0[0], GRID_DT[0]); _side_border(cs0[0], 'bottom'); _valign(cs0[0], 'bottom')
+    _cw(cs0[0], 0, 'auto'); _side_border(cs0[0], 'bottom'); _valign(cs0[0], 'bottom')
     _cw(cs0[1], GRID_DT[1]); _no_border(cs0[1])
-    _cw(cs0[2], GRID_DT[2]); _side_border(cs0[2], 'bottom'); _valign(cs0[2], 'bottom')
+    _cw(cs0[2], 0, 'auto'); _side_border(cs0[2], 'bottom'); _valign(cs0[2], 'bottom')
     _fill(cs0[0], сор.даты_проведения or '', align=L, pt=10, bold=True)
     _fill(cs0[2], сор.место_проведения or '', align=R, pt=10, bold=True)
     r1 = dt.add_row(); cs1 = list(r1.cells)
-    _cw(cs1[0], GRID_DT[0]); _side_border(cs1[0], 'top'); _valign(cs1[0])
+    _cw(cs1[0], 0, 'auto'); _side_border(cs1[0], 'top'); _valign(cs1[0], 'top')
     _cw(cs1[1], GRID_DT[1]); _no_border(cs1[1])
-    _cw(cs1[2], GRID_DT[2]); _side_border(cs1[2], 'top'); _valign(cs1[2])
+    _cw(cs1[2], 0, 'auto'); _side_border(cs1[2], 'top'); _valign(cs1[2], 'top')
     _fill(cs1[0], 'Дата проведения', align=C, pt=10, bold=True)
     _fill(cs1[2], 'Место проведения', align=C, pt=10, bold=True)
 
-    _para()
+    p_sep1 = _para(); _run(p_sep1, ' ', pt=1)
 
     # ── Main table ────────────────────────────────────────────────────────────
     tbl = _make_tbl(8, TW_MAIN)
     _set_grid(tbl, GRID_MAIN)
+    _tbl_center(tbl)
 
     # Header row
     rh = tbl.add_row(); _row_h(rh, H_HDR)
     cs = list(rh.cells)
-    for i, w in enumerate(GRID_MAIN): _cw(cs[i], w); _borders(cs[i]); _valign(cs[i])
-    _fill_ml(cs[0], ['№', 'п/п'],         align=C, pt=8, bold=True)
-    _fill(cs[1], 'Команда',               align=C, pt=8, bold=True)
-    _fill(cs[2], 'Территория',            align=C, pt=8, bold=True)
-    _fill_ml(cs[3], ['Тренер', 'Представитель'], align=C, pt=8, bold=True)
-    _fill(cs[4], 'Состав',                align=C, pt=8, bold=True)
-    _fill_ml(cs[5], ['Дата', 'рождения'], align=C, pt=8, bold=True)
-    _fill_ml(cs[6], ['Разряд,', 'звание'], align=C, pt=8, bold=True)
-    _fill_ml(cs[7], ['Нагрудный', 'номер'], align=C, pt=8, bold=True)
+    for i, w in enumerate(GRID_MAIN):
+        _cw(cs[i], w); _borders(cs[i]); _valign(cs[i]); _tcmar(cs[i], left=28, right=28)
+    _fill_ml(cs[0], ['№', 'п/п'],         align=C, pt=10, bold=True)
+    _fill(cs[1], 'Команда',               align=C, pt=10, bold=True)
+    _fill(cs[2], 'Территория',            align=C, pt=10, bold=True)
+    _fill_ml(cs[3], ['Тренер', 'Представитель'], align=C, pt=10, bold=True)
+    _fill(cs[4], 'Состав',                align=C, pt=10, bold=True)
+    _fill_ml(cs[5], ['Дата', 'рождения'], align=C, pt=10, bold=True)
+    _fill_ml(cs[6], ['Разряд,', 'звание'], align=C, pt=10, bold=True)
+    _fill_ml(cs[7], ['Нагрудный', 'номер'], align=C, pt=10, bold=True)
 
     # Data rows
     for секция in секции:
@@ -11221,11 +11255,11 @@ def create_протокол_допуска_docx(сор, секции, загол
         # Merge all 8 columns
         sec_cs[0].merge(sec_cs[7])
         sec_cell = list(rs.cells)[0]
-        _cw(sec_cell, TW_MAIN); _borders(sec_cell)
+        _cw(sec_cell, TW_MAIN); _borders(sec_cell); _tcmar(sec_cell, left=28, right=28)
         загол = секция['заголовок']
         if вывод == 'Вместе':
             загол = f"{загол} — {секция['класс']}"
-        _fill(sec_cell, загол, align=C, pt=8, bold=True)
+        _fill(sec_cell, загол, align=C, pt=10, bold=True)
 
         for к_num, к in enumerate(секция['команды'], 1):
             спортсмены = sorted(к.спортсмены, key=lambda x: x.id)
@@ -11234,7 +11268,8 @@ def create_протокол_допуска_docx(сор, секции, загол
             for сп_idx, сп in enumerate(спортсмены):
                 rd = tbl.add_row(); _row_h(rd, H_DATA)
                 cd = list(rd.cells)
-                for i, w in enumerate(GRID_MAIN): _cw(cd[i], w)
+                for i, w in enumerate(GRID_MAIN):
+                    _cw(cd[i], w); _tcmar(cd[i], left=28, right=28)
 
                 # vMerge or data for cols 0,1,2,3,7
                 if сп_idx == 0:
@@ -11242,13 +11277,13 @@ def create_протокол_допуска_docx(сор, секции, загол
                     for i in [0, 1, 2, 3, 7]:
                         _vmerge_restart(cd[i])
                         _borders(cd[i]); _valign(cd[i])
-                    _fill(cd[0], str(к_num),                            align=C, pt=8)
-                    _fill(cd[1], к.название or '',                      align=C, pt=8)
+                    _fill(cd[0], str(к_num),                            align=C, pt=10)
+                    _fill(cd[1], к.название or '',                      align=C, pt=10)
                     субъ_назв = к.субъект.название if к.субъект else ''
-                    _fill(cd[2], субъ_назв,                             align=C, pt=8)
+                    _fill(cd[2], субъ_назв,                             align=C, pt=10)
                     предст = к.субъект.представитель if к.субъект else ''
-                    _fill(cd[3], предст,                                align=C, pt=8)
-                    _fill(cd[7], str(к.нагрудный_номер) if к.нагрудный_номер else '', align=C, pt=8)
+                    _fill(cd[3], предст,                                align=C, pt=10)
+                    _fill(cd[7], str(к.нагрудный_номер) if к.нагрудный_номер else '', align=C, pt=10)
                 else:
                     # Continuation rows: vMerge cont, empty
                     for i in [0, 1, 2, 3, 7]:
@@ -11259,15 +11294,16 @@ def create_протокол_допуска_docx(сор, секции, загол
                 _borders(cd[4]); _valign(cd[4])
                 _borders(cd[5]); _valign(cd[5])
                 _borders(cd[6]); _valign(cd[6])
-                _fill(cd[4], сп.фамилия_имя_отчество or '', align=L, pt=8)
-                _fill(cd[5], сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '', align=C, pt=8)
-                _fill(cd[6], сп.разряд or '', align=C, pt=8)
+                _fill(cd[4], сп.фамилия_имя_отчество or '', align=L, pt=10)
+                _fill(cd[5], сп.дата_рождения.strftime('%d.%m.%Y') if сп.дата_рождения else '', align=C, pt=10)
+                _fill(cd[6], сп.разряд or '', align=C, pt=10)
 
-    _para()
+    p_sep2 = _para(); _run(p_sep2, ' ', pt=1)
 
     # ── Signature table ───────────────────────────────────────────────────────
     sig = _make_tbl(2, TW)
     _set_grid(sig, GRID_SIG)
+    _tbl_center(sig)
 
     # Build signature rows
     подписанты = [
@@ -11286,7 +11322,7 @@ def create_протокол_допуска_docx(сор, секции, загол
     подписанты[1] = ('Главный судья соревнований', гл_судья)
 
     for должн, фио_str in подписанты:
-        rs = sig.add_row()
+        rs = sig.add_row(); _row_h(rs, 0.8)
         cs = list(rs.cells)
         _cw(cs[0], GRID_SIG[0]); _no_border(cs[0]); _valign(cs[0])
         _cw(cs[1], GRID_SIG[1]); _no_border(cs[1]); _valign(cs[1])
