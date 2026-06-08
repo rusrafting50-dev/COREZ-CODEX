@@ -9755,40 +9755,29 @@ def create_минспорта_docx(сор, судьи, filename):
     # ── Организаторы ──────────────────────────────────────────────────────────
 
     if сор.организаторы_блок:
-        raw = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
-        groups = []
-        for line in raw:
-            if (line.startswith('«') or line.startswith('"')) and groups:
-                prev = groups[-1]
-                if isinstance(prev, str):
-                    groups[-1] = (prev, line)
-                    continue
-            groups.append(line)
+        lines = [l.strip() for l in сор.организаторы_блок.split('\n') if l.strip()]
+        p_org = _para(align=C, pt=10, bold=True)
 
-        for group in groups:
-            if isinstance(group, tuple):
-                before, quoted = group
-                combined = before + ' ' + quoted
-                if len(combined) <= 55:
-                    _para(combined, align=C, pt=10, bold=True)
-                else:
-                    _para(before, align=C, pt=10, bold=True)
-                    _para(quoted, align=C, pt=10, bold=True)
+        def _br_org(p):
+            p.add_run()._r.append(OxmlElement('w:br'))
+
+        for i, line in enumerate(lines):
+            if i > 0:
+                _br_org(p_org)
+            qi = next((line.index(q) for q in ('"', '«') if q in line), None)
+            if qi is None:
+                _run(p_org, line, pt=10, bold=True)
             else:
-                line = group
-                qi = next((line.index(q) for q in ('"', '«') if q in line), None)
-                if qi is None:
-                    _para(line, align=C, pt=10, bold=True)
+                before = line[:qi].strip()
+                quoted = line[qi:]
+                combined = (before + ' ' + quoted) if before else quoted
+                if len(combined) <= 80:
+                    _run(p_org, combined, pt=10, bold=True)
                 else:
-                    before = line[:qi].strip()
-                    quoted = line[qi:]
-                    combined = (before + ' ' + quoted) if before else quoted
-                    if len(combined) <= 55:
-                        _para(combined, align=C, pt=10, bold=True)
-                    else:
-                        if before:
-                            _para(before, align=C, pt=10, bold=True)
-                        _para(quoted, align=C, pt=10, bold=True)
+                    if before:
+                        _run(p_org, before, pt=10, bold=True)
+                        _br_org(p_org)
+                    _run(p_org, quoted, pt=10, bold=True)
 
     _para(pt=4)
 
