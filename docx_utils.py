@@ -11414,7 +11414,7 @@ def create_протокол_допуска_docx(сор, секции, загол
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_протокол_ворота_docx(сор, связки, судьи_св, группы, попытка, filename):
+def create_протокол_ворота_docx(сор, связки, судьи_св, группы, вывод, filename):
     """Протокол судейства на воротах для слалома."""
     from docx.shared import Mm, Pt
     from docx.enum.text import WD_ALIGN_PARAGRAPH as WDA
@@ -11657,43 +11657,51 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
             _fill(cs1[ci], str(г), align=C, pt=PT); _cw(cs1[ci], W_GATE)
         _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
 
-        # Row 2 - попытка header
-        rp = tbl.add_row(); _row_h_min(rp, 0.8)
-        csp = list(rp.cells)
-        csp[0].merge(csp[NC-1])
-        _borders(csp[0]); _cw(csp[0], TW)
-        _fill(csp[0], f'{попытка} попытка', align=C, pt=PT, bold=True)
+        def _add_попытка_строки(номер_попытки, группы_список):
+            rp = tbl.add_row(); _row_h_min(rp, 0.8)
+            csp = list(rp.cells)
+            csp[0].merge(csp[NC-1])
+            _borders(csp[0]); _cw(csp[0], TW)
+            _fill(csp[0], f'{номер_попытки} попытка', align=C, pt=PT, bold=True)
+            for заг, команды in группы_список:
+                if not команды:
+                    continue
+                rg = tbl.add_row(); _row_h_min(rg, 0.8)
+                csg = list(rg.cells)
+                csg[0].merge(csg[NC-1])
+                _borders(csg[0]); _cw(csg[0], TW)
+                _fill(csg[0], заг, align=C, pt=PT, bold=True)
+                for seq_num, к in enumerate(команды, 1):
+                    рез = next((р for р in к.результат_слалом if р.номер_попытки == номер_попытки), None)
+                    вс = ''
+                    if рез and рез.время_старта is not None:
+                        total_sec = int(рез.время_старта)
+                        h = total_sec // 3600
+                        m = (total_sec % 3600) // 60
+                        s = total_sec % 60
+                        вс = f'{h:02d}:{m:02d}:{s:02d}'
+                    rd = tbl.add_row(); _row_h_min(rd, 0.8)
+                    csd = list(rd.cells)
+                    for c in csd:
+                        _borders(c)
+                    _fill(csd[0], str(seq_num), align=C, pt=PT); _cw(csd[0], W_NПП)
+                    _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
+                    _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
+                    for gi in range(N):
+                        _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
+                    _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
 
-        # Groups and teams
-        for заг, команды in группы:
-            if not команды:
-                continue
-            rg = tbl.add_row(); _row_h_min(rg, 0.8)
-            csg = list(rg.cells)
-            csg[0].merge(csg[NC-1])
-            _borders(csg[0]); _cw(csg[0], TW)
-            _fill(csg[0], заг, align=C, pt=PT, bold=True)
-
-            for seq_num, к in enumerate(команды, 1):
-                рез = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
-                вс = ''
-                if рез and рез.время_старта is not None:
-                    total_sec = int(рез.время_старта)
-                    h = total_sec // 3600
-                    m = (total_sec % 3600) // 60
-                    s = total_sec % 60
-                    вс = f'{h:02d}:{m:02d}:{s:02d}'
-
-                rd = tbl.add_row(); _row_h_min(rd, 0.8)
-                csd = list(rd.cells)
-                for c in csd:
-                    _borders(c)
-                _fill(csd[0], str(seq_num), align=C, pt=PT); _cw(csd[0], W_NПП)
-                _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
-                _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
-                for gi in range(N):
-                    _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
-                _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
+        if вывод == 'Раздельно':
+            # группа → попытка 1 → попытка 2 → следующая группа
+            for заг, команды in группы:
+                if not команды:
+                    continue
+                for п in (1, 2):
+                    _add_попытка_строки(п, [(заг, команды)])
+        else:
+            # Попарно: попытка 1 все группы → попытка 2 все группы
+            for п in (1, 2):
+                _add_попытка_строки(п, группы)
 
         # Signature table
         sig = doc.add_table(rows=1, cols=2)

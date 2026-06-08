@@ -13,6 +13,8 @@
       .разрыв { page-break-after: always; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
+      th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
@@ -33,13 +35,8 @@
 <div class="d-flex justify-content-between mb-3 no-print">
   <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
-    {% if попытка == 1 %}
-    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id, попытка=2) }}" class="btn btn-outline-warning btn-sm">Попытка 2</a>
-    {% else %}
-    <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id, попытка=1) }}" class="btn btn-outline-warning btn-sm">Попытка 1</a>
-    {% endif %}
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
-    <a href="{{ url_for('слалом.протокол_ворота_word', sor_id=сор.id, попытка=попытка) }}" class="btn btn-success btn-sm">Word</a>
+    <a href="{{ url_for('слалом.протокол_ворота_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -47,6 +44,9 @@
 {% if not связки %}
 <div class="alert alert-warning">Связки ворот не настроены. Настройте их в разделе «Параметры протоколов на воротах» на странице Стартовый протокол.</div>
 {% else %}
+
+{# Попарно: для каждой связки — попытка 1 все группы, затем попытка 2 все группы.
+   Раздельно: для каждой связки — для каждой группы попытка 1 затем попытка 2. #}
 
 {% for ворота in связки %}
 {% set _idx = loop.index0 %}
@@ -81,11 +81,38 @@
         <th style="width:50px">{{ г }}</th>
         {% endfor %}
       </tr>
-      <tr>
-        <td colspan="{{ 4 + ворота|length }}" class="text-center" style="font-weight:bold">{{ попытка }} попытка</td>
-      </tr>
     </thead>
     <tbody>
+    {% if вывод == 'Раздельно' %}
+      {# Раздельно: группа → попытка 1 → попытка 2 → следующая группа #}
+      {% for заг, команды in группы %}
+      {% if команды %}
+      {% for попытка in [1, 2] %}
+      <tr class="section-row">
+        <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
+      </tr>
+      <tr class="section-row">
+        <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
+      </tr>
+      {% for к in команды %}
+      {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
+      <tr>
+        <td class="text-center">{{ loop.index }}</td>
+        <td class="text-center">{{ к.нагрудный_номер }}</td>
+        <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
+        {% for г in ворота %}<td></td>{% endfor %}
+        <td></td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+    {% else %}
+      {# Попарно: попытка 1 все группы → попытка 2 все группы #}
+      {% for попытка in [1, 2] %}
+      <tr class="section-row">
+        <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
+      </tr>
       {% for заг, команды in группы %}
       {% if команды %}
       <tr class="section-row">
@@ -97,14 +124,14 @@
         <td class="text-center">{{ loop.index }}</td>
         <td class="text-center">{{ к.нагрудный_номер }}</td>
         <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
-        {% for г in ворота %}
-        <td></td>
-        {% endfor %}
+        {% for г in ворота %}<td></td>{% endfor %}
         <td></td>
       </tr>
       {% endfor %}
       {% endif %}
       {% endfor %}
+      {% endfor %}
+    {% endif %}
     </tbody>
   </table>
 
