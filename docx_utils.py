@@ -10297,6 +10297,13 @@ def create_предварительная_заявка_docx(сор, з, filename
             mar.append(el)
         pr.append(mar)
 
+    def _tbl_center(tbl):
+        tPr = tbl._tbl.find(qn('w:tblPr'))
+        if tPr is None:
+            tPr = OxmlElement('w:tblPr'); tbl._tbl.insert(0, tPr)
+        for old in tPr.findall(qn('w:jc')): tPr.remove(old)
+        jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); tPr.append(jc)
+
     def _abbr(фио):
         p = (фио or '').split()
         if len(p) >= 3: return f"{p[0]} {p[1][0]}. {p[2][0]}."
@@ -10314,6 +10321,7 @@ def create_предварительная_заявка_docx(сор, з, filename
     # ── Info table ────────────────────────────────────────────────────────────
     inf = _make_tbl(5)
     _set_grid(inf, INFO_GRID)
+    _tbl_center(inf)
 
     # Row 0: От команды | команда (cols 1+2) | Класс судов | класс (col 4)
     r0 = inf.add_row(); _row_h(r0, H_INFO)
@@ -10365,6 +10373,7 @@ def create_предварительная_заявка_docx(сор, з, filename
     # ── Athletes table ────────────────────────────────────────────────────────
     tbl = _make_tbl(5)
     _set_grid(tbl, ATH_GRID)
+    _tbl_center(tbl)
 
     rh = tbl.add_row(); _row_h(rh, H_HDR)
     cs = list(rh.cells)
@@ -10400,6 +10409,7 @@ def create_предварительная_заявка_docx(сор, з, filename
     # ── Signature table ───────────────────────────────────────────────────────
     sig = _make_tbl(2)
     _set_grid(sig, SIG_GRID)
+    _tbl_center(sig)
     rs = sig.add_row()
     cs = list(rs.cells)
     _cw(cs[0], SIG_GRID[0]); _no_border(cs[0]); _valign(cs[0])
