@@ -10692,9 +10692,9 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
     W_ВЕСЛА = GRID[11] + GRID[12]            # 1654
     # Дата/место: 3 столбца из образца, скорр. до TW
     DT_GRID = [2122, 9213, 3686]
-    # Подписи: пропорция 6521:4536 из образца
-    _sl = round(6521 / 11057 * TW)
-    SIG_GRID = [_sl, TW - _sl]
+    # Подписи: правый столбец (ФИО) в 1.5 раза шире исходного
+    _sig_r = round((TW - round(6521 / 11057 * TW)) * 1.5)
+    SIG_GRID = [TW - _sig_r, _sig_r]
 
     doc  = Document()
     sect = doc.sections[0]
@@ -10842,6 +10842,8 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
         tPr.append(el)
         lyt = OxmlElement('w:tblLayout'); lyt.set(qn('w:type'), 'fixed')
         tPr.append(lyt)
+        jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center')
+        tPr.append(jc)
 
     def _make_tbl(nc):
         tbl = doc.add_table(rows=0, cols=nc)
