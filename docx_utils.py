@@ -10823,10 +10823,8 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
 
     def _fill(cell, text='', align=C, pt=10, bold=False):
         p = cell.paragraphs[0]; p.clear()
-        pPr = p._p.get_or_add_pPr()
-        for old in pPr.findall(qn('w:pStyle')): pPr.remove(old)
-        ps = OxmlElement('w:pStyle'); ps.set(qn('w:val'), 'NoSpacing'); pPr.insert(0, ps)
-        _sp(p); p.alignment = align
+        p.style = doc.styles['No Spacing']
+        p.alignment = align
         if text: _run(p, str(text), pt=pt, bold=bold)
 
     def _row_h(row, cm):
@@ -10915,11 +10913,13 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
     _side_border(c0[0], 'bottom'); _no_border(c0[1]); _side_border(c0[2], 'bottom')
     _valign(c0[0], 'bottom'); _valign(c0[1], 'bottom'); _valign(c0[2], 'bottom')
     _fill(c0[0], сор.даты_проведения or '', align=C, pt=10, bold=True)
+    c0[1].paragraphs[0].style = doc.styles['No Spacing']
     _fill(c0[2], сор.место_проведения or '', align=C, pt=10, bold=True)
     r1 = dt.add_row(); c1 = list(r1.cells)
     _cw(c1[0], DT_GRID[0]); _cw(c1[1], DT_GRID[1]); _cw(c1[2], DT_GRID[2])
     _no_border(c1[0]); _no_border(c1[1]); _no_border(c1[2])
     _fill(c1[0], 'дата проведения', align=C, pt=8)
+    c1[1].paragraphs[0].style = doc.styles['No Spacing']
     _fill(c1[2], 'место проведения', align=C, pt=8)
 
     _sep1pt()
