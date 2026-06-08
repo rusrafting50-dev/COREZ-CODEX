@@ -10288,6 +10288,15 @@ def create_предварительная_заявка_docx(сор, з, filename
         pr = t.find(qn('w:tblPr'))
         pr.addnext(g) if pr is not None else t.insert(0, g)
 
+    def _tcmar(cell, left=0, right=0):
+        pr = _tcpr(cell)
+        mar = OxmlElement('w:tcMar')
+        for side, val in (('top', 0), ('left', left), ('bottom', 0), ('right', right)):
+            el = OxmlElement(f'w:{side}')
+            el.set(qn('w:w'), str(val)); el.set(qn('w:type'), 'dxa')
+            mar.append(el)
+        pr.append(mar)
+
     def _abbr(фио):
         p = (фио or '').split()
         if len(p) >= 3: return f"{p[0]} {p[1][0]}. {p[2][0]}."
@@ -10310,10 +10319,10 @@ def create_предварительная_заявка_docx(сор, з, filename
     r0 = inf.add_row(); _row_h(r0, H_INFO)
     cs0 = list(r0.cells)   # [0, 1, 2, 3, 4]
     cs0[1].merge(cs0[2])   # merge cols 1+2
-    _cw(cs0[0], INFO_GRID[0]); _no_border(cs0[0]); _valign(cs0[0])
-    _cw(cs0[1], INFO_GRID[1] + INFO_GRID[2]); _bottom_border(cs0[1]); _valign(cs0[1])
-    _cw(cs0[3], INFO_GRID[3]); _no_border(cs0[3]); _valign(cs0[3])
-    _cw(cs0[4], INFO_GRID[4]); _bottom_border(cs0[4]); _valign(cs0[4])
+    _cw(cs0[0], INFO_GRID[0]); _no_border(cs0[0]); _valign(cs0[0]); _tcmar(cs0[0], 28, 28)
+    _cw(cs0[1], INFO_GRID[1] + INFO_GRID[2]); _bottom_border(cs0[1]); _valign(cs0[1]); _tcmar(cs0[1], 28, 28)
+    _cw(cs0[3], INFO_GRID[3]); _no_border(cs0[3]); _valign(cs0[3]); _tcmar(cs0[3], 28, 28)
+    _cw(cs0[4], INFO_GRID[4]); _bottom_border(cs0[4]); _valign(cs0[4]); _tcmar(cs0[4], 28, 28)
     _fill(cs0[0], 'От команды', align=L, pt=13)
     _fill(cs0[1], з.наименование_команды or '', align=C, pt=13)
     _fill(cs0[3], 'Класс судов', align=L, pt=13)
@@ -10323,8 +10332,8 @@ def create_предварительная_заявка_docx(сор, з, filename
     r1 = inf.add_row(); _row_h(r1, H_INFO)
     cs1 = list(r1.cells)   # [0, 1, 2, 3, 4]
     cs1[1].merge(cs1[4])   # merge cols 1..4
-    _cw(cs1[0], INFO_GRID[0]); _no_border(cs1[0]); _valign(cs1[0])
-    _cw(cs1[1], sum(INFO_GRID[1:])); _bottom_border(cs1[1]); _valign(cs1[1])
+    _cw(cs1[0], INFO_GRID[0]); _no_border(cs1[0]); _valign(cs1[0]); _tcmar(cs1[0], 28, 28)
+    _cw(cs1[1], sum(INFO_GRID[1:])); _bottom_border(cs1[1]); _valign(cs1[1]); _tcmar(cs1[1], 28, 28)
     _fill(cs1[0], 'Субъект', align=L, pt=13)
     _fill(cs1[1], з.субъект_рф or '', align=C, pt=13)
 
@@ -10333,8 +10342,8 @@ def create_предварительная_заявка_docx(сор, з, filename
     cs2 = list(r2.cells)   # [0, 1, 2, 3, 4]
     cs2[0].merge(cs2[1])   # merge cols 0+1
     cs2[2].merge(cs2[4])   # merge cols 2+3+4
-    _cw(cs2[0], INFO_GRID[0] + INFO_GRID[1]); _no_border(cs2[0]); _valign(cs2[0])
-    _cw(cs2[2], sum(INFO_GRID[2:])); _bottom_border(cs2[2]); _valign(cs2[2])
+    _cw(cs2[0], INFO_GRID[0] + INFO_GRID[1]); _no_border(cs2[0]); _valign(cs2[0]); _tcmar(cs2[0], 28, 28)
+    _cw(cs2[2], sum(INFO_GRID[2:])); _bottom_border(cs2[2]); _valign(cs2[2]); _tcmar(cs2[2], 28, 28)
     _fill(cs2[0], 'На участие в спортивных соревнованиях', align=L, pt=13)
     _fill(cs2[2], сор.название or '', align=C, pt=13)
 
@@ -10342,10 +10351,10 @@ def create_предварительная_заявка_docx(сор, з, filename
     r3 = inf.add_row(); _row_h(r3, H_INFO)
     cs3 = list(r3.cells)   # [0, 1, 2, 3, 4]
     cs3[1].merge(cs3[2])   # merge cols 1+2
-    _cw(cs3[0], INFO_GRID[0]); _no_border(cs3[0]); _valign(cs3[0])
-    _cw(cs3[1], INFO_GRID[1] + INFO_GRID[2]); _bottom_border(cs3[1]); _valign(cs3[1])
-    _cw(cs3[3], INFO_GRID[3]); _no_border(cs3[3]); _valign(cs3[3])
-    _cw(cs3[4], INFO_GRID[4]); _top_bottom_border(cs3[4]); _valign(cs3[4])
+    _cw(cs3[0], INFO_GRID[0]); _no_border(cs3[0]); _valign(cs3[0]); _tcmar(cs3[0], 28, 28)
+    _cw(cs3[1], INFO_GRID[1] + INFO_GRID[2]); _bottom_border(cs3[1]); _valign(cs3[1]); _tcmar(cs3[1], 28, 28)
+    _cw(cs3[3], INFO_GRID[3]); _no_border(cs3[3]); _valign(cs3[3]); _tcmar(cs3[3], 28, 28)
+    _cw(cs3[4], INFO_GRID[4]); _top_bottom_border(cs3[4]); _valign(cs3[4]); _tcmar(cs3[4], 28, 28)
     _fill(cs3[0], 'Проводимых в', align=L, pt=13)
     _fill(cs3[1], сор.место_проведения or '', align=C, pt=13)
     _fill(cs3[3], 'в период', align=C, pt=13)
