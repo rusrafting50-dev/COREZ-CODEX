@@ -15,15 +15,12 @@
       tr { page-break-inside: avoid; }
       table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
       th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
-      /* Скрываем оригинальный sig-div при печати — используются инжектированные строки */
       .sig-row { display: none !important; }
-      /* Инжектированные sig-строки видны при печати */
       .injected-sig-row { display: table-row !important; }
       .injected-sig-row td { border: none !important; font-size: 10pt !important;
                               padding: 6pt 0 2pt 0 !important; font-family: "Times New Roman",serif !important; }
     }
     @media screen {
-      /* На экране скрываем инжектированные строки — показываем только sig-div */
       .injected-sig-row { display: none; }
     }
     table { border-collapse: collapse; width: 100%; }
@@ -60,7 +57,7 @@
 {% set _судья = судьи_св[_idx] if судьи_св and _idx < судьи_св|length else '' %}
 {% if ворота %}
 <div class="{{ 'разрыв' if not loop.last else '' }} связка-sheet"
-     data-судья="{{ _судья | e }}"
+     data-sudya="{{ _судья | e }}"
      data-ncols="{{ 4 + ворота|length }}">
   <div class="header-block">
     <p>{{ сор.название }}</p>
@@ -155,26 +152,21 @@
 {% endif %}
 
 <script>
-function toggleOrient() {
-  const s = document.getElementById('orient-style');
-  const btn = document.getElementById('btn-orient');
-  if (s.textContent.includes('portrait')) {
-    s.textContent = '@media print { @page { margin:5mm 10mm 10mm 10mm; size:A4 landscape; } }';
-    btn.textContent = 'Портрет';
-  } else {
-    s.textContent = '@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }';
-    btn.textContent = 'Альбом';
-  }
+// ─── Инъекция строк подписи ───────────────────────────────────────────────────
+// Строки инжектируются при загрузке страницы и при смене ориентации.
+// Место разрыва определяется по реальным высотам строк (getBoundingClientRect).
+// Атрибут data-sudya (латиница) используется вместо кириллического data-судья
+// для надёжной работы dataset API во всех браузерах.
+//
+// Portrait:  L=15 R=5  → usable_w=190мм, usable_h=275мм
+// Landscape: L=10 R=10 → usable_w=277мм, usable_h=195мм
+// Резерв под строку подписи: 14мм.
+
+const _MM = 3.7795;
+
+function _isLandscape() {
+  return document.getElementById('orient-style').textContent.includes('landscape');
 }
-
-// Инъекция строк подписи перед каждым разрывом страницы.
-// Место разрыва определяется по реальным высотам строк (getBoundingClientRect),
-// масштабированным из экранных пикселей в печатные через ширину листа.
-// Portrait:  L=15 R=5  -> usable_w=190мм, usable_h=275мм
-// Landscape: L=10 R=10 -> usable_w=277мм, usable_h=195мм
-// Резерв под строку подписи: 12мм.
-
-const _MM = 3.7795; // CSS px на 1мм при 96 dpi
 
 function _sigText(судья) {
   return 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
@@ -192,27 +184,30 @@ function _makeSigTr(судья, ncols, withPageBreak) {
 }
 
 function injectSigRows() {
-  const isLandscape = document.getElementById('orient-style').textContent.includes('landscape');
-  // Печатные размеры полезной зоны страницы
-  const usableWmm = isLandscape ? 277 : 190;
-  const usableHmm = isLandscape ? 195 : 275;
-  const sigResMm  = 12; // высота строки подписи с отступом
+  const landscape = _isLandscape();
+  const usableWmm = landscape ? 277 : 190;
+  const usableHmm = landscape ? 195 : 275;
+  const sigResMm  = 14;
+
+  // Резервные пороги строк на случай, если getBoundingClientRect вернёт 0
+  const rows1fb = landscape ? 17 : 26;
+  const rowsNfb = landscape ? 21 : 31;
 
   document.querySelectorAll('.связка-sheet').forEach(sheet => {
     sheet.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
 
-    const судья = sheet.dataset['судья'] || '';
-    const ncols = parseInt(sheet.dataset.ncols) || 7;
-    const tbody = sheet.querySelector('tbody');
+    const судья = sheet.getAttribute('data-sudya') || '';
+    const ncols  = parseInt(sheet.getAttribute('data-ncols')) || 7;
+    const tbody  = sheet.querySelector('tbody');
     if (!tbody) return;
 
-    // Масштаб: сколько экранных пикселей соответствует 1мм на печати
+    // Масштаб: отношение экранной ширины листа к печатной
     const sheetW = sheet.getBoundingClientRect().width;
-    const scale  = sheetW / (usableWmm * _MM);
+    const scale  = sheetW > 0 ? sheetW / (usableWmm * _MM) : 1;
     const pageH  = usableHmm * _MM * scale;
     const sigH   = sigResMm  * _MM * scale;
 
-    // Высота шапки (занимает место на первой странице)
+    // Высота шапки (шапка + дата + thead)
     let hdrH = 0;
     ['.header-block', '.date-place', 'thead'].forEach(sel => {
       const el = sheet.querySelector(sel);
@@ -220,37 +215,64 @@ function injectSigRows() {
     });
 
     const allRows = Array.from(tbody.querySelectorAll('tr'));
-    let acc   = hdrH;        // накоплено на текущей странице
-    let limit = pageH - sigH; // доступное место до подписи
-    let i     = 0;
 
+    // Если высоты не измерились — использовать счёт строк
+    const totalH = allRows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
+    if (totalH === 0 || pageH === 0) {
+      // Резервный путь: счёт строк
+      let count = 0, limit = rows1fb, i = 0;
+      while (i < allRows.length) {
+        count++;
+        if (count >= limit) {
+          let ins = allRows[i];
+          if (allRows[i].classList.contains('section-row') && i > 0) ins = allRows[i];
+          tbody.insertBefore(_makeSigTr(судья, ncols, true), ins);
+          count = 0; limit = rowsNfb;
+        } else { i++; }
+      }
+      tbody.appendChild(_makeSigTr(судья, ncols, false));
+      return;
+    }
+
+    // Основной путь: по реальным высотам
+    let acc   = hdrH;
+    let limit = pageH - sigH;
+    let i     = 0;
     while (i < allRows.length) {
       const rh = allRows[i].getBoundingClientRect().height || (6 * _MM * scale);
-
       if (acc + rh > limit) {
-        // Если текущая строка — заголовок секции, sig вставляем перед ней
-        // (заголовок уйдёт на следующую страницу вместе со своими данными)
         tbody.insertBefore(_makeSigTr(судья, ncols, true), allRows[i]);
         acc   = 0;
         limit = pageH - sigH;
-        // i не меняется: обрабатываем ту же строку на новой странице
       } else {
         acc += rh;
         i++;
       }
     }
-
-    // Подпись в конце последней страницы (без разрыва)
     tbody.appendChild(_makeSigTr(судья, ncols, false));
   });
 }
 
-function removeSigRows() {
-  document.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
+function toggleOrient() {
+  const s = document.getElementById('orient-style');
+  const btn = document.getElementById('btn-orient');
+  if (s.textContent.includes('portrait')) {
+    s.textContent = '@media print { @page { margin:5mm 10mm 10mm 10mm; size:A4 landscape; } }';
+    btn.textContent = 'Портрет';
+  } else {
+    s.textContent = '@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }';
+    btn.textContent = 'Альбом';
+  }
+  injectSigRows();
 }
 
+// Инжектируем при загрузке и синхронизируем перед печатью
+document.addEventListener('DOMContentLoaded', injectSigRows);
 window.addEventListener('beforeprint', injectSigRows);
-window.addEventListener('afterprint', removeSigRows);
+window.addEventListener('afterprint', function () {
+  document.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
+  injectSigRows(); // восстанавливаем для следующей печати
+});
 </script>
 </body>
 </html>
