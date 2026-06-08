@@ -10720,6 +10720,8 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
         sp = OxmlElement('w:spacing')
         sp.set(qn('w:before'), str(round(before * 20)))
         sp.set(qn('w:after'),  str(round(after  * 20)))
+        sp.set(qn('w:line'), '240')
+        sp.set(qn('w:lineRule'), 'auto')
         pPr.append(sp)
 
     def _pmark(p, pt):
@@ -10983,6 +10985,10 @@ def create_акт_тх_docx(сор, проверки, ск, filename):
         _fill(cd[10], спасж.количество or 1 if спасж else '—', align=C, pt=10)
         _fill(cd[11], весло.марка or '—'    if весло else '—', align=C, pt=10)
         _fill(cd[12], весло.количество or 1 if весло else '—', align=C, pt=10)
+
+    # ── Separator 1pt ─────────────────────────────────────────────────────────
+    p_sep = doc.add_paragraph(); _sp(p_sep); _pmark(p_sep, 1)
+    r_sep = p_sep.add_run(' '); r_sep.font.name = TNR; r_sep.font.size = Pt(1)
 
     # ── Signatures ────────────────────────────────────────────────────────────
     sig = _make_tbl(2)
