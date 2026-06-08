@@ -15,6 +15,16 @@
       tr { page-break-inside: avoid; }
       table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
       th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
+      /* Скрываем оригинальный sig-div при печати — используются инжектированные строки */
+      .sig-row { display: none !important; }
+      /* Инжектированные sig-строки видны при печати */
+      .injected-sig-row { display: table-row !important; }
+      .injected-sig-row td { border: none !important; font-size: 10pt !important;
+                              padding: 6pt 0 2pt 0 !important; font-family: "Times New Roman",serif !important; }
+    }
+    @media screen {
+      /* На экране скрываем инжектированные строки — показываем только sig-div */
+      .injected-sig-row { display: none; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
@@ -27,7 +37,6 @@
     .header-block p { margin: 0; text-align: center; font-size: 10pt; font-family: "Times New Roman", serif; }
     .date-place { display: flex; justify-content: space-between; margin-bottom: 8pt; font-size: 10pt; }
     .date-cell { border-bottom: 1px solid #000; }
-    @media print { .sig-row { page-break-inside: avoid; } }
   </style>
   <style id="orient-style">@media print { @page { margin:10mm 5mm 12mm 15mm; size:A4 portrait; } }</style>
 </head>
@@ -46,14 +55,13 @@
 <div class="alert alert-warning">Связки ворот не настроены. Настройте их в разделе «Параметры протоколов на воротах» на странице Стартовый протокол.</div>
 {% else %}
 
-{# Попарно: для каждой связки — попытка 1 все группы, затем попытка 2 все группы.
-   Раздельно: для каждой связки — для каждой группы попытка 1 затем попытка 2. #}
-
 {% for ворота in связки %}
 {% set _idx = loop.index0 %}
 {% set _судья = судьи_св[_idx] if судьи_св and _idx < судьи_св|length else '' %}
 {% if ворота %}
-<div class="{{ 'разрыв' if not loop.last else '' }}">
+<div class="{{ 'разрыв' if not loop.last else '' }} связка-sheet"
+     data-судья="{{ _судья | e }}"
+     data-ncols="{{ 4 + ворота|length }}">
   <div class="header-block">
     <p>{{ сор.название }}</p>
     <p>Группа дисциплин Слалом</p>
@@ -85,7 +93,6 @@
     </thead>
     <tbody>
     {% if вывод == 'Попарно' %}
-      {# Группы попарно (1+2, 3+4): для каждой пары попытка 1 → попытка 2 #}
       {% for пара in группы | batch(2) %}
         {% for попытка in [1, 2] %}
         <tr class="section-row">
@@ -111,7 +118,6 @@
         {% endfor %}
       {% endfor %}
     {% else %}
-      {# Раздельно: каждая группа отдельно — попытка 1 → попытка 2 #}
       {% for заг, команды in группы %}
       {% if команды %}
       {% for попытка in [1, 2] %}
@@ -138,6 +144,7 @@
     </tbody>
   </table>
 
+  {# На экране — обычная строка подписи #}
   <div class="sig-row">
     <span class="sig-pos">Старший судья на связке ворот</span>
     <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}{% endif %}</span>
@@ -159,6 +166,87 @@ function toggleOrient() {
     btn.textContent = 'Альбом';
   }
 }
+
+// ─── Инъекция строк подписи перед каждым разрывом страницы ───────────────────
+//
+// Оценка строк на первой странице (портрет A4, поля T=10 B=12):
+//   275мм - ~15(шапка) - ~10(дата) - ~15(thead) - ~12(sig) = 223мм / 8мм = ~27 строк
+// Последующие страницы (с запасом):
+//   275мм - ~12(sig) = 263мм / 8мм = ~32 строки
+// Ландшафт A4 (поля T=5 B=10): usable = 195мм
+//   Первая: 195 - 35 - 12 = 148мм / 8мм = ~18 строк
+//   Последующие: 195 - 12 = 183мм / 8мм = ~22 строки
+
+function _sigText(судья) {
+  return 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
+}
+
+function _makeSigTr(судья, ncols, withPageBreak) {
+  const tr = document.createElement('tr');
+  tr.className = 'injected-sig-row';
+  if (withPageBreak) tr.style.pageBreakAfter = 'always';
+  const td = document.createElement('td');
+  td.colSpan = ncols;
+  td.textContent = _sigText(судья);
+  tr.appendChild(td);
+  return tr;
+}
+
+function injectSigRows() {
+  const isLandscape = document.getElementById('orient-style').textContent.includes('landscape');
+  // Строк на первой и последующих страницах
+  const rows1 = isLandscape ? 17 : 26;
+  const rowsN = isLandscape ? 21 : 31;
+
+  document.querySelectorAll('.связка-sheet').forEach(sheet => {
+    // Убираем ранее инжектированные строки
+    sheet.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
+
+    const судья = sheet.dataset.судья || '';
+    const ncols = parseInt(sheet.dataset.ncols) || 7;
+    const tbody = sheet.querySelector('tbody');
+    if (!tbody) return;
+
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    let count = 0;
+    let limit = rows1;
+    let i = 0;
+
+    while (i < allRows.length) {
+      count++;
+      if (count >= limit) {
+        // Ищем удачное место для разрыва: если следующая строка — section-row,
+        // вставляем sig перед ней (не разрывая секцию)
+        let insertBefore = allRows[i + 1] || null;
+        // Если текущая строка section-row, откатываемся на одну назад
+        if (allRows[i].classList.contains('section-row') && i > 0) {
+          insertBefore = allRows[i];
+          i--;
+        }
+        const sigTr = _makeSigTr(судья, ncols, true);
+        if (insertBefore) {
+          tbody.insertBefore(sigTr, insertBefore);
+        } else {
+          tbody.appendChild(sigTr);
+        }
+        count = 0;
+        limit = rowsN;
+        i++;  // пропускаем только что вставленную строку
+      }
+      i++;
+    }
+
+    // Последняя строка — sig без разрыва страницы
+    tbody.appendChild(_makeSigTr(судья, ncols, false));
+  });
+}
+
+function removeSigRows() {
+  document.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
+}
+
+window.addEventListener('beforeprint', injectSigRows);
+window.addEventListener('afterprint', removeSigRows);
 </script>
 </body>
 </html>
