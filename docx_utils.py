@@ -9461,6 +9461,8 @@ def create_гск_docx(сор, судьи, filename):
                     _run(p_org, quoted, pt=11)
 
     _para(сор.название or '', align=C, pt=13, bold=True, after=6)
+    if сор.номер_екп:
+        _para(f'ЕКП № {сор.номер_екп}', align=C, pt=13, bold=True, after=6)
 
     # ── Дата / место (таблица без рамок, нижняя черта) ───────────────────────
 
