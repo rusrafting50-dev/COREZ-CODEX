@@ -9605,17 +9605,17 @@ def create_минспорта_docx(сор, судьи, filename):
     C   = WD_ALIGN_PARAGRAPH.CENTER
     L   = WD_ALIGN_PARAGRAPH.LEFT
 
-    # A4 portrait, L=10, R=5, T=7, B=10
-    TW   = round((210 - 10 - 5) * 1440 / 25.4)    # 11054 dxa
-    GRID = [496, 3858, 2902, 1602, 2196]            # №, ФИО, Должность, Кв, Субъект
+    # A4 portrait, L=30, R=15, T=7.5, B=10 (по образцу)
+    TW   = round((210 - 30 - 15) * 1440 / 25.4)    # 9354 dxa
+    GRID = [419, 3266, 2456, 1356, 1857]            # №, ФИО, Должность, Кв, Субъект
 
     doc  = Document()
     sect = doc.sections[0]
     sect.page_width    = Mm(210)
     sect.page_height   = Mm(297)
-    sect.left_margin   = Mm(10)
-    sect.right_margin  = Mm(5)
-    sect.top_margin    = Mm(7)
+    sect.left_margin   = Mm(30)
+    sect.right_margin  = Mm(15)
+    sect.top_margin    = Mm(7.5)
     sect.bottom_margin = Mm(10)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
