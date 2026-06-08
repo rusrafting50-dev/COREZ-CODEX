@@ -11021,7 +11021,7 @@ def create_протокол_допуска_docx(сор, секции, загол
     # A4 portrait, margins from sample: L=12.5, R=10, T=10, B=20
     TW      = 10632   # date/sig tables
     TW_MAIN = 10660   # main table (exact from sample)
-    GRID_DT  = [2268, 2127, 6237]
+    GRID_DT  = [2268, 8364]   # date | location (2 cols, auto-layout)
     GRID_MAIN = [480, 1145, 1366, 1519, 3173, 992, 851, 1134]
     GRID_SIG  = [5387, 5245]
 
@@ -11049,6 +11049,8 @@ def create_протокол_допуска_docx(сор, секции, загол
         sp = OxmlElement('w:spacing')
         sp.set(qn('w:before'), str(round(before * 20)))
         sp.set(qn('w:after'),  str(round(after  * 20)))
+        sp.set(qn('w:line'), '240')
+        sp.set(qn('w:lineRule'), 'auto')
         pPr.append(sp)
 
     def _run(p, text, pt=10, bold=False):
@@ -11219,21 +11221,23 @@ def create_протокол_допуска_docx(сор, секции, загол
     _para(f'КЛАСС СУДОВ — {заг_кл}' if заг_кл else 'КЛАСС СУДОВ', align=C, pt=10, bold=True)
 
     # ── Date / Place table ────────────────────────────────────────────────────
-    dt = _make_tbl(3, TW)
+    dt = _make_tbl(2, TW)
     _set_grid(dt, GRID_DT)
     _tbl_center(dt)
+    # auto layout so date cell shrinks to content width
+    _tPr_dt = dt._tbl.find(qn('w:tblPr'))
+    _lay_dt = _tPr_dt.find(qn('w:tblLayout'))
+    _lay_dt.set(qn('w:type'), 'auto')
     r0 = dt.add_row(); cs0 = list(r0.cells)
     _cw(cs0[0], 0, 'auto'); _side_border(cs0[0], 'bottom'); _valign(cs0[0], 'bottom')
-    _cw(cs0[1], GRID_DT[1]); _no_border(cs0[1])
-    _cw(cs0[2], 0, 'auto'); _side_border(cs0[2], 'bottom'); _valign(cs0[2], 'bottom')
+    _cw(cs0[1], 0, 'auto'); _side_border(cs0[1], 'bottom'); _valign(cs0[1], 'bottom')
     _fill(cs0[0], сор.даты_проведения or '', align=L, pt=10, bold=True)
-    _fill(cs0[2], сор.место_проведения or '', align=R, pt=10, bold=True)
+    _fill(cs0[1], сор.место_проведения or '', align=R, pt=10, bold=True)
     r1 = dt.add_row(); cs1 = list(r1.cells)
     _cw(cs1[0], 0, 'auto'); _side_border(cs1[0], 'top'); _valign(cs1[0], 'top')
-    _cw(cs1[1], GRID_DT[1]); _no_border(cs1[1])
-    _cw(cs1[2], 0, 'auto'); _side_border(cs1[2], 'top'); _valign(cs1[2], 'top')
+    _cw(cs1[1], 0, 'auto'); _side_border(cs1[1], 'top'); _valign(cs1[1], 'top')
     _fill(cs1[0], 'Дата проведения', align=C, pt=10, bold=True)
-    _fill(cs1[2], 'Место проведения', align=C, pt=10, bold=True)
+    _fill(cs1[1], 'Место проведения', align=C, pt=10, bold=True)
 
     p_sep1 = _para(); _run(p_sep1, ' ', pt=1)
 
