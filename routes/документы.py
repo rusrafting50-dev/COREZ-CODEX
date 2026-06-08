@@ -325,6 +325,22 @@ def справка_субъекты(sor_id):
                            сор=сор, субъекты=субъекты)
 
 
+@bp_документы.route('/<int:sor_id>/справка-субъекты-word')
+def справка_субъекты_word(sor_id):
+    from docx_utils import create_справка_субъекты_docx
+    сор = Соревнование.query.get_or_404(sor_id)
+    субъекты = (Субъект.query
+                .filter_by(соревнование_id=sor_id)
+                .join(Команда, Команда.субъект_id == Субъект.id)
+                .distinct()
+                .order_by(Субъект.название)
+                .all())
+    return create_справка_субъекты_docx(
+        сор, субъекты,
+        f'Справка о количестве субъектов — {(сор.название or str(sor_id))[:50]}.docx'
+    )
+
+
 @bp_документы.route('/<int:sor_id>/заявки/<int:sub_id>')
 def заявка_делегации(sor_id, sub_id):
     сор = Соревнование.query.get_or_404(sor_id)
