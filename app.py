@@ -85,6 +85,11 @@ def create_app() -> Flask:
             "font-src 'self' data: cdn.jsdelivr.net; "
             "connect-src 'self' https://cdn.jsdelivr.net;"
         )
+        # Запрет кэширования скачиваемых файлов (Word/DOCX/PDF)
+        if 'attachment' in response.headers.get('Content-Disposition', ''):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
         return response
 
     return app
