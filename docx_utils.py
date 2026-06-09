@@ -2309,21 +2309,19 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
 
     def _add_block(doc, метка, команды):
-        # ── Table 1: Title (название + "Протокол финиша" + "СПРИНТ") ─────────
-        title_tbl = _make_tbl(1)
-        _set_grid_sp(title_tbl, [TW])
+        # ── Заголовки: три абзаца с межстрочным 1.15 ─────────────────────────
+        def _sp115(p):
+            pPr = p._p.get_or_add_pPr()
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+            sp.set(qn('w:line'), '276'); sp.set(qn('w:lineRule'), 'auto')
+            sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
 
-        def _title_row(text, pt, bold):
-            r = title_tbl.add_row()
-            _row_h(r, 0.6)
-            cs = list(r.cells)
-            _cw(cs[0], TW)
-            _no_border(cs[0])
-            _fill(cs[0], text, align=C, pt=pt, bold=bold)
-
-        _title_row(сор.название or '', 12, True)
-        _title_row('Протокол финиша', 12, True)
-        _title_row('Группа спортивных дисциплин СПРИНТ', 10, True)
+        for txt, pt in [(сор.название or '', 12),
+                        ('Протокол финиша', 12),
+                        ('Группа спортивных дисциплин СПРИНТ', 10)]:
+            p = _para(doc, txt, align=C, pt=pt, bold=True)
+            _sp115(p)
 
         # ── Table 2: Date/place ───────────────────────────────────────────────
         _tiny_para_sp()
@@ -2392,30 +2390,19 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
             _fill(cs[4], '')
             _fill(cs[5], '')
 
-        # ── Table 4: Signature ────────────────────────────────────────────────
-        _tiny_para_sp()
-        W_SIG_UL  = round(30 * 1440 / 25.4)   # 3 cm underline
-        W_SIG_LBL = round(TW * 0.45)
-        W_SIG_R   = TW - W_SIG_LBL - W_SIG_UL
-        W_SIG_LBL2 = W_SIG_LBL + W_SIG_UL   # метка + место под подчёркивание
-        sig = _make_tbl(2)
-        _set_grid_sp(sig, [W_SIG_LBL2, W_SIG_R])
-        r = sig.add_row(); _row_h(r, 1.2)
-        cs = list(r.cells)
-        _cw(cs[0], W_SIG_LBL2); _cw(cs[1], W_SIG_R)
-        _no_border(cs[0]); _no_border(cs[1])
-        p0 = cs[0].paragraphs[0]; p0.clear(); _sp(p0)
-        p0.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        r_lbl = p0.add_run('Старший судья финиша')
-        r_lbl.font.name = TNR; r_lbl.font.size = Pt(10)
+        # ── Подпись: одна строка «должность + подчёркивание 3см + ФИО» ──────
+        p_sig = _para(doc, align=L)
         _UL_SPACING = round(85.04 * 20 - 70)   # ≈ 1631 двадцатых пункта ≈ 3 см
-        r_ul = p0.add_run(' ')
+        r_lbl = p_sig.add_run('Старший судья финиша')
+        r_lbl.font.name = TNR; r_lbl.font.size = Pt(10)
+        r_ul = p_sig.add_run(' ')
         r_ul.font.name = TNR; r_ul.font.size = Pt(10)
         rPr_ul = r_ul._r.get_or_add_rPr()
         u_el = OxmlElement('w:u'); u_el.set(qn('w:val'), 'single'); rPr_ul.append(u_el)
         sp_el = OxmlElement('w:spacing'); sp_el.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_el)
-        _valign(cs[0])
-        _fill(cs[1], '')
+        if сор.старший_судья_финиша:
+            r_fio = p_sig.add_run(' ' + сор.старший_судья_финиша)
+            r_fio.font.name = TNR; r_fio.font.size = Pt(10)
 
     # ── Document setup ────────────────────────────────────────────────────────
 
