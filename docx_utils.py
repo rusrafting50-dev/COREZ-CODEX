@@ -2381,7 +2381,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
 
             # Data rows
             for пп, к in enumerate(команды, 1):
-                r = tbl.add_row()
+                r = tbl.add_row(); _row_h(r, 0.8)
                 cs = list(r.cells)
                 for i, w in enumerate(GRID):
                     _cw(cs[i], w); _borders(cs[i])
@@ -2392,6 +2392,18 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
                 _fill(cs[3], время,                             align=C)
                 _fill(cs[4], '')
                 _fill(cs[5], '')
+
+            # Две пустые строки в конце каждой секции
+            for _ in range(2):
+                r = tbl.add_row(); _row_h(r, 0.8)
+                cs = list(r.cells)
+                for i, w in enumerate(GRID):
+                    _cw(cs[i], w); _borders(cs[i])
+                for i in range(NC):
+                    _fill(cs[i], '')
+
+        # ── Пустая строка между таблицей и подписью ───────────────────────────
+        _para(doc)
 
         # ── Подпись: одна строка «должность + подчёркивание 3см + ФИО» ──────
         p_sig = _para(doc, align=L)
