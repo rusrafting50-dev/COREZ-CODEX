@@ -2308,7 +2308,11 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
         sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
 
-    def _add_block(doc, метка, команды):
+    def _add_block(doc, секции):
+        """Одна страница: заголовки + шапка + таблица со всеми секциями + подпись.
+
+        секции — список (метка, команды).
+        """
         # ── Заголовки: три абзаца с межстрочным 1.15 ─────────────────────────
         def _sp115(p):
             pPr = p._p.get_or_add_pPr()
@@ -2323,7 +2327,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
             p = _para(doc, txt, align=C, pt=pt, bold=True)
             _sp115(p)
 
-        # ── Table 2: Date/place ───────────────────────────────────────────────
+        # ── Table: Date/place ─────────────────────────────────────────────────
         _tiny_para_sp()
         W_DT = 2500
         W_VN = 4500
@@ -2347,7 +2351,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
-        # ── Table 3: Data ─────────────────────────────────────────────────────
+        # ── Table: Data (все секции страницы) ─────────────────────────────────
         _tiny_para_sp()
         tbl = _make_tbl(NC)
         _set_grid_sp(tbl, GRID)
@@ -2356,8 +2360,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         r = tbl.add_row()
         cs = list(r.cells)
         for i, w in enumerate(GRID):
-            _cw(cs[i], w)
-            _borders(cs[i])
+            _cw(cs[i], w); _borders(cs[i])
         p = cs[0].paragraphs[0]; p.clear(); _sp(p); p.alignment = C; _valign(cs[0])
         _run(p, '№\nп/п', pt=8, bold=True)
         _fill(cs[1], 'Команда',      align=C, pt=8, bold=True)
@@ -2367,28 +2370,28 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         _run(p4, 'Время\nфиниша', pt=8, bold=True)
         _fill(cs[5], 'Штраф', align=C, pt=8, bold=True)
 
-        # Section header
-        if метка:
-            r = tbl.add_row(); _row_h(r, 0.6)
-            cs = list(r.cells)
-            cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
-            _borders(cs[0])
-            _fill(cs[0], метка, align=C, pt=9, bold=True)
+        for метка, команды in секции:
+            # Section header
+            if метка:
+                r = tbl.add_row(); _row_h(r, 0.6)
+                cs = list(r.cells)
+                cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
+                _borders(cs[0])
+                _fill(cs[0], метка, align=C, pt=9, bold=True)
 
-        # Data rows
-        for пп, к in enumerate(команды, 1):
-            r = tbl.add_row()
-            cs = list(r.cells)
-            for i, w in enumerate(GRID):
-                _cw(cs[i], w)
-                _borders(cs[i])
-            время = (к.время_старта_спринт_план or '').split('.')[0]
-            _fill(cs[0], str(пп),                              align=C)
-            _fill(cs[1], к.название or '—')
-            _fill(cs[2], str(к.нагрудный_номер or ''),         align=C)
-            _fill(cs[3], время,                                 align=C)
-            _fill(cs[4], '')
-            _fill(cs[5], '')
+            # Data rows
+            for пп, к in enumerate(команды, 1):
+                r = tbl.add_row()
+                cs = list(r.cells)
+                for i, w in enumerate(GRID):
+                    _cw(cs[i], w); _borders(cs[i])
+                время = (к.время_старта_спринт_план or '').split('.')[0]
+                _fill(cs[0], str(пп),                          align=C)
+                _fill(cs[1], к.название or '—')
+                _fill(cs[2], str(к.нагрудный_номер or ''),     align=C)
+                _fill(cs[3], время,                             align=C)
+                _fill(cs[4], '')
+                _fill(cs[5], '')
 
         # ── Подпись: одна строка «должность + подчёркивание 3см + ФИО» ──────
         p_sig = _para(doc, align=L)
@@ -2428,10 +2431,12 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         if child.tag == qn('w:p'):
             body.remove(child)
 
-    valid = [(м, к) for м, к in группы if к]
-    for i, (метка, команды) in enumerate(valid):
-        _add_block(doc, метка, команды)
-        if i < len(valid) - 1:
+    # группы теперь — список страниц; каждая страница — список (метка, команды)
+    страницы = [[(м, к) for м, к in стр if к] for стр in группы]
+    страницы = [стр for стр in страницы if стр]
+    for i, стр in enumerate(страницы):
+        _add_block(doc, стр)
+        if i < len(страницы) - 1:
             _page_br(doc)
 
     buf = BytesIO()
