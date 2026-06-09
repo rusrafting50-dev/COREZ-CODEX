@@ -192,6 +192,8 @@ class Соревнование(db.Model):
     # Параметры жеребьёвки и стартового протокола (Спринт)
     последовательность_видов    = db.Column(db.String(100), nullable=True)   # "R4-м,R4-ж,R6-м,R6-ж"
     вывод_старт_протокола       = db.Column(db.String(20),  nullable=True)   # "Попарно"/"Раздельно"
+    старший_судья_старта        = db.Column(db.String(200), nullable=True)
+    старший_судья_финиша        = db.Column(db.String(200), nullable=True)
     # Параметры стартового протокола Слалома
     последовательность_слалом   = db.Column(db.String(100), nullable=True)
     вывод_старт_слалом          = db.Column(db.String(20),  nullable=True)
@@ -1282,6 +1284,12 @@ def применить_миграции():
                     'ALTER TABLE награждение_параметры ADD COLUMN размер_шрифта_текста INTEGER NOT NULL DEFAULT 14'
                 ))
                 conn.commit()
+        cols_сор_fin = {c['name'] for c in inspector.get_columns('соревнования')}
+        for col in ('старший_судья_старта', 'старший_судья_финиша'):
+            if col not in cols_сор_fin:
+                with db.engine.connect() as conn:
+                    conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} VARCHAR(200)'))
+                    conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения

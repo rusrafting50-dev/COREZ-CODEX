@@ -113,10 +113,10 @@
 
 </form>
 
-{# ── Параметры стартового протокола ── #}
+{# ── Параметры спортивных соревнований ── #}
 <div class="card border-secondary mb-3 mt-2">
   <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
-    <span class="fw-semibold">Параметры стартового протокола</span>
+    <span class="fw-semibold">Параметры спортивных соревнований</span>
   </div>
   <div class="card-body py-3 px-3">
     <form method="post" action="{{ url_for('документы.жеребьёвка_параметры', sor_id=сор.id) }}">
@@ -137,12 +137,40 @@
           {% endfor %}
         </div>
       </div>
-      <div class="d-flex align-items-center gap-3 flex-wrap">
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
         <label class="form-label mb-0 fw-semibold">Выводить стартовый протокол по видам программы</label>
         <select name="вывод_старт_протокола" class="form-select form-select-sm" style="width:auto">
           <option value="Попарно" {% if (сор.вывод_старт_протокола or 'Попарно') == 'Попарно' %}selected{% endif %}>Попарно</option>
           <option value="Раздельно" {% if сор.вывод_старт_протокола == 'Раздельно' %}selected{% endif %}>Раздельно</option>
         </select>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-auto d-flex align-items-center gap-2">
+          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья старта</label>
+          <select name="старший_судья_старта" class="form-select form-select-sm" style="min-width:220px">
+            <option value="">— не выбран —</option>
+            {% for с in судьи_старта %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_старта == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto d-flex align-items-center gap-2">
+          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья финиша</label>
+          <select name="старший_судья_финиша" class="form-select form-select-sm" style="min-width:220px">
+            <option value="">— не выбран —</option>
+            {% for с in судьи_финиша %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_финиша == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div>
         <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
       </div>
     </form>
