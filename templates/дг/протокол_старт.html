@@ -246,7 +246,7 @@ function toggleOrient() {
   document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
   var _wordBase = '{{ url_for("дг.протокол_старт_word", sor_id=сор.id) }}';
-  document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '');
+  document.getElementById('btn-word').href = _wordBase + (_landscape ? '' : '?портрет=1');
 }
 function exportWord() {
   var clone = document.body.cloneNode(true);

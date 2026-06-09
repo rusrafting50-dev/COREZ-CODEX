@@ -39,7 +39,7 @@
     <a href="{{ url_for('слалом.протокол_финиша_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a id="btn-word" href="{{ url_for('слалом.протокол_старта_печать_word', sor_id=сор.id) }}?портрет=0" class="btn btn-success btn-sm">Word</a>
+    <a id="btn-word" href="{{ url_for('слалом.протокол_старта_печать_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -246,7 +246,7 @@ function toggleOrient() {
   document.getElementById('style-landscape').disabled = !_landscape;
   document.getElementById('style-portrait').disabled = _landscape;
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
-  document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '');
+  document.getElementById('btn-word').href = _wordBase + (_landscape ? '' : '?портрет=1');
 }
 </script>
 </body>
