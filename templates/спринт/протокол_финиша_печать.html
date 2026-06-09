@@ -18,6 +18,8 @@
     }
     table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
     th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
+    tr.data-row { height: 0.8cm; }
+    tr.empty-row { height: 0.8cm; }
     thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
     th { text-align: center; background: #fff; font-weight: bold; }
     .text-center { text-align: center; }
@@ -79,7 +81,7 @@
 {% for к in список %}
 {% set нс.пп = нс.пп + 1 %}
 {% set р = к.результат_спринт %}
-<tr>
+<tr class="data-row">
   <td class="text-center">{{ нс.пп }}</td>
   <td>{{ к.название or '—' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
@@ -88,6 +90,8 @@
   <td class="text-center"></td>
 </tr>
 {% endfor %}
+<tr class="empty-row"><td colspan="6"></td></tr>
+<tr class="empty-row"><td colspan="6"></td></tr>
 {% endif %}
 {% endmacro %}
 
