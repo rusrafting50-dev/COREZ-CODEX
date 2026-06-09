@@ -98,25 +98,17 @@
       {{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}
     </td>
     <td class="text-center {{ 'best' if b1 }}" style="font-family:monospace;font-size:8pt"></td>
-    <td class="text-center {{ 'best' if b1 }}" style="font-family:monospace;font-size:8pt">
-      {{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '' }}
-    </td>
+    <td class="text-center {{ 'best' if b1 }}" style="font-family:monospace;font-size:8pt"></td>
     <td class="text-center {{ 'best' if b1 }}" style="font-size:8pt"></td>
-    <td class="text-center {{ 'best' if b1 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold">
-      {{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '' }}
-    </td>
+    <td class="text-center {{ 'best' if b1 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold"></td>
     {# Попытка 2 #}
     <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8pt">
       {{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}
     </td>
     <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8pt"></td>
-    <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8pt">
-      {{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '' }}
-    </td>
+    <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8pt"></td>
     <td class="text-center {{ 'best' if b2 }}" style="font-size:8pt"></td>
-    <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold">
-      {{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '' }}
-    </td>
+    <td class="text-center {{ 'best' if b2 }}" style="font-family:monospace;font-size:8.5pt;font-weight:bold"></td>
   </tr>
   {% endfor %}
   </tbody>
