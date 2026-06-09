@@ -243,11 +243,7 @@ var _wordBase = '{{ url_for("слалом.протокол_старта_печа
 function toggleOrient() {
   _landscape = !_landscape;
   var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
-  var old = document.getElementById('orient-style');
-  var s = document.createElement('style');
-  s.id = 'orient-style';
-  s.textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
-  old.parentNode.replaceChild(s, old);
+  document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
   document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '');
 }
