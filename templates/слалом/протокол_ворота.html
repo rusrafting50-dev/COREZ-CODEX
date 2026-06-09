@@ -189,6 +189,7 @@ function _makeSigTr(судья, ncols, withPageBreak) {
   const td = document.createElement('td');
   td.colSpan = ncols;
   td.style.whiteSpace = 'nowrap';
+  td.style.borderLeft = 'none';
   const lbl = document.createElement('span');
   lbl.textContent = 'Старший судья на связке ворот';
   const ul = document.createElement('span');

@@ -11613,22 +11613,49 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         if not first:
             _page_break(doc)
 
-        # Header paragraphs
-        _para(doc, сор.название, align=C, pt=PT, bold=False)
-        _para(doc, 'Группа дисциплин Слалом', align=C, pt=PT, bold=False)
-        _para(doc, 'Протокол судейства на воротах', align=C, pt=PT, bold=True)
+        # Header paragraphs (как в стартовом протоколе)
+        def _sp15(p):
+            pPr = p._p.get_or_add_pPr()
+            sp = pPr.find(qn('w:spacing'))
+            if sp is None: sp = OxmlElement('w:spacing'); pPr.append(sp)
+            sp.set(qn('w:line'), '276'); sp.set(qn('w:lineRule'), 'auto')
+            sp.set(qn('w:after'), '200')
 
-        # Date/place table
-        dt = doc.add_table(rows=1, cols=3)
+        if сор.организаторы_блок:
+            p = _para(doc, align=C, pt=10, bold=True)
+            for i, line in enumerate([l.strip() for l in сор.организаторы_блок.split('\n')]):
+                if i > 0:
+                    p.add_run()._r.append(OxmlElement('w:br'))
+                r2 = p.add_run(line); r2.font.name = 'Times New Roman'; r2.font.size = Pt(10); r2.bold = True
+            _sp15(p)
+
+        p = _para(doc, сор.название or '', align=C, pt=11, bold=True); _sp15(p)
+        p = _para(doc, 'Протокол судейства на воротах', align=C, pt=11, bold=True); _sp15(p)
+        p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _sp15(p)
+
+        # Date/place table (как в стартовом протоколе)
+        dt = doc.add_table(rows=0, cols=3)
         _tbl_w(dt, TW)
-        _set_grid(dt, [2518, 3260, 4962])
-        r = dt.rows[0]
+        tblPr = dt._tbl.find(qn('w:tblPr'))
+        if tblPr is None: tblPr = OxmlElement('w:tblPr'); dt._tbl.insert(0, tblPr)
+        for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
+        lay = tblPr.find(qn('w:tblLayout'))
+        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
+        lay.set(qn('w:type'), 'autofit')
+
+        r = dt.add_row(); _row_h(r, 0.6)
+        cs = list(r.cells)
+        _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
+        _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+
+        r = dt.add_row(); _row_h(r, 0.5)
         cs = list(r.cells)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
-        _bottom_border(cs[0]); _bottom_border(cs[2])
-        _fill(cs[0], сор.даты_проведения or '', align=C, pt=PT)
-        _fill(cs[1], '', align=C, pt=PT)
-        _fill(cs[2], сор.место_проведения or '', align=C, pt=PT)
+        _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
+        _fill(cs[1], '')
+        _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
         # Main table
         N = len(ворота_в_связке)
