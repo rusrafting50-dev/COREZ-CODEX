@@ -76,10 +76,10 @@
     <th rowspan="2" style="width:110px">Нагрудный номер</th>
     <th rowspan="2" style="width:80px">Время старта</th>
     {% if ворота %}<th colspan="{{ ворота|length }}">Ворота</th>{% endif %}
-    <th rowspan="2">Описание штрафа</th>
   </tr>
   <tr>
     {% for г in ворота %}<th style="width:50px">{{ г }}</th>{% endfor %}
+    <th rowspan="2">Описание штрафа</th>
   </tr>
 </thead>
 {% endmacro %}

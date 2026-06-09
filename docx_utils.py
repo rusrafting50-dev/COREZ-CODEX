@@ -11649,7 +11649,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
         if N > 1:
             _gridspan(cs0[3], N)
-        _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ОПИС)
+        _cw(cs0[NC-1], W_ОПИС)
 
         # Row 1 — header B (gate numbers)
         rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
@@ -11661,7 +11661,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _vmerge_cont(cs1[2]); _cw(cs1[2], W_ВРЕМ)
         for gi, г in enumerate(ворота_в_связке):
             _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
-        _vmerge_cont(cs1[NC-1]); _cw(cs1[NC-1], W_ОПИС)
+        _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
 
         def _kwn(row):
             for cell in row.cells:
