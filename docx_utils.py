@@ -11427,9 +11427,10 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
     W_НОМ  = 1701
     W_ВРЕМ = 1276
     W_GATE = 850
-    W_SIG_L = 4077
-    W_SIG_R = TW - W_SIG_L
-    PT = 10
+    W_SIG_L  = 4077
+    W_SIG_UL = round(30 * 1440 / 25.4)   # 3 cm in dxa
+    W_SIG_R  = TW - W_SIG_L - W_SIG_UL
+    PT = 14
 
     def _sp(p):
         pf = p.paragraph_format
@@ -11597,7 +11598,8 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         else:
             pr.insert(0, gs)
 
-    def _add_sheet(doc, ворота_в_связке, судья, first):
+    def _add_sheet(doc, ворота_в_связке, судья, first, попытка, группы_список):
+        """Один лист протокола: шапка + таблица для одной попытки и набора групп + подпись."""
         if not first:
             _page_break(doc)
 
@@ -11628,115 +11630,91 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _tbl_w(tbl, TW)
         _set_grid(tbl, widths)
 
-        # Row 0 - header A (Ворота spans N gate cols)
+        # Row 0 — header A (Ворота spans N gate cols)
         rh0 = tbl.add_row(); _row_h_min(rh0, 0.85)
         cs0 = list(rh0.cells)
         for c in cs0:
-            _borders(c)
-            _valign(c, 'center')
+            _borders(c); _valign(c, 'center')
         _vmerge_restart(cs0[0]); _fill(cs0[0], '№ п/п', align=C, pt=PT); _cw(cs0[0], W_NПП)
         _vmerge_restart(cs0[1]); _fill(cs0[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs0[1], W_НОМ)
         _vmerge_restart(cs0[2]); _fill(cs0[2], 'Время старта', align=C, pt=PT); _cw(cs0[2], W_ВРЕМ)
-        _fill(cs0[3], 'Ворота', align=C, pt=PT)
-        _cw(cs0[3], W_GATE * N)
+        _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
         if N > 1:
             _gridspan(cs0[3], N)
         _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ОПИС)
 
-        # Row 1 - header B (gate numbers)
+        # Row 1 — header B (gate numbers)
         rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
         cs1 = list(rh1.cells)
         for c in cs1:
-            _borders(c)
-            _valign(c, 'center')
+            _borders(c); _valign(c, 'center')
         _vmerge_restart(cs1[0]); _fill(cs1[0], '№ п/п', align=C, pt=PT); _cw(cs1[0], W_NПП)
         _vmerge_restart(cs1[1]); _fill(cs1[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs1[1], W_НОМ)
         _vmerge_restart(cs1[2]); _fill(cs1[2], 'Время старта', align=C, pt=PT); _cw(cs1[2], W_ВРЕМ)
         for gi, г in enumerate(ворота_в_связке):
-            ci = 3 + gi
-            _fill(cs1[ci], str(г), align=C, pt=PT); _cw(cs1[ci], W_GATE)
+            _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
         _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
 
-        def _keep_with_next_row(row):
-            """Запретить разрыв страницы после строки (keepWithNext на параграфах)."""
+        def _kwn(row):
             for cell in row.cells:
                 for p in cell.paragraphs:
                     pPr = p._p.find(qn('w:pPr'))
                     if pPr is None:
-                        pPr = OxmlElement('w:pPr')
-                        p._p.insert(0, pPr)
-                    kwn = pPr.find(qn('w:keepWithNext'))
-                    if kwn is None:
-                        kwn = OxmlElement('w:keepWithNext')
-                        pPr.append(kwn)
+                        pPr = OxmlElement('w:pPr'); p._p.insert(0, pPr)
+                    if pPr.find(qn('w:keepWithNext')) is None:
+                        pPr.append(OxmlElement('w:keepWithNext'))
 
-        def _add_попытка_строки(номер_попытки, группы_список):
-            rp = tbl.add_row(); _row_h_min(rp, 0.8)
-            csp = list(rp.cells)
-            csp[0].merge(csp[NC-1])
-            _borders(csp[0]); _cw(csp[0], TW)
-            _fill(csp[0], f'{номер_попытки} попытка', align=C, pt=PT, bold=True)
-            _keep_with_next_row(rp)
-            for заг, команды in группы_список:
-                if not команды:
-                    continue
-                rg = tbl.add_row(); _row_h_min(rg, 0.8)
-                csg = list(rg.cells)
-                csg[0].merge(csg[NC-1])
-                _borders(csg[0]); _cw(csg[0], TW)
-                _fill(csg[0], заг, align=C, pt=PT, bold=True)
-                _keep_with_next_row(rg)
-                for seq_num, к in enumerate(команды, 1):
-                    рез = next((р for р in к.результат_слалом if р.номер_попытки == номер_попытки), None)
-                    вс = ''
-                    if рез and рез.время_старта is not None:
-                        total_sec = int(рез.время_старта)
-                        h = total_sec // 3600
-                        m = (total_sec % 3600) // 60
-                        s = total_sec % 60
-                        вс = f'{h:02d}:{m:02d}:{s:02d}'
-                    rd = tbl.add_row(); _row_h_min(rd, 0.8)
-                    csd = list(rd.cells)
-                    for c in csd:
-                        _borders(c)
-                    _fill(csd[0], str(seq_num), align=C, pt=PT); _cw(csd[0], W_NПП)
-                    _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
-                    _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
-                    for gi in range(N):
-                        _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
-                    _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
+        # попытка section header
+        rp = tbl.add_row(); _row_h_min(rp, 0.8)
+        csp = list(rp.cells); csp[0].merge(csp[NC-1])
+        _borders(csp[0]); _cw(csp[0], TW)
+        _fill(csp[0], f'{попытка} попытка', align=C, pt=PT, bold=True)
+        _kwn(rp)
 
-        действ_гр = [(з, к) for з, к in группы if к]
-        if вывод == 'Попарно':
-            # Группы попарно (1+2, 3+4): для каждой пары попытка 1 → попытка 2
-            for i in range(0, len(действ_гр), 2):
-                пара = действ_гр[i:i+2]
-                for п in (1, 2):
-                    _add_попытка_строки(п, пара)
-        else:
-            # Раздельно: каждая группа отдельно — попытка 1 → попытка 2
-            for заг, команды in действ_гр:
-                for п in (1, 2):
-                    _add_попытка_строки(п, [(заг, команды)])
+        for заг, команды in группы_список:
+            if not команды:
+                continue
+            rg = tbl.add_row(); _row_h_min(rg, 0.8)
+            csg = list(rg.cells); csg[0].merge(csg[NC-1])
+            _borders(csg[0]); _cw(csg[0], TW)
+            _fill(csg[0], заг, align=C, pt=PT, bold=True)
+            _kwn(rg)
+            for seq_num, к in enumerate(команды, 1):
+                рез = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
+                вс = ''
+                if рез and рез.время_старта is not None:
+                    total_sec = int(рез.время_старта)
+                    h = total_sec // 3600; m = (total_sec % 3600) // 60; s = total_sec % 60
+                    вс = f'{h:02d}:{m:02d}:{s:02d}'
+                rd = tbl.add_row(); _row_h_min(rd, 0.8)
+                csd = list(rd.cells)
+                for c in csd: _borders(c)
+                _fill(csd[0], str(seq_num), align=C, pt=PT); _cw(csd[0], W_NПП)
+                _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
+                _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
+                for gi in range(N):
+                    _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
+                _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
 
-        # Signature table
-        sig = doc.add_table(rows=1, cols=2)
+        # Signature table: [должность] [3-см подчёркивание] [ФИО]
+        sig = doc.add_table(rows=1, cols=3)
         _tbl_w(sig, TW)
-        _set_grid(sig, [W_SIG_L, W_SIG_R])
+        _set_grid(sig, [W_SIG_L, W_SIG_UL, W_SIG_R])
         rs = sig.rows[0]
         cs_sig = list(rs.cells)
-        _no_border(cs_sig[0]); _no_border(cs_sig[1])
+        _no_border(cs_sig[0]); _bottom_border(cs_sig[1], sz=4); _no_border(cs_sig[2])
         _fill(cs_sig[0], 'Старший судья на связке ворот', align=L, pt=PT); _cw(cs_sig[0], W_SIG_L)
-        _fill(cs_sig[1], f'  {судья}  ' if судья else '', align=C, pt=PT); _cw(cs_sig[1], W_SIG_R)
+        _fill(cs_sig[1], '', align=C, pt=PT); _cw(cs_sig[1], W_SIG_UL)
+        _fill(cs_sig[2], судья or '', align=L, pt=PT); _cw(cs_sig[2], W_SIG_R)
 
     doc = Document()
 
     sect = doc.sections[0]
-    sect.page_width   = Mm(210)
-    sect.page_height  = Mm(297)
-    sect.left_margin  = Mm(15)
-    sect.right_margin = Mm(5)
-    sect.top_margin   = Mm(10)
+    sect.page_width    = Mm(210)
+    sect.page_height   = Mm(297)
+    sect.left_margin   = Mm(15)
+    sect.right_margin  = Mm(5)
+    sect.top_margin    = Mm(10)
     sect.bottom_margin = Mm(12)
 
     # Remove default empty paragraph
@@ -11744,8 +11722,25 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         p._element.getparent().remove(p._element)
 
     valid_данные = [(св, судьи_св[i] if i < len(судьи_св) else '') for i, св in enumerate(связки) if св]
-    for idx, (ворота_в_связке, судья) in enumerate(valid_данные):
-        _add_sheet(doc, ворота_в_связке, судья, first=(idx == 0))
+    действ_гр = [(з, к) for з, к in группы if к]
+    first = True
+    for ворота_в_связке, судья in valid_данные:
+        if вывод == 'Попарно':
+            for i in range(0, len(действ_гр), 2):
+                пара = действ_гр[i:i+2]
+                for п in (1, 2):
+                    _add_sheet(doc, ворота_в_связке, судья, first=first,
+                               попытка=п, группы_список=пара)
+                    first = False
+        else:
+            for i in range(0, len(действ_гр), 2):
+                пара = действ_гр[i:i+2]
+                for п in (1, 2):
+                    for заг, команды in пара:
+                        if команды:
+                            _add_sheet(doc, ворота_в_связке, судья, first=first,
+                                       попытка=п, группы_список=[(заг, команды)])
+                            first = False
 
     buf = BytesIO()
     doc.save(buf)
