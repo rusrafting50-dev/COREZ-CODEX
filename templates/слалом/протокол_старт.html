@@ -40,8 +40,12 @@
   <a href="{{ url_for('слалом.старт', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
+    <a href="{{ url_for('слалом.протокол_старта_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол старта</a>
     <a href="{{ url_for('слалом.протокол_ворота', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протоколы ворота</a>
+    <a href="{{ url_for('слалом.протокол_финиша_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
     <a id="btn-word" href="{{ url_for('слалом.протокол_старт_word', sor_id=сор.id) }}?портрет=0" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
