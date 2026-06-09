@@ -13,8 +13,8 @@
       .page-start { page-break-before: always; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
-      table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
-      th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; }
+      table { border-collapse: collapse; }
+      th, td { border: 0.75pt solid #333; }
       .sig-row { display: none !important; }
       .injected-sig-row { display: table-row !important; }
       .injected-sig-row td { border: none !important; font-size: 10pt !important;
@@ -189,7 +189,6 @@ function _makeSigTr(судья, ncols, withPageBreak) {
   const td = document.createElement('td');
   td.colSpan = ncols;
   td.style.whiteSpace = 'nowrap';
-  td.style.borderLeft = 'none';
   const lbl = document.createElement('span');
   lbl.textContent = 'Старший судья на связке ворот';
   const ul = document.createElement('span');
