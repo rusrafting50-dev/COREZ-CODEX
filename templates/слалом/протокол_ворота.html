@@ -10,7 +10,7 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 9pt; }
-      .разрыв { page-break-after: always; }
+      .page-start { page-break-before: always; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
       table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; }
@@ -22,6 +22,7 @@
     }
     @media screen {
       .injected-sig-row { display: none; }
+      .page-start { border-top: 2px dashed #ccc; margin-top: 24px; padding-top: 16px; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
@@ -52,112 +53,122 @@
 <div class="alert alert-warning">Связки ворот не настроены. Настройте их в разделе «Параметры протоколов на воротах» на странице Стартовый протокол.</div>
 {% else %}
 
+{# Макрос: шапка листа (название, дата, место) #}
+{% macro шапка() %}
+<div class="header-block">
+  <p>{{ сор.название }}</p>
+  <p>Группа дисциплин Слалом</p>
+  <p><strong>Протокол судейства на воротах</strong></p>
+</div>
+<div class="date-place">
+  <span class="date-cell">{{ сор.даты_проведения or '' }}</span>
+  <span></span>
+  <span class="date-cell">{{ сор.место_проведения or '' }}</span>
+</div>
+{% endmacro %}
+
+{# Макрос: thead таблицы #}
+{% macro заголовок_таблицы(ворота) %}
+<thead>
+  <tr>
+    <th rowspan="2" style="width:40px">№ п/п</th>
+    <th rowspan="2" style="width:110px">Нагрудный номер</th>
+    <th rowspan="2" style="width:80px">Время старта</th>
+    {% if ворота %}<th colspan="{{ ворота|length }}">Ворота</th>{% endif %}
+    <th rowspan="2">Описание штрафа</th>
+  </tr>
+  <tr>
+    {% for г in ворота %}<th style="width:50px">{{ г }}</th>{% endfor %}
+  </tr>
+</thead>
+{% endmacro %}
+
+{# Макрос: строки участников для одной группы в одной попытке #}
+{% macro строки_группы(заг, команды, попытка, ворота, ncols) %}
+{% if команды %}
+<tr class="section-row"><td colspan="{{ ncols }}">{{ заг }}</td></tr>
+{% for к in команды %}
+{% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
+<tr>
+  <td class="text-center">{{ loop.index }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
+  {% for г in ворота %}<td></td>{% endfor %}
+  <td></td>
+</tr>
+{% endfor %}
+{% endif %}
+{% endmacro %}
+
+{% set первый = namespace(лист=True) %}
+
 {% for ворота in связки %}
 {% set _idx = loop.index0 %}
 {% set _судья = судьи_св[_idx] if судьи_св and _idx < судьи_св|length else '' %}
+{% set _ncols = 4 + ворота|length %}
 {% if ворота %}
-<div class="{{ 'разрыв' if not loop.last else '' }} связка-sheet"
-     data-sudya="{{ _судья | e }}"
-     data-ncols="{{ 4 + ворота|length }}">
-  <div class="header-block">
-    <p>{{ сор.название }}</p>
-    <p>Группа дисциплин Слалом</p>
-    <p><strong>Протокол судейства на воротах</strong></p>
-  </div>
 
-  <div class="date-place">
-    <span class="date-cell">{{ сор.даты_проведения or '' }}</span>
-    <span></span>
-    <span class="date-cell">{{ сор.место_проведения or '' }}</span>
+{% if вывод == 'Попарно' %}
+  {# Попарно: пара → попытка → один лист со всеми группами пары #}
+  {% for пара in группы | batch(2) %}
+  {% for попытка in [1, 2] %}
+  <div class="{{ '' if первый.лист else 'page-start ' }}связка-sheet"
+       data-sudya="{{ _судья | e }}" data-ncols="{{ _ncols }}">
+    {% set первый.лист = False %}
+    {{ шапка() }}
+    <table>
+      {{ заголовок_таблицы(ворота) }}
+      <tbody>
+      <tr class="section-row"><td colspan="{{ _ncols }}">{{ попытка }} попытка</td></tr>
+      {% for заг, команды in пара %}
+        {{ строки_группы(заг, команды, попытка, ворота, _ncols) }}
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="sig-row">
+      <span class="sig-pos">Старший судья на связке ворот</span>
+      <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}{% endif %}</span>
+    </div>
   </div>
+  {% endfor %}
+  {% endfor %}
 
-  <table>
-    <thead>
-      <tr>
-        <th rowspan="2" style="width:40px">№ п/п</th>
-        <th rowspan="2" style="width:110px">Нагрудный номер</th>
-        <th rowspan="2" style="width:80px">Время старта</th>
-        {% if ворота %}
-        <th colspan="{{ ворота|length }}">Ворота</th>
-        {% endif %}
-        <th rowspan="2">Описание штрафа</th>
-      </tr>
-      <tr>
-        {% for г in ворота %}
-        <th style="width:50px">{{ г }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-    {% if вывод == 'Попарно' %}
-      {% for пара in группы | batch(2) %}
-        {% for попытка in [1, 2] %}
-        <tr class="section-row">
-          <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
-        </tr>
-        {% for заг, команды in пара %}
-        {% if команды %}
-        <tr class="section-row">
-          <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
-        </tr>
-        {% for к in команды %}
-        {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
-        <tr>
-          <td class="text-center">{{ loop.index }}</td>
-          <td class="text-center">{{ к.нагрудный_номер }}</td>
-          <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
-          {% for г in ворота %}<td></td>{% endfor %}
-          <td></td>
-        </tr>
-        {% endfor %}
-        {% endif %}
-        {% endfor %}
-        {% endfor %}
-      {% endfor %}
-    {% else %}
-      {% for заг, команды in группы %}
-      {% if команды %}
-      {% for попытка in [1, 2] %}
-      <tr class="section-row">
-        <td colspan="{{ 4 + ворота|length }}">{{ попытка }} попытка</td>
-      </tr>
-      <tr class="section-row">
-        <td colspan="{{ 4 + ворота|length }}">{{ заг }}</td>
-      </tr>
-      {% for к in команды %}
-      {% set рез = к.результат_слалом | selectattr('номер_попытки', 'equalto', попытка) | first | default(none) %}
-      <tr>
-        <td class="text-center">{{ loop.index }}</td>
-        <td class="text-center">{{ к.нагрудный_номер }}</td>
-        <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
-        {% for г in ворота %}<td></td>{% endfor %}
-        <td></td>
-      </tr>
-      {% endfor %}
-      {% endfor %}
-      {% endif %}
-      {% endfor %}
-    {% endif %}
-    </tbody>
-  </table>
-
-  {# На экране — обычная строка подписи #}
-  <div class="sig-row">
-    <span class="sig-pos">Старший судья на связке ворот</span>
-    <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}{% endif %}</span>
+{% else %}
+  {# Раздельно: пара → попытка → отдельный лист на каждую группу пары #}
+  {% for пара in группы | batch(2) %}
+  {% for попытка in [1, 2] %}
+  {% for заг, команды in пара %}
+  {% if команды %}
+  <div class="{{ '' if первый.лист else 'page-start ' }}связка-sheet"
+       data-sudya="{{ _судья | e }}" data-ncols="{{ _ncols }}">
+    {% set первый.лист = False %}
+    {{ шапка() }}
+    <table>
+      {{ заголовок_таблицы(ворота) }}
+      <tbody>
+      <tr class="section-row"><td colspan="{{ _ncols }}">{{ попытка }} попытка</td></tr>
+      {{ строки_группы(заг, команды, попытка, ворота, _ncols) }}
+      </tbody>
+    </table>
+    <div class="sig-row">
+      <span class="sig-pos">Старший судья на связке ворот</span>
+      <span class="sig-line">{% if _судья %}&nbsp;{{ _судья }}{% endif %}</span>
+    </div>
   </div>
-</div>
+  {% endif %}
+  {% endfor %}
+  {% endfor %}
+  {% endfor %}
+
+{% endif %}
+
 {% endif %}
 {% endfor %}
 {% endif %}
 
 <script>
-// ─── Инъекция строк подписи ───────────────────────────────────────────────────
-// Строки инжектируются при загрузке страницы и при смене ориентации.
-// Место разрыва определяется по реальным высотам строк (getBoundingClientRect).
-// Атрибут data-sudya (латиница) используется вместо кириллического data-судья
-// для надёжной работы dataset API во всех браузерах.
-//
+// Инъекция строки подписи в конце каждой страницы каждого листа.
+// Строки инжектируются при загрузке и при смене ориентации.
 // Portrait:  L=15 R=5  → usable_w=190мм, usable_h=275мм
 // Landscape: L=10 R=10 → usable_w=277мм, usable_h=195мм
 // Резерв под строку подписи: 14мм.
@@ -168,17 +179,13 @@ function _isLandscape() {
   return document.getElementById('orient-style').textContent.includes('landscape');
 }
 
-function _sigText(судья) {
-  return 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
-}
-
 function _makeSigTr(судья, ncols, withPageBreak) {
   const tr = document.createElement('tr');
   tr.className = 'injected-sig-row';
   if (withPageBreak) tr.style.pageBreakAfter = 'always';
   const td = document.createElement('td');
   td.colSpan = ncols;
-  td.textContent = _sigText(судья);
+  td.textContent = 'Старший судья на связке ворот' + (судья ? '    ' + судья : '');
   tr.appendChild(td);
   return tr;
 }
@@ -188,10 +195,8 @@ function injectSigRows() {
   const usableWmm = landscape ? 277 : 190;
   const usableHmm = landscape ? 195 : 275;
   const sigResMm  = 14;
-
-  // Резервные пороги строк на случай, если getBoundingClientRect вернёт 0
-  const rows1fb = landscape ? 17 : 26;
-  const rowsNfb = landscape ? 21 : 31;
+  const rows1fb   = landscape ? 17 : 26;
+  const rowsNfb   = landscape ? 21 : 31;
 
   document.querySelectorAll('.связка-sheet').forEach(sheet => {
     sheet.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
@@ -201,13 +206,13 @@ function injectSigRows() {
     const tbody  = sheet.querySelector('tbody');
     if (!tbody) return;
 
-    // Масштаб: отношение экранной ширины листа к печатной
+    // Масштаб из ширины листа
     const sheetW = sheet.getBoundingClientRect().width;
     const scale  = sheetW > 0 ? sheetW / (usableWmm * _MM) : 1;
     const pageH  = usableHmm * _MM * scale;
     const sigH   = sigResMm  * _MM * scale;
 
-    // Высота шапки (шапка + дата + thead)
+    // Высота шапки первой страницы
     let hdrH = 0;
     ['.header-block', '.date-place', 'thead'].forEach(sel => {
       const el = sheet.querySelector(sel);
@@ -215,40 +220,31 @@ function injectSigRows() {
     });
 
     const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const totalH  = allRows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
 
-    // Если высоты не измерились — использовать счёт строк
-    const totalH = allRows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
     if (totalH === 0 || pageH === 0) {
       // Резервный путь: счёт строк
       let count = 0, limit = rows1fb, i = 0;
       while (i < allRows.length) {
         count++;
         if (count >= limit) {
-          let ins = allRows[i];
-          if (allRows[i].classList.contains('section-row') && i > 0) ins = allRows[i];
-          tbody.insertBefore(_makeSigTr(судья, ncols, true), ins);
+          tbody.insertBefore(_makeSigTr(судья, ncols, true), allRows[i]);
           count = 0; limit = rowsNfb;
         } else { i++; }
       }
-      tbody.appendChild(_makeSigTr(судья, ncols, false));
-      return;
-    }
-
-    // Основной путь: по реальным высотам
-    let acc   = hdrH;
-    let limit = pageH - sigH;
-    let i     = 0;
-    while (i < allRows.length) {
-      const rh = allRows[i].getBoundingClientRect().height || (6 * _MM * scale);
-      if (acc + rh > limit) {
-        tbody.insertBefore(_makeSigTr(судья, ncols, true), allRows[i]);
-        acc   = 0;
-        limit = pageH - sigH;
-      } else {
-        acc += rh;
-        i++;
+    } else {
+      // По реальным высотам
+      let acc = hdrH, limit = pageH - sigH, i = 0;
+      while (i < allRows.length) {
+        const rh = allRows[i].getBoundingClientRect().height || (6 * _MM * scale);
+        if (acc + rh > limit) {
+          tbody.insertBefore(_makeSigTr(судья, ncols, true), allRows[i]);
+          acc = 0; limit = pageH - sigH;
+        } else { acc += rh; i++; }
       }
     }
+
+    // Подпись в конце последней страницы листа (без разрыва)
     tbody.appendChild(_makeSigTr(судья, ncols, false));
   });
 }
@@ -266,12 +262,11 @@ function toggleOrient() {
   injectSigRows();
 }
 
-// Инжектируем при загрузке и синхронизируем перед печатью
 document.addEventListener('DOMContentLoaded', injectSigRows);
 window.addEventListener('beforeprint', injectSigRows);
 window.addEventListener('afterprint', function () {
   document.querySelectorAll('.injected-sig-row').forEach(r => r.remove());
-  injectSigRows(); // восстанавливаем для следующей печати
+  injectSigRows();
 });
 </script>
 </body>
