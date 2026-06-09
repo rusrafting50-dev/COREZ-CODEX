@@ -2119,7 +2119,11 @@ def create_старт_спринт_docx(сор, группы, filename, порт
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_финиша_спринт_docx(сор, группы, filename, портрет=True):
+def create_финиша_спринт_docx(сор, группы, filename, портрет=True,
+                               заголовок='Протокол финиша',
+                               дисциплина='СПРИНТ',
+                               подпись_должность='Старший судья финиша',
+                               подпись_фио=None):
     """Sprint finish protocol DOCX.
 
     группы — list of (метка, команды) pairs, one per section.
@@ -2322,8 +2326,8 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
             sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
 
         for txt, pt in [(сор.название or '', 12),
-                        ('Протокол финиша', 12),
-                        ('Группа спортивных дисциплин СПРИНТ', 10)]:
+                        (заголовок, 12),
+                        (f'Группа спортивных дисциплин {дисциплина}', 10)]:
             p = _para(doc, txt, align=C, pt=pt, bold=True)
             _sp115(p)
 
@@ -2408,15 +2412,16 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         # ── Подпись: одна строка «должность + подчёркивание 3см + ФИО» ──────
         p_sig = _para(doc, align=L)
         _UL_SPACING = round(85.04 * 20 - 70)   # ≈ 1631 двадцатых пункта ≈ 3 см
-        r_lbl = p_sig.add_run('Старший судья финиша')
+        r_lbl = p_sig.add_run(подпись_должность)
         r_lbl.font.name = TNR; r_lbl.font.size = Pt(10)
         r_ul = p_sig.add_run(' ')
         r_ul.font.name = TNR; r_ul.font.size = Pt(10)
         rPr_ul = r_ul._r.get_or_add_rPr()
         u_el = OxmlElement('w:u'); u_el.set(qn('w:val'), 'single'); rPr_ul.append(u_el)
         sp_el = OxmlElement('w:spacing'); sp_el.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_el)
-        if сор.старший_судья_финиша:
-            r_fio = p_sig.add_run(' ' + сор.старший_судья_финиша)
+        _фио = подпись_фио if подпись_фио is not None else сор.старший_судья_финиша
+        if _фио:
+            r_fio = p_sig.add_run(' ' + _фио)
             r_fio.font.name = TNR; r_fio.font.size = Pt(10)
 
     # ── Document setup ────────────────────────────────────────────────────────
