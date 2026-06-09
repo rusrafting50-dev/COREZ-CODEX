@@ -29,7 +29,8 @@
     .sig-pos { width: 38%; font-size: 10pt; }
     .sig-fio { font-size: 10pt; }
   </style>
-  <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
+  <style id="style-landscape">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
+  <style id="style-portrait" disabled>@media print { @page { margin:12mm 5mm; size:A4 portrait; } }</style>
 </head>
 <body class="px-3 py-3">
 
@@ -175,8 +176,8 @@ let _landscape = true;
 var _wordBase = '{{ url_for("спринт.протокол_финиша_печать_word", sor_id=сор.id) }}';
 function toggleOrient() {
   _landscape = !_landscape;
-  var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
-  document.getElementById('orient-style').textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
+  document.getElementById('style-landscape').disabled = !_landscape;
+  document.getElementById('style-portrait').disabled = _landscape;
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
   document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '');
 }
