@@ -11669,9 +11669,9 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
 
         # Main table
         N = len(ворота_в_связке)
-        W_ПУСТО = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
-        NC = 3 + N + 1
-        widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ПУСТО]
+        W_LAST = TW - W_NПП - W_НОМ - W_ВРЕМ - (N - 1) * W_GATE if N > 0 else TW - W_NПП - W_НОМ - W_ВРЕМ
+        NC = 3 + N
+        widths = [W_NПП, W_НОМ, W_ВРЕМ] + ([W_GATE] * (N - 1) + [W_LAST] if N > 0 else [])
 
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl, TW)
@@ -11685,10 +11685,10 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _vmerge_restart(cs0[0]); _fill(cs0[0], '№ п/п', align=C, pt=PT); _cw(cs0[0], W_NПП)
         _vmerge_restart(cs0[1]); _fill(cs0[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs0[1], W_НОМ)
         _vmerge_restart(cs0[2]); _fill(cs0[2], 'Время старта', align=C, pt=PT); _cw(cs0[2], W_ВРЕМ)
-        _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
+        W_ВОРОТА = TW - W_NПП - W_НОМ - W_ВРЕМ
+        _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_ВОРОТА)
         if N > 1:
             _gridspan(cs0[3], N)
-        _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ПУСТО)
 
         # Row 1 — header B (gate numbers)
         rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
@@ -11699,8 +11699,8 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _vmerge_cont(cs1[1]); _cw(cs1[1], W_НОМ)
         _vmerge_cont(cs1[2]); _cw(cs1[2], W_ВРЕМ)
         for gi, г in enumerate(ворота_в_связке):
-            _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
-        _vmerge_cont(cs1[NC-1]); _cw(cs1[NC-1], W_ПУСТО)
+            w = W_LAST if gi == N - 1 else W_GATE
+            _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], w)
 
         def _kwn(row):
             for cell in row.cells:
@@ -11740,8 +11740,8 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                 _fill(csd[1], str(к.нагрудный_номер or ''), align=C, pt=PT); _cw(csd[1], W_НОМ)
                 _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
                 for gi in range(N):
-                    _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
-                _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ПУСТО)
+                    w = W_LAST if gi == N - 1 else W_GATE
+                    _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], w)
 
         # Signature table: [должность] [3-см подчёркивание] [ФИО]
         sig = doc.add_table(rows=1, cols=3)
