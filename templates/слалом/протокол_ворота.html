@@ -72,14 +72,14 @@
 {% macro заголовок_таблицы(ворота) %}
 <thead>
   <tr>
-    <th rowspan="2" style="width:40px">№ п/п</th>
-    <th rowspan="2" style="width:110px">Нагрудный номер</th>
-    <th rowspan="2" style="width:80px">Время старта</th>
+    <th rowspan="2" style="width:7.6%">№ п/п</th>
+    <th rowspan="2" style="width:15.8%">Нагрудный номер</th>
+    <th rowspan="2" style="width:11.9%">Время старта</th>
     {% if ворота %}<th colspan="{{ ворота|length }}">Ворота</th>{% endif %}
     <th rowspan="2">Описание штрафа</th>
   </tr>
   <tr>
-    {% for г in ворота %}<th style="width:50px">{{ г }}</th>{% endfor %}
+    {% for г in ворота %}<th style="width:7.9%">{{ г }}</th>{% endfor %}
   </tr>
 </thead>
 {% endmacro %}
