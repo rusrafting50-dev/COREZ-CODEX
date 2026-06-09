@@ -11755,6 +11755,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
 
     L = WDA.LEFT
     C = WDA.CENTER
+    TNR = 'Times New Roman'
 
     TW = round((210 - 15 - 5) * 1440 / 25.4)  # ~10772 dxa
     W_NПП  = 817
