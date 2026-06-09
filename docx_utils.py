@@ -11534,6 +11534,18 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         if text:
             _run(p, text, pt, bold)
 
+    def _row_h(row, cm):
+        trPr = row._tr.find(qn('w:trPr'))
+        if trPr is None:
+            trPr = OxmlElement('w:trPr')
+            row._tr.insert(0, trPr)
+        trH = trPr.find(qn('w:trHeight'))
+        if trH is None:
+            trH = OxmlElement('w:trHeight')
+            trPr.append(trH)
+        trH.set(qn('w:val'), str(round(cm * 1440 / 2.54)))
+        trH.set(qn('w:hRule'), 'exact')
+
     def _row_h_min(row, cm):
         trPr = row._tr.find(qn('w:trPr'))
         if trPr is None:
