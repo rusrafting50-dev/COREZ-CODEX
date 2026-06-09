@@ -120,7 +120,7 @@
     <table>
       {{ заголовок_таблицы(ворота) }}
       <tbody>
-      <tr class="section-row"><td colspan="{{ _ncols }}">{{ попытка }} попытка</td></tr>
+      <tr class="section-row"><td colspan="{{ _ncols }}" class="text-center">Попытка {{ попытка }}</td></tr>
       {% for заг, команды in пара %}
         {{ строки_группы(заг, команды, попытка, ворота, _ncols) }}
       {% endfor %}
@@ -148,7 +148,7 @@
     <table>
       {{ заголовок_таблицы(ворота) }}
       <tbody>
-      <tr class="section-row"><td colspan="{{ _ncols }}">{{ попытка }} попытка</td></tr>
+      <tr class="section-row"><td colspan="{{ _ncols }}" class="text-center">Попытка {{ попытка }}</td></tr>
       {{ строки_группы(заг, команды, попытка, ворота, _ncols) }}
       </tbody>
     </table>

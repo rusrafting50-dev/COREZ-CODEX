@@ -80,7 +80,7 @@
 
 {% macro секция(список, метка, попытка) %}
 {% if список %}
-<tr class="section-row"><td colspan="6">{{ попытка }} попытка</td></tr>
+<tr class="section-row"><td colspan="6" class="text-center">Попытка {{ попытка }}</td></tr>
 <tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
