@@ -109,8 +109,8 @@
   <td>{{ к.субъект.название if к.субъект else '—' }}</td>
   <td class="text-center">{{ к.стартовый_номер_спринт or '—' }}</td>
   <td class="text-center">{{ (к.время_старта_спринт_план or '').split('.')[0] }}</td>
-  <td class="text-center">{{ format_time(р.время_финиша) if р and р.время_финиша is not none else '' }}</td>
-  <td class="text-center">{{ р.штрафное_время | int if р and р.штрафное_время else '' }}</td>
+  <td class="text-center"></td>
+  <td class="text-center"></td>
 </tr>
 {% endfor %}
 {% endif %}
