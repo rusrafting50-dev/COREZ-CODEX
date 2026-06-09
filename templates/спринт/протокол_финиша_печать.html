@@ -65,13 +65,9 @@
 
 {# ── Макрос: блок подписей ── #}
 {% macro подписи() %}
-<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-top:0;margin-bottom:0">
-  <tr>
-    <td style="border:none;padding:0;white-space:nowrap">Старший судья финиша</td>
-    <td style="width:3cm;border:none;border-bottom:0.75pt solid #000;padding:0 4px"></td>
-    <td style="border:none;padding:0 0 0 6px;white-space:nowrap">{{ сор.старший_судья_финиша or '' }}</td>
-  </tr>
-</table>
+<div style="font-size:10pt;font-weight:bold;margin-top:0;margin-bottom:0;white-space:nowrap">
+  Старший судья финиша <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ сор.старший_судья_финиша or '' }}
+</div>
 {% endmacro %}
 
 {# ── Макрос: строки одного вида программы в tbody ── #}
