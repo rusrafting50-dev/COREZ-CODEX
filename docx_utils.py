@@ -2431,14 +2431,11 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         if child.tag == qn('w:p'):
             body.remove(child)
 
-    first = True
-    for метка, команды in группы:
-        if not команды:
-            continue
-        if not first:
-            _page_br(doc)
-        first = False
+    valid = [(м, к) for м, к in группы if к]
+    for i, (метка, команды) in enumerate(valid):
         _add_block(doc, метка, команды)
+        if i < len(valid) - 1:
+            _page_br(doc)
 
     buf = BytesIO()
     doc.save(buf)
