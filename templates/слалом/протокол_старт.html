@@ -108,6 +108,7 @@
     {% endif %}
     <th rowspan="2" style="width:56px">Время<br>старта<br>попытка&nbsp;1</th>
     <th rowspan="2" style="width:56px">Время<br>старта<br>попытка&nbsp;2</th>
+    <th rowspan="2">Описание штрафа</th>
   </tr>
   <tr>
     {% for кол in мб_список %}
@@ -120,7 +121,7 @@
 {# ── Макрос: строки одного вида программы в tbody ── #}
 {% macro секция(список, метка, мб_список) %}
 {% if список %}
-{% set colspan = 5 + (мб_список | length) + 2 %}
+{% set colspan = 5 + (мб_список | length) + 3 %}
 <tr class="section-row"><td colspan="{{ colspan }}" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
@@ -149,6 +150,7 @@
   {% endfor %}
   <td class="text-center" style="font-family:monospace;white-space:nowrap">{{ format_time_hms(р1.время_старта) if р1 and р1.время_старта is not none else '' }}</td>
   <td class="text-center" style="font-family:monospace;white-space:nowrap">{{ format_time_hms(р2.время_старта) if р2 and р2.время_старта is not none else '' }}</td>
+  <td></td>
 </tr>
 {% endfor %}
 {% endif %}

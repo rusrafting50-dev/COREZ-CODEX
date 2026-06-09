@@ -2131,8 +2131,8 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     TNR = 'Times New Roman'
     C = WD_ALIGN_PARAGRAPH.CENTER
 
-    # ── Сетка столбцов 5/12/6/33/11/4/4/4/9/9 ───────────────────────────────
-    _PCTS = [5, 12, 6, 33, 11, 4, 4, 4, 9, 9]   # sum=97
+    # ── Сетка столбцов 5/12/6/33/11/4/4/4/9/9/12 ───────────────────────────────
+    _PCTS = [5, 12, 6, 33, 11, 4, 4, 4, 9, 9, 12]   # sum=109
     _SUM_P = sum(_PCTS)
     # Текстовая область: 210/297 мм − 7.5 мм − 5 мм
     TW = round(((210 if портрет else 297) - 7.5 - 5) * 1440 / 25.4)
@@ -2468,7 +2468,7 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         for i, w in enumerate(GRID):
             if i not in (5, 6, 7):
                 _cw(cs[i], w)
-        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9]]:
+        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9], cs[10]]:
             _borders(cell); _vmerge_restart(cell)
         _borders(cs[5])
         p0 = cs[0].paragraphs[0]; p0.clear(); p0.style = 'No Spacing'; _sp(p0)
@@ -2481,6 +2481,7 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _fill(cs[5], 'Очки Многоборье',                    align=C, pt=8, bold=True)
         _fill(cs[8], 'Время\nстарта\nпопытка 1',           align=C, pt=8, bold=True)
         _fill(cs[9], 'Время\nстарта\nпопытка 2',           align=C, pt=8, bold=True)
+        _fill(cs[10], 'Описание штрафа',                   align=C, pt=8, bold=True)
 
         # Шапка строка 2 — вертикальный текст МБ
         r = tbl.add_row(); _row_h_min(r, 1690 * 2.54 / 1440)
@@ -2488,7 +2489,7 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         cs = list(r.cells)
         for i, w in enumerate(GRID):
             _cw(cs[i], w)
-        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9]]:
+        for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9], cs[10]]:
             _borders(cell); _vmerge_cont(cell)
         for col_i, заг in ((5, кол1_заг), (6, кол2_заг), (7, 'Сумма')):
             _borders(cs[col_i])
@@ -2525,6 +2526,7 @@ def create_старт_слалом_docx(сор, секции, filename, порт
             _fill(cs[7], sm,                                             align=C, pt=8)
             _fill(cs[8], _time(к, 1),                                    align=C, pt=8)
             _fill(cs[9], _time(к, 2),                                    align=C, pt=8)
+            _fill(cs[10], '',                                             align=C, pt=8)
 
         _tiny_para()
 
