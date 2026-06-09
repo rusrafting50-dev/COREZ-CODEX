@@ -12071,16 +12071,33 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                     _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
                 _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ПУСТО)
 
-        # Signature table: [должность] [3-см подчёркивание] [ФИО]
-        sig = doc.add_table(rows=1, cols=3)
+        # Signature table: [должность + 3-см подчёркивание] [ФИО]
+        # 3 см подчёркивание — inline run с w:u + w:spacing ≈ 1631 двадцатых пункта
+        W_SIG_LBL = W_SIG_L + W_SIG_UL   # объединяем ширину метки и бывшей линии
+        sig = doc.add_table(rows=1, cols=2)
         _tbl_w(sig, TW)
-        _set_grid(sig, [W_SIG_L, W_SIG_UL, W_SIG_R])
+        _set_grid(sig, [W_SIG_LBL, W_SIG_R])
         rs = sig.rows[0]
         cs_sig = list(rs.cells)
-        _no_border(cs_sig[0]); _bottom_border(cs_sig[1], sz=4); _no_border(cs_sig[2])
-        _fill(cs_sig[0], 'Старший судья на связке ворот', align=L, pt=PT); _cw(cs_sig[0], W_SIG_L)
-        _fill(cs_sig[1], '', align=C, pt=PT); _cw(cs_sig[1], W_SIG_UL)
-        _fill(cs_sig[2], судья or '', align=L, pt=PT); _cw(cs_sig[2], W_SIG_R)
+        _no_border(cs_sig[0]); _no_border(cs_sig[1])
+        _cw(cs_sig[0], W_SIG_LBL); _cw(cs_sig[1], W_SIG_R)
+        _valign(cs_sig[0]); _valign(cs_sig[1])
+
+        p0 = cs_sig[0].paragraphs[0]
+        p0.clear(); _sp(p0)
+        from docx.enum.text import WD_ALIGN_PARAGRAPH as _WDA
+        p0.alignment = _WDA.LEFT
+        r_lbl = p0.add_run('Старший судья на связке ворот')
+        r_lbl.font.name = TNR; r_lbl.font.size = Pt(PT)
+        # 3 см подчёркивание: один неразрывный пробел с w:underline + w:spacing ≈ 3 см
+        _UL_SPACING = round(85.04 * 20 - 70)   # 1631 двадцатых пункта ≈ 3 см
+        r_ul = p0.add_run(' ')
+        r_ul.font.name = TNR; r_ul.font.size = Pt(PT)
+        rPr_ul = r_ul._r.get_or_add_rPr()
+        u_el = OxmlElement('w:u'); u_el.set(qn('w:val'), 'single'); rPr_ul.append(u_el)
+        sp_el = OxmlElement('w:spacing'); sp_el.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_el)
+
+        _fill(cs_sig[1], судья or '', align=L, pt=PT); _cw(cs_sig[1], W_SIG_R)
 
     doc = Document()
 
