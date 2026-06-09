@@ -40,9 +40,9 @@
   </div>
 </div>
 
-{% macro шапка() %}
+{% macro шапка(попытка) %}
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
-<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол старта</div>
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол старта. Попытка {{ попытка }}</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СЛАЛОМ</div>
 <table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
@@ -65,35 +65,6 @@
 </div>
 {% endmacro %}
 
-{% macro секция(список, метка) %}
-{% if список %}
-<tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
-{% set нс = namespace(пп=0) %}
-{% for к in список %}
-{% set нс.пп = нс.пп + 1 %}
-{% set р1 = к.результат_слалом | selectattr('номер_попытки', 'eq', 1) | first | default(none) %}
-<tr class="data-row">
-  <td class="text-center">{{ нс.пп }}</td>
-  <td>{{ к.название or '—' }}</td>
-  <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td class="text-center">{{ format_time_hms(р1.время_старта) if р1 and р1.время_старта is not none else '' }}</td>
-  <td class="text-center"></td>
-  <td class="text-center"></td>
-</tr>
-{% endfor %}
-<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-{% endif %}
-{% endmacro %}
-
-{% macro секция_код(код) %}
-{% if код == 'R4-м' %}{{ секция(муж_р4, 'Слалом – R4, Мужчины') }}
-{% elif код == 'R4-ж' %}{{ секция(жен_р4, 'Слалом – R4, Женщины') }}
-{% elif код == 'R6-м' %}{{ секция(муж_р6, 'Слалом – R6, Мужчины') }}
-{% elif код == 'R6-ж' %}{{ секция(жен_р6, 'Слалом – R6, Женщины') }}
-{% endif %}
-{% endmacro %}
-
 {% macro thead() %}
 <thead>
   <tr>
@@ -107,53 +78,157 @@
 </thead>
 {% endmacro %}
 
-{% set есть_данные = (муж_р4 | length + жен_р4 | length + муж_р6 | length + жен_р6 | length) > 0 %}
+{% macro секция(список, метка, попытка) %}
+{% if список %}
+<tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
+{% set нс = namespace(пп=0) %}
+{% for к in список %}
+{% set нс.пп = нс.пп + 1 %}
+{% set р = к.результат_слалом | selectattr('номер_попытки', 'eq', попытка) | first | default(none) %}
+<tr class="data-row">
+  <td class="text-center">{{ нс.пп }}</td>
+  <td>{{ к.название or '—' }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td class="text-center">{{ format_time_hms(р.время_старта) if р and р.время_старта is not none else '' }}</td>
+  <td class="text-center"></td>
+  <td class="text-center"></td>
+</tr>
+{% endfor %}
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+{% endif %}
+{% endmacro %}
 
-{% if not есть_данные %}
+{# Словарь: код → (список команд, метка) #}
+{% set сп_р4м = (муж_р4, 'Слалом – R4, Мужчины') %}
+{% set сп_р4ж = (жен_р4, 'Слалом – R4, Женщины') %}
+{% set сп_р6м = (муж_р6, 'Слалом – R6, Мужчины') %}
+{% set сп_р6ж = (жен_р6, 'Слалом – R6, Женщины') %}
+
+{% macro _секция_кода(код, попытка) %}
+{% if код == 'R4-м' %}{{ секция(муж_р4, 'Слалом – R4, Мужчины', попытка) }}
+{% elif код == 'R4-ж' %}{{ секция(жен_р4, 'Слалом – R4, Женщины', попытка) }}
+{% elif код == 'R6-м' %}{{ секция(муж_р6, 'Слалом – R6, Мужчины', попытка) }}
+{% elif код == 'R6-ж' %}{{ секция(жен_р6, 'Слалом – R6, Женщины', попытка) }}
+{% endif %}
+{% endmacro %}
+
+{% macro _есть(код) %}{% if (код == 'R4-м' and муж_р4) or (код == 'R4-ж' and жен_р4) or (код == 'R6-м' and муж_р6) or (код == 'R6-ж' and жен_р6) %}1{% endif %}{% endmacro %}
+
+{# Список кодов с данными в заданной последовательности #}
+{% set нса = namespace(все=[]) %}
+{% for код in последовательность %}
+  {% if _есть(код) %}{% set нса.все = нса.все + [код] %}{% endif %}
+{% endfor %}
+
+{% set к0 = нса.все[0] if нса.все | length > 0 else '' %}
+{% set к1 = нса.все[1] if нса.все | length > 1 else '' %}
+{% set к2 = нса.все[2] if нса.все | length > 2 else '' %}
+{% set к3 = нса.все[3] if нса.все | length > 3 else '' %}
+
+{% if нса.все | length == 0 %}
 <p class="text-center text-muted mt-4">Нет данных для отображения.</p>
 
 {% elif вывод == 'Попарно' %}
-  {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
-  {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
-  {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
-  {% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
+{#
+  Пара 1 (к0+к1): страница попытка-1, страница попытка-2.
+  Пара 2 (к2+к3): страница попытка-1, страница попытка-2.
+#}
+{% set г1_есть = к0 or к1 %}
+{% set г2_есть = к2 or к3 %}
 
-  {% set г1_есть = (к0 == 'R4-м' and муж_р4) or (к0 == 'R4-ж' and жен_р4) or (к0 == 'R6-м' and муж_р6) or (к0 == 'R6-ж' and жен_р6)
-                or (к1 == 'R4-м' and муж_р4) or (к1 == 'R4-ж' and жен_р4) or (к1 == 'R6-м' and муж_р6) or (к1 == 'R6-ж' and жен_р6) %}
-  {% set г2_есть = (к2 == 'R4-м' and муж_р4) or (к2 == 'R4-ж' and жен_р4) or (к2 == 'R6-м' and муж_р6) or (к2 == 'R6-ж' and жен_р6)
-                or (к3 == 'R4-м' and муж_р4) or (к3 == 'R4-ж' and жен_р4) or (к3 == 'R6-м' and муж_р6) or (к3 == 'R6-ж' and жен_р6) %}
+{% if г1_есть %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к0, 1) }}{{ _секция_кода(к1, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+<div class="{% if г2_есть %}разрыв{% endif %}">
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к0, 2) }}{{ _секция_кода(к1, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
 
-  {% if г1_есть %}
-  <div class="{% if г2_есть %}разрыв{% endif %}">
-    {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
-    {{ подписи() }}
-  </div>
-  {% endif %}
-
-  {% if г2_есть %}
-  <div>
-    {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
-    {{ подписи() }}
-  </div>
-  {% endif %}
+{% if г2_есть %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к2, 1) }}{{ _секция_кода(к3, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+<div>
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к2, 2) }}{{ _секция_кода(к3, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
 
 {% else %}
-  {% set нса = namespace(список=[]) %}
-  {% for код in последовательность %}
-    {% if (код == 'R4-м' and муж_р4) or (код == 'R4-ж' and жен_р4) or (код == 'R6-м' and муж_р6) or (код == 'R6-ж' and жен_р6) %}
-      {% set нса.список = нса.список + [код] %}
-    {% endif %}
-  {% endfor %}
+{#
+  Раздельно: для каждой пары кодов — попытка-1 код0, попытка-1 код1, попытка-2 код0, попытка-2 код1.
+#}
+{% set г1_есть = к0 or к1 %}
+{% set г2_есть = к2 or к3 %}
 
-  {% for код in нса.список %}
-  <div class="{% if not loop.last %}разрыв{% endif %}">
-    {{ шапка() }}
-    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
-    {{ подписи() }}
-  </div>
-  {% endfor %}
+{# Пара 1 #}
+{% if к0 %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к0, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к1 %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к1, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к0 %}
+<div class="{% if к1 or г2_есть %}разрыв{% endif %}">
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к0, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к1 %}
+<div class="{% if г2_есть %}разрыв{% endif %}">
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к1, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+
+{# Пара 2 #}
+{% if к2 %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к2, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к3 %}
+<div class="разрыв">
+  {{ шапка(1) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к3, 1) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к2 %}
+<div class="{% if к3 %}разрыв{% endif %}">
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к2, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
+{% if к3 %}
+<div>
+  {{ шапка(2) }}
+  <table>{{ thead() }}<tbody>{{ _секция_кода(к3, 2) }}</tbody></table>
+  {{ подписи() }}
+</div>
+{% endif %}
 
 {% endif %}
 
