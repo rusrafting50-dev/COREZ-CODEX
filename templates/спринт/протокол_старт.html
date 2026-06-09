@@ -36,6 +36,8 @@
   <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Жеребьёвка и стартовый протокол</a>
   <div class="d-flex gap-2">
+    <a href="{{ url_for('спринт.протокол_старта_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол старта</a>
     <a href="{{ url_for('спринт.протокол_финиша_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
