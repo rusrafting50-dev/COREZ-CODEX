@@ -11553,6 +11553,14 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
             pr.remove(existing)
         pr.append(vm)
 
+    def _vmerge_cont(cell):
+        pr = _tcpr(cell)
+        vm = OxmlElement('w:vMerge')   # без w:val — продолжение объединения
+        existing = pr.find(qn('w:vMerge'))
+        if existing is not None:
+            pr.remove(existing)
+        pr.append(vm)
+
     def _set_grid(tbl, widths):
         tblGrid = tbl._tbl.find(qn('w:tblGrid'))
         if tblGrid is not None:
@@ -11648,12 +11656,12 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         cs1 = list(rh1.cells)
         for c in cs1:
             _borders(c); _valign(c, 'center')
-        _vmerge_restart(cs1[0]); _fill(cs1[0], '№ п/п', align=C, pt=PT); _cw(cs1[0], W_NПП)
-        _vmerge_restart(cs1[1]); _fill(cs1[1], 'Нагрудный номер', align=C, pt=PT); _cw(cs1[1], W_НОМ)
-        _vmerge_restart(cs1[2]); _fill(cs1[2], 'Время старта', align=C, pt=PT); _cw(cs1[2], W_ВРЕМ)
+        _vmerge_cont(cs1[0]); _cw(cs1[0], W_NПП)
+        _vmerge_cont(cs1[1]); _cw(cs1[1], W_НОМ)
+        _vmerge_cont(cs1[2]); _cw(cs1[2], W_ВРЕМ)
         for gi, г in enumerate(ворота_в_связке):
             _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
-        _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
+        _vmerge_cont(cs1[NC-1]); _cw(cs1[NC-1], W_ОПИС)
 
         def _kwn(row):
             for cell in row.cells:
