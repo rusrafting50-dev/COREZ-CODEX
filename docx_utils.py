@@ -11970,25 +11970,31 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         p = _para(doc, 'Протокол судейства на воротах', align=C, pt=11, bold=True); _sp15(p)
         p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _sp15(p)
 
-        # Date/place table (как в стартовом протоколе)
+        # Date/place table — фиксированные ширины, место в одну строку
+        W_DT_DATE  = 2500
+        W_DT_PLACE = 5500
+        W_DT_MID   = TW - W_DT_DATE - W_DT_PLACE
         dt = doc.add_table(rows=0, cols=3)
         _tbl_w(dt, TW)
         tblPr = dt._tbl.find(qn('w:tblPr'))
         if tblPr is None: tblPr = OxmlElement('w:tblPr'); dt._tbl.insert(0, tblPr)
         for s in tblPr.findall(qn('w:tblStyle')): tblPr.remove(s)
-        lay = tblPr.find(qn('w:tblLayout'))
-        if lay is None: lay = OxmlElement('w:tblLayout'); tblPr.append(lay)
-        lay.set(qn('w:type'), 'autofit')
 
         r = dt.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
+        _cw(cs[0], W_DT_DATE); _cw(cs[1], W_DT_MID); _cw(cs[2], W_DT_PLACE)
         _bottom_border(cs[0]); _no_border(cs[1]); _bottom_border(cs[2])
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
+        # noWrap для ячейки места — текст в одну строку
+        _pr2 = _tcpr(cs[2])
+        if _pr2.find(qn('w:noWrap')) is None:
+            _pr2.append(OxmlElement('w:noWrap'))
 
         r = dt.add_row(); _row_h(r, 0.5)
         cs = list(r.cells)
+        _cw(cs[0], W_DT_DATE); _cw(cs[1], W_DT_MID); _cw(cs[2], W_DT_PLACE)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
@@ -12085,14 +12091,20 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                 for gi in range(N):
                     _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
                 _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ПУСТО)
+            # две пустые строки в конце каждой группы
+            for _ in range(2):
+                re = tbl.add_row(); _row_h_min(re, 0.8)
+                cse = list(re.cells)
+                for c in cse: _borders(c)
+                _fill(cse[0], '', align=C, pt=PT); _cw(cse[0], W_NПП)
+                _fill(cse[1], '', align=C, pt=PT); _cw(cse[1], W_НОМ)
+                _fill(cse[2], '', align=C, pt=PT); _cw(cse[2], W_ВРЕМ)
+                for gi in range(N):
+                    _fill(cse[3+gi], '', align=C, pt=PT); _cw(cse[3+gi], W_GATE)
+                _fill(cse[NC-1], '', align=L, pt=PT); _cw(cse[NC-1], W_ПУСТО)
 
-        # Подпись — пустая строка 1пт + одна строка с должностью, подчёркиванием и ФИО
+        # Подпись — пустая строка + одна строка с должностью, подчёркиванием и ФИО
         pg_sig_gap = doc.add_paragraph(); _sp(pg_sig_gap)
-        _spPr = pg_sig_gap._p.get_or_add_pPr()
-        _sp_sig = _spPr.find(qn('w:spacing'))
-        if _sp_sig is None: _sp_sig = OxmlElement('w:spacing'); _spPr.append(_sp_sig)
-        _sp_sig.set(qn('w:line'), '20'); _sp_sig.set(qn('w:lineRule'), 'exact')
-        _sp_sig.set(qn('w:before'), '0'); _sp_sig.set(qn('w:after'), '0')
 
         pg_sig = doc.add_paragraph(); _sp(pg_sig)
         pg_sig.alignment = WDA.LEFT
