@@ -37,8 +37,8 @@
   <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
      class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
-    <a href="{{ url_for('спринт.протокол_старт', sor_id=сор.id) }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Стартовый протокол</a>
+    <a href="{{ url_for('спринт.протокол_старта_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">Протокол старта</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
     <a id="btn-word" href="{{ url_for('спринт.протокол_финиша_печать_word', sor_id=сор.id) }}?портрет=0"
        class="btn btn-success btn-sm">Word</a>
