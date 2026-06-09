@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Протокол старта — {{ сор.название | truncate(60) }}</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <style>
+    body { font-family: "Times New Roman", serif; font-size: 10pt; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 9pt; }
+      .разрыв { page-break-after: always; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+    }
+    table { border-collapse: separate; border-spacing: 0; border-left: 0.75pt solid #333; border-top: 0.75pt solid #333; width: 100%; }
+    th, td { border-right: 0.75pt solid #333; border-bottom: 0.75pt solid #333; border-left: none; border-top: none; padding: 2px 4px; vertical-align: middle; font-size: 8pt; font-family: "Times New Roman", serif !important; }
+    tr.data-row { height: 0.8cm; }
+    tr.empty-row { height: 0.8cm; }
+    thead tr:first-child th[colspan], thead tr:first-child td[colspan] { border-bottom: none; }
+    th { text-align: center; background: #fff; font-weight: bold; }
+    .text-center { text-align: center; }
+    .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
+  </style>
+  <style id="orient-style">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
+</head>
+<body class="px-3 py-3">
+
+<div class="d-flex justify-content-between mb-3 no-print">
+  <a href="{{ url_for('дг.протокол_старт', sor_id=сор.id) }}"
+     class="btn btn-outline-secondary btn-sm">← 🖨 Стартовый протокол</a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('дг.протокол_финиша_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
+    <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
+  </div>
+</div>
+
+{% macro шапка() %}
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол старта</div>
+<div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</div>
+<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
+  <tr>
+    <td style="width:140px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
+    <td style="width:354px;border:none;padding:0"></td>
+    <td style="width:180px;white-space:nowrap;text-align:center;border:none;border-bottom:0.75pt solid #000;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
+  </tr>
+  <tr>
+    <td style="width:140px;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Дата проведения</td>
+    <td style="width:354px;border:none;padding:0"></td>
+    <td style="width:180px;white-space:nowrap;text-align:center;border:none;padding:0 4px;font-size:8pt;font-weight:bold">Место проведения</td>
+  </tr>
+</table>
+{% endmacro %}
+
+{% macro подписи() %}
+<div style="height:1em"></div>
+<div style="font-size:10pt;font-weight:bold;margin-top:0;margin-bottom:0;white-space:nowrap">
+  Старший судья старта <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ сор.старший_судья_старта or '' }}
+</div>
+{% endmacro %}
+
+{% macro секция(список, метка) %}
+{% if список %}
+<tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
+{% set нс = namespace(пп=0) %}
+{% for к in список %}
+{% set нс.пп = нс.пп + 1 %}
+{% set рез = к.результат_дг %}
+<tr class="data-row">
+  <td class="text-center">{{ нс.пп }}</td>
+  <td>{{ к.название or '—' }}</td>
+  <td class="text-center">{{ к.нагрудный_номер }}</td>
+  <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
+  <td class="text-center"></td>
+  <td class="text-center"></td>
+</tr>
+{% endfor %}
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+{% endif %}
+{% endmacro %}
+
+{% macro секция_код(код) %}
+{% if код == 'R4-м' %}{{ секция(муж_р4, 'Длинная гонка – R4, Мужчины') }}
+{% elif код == 'R4-ж' %}{{ секция(жен_р4, 'Длинная гонка – R4, Женщины') }}
+{% elif код == 'R6-м' %}{{ секция(муж_р6, 'Длинная гонка – R6, Мужчины') }}
+{% elif код == 'R6-ж' %}{{ секция(жен_р6, 'Длинная гонка – R6, Женщины') }}
+{% endif %}
+{% endmacro %}
+
+{% macro thead() %}
+<thead>
+  <tr>
+    <th style="width:27px">№<br>п/п</th>
+    <th style="width:106px">Команда</th>
+    <th style="width:45px">Номер</th>
+    <th style="width:91px">Время старта</th>
+    <th style="width:65px">Время<br>финиша</th>
+    <th style="width:50px">Штраф</th>
+  </tr>
+</thead>
+{% endmacro %}
+
+{% set есть_данные = (муж_р4 | length + жен_р4 | length + муж_р6 | length + жен_р6 | length) > 0 %}
+
+{% if not есть_данные %}
+<p class="text-center text-muted mt-4">Нет данных для отображения.</p>
+
+{% elif вывод == 'Попарно' %}
+  {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
+  {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
+  {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
+  {% set к3 = последовательность[3] if последовательность | length > 3 else '' %}
+
+  {% set г1_есть = (к0 == 'R4-м' and муж_р4) or (к0 == 'R4-ж' and жен_р4) or (к0 == 'R6-м' and муж_р6) or (к0 == 'R6-ж' and жен_р6)
+                or (к1 == 'R4-м' and муж_р4) or (к1 == 'R4-ж' and жен_р4) or (к1 == 'R6-м' and муж_р6) or (к1 == 'R6-ж' and жен_р6) %}
+  {% set г2_есть = (к2 == 'R4-м' and муж_р4) or (к2 == 'R4-ж' and жен_р4) or (к2 == 'R6-м' and муж_р6) or (к2 == 'R6-ж' and жен_р6)
+                or (к3 == 'R4-м' and муж_р4) or (к3 == 'R4-ж' and жен_р4) or (к3 == 'R6-м' and муж_р6) or (к3 == 'R6-ж' and жен_р6) %}
+
+  {% if г1_есть %}
+  <div class="{% if г2_есть %}разрыв{% endif %}">
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
+    {{ подписи() }}
+  </div>
+  {% endif %}
+
+  {% if г2_есть %}
+  <div>
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
+    {{ подписи() }}
+  </div>
+  {% endif %}
+
+{% else %}
+  {% set нса = namespace(список=[]) %}
+  {% for код in последовательность %}
+    {% if (код == 'R4-м' and муж_р4) or (код == 'R4-ж' and жен_р4) or (код == 'R6-м' and муж_р6) or (код == 'R6-ж' and жен_р6) %}
+      {% set нса.список = нса.список + [код] %}
+    {% endif %}
+  {% endfor %}
+
+  {% for код in нса.список %}
+  <div class="{% if not loop.last %}разрыв{% endif %}">
+    {{ шапка() }}
+    <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
+    {{ подписи() }}
+  </div>
+  {% endfor %}
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let _landscape = true;
+function toggleOrient() {
+  _landscape = !_landscape;
+  var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
+  var old = document.getElementById('orient-style');
+  var s = document.createElement('style');
+  s.id = 'orient-style';
+  s.textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
+  old.parentNode.replaceChild(s, old);
+  document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
+}
+</script>
+</body>
+</html>
