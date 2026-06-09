@@ -2394,18 +2394,28 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
 
         # ── Table 4: Signature ────────────────────────────────────────────────
         _tiny_para_sp()
-        W_SIG_UL = round(30 * 1440 / 25.4)   # 3 cm underline
+        W_SIG_UL  = round(30 * 1440 / 25.4)   # 3 cm underline
         W_SIG_LBL = round(TW * 0.45)
         W_SIG_R   = TW - W_SIG_LBL - W_SIG_UL
-        sig = _make_tbl(3)
-        _set_grid_sp(sig, [W_SIG_LBL, W_SIG_UL, W_SIG_R])
+        W_SIG_LBL2 = W_SIG_LBL + W_SIG_UL   # метка + место под подчёркивание
+        sig = _make_tbl(2)
+        _set_grid_sp(sig, [W_SIG_LBL2, W_SIG_R])
         r = sig.add_row(); _row_h(r, 1.2)
         cs = list(r.cells)
-        _cw(cs[0], W_SIG_LBL); _cw(cs[1], W_SIG_UL); _cw(cs[2], W_SIG_R)
-        _no_border(cs[0]); _bottom_border(cs[1]); _no_border(cs[2])
-        _fill(cs[0], 'Старший судья финиша', align=L, pt=10)
+        _cw(cs[0], W_SIG_LBL2); _cw(cs[1], W_SIG_R)
+        _no_border(cs[0]); _no_border(cs[1])
+        p0 = cs[0].paragraphs[0]; p0.clear(); _sp(p0)
+        p0.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        r_lbl = p0.add_run('Старший судья финиша')
+        r_lbl.font.name = TNR; r_lbl.font.size = Pt(10)
+        _UL_SPACING = round(85.04 * 20 - 70)   # ≈ 1631 двадцатых пункта ≈ 3 см
+        r_ul = p0.add_run(' ')
+        r_ul.font.name = TNR; r_ul.font.size = Pt(10)
+        rPr_ul = r_ul._r.get_or_add_rPr()
+        u_el = OxmlElement('w:u'); u_el.set(qn('w:val'), 'single'); rPr_ul.append(u_el)
+        sp_el = OxmlElement('w:spacing'); sp_el.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_el)
+        _valign(cs[0])
         _fill(cs[1], '')
-        _fill(cs[2], '')
 
     # ── Document setup ────────────────────────────────────────────────────────
 
