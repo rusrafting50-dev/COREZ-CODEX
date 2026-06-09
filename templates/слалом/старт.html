@@ -149,6 +149,33 @@
         </select>
       </div>
 
+      <div class="row g-2 mt-2 mb-0">
+        <div class="col-auto d-flex align-items-center gap-2">
+          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья старта</label>
+          <select name="старший_судья_старта_сл" class="form-select form-select-sm" style="min-width:220px">
+            <option value="">— не выбран —</option>
+            {% for с in судьи_старта %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_старта_сл == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto d-flex align-items-center gap-2">
+          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья финиша</label>
+          <select name="старший_судья_финиша_сл" class="form-select form-select-sm" style="min-width:220px">
+            <option value="">— не выбран —</option>
+            {% for с in судьи_финиша %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_финиша_сл == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
       {# ── Параметры протоколов на воротах ── #}
       <hr class="my-3">
       <div class="fw-semibold mb-2">Параметры протоколов на воротах</div>

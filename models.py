@@ -198,6 +198,8 @@ class Соревнование(db.Model):
     последовательность_слалом   = db.Column(db.String(100), nullable=True)
     вывод_старт_слалом          = db.Column(db.String(20),  nullable=True)
     связки_ворот_слалом         = db.Column(db.Text,        nullable=True)  # JSON
+    старший_судья_старта_сл     = db.Column(db.String(200), nullable=True)
+    старший_судья_финиша_сл     = db.Column(db.String(200), nullable=True)
 
     # Параметры стартового протокола Длинной Гонки
     последовательность_дг       = db.Column(db.String(100), nullable=True)
@@ -1138,6 +1140,11 @@ def применить_миграции():
                     "ALTER TABLE соревнования ADD COLUMN связки_ворот_слалом TEXT"
                 ))
                 conn.commit()
+        for col in ('старший_судья_старта_сл', 'старший_судья_финиша_сл'):
+            if col not in cols_сор:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text(f'ALTER TABLE соревнования ADD COLUMN {col} VARCHAR(200)'))
+                    conn.commit()
         if 'последовательность_дг' not in cols_сор:
             with db.engine.connect() as conn:
                 conn.execute(db.text(
