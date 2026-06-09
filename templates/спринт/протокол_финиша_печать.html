@@ -46,22 +46,6 @@
 
 {# ── Макрос: шапка протокола ── #}
 {% macro шапка() %}
-{% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:normal; text-align:center">
-{%- for строка in сор.организаторы_блок.split('\n') -%}
-  {%- if '"' in строка -%}
-    {%- set ч = строка.split('"', 1) -%}
-    {{ ч[0] | trim }} <span style="display:inline-block">"{{ ч[1] }}</span>
-  {%- elif '«' in строка -%}
-    {%- set ч = строка.split('«', 1) -%}
-    {{ ч[0] | trim }} <span style="display:inline-block">«{{ ч[1] }}</span>
-  {%- else -%}
-    {{ строка }}
-  {%- endif -%}
-  {%- if not loop.last %}<br>{% endif %}
-{%- endfor -%}
-</div>
-{% endif %}
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол финиша</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин СПРИНТ</div>
@@ -96,7 +80,7 @@
 {# ── Макрос: строки одного вида программы в tbody ── #}
 {% macro секция(список, метка) %}
 {% if список %}
-<tr class="section-row"><td colspan="9" class="text-center">{{ метка }}</td></tr>
+<tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
 {% set нс.пп = нс.пп + 1 %}
@@ -105,9 +89,6 @@
   <td class="text-center">{{ нс.пп }}</td>
   <td>{{ к.название or '—' }}</td>
   <td class="text-center">{{ к.нагрудный_номер }}</td>
-  <td class="c-фио">{% set спортсмены = к.спортсмены | sort(attribute='номер_в_экипаже') %}{% for с in спортсмены %}{{ с.фамилия_имя_отчество }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
-  <td>{{ к.субъект.название if к.субъект else '—' }}</td>
-  <td class="text-center">{{ к.стартовый_номер_спринт or '—' }}</td>
   <td class="text-center">{{ (к.время_старта_спринт_план or '').split('.')[0] }}</td>
   <td class="text-center"></td>
   <td class="text-center"></td>
@@ -132,9 +113,6 @@
     <th style="width:27px">№<br>п/п</th>
     <th style="width:106px">Команда</th>
     <th style="width:45px">Номер</th>
-    <th style="width:242px">Фамилия, имя, отчество участников</th>
-    <th style="width:91px">Территория</th>
-    <th style="width:72px">Порядковый номер согласно жеребьёвке</th>
     <th style="width:91px">Время старта</th>
     <th style="width:65px">Время<br>финиша</th>
     <th style="width:50px">Штраф</th>
