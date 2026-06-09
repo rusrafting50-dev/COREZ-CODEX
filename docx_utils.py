@@ -11966,14 +11966,6 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
             sp.set(qn('w:line'), '276'); sp.set(qn('w:lineRule'), 'auto')
             sp.set(qn('w:after'), '200')
 
-        if сор.организаторы_блок:
-            p = _para(doc, align=C, pt=10, bold=True)
-            for i, line in enumerate([l.strip() for l in сор.организаторы_блок.split('\n')]):
-                if i > 0:
-                    p.add_run()._r.append(OxmlElement('w:br'))
-                r2 = p.add_run(line); r2.font.name = 'Times New Roman'; r2.font.size = Pt(10); r2.bold = True
-            _sp15(p)
-
         p = _para(doc, сор.название or '', align=C, pt=11, bold=True); _sp15(p)
         p = _para(doc, 'Протокол судейства на воротах', align=C, pt=11, bold=True); _sp15(p)
         p = _para(doc, 'Группа спортивных дисциплин СЛАЛОМ', align=C, pt=10, bold=True); _sp15(p)
@@ -12008,12 +12000,13 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         NC = 3 + N + 1
         widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ПУСТО]
 
-        tbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(tbl, TW)
-        _set_grid(tbl, widths)
+        # Заголовочная таблица (первые две строки)
+        head_tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(head_tbl, TW)
+        _set_grid(head_tbl, widths)
 
         # Row 0 — header A (Ворота spans N gate cols)
-        rh0 = tbl.add_row(); _row_h_min(rh0, 0.85)
+        rh0 = head_tbl.add_row(); _row_h_min(rh0, 0.85)
         cs0 = list(rh0.cells)
         for c in cs0:
             _borders(c); _valign(c, 'center')
@@ -12023,14 +12016,13 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
         if N > 1:
             _gridspan(cs0[3], N)
-            # Удаляем «поглощённые» gridspan'ом ячейки — иначе Word рендерит их как пустые колонки
             tr0 = rh0._tr
-            for j in range(4, N + 3):  # физические позиции 4..N+2
+            for j in range(4, N + 3):
                 tr0.remove(cs0[j]._tc)
         _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ПУСТО)
 
         # Row 1 — header B (gate numbers)
-        rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
+        rh1 = head_tbl.add_row(); _row_h_min(rh1, 0.62)
         cs1 = list(rh1.cells)
         for c in cs1:
             _borders(c); _valign(c, 'center')
@@ -12040,6 +12032,18 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         for gi, г in enumerate(ворота_в_связке):
             _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
         _vmerge_cont(cs1[NC-1]); _cw(cs1[NC-1], W_ПУСТО)
+
+        # 1пт пустой абзац между заголовочной и основной таблицами
+        pg_gap = doc.add_paragraph(); _sp(pg_gap)
+        _pPr = pg_gap._p.get_or_add_pPr()
+        _sp_el = _pPr.find(qn('w:spacing'))
+        if _sp_el is None: _sp_el = OxmlElement('w:spacing'); _pPr.append(_sp_el)
+        _sp_el.set(qn('w:line'), '20'); _sp_el.set(qn('w:lineRule'), 'exact')
+        _sp_el.set(qn('w:before'), '0'); _sp_el.set(qn('w:after'), '0')
+
+        tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(tbl, TW)
+        _set_grid(tbl, widths)
 
         def _kwn(row):
             for cell in row.cells:
@@ -12082,33 +12086,27 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                     _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
                 _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ПУСТО)
 
-        # Signature table: [должность + 3-см подчёркивание] [ФИО]
-        # 3 см подчёркивание — inline run с w:u + w:spacing ≈ 1631 двадцатых пункта
-        W_SIG_LBL = W_SIG_L + W_SIG_UL   # объединяем ширину метки и бывшей линии
-        sig = doc.add_table(rows=1, cols=2)
-        _tbl_w(sig, TW)
-        _set_grid(sig, [W_SIG_LBL, W_SIG_R])
-        rs = sig.rows[0]
-        cs_sig = list(rs.cells)
-        _no_border(cs_sig[0]); _no_border(cs_sig[1])
-        _cw(cs_sig[0], W_SIG_LBL); _cw(cs_sig[1], W_SIG_R)
-        _valign(cs_sig[0]); _valign(cs_sig[1])
+        # Подпись — пустая строка 1пт + одна строка с должностью, подчёркиванием и ФИО
+        pg_sig_gap = doc.add_paragraph(); _sp(pg_sig_gap)
+        _spPr = pg_sig_gap._p.get_or_add_pPr()
+        _sp_sig = _spPr.find(qn('w:spacing'))
+        if _sp_sig is None: _sp_sig = OxmlElement('w:spacing'); _spPr.append(_sp_sig)
+        _sp_sig.set(qn('w:line'), '20'); _sp_sig.set(qn('w:lineRule'), 'exact')
+        _sp_sig.set(qn('w:before'), '0'); _sp_sig.set(qn('w:after'), '0')
 
-        p0 = cs_sig[0].paragraphs[0]
-        p0.clear(); _sp(p0)
-        from docx.enum.text import WD_ALIGN_PARAGRAPH as _WDA
-        p0.alignment = _WDA.LEFT
-        r_lbl = p0.add_run('Старший судья на связке ворот')
+        pg_sig = doc.add_paragraph(); _sp(pg_sig)
+        pg_sig.alignment = WDA.LEFT
+        _UL_SPACING = round(85.04 * 20 - 70)
+        r_lbl = pg_sig.add_run('Старший судья на связке ворот')
         r_lbl.font.name = TNR; r_lbl.font.size = Pt(PT)
-        # 3 см подчёркивание: один неразрывный пробел с w:underline + w:spacing ≈ 3 см
-        _UL_SPACING = round(85.04 * 20 - 70)   # 1631 двадцатых пункта ≈ 3 см
-        r_ul = p0.add_run(' ')
+        r_ul = pg_sig.add_run(' ')
         r_ul.font.name = TNR; r_ul.font.size = Pt(PT)
         rPr_ul = r_ul._r.get_or_add_rPr()
         u_el = OxmlElement('w:u'); u_el.set(qn('w:val'), 'single'); rPr_ul.append(u_el)
-        sp_el = OxmlElement('w:spacing'); sp_el.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_el)
-
-        _fill(cs_sig[1], судья or '', align=L, pt=PT); _cw(cs_sig[1], W_SIG_R)
+        sp_ul = OxmlElement('w:spacing'); sp_ul.set(qn('w:val'), str(_UL_SPACING)); rPr_ul.append(sp_ul)
+        if судья:
+            r_fio = pg_sig.add_run(' ' + судья)
+            r_fio.font.name = TNR; r_fio.font.size = Pt(PT)
 
     doc = Document()
 
