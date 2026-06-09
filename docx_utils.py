@@ -12012,6 +12012,10 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
         if N > 1:
             _gridspan(cs0[3], N)
+            # Удаляем «поглощённые» gridspan'ом ячейки — иначе Word рендерит их как пустые колонки
+            tr0 = rh0._tr
+            for j in range(4, N + 3):  # физические позиции 4..N+2
+                tr0.remove(cs0[j]._tc)
         _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ПУСТО)
 
         # Row 1 — header B (gate numbers)
