@@ -2312,10 +2312,11 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         sp.set(qn('w:before'), '0'); sp.set(qn('w:after'), '0')
         sp.set(qn('w:line'), '20'); sp.set(qn('w:lineRule'), 'exact')
 
-    def _add_block(doc, секции):
+    def _add_block(doc, секции, время_fn=None):
         """Одна страница: заголовки + шапка + таблица со всеми секциями + подпись.
 
         секции — список (метка, команды).
+        время_fn(к) — функция получения времени строки; если None — к.время_старта_спринт_план.
         """
         # ── Заголовки: три абзаца с межстрочным 1.15 ─────────────────────────
         def _sp115(p):
@@ -2389,7 +2390,10 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
                 cs = list(r.cells)
                 for i, w in enumerate(GRID):
                     _cw(cs[i], w); _borders(cs[i])
-                время = (к.время_старта_спринт_план or '').split('.')[0]
+                if время_fn:
+                    время = время_fn(к)
+                else:
+                    время = (к.время_старта_спринт_план or '').split('.')[0]
                 _fill(cs[0], str(пп),                          align=C)
                 _fill(cs[1], к.название or '—')
                 _fill(cs[2], str(к.нагрудный_номер or ''),     align=C)
@@ -2397,14 +2401,15 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
                 _fill(cs[4], '')
                 _fill(cs[5], '')
 
-            # Две пустые строки в конце каждой секции
-            for _ in range(2):
-                r = tbl.add_row(); _row_h(r, 0.8)
-                cs = list(r.cells)
-                for i, w in enumerate(GRID):
-                    _cw(cs[i], w); _borders(cs[i])
-                for i in range(NC):
-                    _fill(cs[i], '')
+            # Две пустые строки в конце секции (только если есть данные)
+            if команды:
+                for _ in range(2):
+                    r = tbl.add_row(); _row_h(r, 0.8)
+                    cs = list(r.cells)
+                    for i, w in enumerate(GRID):
+                        _cw(cs[i], w); _borders(cs[i])
+                    for i in range(NC):
+                        _fill(cs[i], '')
 
         # ── Пустая строка между таблицей и подписью ───────────────────────────
         _para(doc)
@@ -2448,12 +2453,23 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         if child.tag == qn('w:p'):
             body.remove(child)
 
-    # группы теперь — список страниц; каждая страница — список (метка, команды)
-    страницы = [[(м, к) for м, к in стр if к] for стр in группы]
-    страницы = [стр for стр in страницы if стр]
-    for i, стр in enumerate(страницы):
-        _add_block(doc, стр)
-        if i < len(страницы) - 1:
+    # группы — список страниц; каждая страница — list[(метка, команды)] или dict{секции, время_fn}
+    норм = []
+    for стр in группы:
+        if isinstance(стр, dict):
+            сек = стр.get('секции', [])
+            вфн = стр.get('время_fn')
+            # пустые команды допустимы (заголовок попытки), фильтруем только None-команды
+            сек = [(м, к) for м, к in сек if к is not None]
+            if сек:
+                норм.append((сек, вфн))
+        else:
+            сек = [(м, к) for м, к in стр if к]
+            if сек:
+                норм.append((сек, None))
+    for i, (стр, вфн) in enumerate(норм):
+        _add_block(doc, стр, время_fn=вфн)
+        if i < len(норм) - 1:
             _page_br(doc)
 
     buf = BytesIO()
