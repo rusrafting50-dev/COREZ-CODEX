@@ -11632,9 +11632,11 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
 
         # Main table
         N = len(ворота_в_связке)
-        W_ОПИС = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
-        NC = 3 + N + 1
-        widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ОПИС]
+        W_ВСЕГО = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
+        W_ПУСТО = W_ВСЕГО // 2
+        W_ОПИС  = W_ВСЕГО - W_ПУСТО
+        NC = 3 + N + 2
+        widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ПУСТО, W_ОПИС]
 
         tbl = doc.add_table(rows=0, cols=NC)
         _tbl_w(tbl, TW)
@@ -11651,6 +11653,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs0[3], 'Ворота', align=C, pt=PT); _cw(cs0[3], W_GATE * N)
         if N > 1:
             _gridspan(cs0[3], N)
+        _vmerge_restart(cs0[NC-2]); _cw(cs0[NC-2], W_ПУСТО)
         _cw(cs0[NC-1], W_ОПИС)
 
         # Row 1 — header B (gate numbers)
@@ -11663,6 +11666,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _vmerge_cont(cs1[2]); _cw(cs1[2], W_ВРЕМ)
         for gi, г in enumerate(ворота_в_связке):
             _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
+        _vmerge_cont(cs1[NC-2]); _cw(cs1[NC-2], W_ПУСТО)
         _vmerge_restart(cs1[NC-1]); _fill(cs1[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs1[NC-1], W_ОПИС)
 
         def _kwn(row):
@@ -11704,6 +11708,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
                 _fill(csd[2], вс, align=C, pt=PT); _cw(csd[2], W_ВРЕМ)
                 for gi in range(N):
                     _fill(csd[3+gi], '', align=C, pt=PT); _cw(csd[3+gi], W_GATE)
+                _fill(csd[NC-2], '', align=L, pt=PT); _cw(csd[NC-2], W_ПУСТО)
                 _fill(csd[NC-1], '', align=L, pt=PT); _cw(csd[NC-1], W_ОПИС)
 
         # Signature table: [должность] [3-см подчёркивание] [ФИО]

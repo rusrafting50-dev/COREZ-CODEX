@@ -76,6 +76,7 @@
     <th rowspan="2" style="width:110px">Нагрудный номер</th>
     <th rowspan="2" style="width:80px">Время старта</th>
     {% if ворота %}<th colspan="{{ ворота|length }}">Ворота</th>{% endif %}
+    <th rowspan="2"></th>
   </tr>
   <tr>
     {% for г in ворота %}<th style="width:50px">{{ г }}</th>{% endfor %}
@@ -96,6 +97,7 @@
   <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта is not none else '' }}</td>
   {% for г in ворота %}<td></td>{% endfor %}
   <td></td>
+  <td></td>
 </tr>
 {% endfor %}
 {% endif %}
@@ -106,7 +108,7 @@
 {% for ворота in связки %}
 {% set _idx = loop.index0 %}
 {% set _судья = судьи_св[_idx] if судьи_св and _idx < судьи_св|length else '' %}
-{% set _ncols = 4 + ворота|length %}
+{% set _ncols = 5 + ворота|length %}
 {% if ворота %}
 
 {% if вывод == 'Попарно' %}
