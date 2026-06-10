@@ -64,14 +64,11 @@
 </table>
 {% endmacro %}
 
-{% macro подписи() %}
+{% macro подписи(номер_секции, фио_судьи) %}
 <div style="height:1em"></div>
-{% for i in range(кол_секций | default(0)) %}
-{% set фио = судьи_секций[i] if i < судьи_секций|length else '' %}
 <div style="font-size:10pt;font-weight:bold;margin-top:2pt;white-space:nowrap">
-  Судья-контролёр на дистанции (секция {{ i + 1 }}) <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ фио }}
+  Судья-контролёр на дистанции (секция {{ номер_секции }}) <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ фио_судьи }}
 </div>
-{% endfor %}
 {% endmacro %}
 
 {% macro секция(список, метка) %}
@@ -117,11 +114,20 @@
 {% endmacro %}
 
 {% set есть_данные = (муж_р4 | length + жен_р4 | length + муж_р6 | length + жен_р6 | length) > 0 %}
+{% set _всего_секций = [кол_секций | default(0), 1] | max %}
 
 {% if not есть_данные %}
 <p class="text-center text-muted mt-4">Нет данных для отображения.</p>
 
-{% elif вывод == 'Попарно' %}
+{% else %}
+
+{# Цикл по секциям: каждая секция — отдельный блок страниц #}
+{% for сек_idx in range(_всего_секций) %}
+{% set _номер_секции = сек_idx + 1 %}
+{% set _фио_судьи = судьи_секций[сек_idx] if сек_idx < судьи_секций|length else '' %}
+{% set _не_последняя_секция = not loop.last %}
+
+{% if вывод == 'Попарно' %}
   {% set к0 = последовательность[0] if последовательность | length > 0 else '' %}
   {% set к1 = последовательность[1] if последовательность | length > 1 else '' %}
   {% set к2 = последовательность[2] if последовательность | length > 2 else '' %}
@@ -133,18 +139,18 @@
                 or (к3 == 'R4-м' and муж_р4) or (к3 == 'R4-ж' and жен_р4) or (к3 == 'R6-м' and муж_р6) or (к3 == 'R6-ж' and жен_р6) %}
 
   {% if г1_есть %}
-  <div class="{% if г2_есть %}разрыв{% endif %}">
+  <div class="{% if г2_есть or _не_последняя_секция %}разрыв{% endif %}">
     {{ шапка() }}
     <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
-    {{ подписи() }}
+    {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
   {% endif %}
 
   {% if г2_есть %}
-  <div>
+  <div class="{% if _не_последняя_секция %}разрыв{% endif %}">
     {{ шапка() }}
     <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
-    {{ подписи() }}
+    {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
   {% endif %}
 
@@ -157,12 +163,15 @@
   {% endfor %}
 
   {% for код in нса.список %}
-  <div class="{% if not loop.last %}разрыв{% endif %}">
+  <div class="{% if not loop.last or _не_последняя_секция %}разрыв{% endif %}">
     {{ шапка() }}
     <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
-    {{ подписи() }}
+    {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
   {% endfor %}
+{% endif %}
+
+{% endfor %}
 
 {% endif %}
 
