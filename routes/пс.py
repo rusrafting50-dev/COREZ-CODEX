@@ -1703,7 +1703,7 @@ def протокол_результаты(sor_id):
 @bp_пс.route('/<int:sor_id>/протокол-результаты-итог-word')
 def протокол_результаты_итог_word(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
-    портрет = request.args.get('портрет', '0') == '1'
+    портрет = request.args.get('портрет', '1') == '1'
     кл = request.args.get('класс', 'R4')
     has_r6 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R6').count() > 0
     _есть_r4 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R4').count() > 0
@@ -1730,7 +1730,7 @@ def протокол_результаты_итог_word(sor_id):
 @bp_пс.route('/<int:sor_id>/протокол-результаты-пред-word')
 def протокол_результаты_пред_word(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
-    портрет = request.args.get('портрет', '0') == '1'
+    портрет = request.args.get('портрет', '1') == '1'
     кл = request.args.get('класс', 'R4')
     has_r6 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R6').count() > 0
     _есть_r4 = Команда.query.filter_by(соревнование_id=sor_id, класс_судна='R4').count() > 0
