@@ -12026,6 +12026,14 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
+        # Разделитель между таблицей даты/места и основной таблицей
+        pg_dt_gap = doc.add_paragraph(); _sp(pg_dt_gap)
+        _pPr = pg_dt_gap._p.get_or_add_pPr()
+        _sp_el = _pPr.find(qn('w:spacing'))
+        if _sp_el is None: _sp_el = OxmlElement('w:spacing'); _pPr.append(_sp_el)
+        _sp_el.set(qn('w:line'), '20'); _sp_el.set(qn('w:lineRule'), 'exact')
+        _sp_el.set(qn('w:before'), '0'); _sp_el.set(qn('w:after'), '0')
+
         # Main table
         N = len(ворота_в_связке)
         W_ПУСТО = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
