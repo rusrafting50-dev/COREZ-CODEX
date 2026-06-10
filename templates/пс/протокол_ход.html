@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}ПС: Протокол хода — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}ПС: Протокол хода финиш — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block content %}
 <style>
@@ -54,8 +54,9 @@
 {% for секция in секции %}
 <div class="text-center fw-bold mt-4 mb-0">{{ сор.название }}</div>
 <div class="text-center fw-bold mb-0">ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ</div>
-<div class="text-center fw-bold mb-0">Спортивная дисциплина «{{ секция.дисциплина }}»</div>
-<div class="text-center fw-bold mb-2">{{ секция.пол_рус }}</div>
+<div class="text-center fw-bold mb-0">Группа спортивных дисциплин Параллельный спринт</div>
+<div class="text-center fw-bold mb-2">Финиш</div>
+<div class="text-center mb-2">{{ секция.дисциплина }}, {{ секция.пол_рус }}</div>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
@@ -72,6 +73,9 @@
       </tr>
     </thead>
     <tbody>
+      <tr class="section-row">
+        <td colspan="10" class="text-center fw-bold">{{ секция.дисциплина }}, {{ секция.пол_рус }}</td>
+      </tr>
       {% for заезд in секция.заезды %}
       {% for уч in заезд.участники %}
       {% set i = loop.index0 %}
@@ -101,22 +105,9 @@
 <table class="table table-sm table-borderless mb-0" style="width:auto">
   <tbody>
     <tr>
-      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья старта</td>
-      <td style="min-width:250px; border:none">{{ судья_старта }}</td>
-    </tr>
-    <tr>
       <td class="pe-3" style="white-space:nowrap; border:none">Старший судья финиша</td>
       <td style="min-width:250px; border:none">{{ судья_финиша }}</td>
     </tr>
-    {% for i in range(4) %}
-    {% set фио = судьи_буёв[i] if i < судьи_буёв|length else '' %}
-    {% if фио %}
-    <tr>
-      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья на буе № {{ i + 1 }}</td>
-      <td style="min-width:250px; border:none">{{ фио }}</td>
-    </tr>
-    {% endif %}
-    {% endfor %}
   </tbody>
 </table>
 
