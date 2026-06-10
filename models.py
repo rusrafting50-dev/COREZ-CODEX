@@ -204,6 +204,8 @@ class Соревнование(db.Model):
     # Параметры стартового протокола Длинной Гонки
     последовательность_дг       = db.Column(db.String(100), nullable=True)
     вывод_старт_дг              = db.Column(db.String(20),  nullable=True)
+    количество_секций_дг_ход    = db.Column(db.Integer,     nullable=True)
+    судьи_секций_дг             = db.Column(db.String(500), nullable=True)
 
     # Параметры стартового протокола Параллельного Спринта
     последовательность_пс       = db.Column(db.String(100), nullable=True)
@@ -1163,6 +1165,18 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(db.text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_дг VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'количество_секций_дг_ход' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN количество_секций_дг_ход INTEGER"
+                ))
+                conn.commit()
+        if 'судьи_секций_дг' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(db.text(
+                    "ALTER TABLE соревнования ADD COLUMN судьи_секций_дг VARCHAR(500)"
                 ))
                 conn.commit()
         # результаты_дг: штраф +10с (новый столбец)

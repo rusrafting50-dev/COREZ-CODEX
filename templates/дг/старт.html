@@ -171,12 +171,61 @@
           </select>
         </div>
       </div>
+      {# Секции #}
+      {% set _судьи_секций = (сор.судьи_секций_дг or '').split(',') %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-1">Количество секций</label>
+        <select name="количество_секций_дг_ход" id="кол_секций_дг" class="form-select form-select-sm" style="width:auto">
+          <option value="">— не указано —</option>
+          {% for n in range(1, 6) %}
+          <option value="{{ n }}" {% if сор.количество_секций_дг_ход == n %}selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="секции_дг_блок">
+        {% for n in range(1, 6) %}
+        {% set судья_знач = _судьи_секций[n-1] if (n-1) < _судьи_секций|length else '' %}
+        <div class="row g-2 mb-2 секция-строка-дг" id="секция_дг_строка_{{ n }}"
+             style="display:{% if сор.количество_секций_дг_ход and n <= сор.количество_секций_дг_ход %}flex{% else %}none{% endif %}">
+          <div class="col-auto d-flex align-items-center">
+            <span class="fw-semibold small">Секция № {{ n }}</span>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small mb-0">Судья-контролёр на дистанции</label>
+            <select name="судья_секции_дг_{{ n }}" class="form-select form-select-sm">
+              <option value="">— не указан —</option>
+              {% for с in судьи_контролёры | default([]) %}
+              <option value="{{ с.фамилия_имя_отчество }}"
+                {% if судья_знач == с.фамилия_имя_отчество %}selected{% endif %}>
+                {{ с.фамилия_имя_отчество }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
       <div>
         <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
       </div>
     </form>
   </div>
 </div>
+
+<script>
+(function() {
+  var sel = document.getElementById('кол_секций_дг');
+  if (!sel) return;
+  function обновитьСекции() {
+    var n = parseInt(sel.value) || 0;
+    for (var i = 1; i <= 5; i++) {
+      var row = document.getElementById('секция_дг_строка_' + i);
+      if (row) row.style.display = (i <= n) ? 'flex' : 'none';
+    }
+  }
+  sel.addEventListener('change', обновитьСекции);
+})();
+</script>
 
 <script>
 document.querySelectorAll('.время-ввод').forEach(inp => {
