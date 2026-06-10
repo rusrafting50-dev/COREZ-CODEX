@@ -5412,7 +5412,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     R   = WD_ALIGN_PARAGRAPH.RIGHT
 
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
-    TW = round((210 - 15 - 15) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
+    TW = round((210 - 15 - 15) * 1440 / 25.4) if портрет else round((297 - 15 - 5) * 1440 / 25.4)
     if портрет:
         _PCTS = [2.9, 12.1, 5.0, 19.6, 9.3, 5.5, 6.5, 6.5, 5.3, 7.6, 5.3, 5.3, 9.3]
     else:
@@ -5674,7 +5674,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     sect.top_margin    = Mm(10)
     sect.bottom_margin = Mm(15)
     sect.left_margin   = Mm(15)
-    sect.right_margin  = Mm(5) if портрет else Mm(10)
+    sect.right_margin  = Mm(5)
     pgSz = sect._sectPr.find(qn('w:pgSz'))
     if pgSz is not None:
         if портрет:
