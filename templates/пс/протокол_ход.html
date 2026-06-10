@@ -108,11 +108,14 @@
       <td class="pe-3" style="white-space:nowrap; border:none">Старший судья финиша</td>
       <td style="min-width:250px; border:none">{{ судья_финиша }}</td>
     </tr>
-    {% for i in range(количество_секций) %}
+    {% for i in range(4) %}
+    {% set фио = судьи_буёв[i] if i < судьи_буёв|length else '' %}
+    {% if фио %}
     <tr>
-      <td class="pe-3" style="white-space:nowrap; border:none">Судья-контролёр на дистанции (секция {{ i + 1 }})</td>
-      <td style="min-width:250px; border:none">{{ судьи_секций[i] if i < судьи_секций|length else '' }}</td>
+      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья на буе № {{ i + 1 }}</td>
+      <td style="min-width:250px; border:none">{{ фио }}</td>
     </tr>
+    {% endif %}
     {% endfor %}
   </tbody>
 </table>

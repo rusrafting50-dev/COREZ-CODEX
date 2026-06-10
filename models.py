@@ -212,6 +212,10 @@ class Соревнование(db.Model):
     старший_судья_финиша_пс     = db.Column(db.String(200), nullable=True)
     количество_секций_пс        = db.Column(db.Integer,     nullable=True)
     судьи_секций_пс             = db.Column(db.String(500), nullable=True)
+    судья_буя_1_пс              = db.Column(db.String(200), nullable=True)
+    судья_буя_2_пс              = db.Column(db.String(200), nullable=True)
+    судья_буя_3_пс              = db.Column(db.String(200), nullable=True)
+    судья_буя_4_пс              = db.Column(db.String(200), nullable=True)
 
     последовательность_допуска  = db.Column(db.String(100), nullable=True)
     вывод_допуска               = db.Column(db.String(20),  nullable=True)
@@ -1212,6 +1216,11 @@ def применить_миграции():
                     "ALTER TABLE соревнования ADD COLUMN судьи_секций_пс VARCHAR(500)"
                 ))
                 conn.commit()
+        for _col in ('судья_буя_1_пс', 'судья_буя_2_пс', 'судья_буя_3_пс', 'судья_буя_4_пс'):
+            if _col not in cols_сор:
+                with db.engine.connect() as conn:
+                    conn.execute(text(f"ALTER TABLE соревнования ADD COLUMN {_col} VARCHAR(200)"))
+                    conn.commit()
         if 'последовательность_допуска' not in cols_сор:
             with db.engine.connect() as conn:
                 conn.execute(text(
