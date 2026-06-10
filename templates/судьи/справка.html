@@ -12,7 +12,8 @@
     @media print {
       .no-print { display: none !important; }
       body { font-size: 11pt; }
-      @page { margin: 20mm 5mm 20mm 5mm; size: A4 portrait; }
+      @page { margin: 0; size: A4 portrait; }
+      body { margin: 0 !important; padding: 5mm 5mm 10mm 5mm !important; }
       table { page-break-inside: auto; }
       tr    { page-break-inside: avoid; }
     }
