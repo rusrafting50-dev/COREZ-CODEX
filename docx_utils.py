@@ -12022,19 +12022,18 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
 
-        # Main table
+        # Main table (header rows + data rows — единая таблица)
         N = len(ворота_в_связке)
         W_ПУСТО = TW - W_NПП - W_НОМ - W_ВРЕМ - N * W_GATE
         NC = 3 + N + 1
         widths = [W_NПП, W_НОМ, W_ВРЕМ] + [W_GATE] * N + [W_ПУСТО]
 
-        # Заголовочная таблица (первые две строки)
-        head_tbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(head_tbl, TW)
-        _set_grid(head_tbl, widths)
+        tbl = doc.add_table(rows=0, cols=NC)
+        _tbl_w(tbl, TW)
+        _set_grid(tbl, widths)
 
         # Row 0 — header A (Ворота spans N gate cols)
-        rh0 = head_tbl.add_row(); _row_h_min(rh0, 0.85)
+        rh0 = tbl.add_row(); _row_h_min(rh0, 0.85)
         cs0 = list(rh0.cells)
         for c in cs0:
             _borders(c); _valign(c, 'center')
@@ -12050,7 +12049,7 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         _vmerge_restart(cs0[NC-1]); _fill(cs0[NC-1], 'Описание штрафа', align=C, pt=PT); _cw(cs0[NC-1], W_ПУСТО)
 
         # Row 1 — header B (gate numbers)
-        rh1 = head_tbl.add_row(); _row_h_min(rh1, 0.62)
+        rh1 = tbl.add_row(); _row_h_min(rh1, 0.62)
         cs1 = list(rh1.cells)
         for c in cs1:
             _borders(c); _valign(c, 'center')
@@ -12060,18 +12059,6 @@ def create_протокол_ворота_docx(сор, связки, судьи_�
         for gi, г in enumerate(ворота_в_связке):
             _fill(cs1[3+gi], str(г), align=C, pt=PT); _cw(cs1[3+gi], W_GATE)
         _vmerge_cont(cs1[NC-1]); _cw(cs1[NC-1], W_ПУСТО)
-
-        # 1пт пустой абзац между заголовочной и основной таблицами
-        pg_gap = doc.add_paragraph(); _sp(pg_gap)
-        _pPr = pg_gap._p.get_or_add_pPr()
-        _sp_el = _pPr.find(qn('w:spacing'))
-        if _sp_el is None: _sp_el = OxmlElement('w:spacing'); _pPr.append(_sp_el)
-        _sp_el.set(qn('w:line'), '20'); _sp_el.set(qn('w:lineRule'), 'exact')
-        _sp_el.set(qn('w:before'), '0'); _sp_el.set(qn('w:after'), '0')
-
-        tbl = doc.add_table(rows=0, cols=NC)
-        _tbl_w(tbl, TW)
-        _set_grid(tbl, widths)
 
         def _kwn(row):
             for cell in row.cells:
