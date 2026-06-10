@@ -66,7 +66,13 @@
     .no-print { display: none !important; }
     body { font-size: 9pt; }
     @page { margin: 10mm 8mm; size: A4 landscape; }
-    .ps-heat { page-break-inside: avoid; }
+    .ps-heat { page-break-inside: avoid; border: none !important; }
+    .ps-heat-hdr { border-bottom: none !important; }
+    .ps-heat-tbl tr { border-top: none !important; }
+    .ps-stage-hdr { border: none !important; }
+    .ps-heat-hdr .time-inp { border: none !important; }
+    .ps-seed-badge { border: none !important; }
+    table, td, th { border: none !important; }
   }
 </style>
 
