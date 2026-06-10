@@ -100,10 +100,18 @@
 
 <table class="table table-sm table-borderless mb-0" style="width:auto">
   <tbody>
-    {% for роль, инфо in судьи %}
     <tr>
-      <td class="pe-3" style="white-space:nowrap; border:none">{{ роль }}</td>
-      <td style="min-width:250px; border:none">{{ инфо }}</td>
+      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья старта</td>
+      <td style="min-width:250px; border:none">{{ судья_старта }}</td>
+    </tr>
+    <tr>
+      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья финиша</td>
+      <td style="min-width:250px; border:none">{{ судья_финиша }}</td>
+    </tr>
+    {% for i in range(количество_секций) %}
+    <tr>
+      <td class="pe-3" style="white-space:nowrap; border:none">Судья-контролёр на дистанции (секция {{ i + 1 }})</td>
+      <td style="min-width:250px; border:none">{{ судьи_секций[i] if i < судьи_секций|length else '' }}</td>
     </tr>
     {% endfor %}
   </tbody>

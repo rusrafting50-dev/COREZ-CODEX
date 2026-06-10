@@ -572,10 +572,10 @@
 </form>
 
 {% if заголовок != 'Результаты сетка' %}
-{# ── Параметры стартового протокола ── #}
+{# ── Параметры спортивных соревнований ── #}
 <div class="card border-secondary mb-3 mt-4 no-print">
   <div class="card-header py-2 px-3 bg-secondary bg-opacity-10">
-    <span class="fw-semibold">Параметры стартового протокола</span>
+    <span class="fw-semibold">Параметры спортивных соревнований</span>
   </div>
   <div class="card-body py-3 px-3">
     <form method="post" action="{{ url_for('пс.параметры_старт', sor_id=сор.id) }}">
@@ -596,18 +596,97 @@
           {% endfor %}
         </div>
       </div>
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <label class="form-label mb-0 fw-semibold">Выводить стартовый протокол по видам программы</label>
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <label class="form-label mb-0 fw-semibold">Выводить протоколы по видам программы</label>
         <select name="вывод_старт_пс" class="form-select form-select-sm" style="width:auto">
           <option value="Попарно"   {% if (сор.вывод_старт_пс or 'Попарно') == 'Попарно'   %}selected{% endif %}>Попарно</option>
           <option value="Раздельно" {% if сор.вывод_старт_пс == 'Раздельно' %}selected{% endif %}>Раздельно</option>
           <option value="Все"       {% if сор.вывод_старт_пс == 'Все'       %}selected{% endif %}>Все</option>
         </select>
-        <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
       </div>
+
+      {# Судьи #}
+      {% set _судьи_all = судьи_коллегия | default([]) %}
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold mb-1">Старший судья старта</label>
+          <select name="старший_судья_старта_пс" class="form-select form-select-sm">
+            <option value="">— не указан —</option>
+            {% for с in _судьи_all %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_старта_пс == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold mb-1">Старший судья финиша</label>
+          <select name="старший_судья_финиша_пс" class="form-select form-select-sm">
+            <option value="">— не указан —</option>
+            {% for с in _судьи_all %}
+            <option value="{{ с.фамилия_имя_отчество }}"
+              {% if сор.старший_судья_финиша_пс == с.фамилия_имя_отчество %}selected{% endif %}>
+              {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {# Секции #}
+      {% set _судьи_секций = (сор.судьи_секций_пс or '').split(',') %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold mb-1">Количество секций</label>
+        <select name="количество_секций_пс" id="кол_секций_пс" class="form-select form-select-sm" style="width:auto">
+          <option value="">— не указано —</option>
+          {% for n in range(1, 6) %}
+          <option value="{{ n }}" {% if сор.количество_секций_пс == n %}selected{% endif %}>{{ n }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="секции_блок">
+        {% for n in range(1, 6) %}
+        {% set судья_знач = _судьи_секций[n-1] if (n-1) < _судьи_секций|length else '' %}
+        <div class="row g-2 mb-2 секция-строка" id="секция_строка_{{ n }}"
+             style="display:{% if сор.количество_секций_пс and n <= сор.количество_секций_пс %}flex{% else %}none{% endif %}">
+          <div class="col-auto d-flex align-items-center">
+            <span class="fw-semibold small">Секция № {{ n }}</span>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small mb-0">Судья-контролёр на дистанции</label>
+            <select name="судья_секции_{{ n }}" class="form-select form-select-sm">
+              <option value="">— не указан —</option>
+              {% for с in _судьи_all %}
+              <option value="{{ с.фамилия_имя_отчество }}"
+                {% if судья_знач == с.фамилия_имя_отчество %}selected{% endif %}>
+                {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-success btn-sm">Сохранить</button>
     </form>
   </div>
 </div>
+
+<script>
+(function() {
+  var sel = document.getElementById('кол_секций_пс');
+  function обновитьСекции() {
+    var n = parseInt(sel.value) || 0;
+    for (var i = 1; i <= 5; i++) {
+      var row = document.getElementById('секция_строка_' + i);
+      if (row) row.style.display = (i <= n) ? 'flex' : 'none';
+    }
+  }
+  sel.addEventListener('change', обновитьСекции);
+})();
+</script>
 {% endif %}
 
 <script>

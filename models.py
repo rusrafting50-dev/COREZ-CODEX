@@ -208,6 +208,10 @@ class Соревнование(db.Model):
     # Параметры стартового протокола Параллельного Спринта
     последовательность_пс       = db.Column(db.String(100), nullable=True)
     вывод_старт_пс              = db.Column(db.String(20),  nullable=True)
+    старший_судья_старта_пс     = db.Column(db.String(200), nullable=True)
+    старший_судья_финиша_пс     = db.Column(db.String(200), nullable=True)
+    количество_секций_пс        = db.Column(db.Integer,     nullable=True)
+    судьи_секций_пс             = db.Column(db.String(500), nullable=True)
 
     последовательность_допуска  = db.Column(db.String(100), nullable=True)
     вывод_допуска               = db.Column(db.String(20),  nullable=True)
@@ -1182,6 +1186,30 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(text(
                     "ALTER TABLE соревнования ADD COLUMN вывод_старт_пс VARCHAR(20)"
+                ))
+                conn.commit()
+        if 'старший_судья_старта_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN старший_судья_старта_пс VARCHAR(200)"
+                ))
+                conn.commit()
+        if 'старший_судья_финиша_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN старший_судья_финиша_пс VARCHAR(200)"
+                ))
+                conn.commit()
+        if 'количество_секций_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN количество_секций_пс INTEGER"
+                ))
+                conn.commit()
+        if 'судьи_секций_пс' not in cols_сор:
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    "ALTER TABLE соревнования ADD COLUMN судьи_секций_пс VARCHAR(500)"
                 ))
                 conn.commit()
         if 'последовательность_допуска' not in cols_сор:
