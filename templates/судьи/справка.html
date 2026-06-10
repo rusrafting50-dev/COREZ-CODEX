@@ -8,7 +8,7 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
         crossorigin="anonymous">
   <style>
-    body { font-family: "Times New Roman", serif; font-size: 12pt; font-weight: bold; }
+    body { font-family: "Times New Roman", serif; font-size: 12pt; font-weight: normal; }
     @media print {
       .no-print { display: none !important; }
       body { font-size: 11pt; }
@@ -17,7 +17,7 @@
       tr    { page-break-inside: avoid; }
     }
     table { border-collapse: collapse; width: 100%; font-size: 10pt; }
-    th, td { border: 1px solid #333; padding: 4px 6px; vertical-align: middle; font-weight: bold; }
+    th, td { border: 1px solid #333; padding: 4px 6px; vertical-align: middle; font-weight: normal; }
     thead th { background: #f0f0f0; font-weight: bold; text-align: center; }
     .underline-field { border-bottom: 1px solid #000; display: block; }
   </style>
@@ -38,16 +38,16 @@
 
 {# ── Шапка ── #}
 {% if сор.организаторы_блок %}
-<div class="text-center" style="font-size:10pt; font-weight:bold; white-space:pre-line">{{ сор.организаторы_блок }}</div>
+<div class="text-center" style="font-size:10pt; white-space:pre-line">{{ сор.организаторы_блок }}</div>
 {% endif %}
 
-<div class="text-center" style="font-size:11pt; font-weight:bold; margin-top:4px">
+<div class="text-center" style="font-size:11pt; margin-top:4px">
   {{ сор.название }}
   {% if сор.номер_екп %}<br><span style="font-size:10pt">ЕКП № {{ сор.номер_екп }}</span>{% endif %}
 </div>
 
 {# ── Дата и место ── #}
-<div style="display:flex; justify-content:space-between; font-size:10pt; margin-top:8px; margin-bottom:8pt">
+<div style="display:flex; justify-content:space-between; font-size:10pt; font-weight:normal; margin-top:8px; margin-bottom:8pt">
   <div style="display:inline-block; text-align:center">
     <div class="underline-field" style="display:block">{{ сор.даты_проведения or '&nbsp;' }}</div>
     <div style="font-size:8pt; font-weight:normal; margin-top:1pt; text-align:center">Дата проведения</div>
@@ -123,8 +123,8 @@
     <tr>
       <td class="text-center">{{ loop.index }}</td>
       <td>{{ с.должность or '—' }}</td>
-      <td><strong>{{ с.фамилия_имя_отчество }}</strong></td>
-      <td class="text-center"><strong>{{ с.квалификация or '—' }}</strong></td>
+      <td>{{ с.фамилия_имя_отчество }}</td>
+      <td class="text-center">{{ с.квалификация or '—' }}</td>
       <td>{{ с.субъект_рф or '—' }}</td>
     </tr>
     {% endfor %}
@@ -132,7 +132,7 @@
 </table>
 
 {# ── Подпись ── #}
-<div style="margin-top:20px; font-size:11pt; font-weight:bold">
+<div style="margin-top:20px; font-size:11pt;">
   <div style="display:flex; align-items:baseline">
     <div style="width:40%">Главный судья</div>
     <div>{{ сор.главный_судья or '' }}</div>
