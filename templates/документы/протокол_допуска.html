@@ -18,7 +18,7 @@
     }
     h2 { text-align: center; font-size: 12pt; font-weight: bold;
          margin: 4px 0; letter-spacing: 0.5px; }
-    table { border-collapse: collapse; width: 100%; }
+    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
     th, td { border: 0.75pt solid #333; padding: 2px 4px; vertical-align: middle; font-size: 9pt; font-weight: normal; }
     th { font-weight: bold; text-align: center; }
     td.num { text-align: center; }
@@ -120,14 +120,14 @@
 {% macro thead_таблицы() %}
 <thead>
   <tr>
-    <th style="width:28px">№<br>п/п</th>
-    <th style="width:130px">Команда</th>
-    <th style="width:110px">Территория</th>
-    <th style="width:140px">Тренер/<br>Представитель</th>
-    <th>Состав команды</th>
-    <th style="width:82px">Дата<br>рождения</th>
-    <th style="width:72px">Разряд,<br>звание</th>
-    <th style="width:60px">Нагрудный<br>номер</th>
+    <th style="width:4%">№<br>п/п</th>
+    <th style="width:18%">Команда</th>
+    <th style="width:15%">Территория</th>
+    <th style="width:19%">Тренер/<br>Представитель</th>
+    <th style="width:27%">Состав команды</th>
+    <th style="width:11%">Дата<br>рождения</th>
+    <th style="width:10%">Разряд,<br>звание</th>
+    <th style="width:8%">Нагрудный<br>номер</th>
   </tr>
 </thead>
 {% endmacro %}
