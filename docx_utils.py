@@ -2370,9 +2370,10 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         _run(p, '№\nп/п', pt=8, bold=True)
         _fill(cs[1], 'Команда',      align=C, pt=8, bold=True)
         _fill(cs[2], 'Номер',        align=C, pt=8, bold=True)
-        _fill(cs[3], 'Время старта', align=C, pt=8, bold=True)
+        p3 = cs[3].paragraphs[0]; p3.clear(); _sp(p3); p3.alignment = C; _valign(cs[3])
+        _run(p3, 'Время старта\nпротокол', pt=8, bold=True)
         p4 = cs[4].paragraphs[0]; p4.clear(); _sp(p4); p4.alignment = C; _valign(cs[4])
-        _run(p4, 'Время\nфиниша', pt=8, bold=True)
+        _run(p4, 'Время старта\nдистанция', pt=8, bold=True)
         _fill(cs[5], 'Штраф', align=C, pt=8, bold=True)
 
         for метка, команды in секции:
