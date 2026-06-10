@@ -5414,7 +5414,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     # 13 grid columns: НПП/Команда/Номер/ФИО/Субъект/Старт/Финиш/РезШтраф/Время/Итоговый/Место/Очки/Разряд
     TW = round((210 - 15 - 15) * 1440 / 25.4) if портрет else round((297 - 15 - 10) * 1440 / 25.4)
     if портрет:
-        _PCTS = [2.9, 12.1, 5.0, 19.6, 9.3, 5.5, 6.5, 6.5, 5.3, 7.6, 5.3, 5.3, 9.3]
+        _PCTS = [2.9, 12.1, 5.0, 18.2, 9.3, 5.5, 6.5, 6.5, 5.3, 9.0, 5.3, 5.3, 9.3]
     else:
         _PCTS = [3.1, 13.1, 4.7, 24.8, 10.7, 5.3, 5.3, 5.3, 5.3, 6.2, 4.5, 3.6, 8.0]
     GRID = [round(TW * p / 100) for p in _PCTS]
@@ -5772,7 +5772,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТФ], 'Финиш',   align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ШТИ], 'Штраф',   align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ВП],  'Время',    align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ИТ],  'Итоговый', align=C, pt=9.5, bold=True)
+    _fill(cs[I_ИТ],  'Итоговый', align=C, pt=8, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
