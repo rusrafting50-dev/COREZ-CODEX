@@ -606,16 +606,15 @@
       </div>
 
       {# Судьи #}
-      {% set _судьи_all = судьи_коллегия | default([]) %}
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label fw-semibold mb-1">Старший судья старта</label>
           <select name="старший_судья_старта_пс" class="form-select form-select-sm">
             <option value="">— не указан —</option>
-            {% for с in _судьи_all %}
+            {% for с in судьи_старта | default([]) %}
             <option value="{{ с.фамилия_имя_отчество }}"
               {% if сор.старший_судья_старта_пс == с.фамилия_имя_отчество %}selected{% endif %}>
-              {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+              {{ с.фамилия_имя_отчество }}
             </option>
             {% endfor %}
           </select>
@@ -624,10 +623,10 @@
           <label class="form-label fw-semibold mb-1">Старший судья финиша</label>
           <select name="старший_судья_финиша_пс" class="form-select form-select-sm">
             <option value="">— не указан —</option>
-            {% for с in _судьи_all %}
+            {% for с in судьи_финиша | default([]) %}
             <option value="{{ с.фамилия_имя_отчество }}"
               {% if сор.старший_судья_финиша_пс == с.фамилия_имя_отчество %}selected{% endif %}>
-              {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+              {{ с.фамилия_имя_отчество }}
             </option>
             {% endfor %}
           </select>
@@ -657,10 +656,10 @@
             <label class="form-label small mb-0">Судья-контролёр на дистанции</label>
             <select name="судья_секции_{{ n }}" class="form-select form-select-sm">
               <option value="">— не указан —</option>
-              {% for с in _судьи_all %}
+              {% for с in судьи_контролёры | default([]) %}
               <option value="{{ с.фамилия_имя_отчество }}"
                 {% if судья_знач == с.фамилия_имя_отчество %}selected{% endif %}>
-                {{ с.фамилия_имя_отчество }}{% if с.должность %} ({{ с.должность }}){% endif %}
+                {{ с.фамилия_имя_отчество }}
               </option>
               {% endfor %}
             </select>
