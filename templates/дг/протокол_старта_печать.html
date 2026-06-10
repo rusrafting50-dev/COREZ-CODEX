@@ -69,7 +69,7 @@
 
 {% macro секция(список, метка) %}
 {% if список %}
-<tr class="section-row"><td colspan="5" class="text-center">{{ метка }}</td></tr>
+<tr class="section-row"><td colspan="6" class="text-center">{{ метка }}</td></tr>
 {% set нс = namespace(пп=0) %}
 {% for к in список %}
 {% set нс.пп = нс.пп + 1 %}
@@ -80,10 +80,11 @@
   <td class="text-center">{{ к.нагрудный_номер }}</td>
   <td class="text-center">{{ format_time_hms(рез.время_старта) if рез and рез.время_старта else '' }}</td>
   <td class="text-center"></td>
+  <td class="text-center"></td>
 </tr>
 {% endfor %}
-<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 {% endif %}
 {% endmacro %}
 
@@ -102,6 +103,7 @@
     <th style="width:106px">Команда</th>
     <th style="width:45px">Номер</th>
     <th style="width:91px">Время старта</th>
+    <th style="width:65px">Время<br>финиша</th>
     <th style="width:50px">Штраф</th>
   </tr>
 </thead>
