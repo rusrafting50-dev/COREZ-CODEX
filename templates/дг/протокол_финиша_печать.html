@@ -68,14 +68,6 @@
 <div style="font-size:10pt;font-weight:bold;margin-top:0;margin-bottom:0;white-space:nowrap">
   Старший судья финиша <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ сор.старший_судья_финиша or '' }}
 </div>
-{% for i in range(кол_секций | default(0)) %}
-{% set фио = судьи_секций[i] if i < судьи_секций|length else '' %}
-{% if фио %}
-<div style="font-size:10pt;font-weight:bold;margin-top:2pt;white-space:nowrap">
-  Судья-контролёр на дистанции (секция {{ i + 1 }}) <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ фио }}
-</div>
-{% endif %}
-{% endfor %}
 {% endmacro %}
 
 {% macro секция(список, метка) %}
