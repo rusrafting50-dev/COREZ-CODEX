@@ -43,7 +43,7 @@
   <div class="d-flex gap-2">
     {% if итоговый %}
     <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0)) }}&класс={{ 'R6' if класс == 'R4' else 'R4' }}"
-       class="btn btn-outline-secondary btn-sm">🖨 Итоговые протоколы {{ 'R6' if класс == 'R4' else 'R4' }}</a>
+       class="btn btn-outline-secondary btn-sm">🖨 Протоколы {{ 'R6' if класс == 'R4' else 'R4' }}</a>
     {% else %}
     <a href="{{ url_for('многоборье.протокол', sor_id=сор.id, итоговый=1, портрет=(1 if портрет else 0)) }}&класс={{ класс }}"
        class="btn btn-outline-primary btn-sm">Итоговый</a>
