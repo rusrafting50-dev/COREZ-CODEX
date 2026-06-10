@@ -28,7 +28,7 @@
     .text-center { text-align: center; }
     .section-row td { background: #fff; font-weight: bold; font-size: 9pt; padding: 4px; }
   </style>
-  <style id="style-landscape">@media print { @page { margin:12mm 5mm; size:A4 landscape; } }</style>
+  <style id="style-landscape">@media print { @page { margin:12mm 5mm; size:A4 portrait; } }</style>
   <style id="style-portrait" disabled>@media print { @page { margin:12mm 5mm; size:A4 portrait; } }</style>
 </head>
 <body class="px-3 py-3">
@@ -39,7 +39,7 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('дг.протокол_старта_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол старта</a>
-    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
+    <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
     <a id="btn-word" href="{{ url_for('дг.протокол_финиша_печать_word', sor_id=сор.id) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
@@ -172,7 +172,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-let _landscape = true;
+let _landscape = false;
 var _wordBase = '{{ url_for("дг.протокол_финиша_печать_word", sor_id=сор.id) }}';
 function toggleOrient() {
   _landscape = !_landscape;
