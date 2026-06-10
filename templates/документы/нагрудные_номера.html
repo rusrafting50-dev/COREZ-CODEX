@@ -15,6 +15,7 @@
       @page { margin: 12mm 12mm 12mm 15mm; size: A4 landscape; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      tr.section-row, tr:has(td[colspan]), tr:has(th[colspan]) { break-after: avoid; page-break-after: avoid; }
     }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #333; padding: 2px 4px; vertical-align: middle; font-size: 8pt; }

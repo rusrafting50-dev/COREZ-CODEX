@@ -15,6 +15,7 @@
       @page { margin: 15mm 10mm 15mm 20mm; size: A4 portrait; }
       table { page-break-inside: auto; }
       tr { page-break-inside: avoid; }
+      tr.section-row, tr:has(td[colspan]), tr:has(th[colspan]) { break-after: avoid; page-break-after: avoid; }
       table { border-collapse: collapse !important; }
       td, th { border: 0.75pt solid #333 !important; }
     }

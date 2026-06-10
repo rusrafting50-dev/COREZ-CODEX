@@ -14,6 +14,7 @@
       body { font-size: 9pt; }
       @page { margin: 12mm 8mm; size: A4 portrait; }
       tr { page-break-inside: avoid; }
+      tr.section-row, tr:has(td[colspan]), tr:has(th[colspan]) { break-after: avoid; page-break-after: avoid; }
       table { border-collapse: collapse !important; }
       td, th { border: 0.75pt solid #333 !important; }
     }
