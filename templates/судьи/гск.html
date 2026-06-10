@@ -78,7 +78,7 @@
 {%- elif p|length == 2 -%}{{ p[1][0] }}.&nbsp;{{ p[0] }}
 {%- else -%}{{ фио or '' }}{%- endif -%}
 {% endmacro %}
-<table class="utv-table" style="width:33%;margin-left:66.67%;border-collapse:collapse;margin-bottom:12px">
+<div style="margin-left:66%;margin-bottom:12px;overflow:hidden"><table class="utv-table" style="width:100%;border-collapse:collapse">
   <tr>
     <td style="text-align:center;font-size:10pt;line-height:1.4;padding:2px 4px">
       <p style="font-weight:bold;text-transform:uppercase;margin:0 0 4px">УТВЕРЖДАЮ</p>
@@ -95,7 +95,7 @@
       <p style="margin:4px 0 0;text-align:center">«____»&nbsp;___________&nbsp;202__&nbsp;г.</p>
     </td>
   </tr>
-</table>
+</table></div>
 
 {# ── Заголовок ── #}
 <div class="text-center mb-3" style="font-size:13pt;font-weight:bold">
