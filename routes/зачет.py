@@ -206,7 +206,7 @@ def протокол(sor_id):
 @bp_зачет.route('/<int:sor_id>/протокол-word')
 def протокол_word(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)
-    портрет  = request.args.get('портрет',  '0') == '1'
+    портрет  = request.args.get('портрет',  '1') == '1'
     итоговый = request.args.get('итоговый', '0') == '1'
     итог, группы = _зачёт_все(sor_id)
     таблица_зс = _таблица_зс() if итоговый else None
