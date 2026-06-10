@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}ПС: Протокол хода финиш — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}ПС: Протокол хода {{ подзаголовок }} — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block content %}
 <style>
@@ -15,13 +15,9 @@
   }
 </style>
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
-  <a href="{{ url_for('пс.сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
+  <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2">
     <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
-    <a id="word-btn"
-       data-href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}"
-       href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id) }}"
-       class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -39,8 +35,6 @@
   function toggleOrient() {
     _landscape = !_landscape;
     _applyOrient();
-    var base = document.getElementById('word-btn').getAttribute('data-href');
-    document.getElementById('word-btn').href = _landscape ? base : base + '?portrait=1';
     document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
   }
 
@@ -55,7 +49,7 @@
 <div class="text-center fw-bold mt-4 mb-0">{{ сор.название }}</div>
 <div class="text-center fw-bold mb-0">ПРОТОКОЛ ХОДА СОРЕВНОВАНИЙ</div>
 <div class="text-center fw-bold mb-0">Группа спортивных дисциплин Параллельный спринт</div>
-<div class="text-center fw-bold mb-2">Финиш</div>
+<div class="text-center fw-bold mb-2">{{ подзаголовок }}</div>
 <div class="table-responsive mb-3">
   <table class="table table-sm table-bordered align-middle">
     <thead class="table-light">
@@ -104,8 +98,8 @@
 <table class="table table-sm table-borderless mb-0" style="width:auto">
   <tbody>
     <tr>
-      <td class="pe-3" style="white-space:nowrap; border:none">Старший судья финиша <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span></td>
-      <td style="min-width:250px; border:none">{{ судья_финиша }}</td>
+      <td class="pe-3" style="white-space:nowrap; border:none">{{ судья_роль }} <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span></td>
+      <td style="min-width:250px; border:none">{{ судья_фио }}</td>
     </tr>
   </tbody>
 </table>
