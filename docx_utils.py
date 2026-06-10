@@ -5772,7 +5772,7 @@ def create_результаты_пред_спринт_docx(сор, муж_рез
     _fill(cs[I_ШТФ], 'Финиш',   align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ШТИ], 'Штраф',   align=C, pt=PT_HDR, bold=True)
     _fill(cs[I_ВП],  'Время',    align=C, pt=PT_HDR, bold=True)
-    _fill(cs[I_ИТ],  'Итоговый', align=C, pt=PT_HDR, bold=True)
+    _fill(cs[I_ИТ],  'Итоговый', align=C, pt=9.5, bold=True)
     for i in range(NC):
         _borders(cs[i]); _valign(cs[i])
     for i in range(NC):
