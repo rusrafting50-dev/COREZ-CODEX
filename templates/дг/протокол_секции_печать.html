@@ -46,9 +46,9 @@
   </div>
 </div>
 
-{% macro шапка() %}
+{% macro шапка(номер_секции) %}
 <div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:4px; text-align:center">{{ сор.название }}</div>
-<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол секции</div>
+<div class="text-center" style="font-size:12pt; font-weight:bold; margin-top:6px; margin-bottom:4px; text-align:center">Протокол секции № {{ номер_секции }}</div>
 <div class="text-center" style="font-size:10pt; font-weight:bold; margin-bottom:4px; text-align:center">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</div>
 <table style="width:100%;border-collapse:collapse;border:none!important;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
@@ -67,7 +67,7 @@
 {% macro подписи(номер_секции, фио_судьи) %}
 <div style="height:1em"></div>
 <div style="font-size:10pt;font-weight:bold;margin-top:2pt;white-space:nowrap">
-  Судья-контролёр на дистанции (секция {{ номер_секции }}) <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ фио_судьи }}
+  Судья-контролёр на дистанции <span style="display:inline-block;width:3cm;border-bottom:0.75pt solid #000">&nbsp;</span> {{ фио_судьи }}
 </div>
 {% endmacro %}
 
@@ -140,7 +140,7 @@
 
   {% if г1_есть %}
   <div class="{% if г2_есть or _не_последняя_секция %}разрыв{% endif %}">
-    {{ шапка() }}
+    {{ шапка(_номер_секции) }}
     <table>{{ thead() }}<tbody>{{ секция_код(к0) }}{{ секция_код(к1) }}</tbody></table>
     {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
@@ -148,7 +148,7 @@
 
   {% if г2_есть %}
   <div class="{% if _не_последняя_секция %}разрыв{% endif %}">
-    {{ шапка() }}
+    {{ шапка(_номер_секции) }}
     <table>{{ thead() }}<tbody>{{ секция_код(к2) }}{{ секция_код(к3) }}</tbody></table>
     {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
@@ -164,7 +164,7 @@
 
   {% for код in нса.список %}
   <div class="{% if not loop.last or _не_последняя_секция %}разрыв{% endif %}">
-    {{ шапка() }}
+    {{ шапка(_номер_секции) }}
     <table>{{ thead() }}<tbody>{{ секция_код(код) }}</tbody></table>
     {{ подписи(_номер_секции, _фио_судьи) }}
   </div>
