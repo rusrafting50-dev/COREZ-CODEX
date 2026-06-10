@@ -57,19 +57,19 @@
   <colgroup><col style="width:220px"><col></colgroup>
   <tbody>
     <tr>
-      <td style="border:none; padding:2px 0">Субъект РФ / организация:</td>
-      <td style="border:none; padding:2px 8px"><strong>{{ субъект.название }}</strong></td>
+      <td style="border:none!important; padding:2px 0">Субъект РФ / организация:</td>
+      <td style="border:none!important; padding:2px 8px"><strong>{{ субъект.название }}</strong></td>
     </tr>
     {% if субъект.номер_делегации %}
     <tr>
-      <td style="border:none; padding:2px 0">Номер делегации:</td>
-      <td style="border:none; padding:2px 8px">{{ субъект.номер_делегации }}</td>
+      <td style="border:none!important; padding:2px 0">Номер делегации:</td>
+      <td style="border:none!important; padding:2px 8px">{{ субъект.номер_делегации }}</td>
     </tr>
     {% endif %}
     {% if субъект.представитель %}
     <tr>
-      <td style="border:none; padding:2px 0">Представитель делегации:</td>
-      <td style="border:none; padding:2px 8px"><strong>{{ субъект.представитель }}</strong></td>
+      <td style="border:none!important; padding:2px 0">Представитель делегации:</td>
+      <td style="border:none!important; padding:2px 8px"><strong>{{ субъект.представитель }}</strong></td>
     </tr>
     {% endif %}
   </tbody>
@@ -137,18 +137,18 @@
 {# ── Взнос ── #}
 {% if взнос_руб %}
 <div class="mt-2" style="font-size:10pt">
-  <table style="border:none; width:auto; font-size:10pt">
+  <table style="border:none!important; width:auto; font-size:10pt">
     <tr>
-      <td style="border:none; padding:2px 0; min-width:200px">Взнос на одного участника:</td>
-      <td style="border:none; padding:2px 8px">{{ взнос_руб | int }} руб.</td>
+      <td style="border:none!important; padding:2px 0; min-width:200px">Взнос на одного участника:</td>
+      <td style="border:none!important; padding:2px 8px">{{ взнос_руб | int }} руб.</td>
     </tr>
     <tr>
-      <td style="border:none; padding:2px 0">Количество спортсменов:</td>
-      <td style="border:none; padding:2px 8px">{{ всего_сп }} чел.</td>
+      <td style="border:none!important; padding:2px 0">Количество спортсменов:</td>
+      <td style="border:none!important; padding:2px 8px">{{ всего_сп }} чел.</td>
     </tr>
     <tr style="font-weight:bold">
-      <td style="border:none; padding:2px 0">Итого к оплате:</td>
-      <td style="border:none; padding:2px 8px">{{ итого_руб }} руб.</td>
+      <td style="border:none!important; padding:2px 0">Итого к оплате:</td>
+      <td style="border:none!important; padding:2px 8px">{{ итого_руб }} руб.</td>
     </tr>
   </table>
 </div>

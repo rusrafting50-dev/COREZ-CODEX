@@ -114,15 +114,15 @@
   {% if класс == 'R4' %}СПРИНТ – R4, код ВРВС 1740091811Я{% elif класс == 'R6' %}СПРИНТ – R6, код ВРВС 1740101811Я{% else %}СПРИНТ{% if класс %} – {{ класс }}{% endif %}{% endif %}
 </div>
 
-<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
+<table style="width:100%;border-collapse:collapse;border:none!important;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
     <td style="width:140px;white-space:nowrap;text-align:center;border:none!important;border-bottom:0.75pt solid #000!important;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
-    <td style="width:100%;border:none;padding:0"></td>
+    <td style="width:100%;border:none!important;padding:0"></td>
     <td style="white-space:nowrap;text-align:center;border:none!important;border-bottom:0.75pt solid #000!important;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
   <tr>
     <td style="width:140px;text-align:center;border:none!important;padding:0 4px;font-size:8pt;font-weight:bold;vertical-align:top">Дата проведения</td>
-    <td style="width:100%;border:none;padding:0"></td>
+    <td style="width:100%;border:none!important;padding:0"></td>
     <td style="white-space:nowrap;text-align:center;border:none!important;padding:0 4px;font-size:8pt;font-weight:bold;vertical-align:top">Место проведения</td>
   </tr>
 </table>
@@ -417,14 +417,14 @@
 <div class="text-center py-4">Нет результатов для отображения</div>
 {% endif %}
 
-<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
+<table style="width:100%;border-collapse:collapse;border:none!important;font-size:10pt;font-weight:bold;margin-top:16pt;margin-bottom:16pt">
   <tr>
-    <td style="width:33%;border:none;padding:0 0 10pt 0">Главный судья</td>
-    <td style="border:none;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
+    <td style="width:33%;border:none!important;padding:0 0 10pt 0">Главный судья</td>
+    <td style="border:none!important;padding:0 0 10pt 0;white-space:nowrap">{{ сор.главный_судья or '' }}</td>
   </tr>
   <tr>
-    <td style="width:33%;border:none;padding:0">Главный секретарь</td>
-    <td style="border:none;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
+    <td style="width:33%;border:none!important;padding:0">Главный секретарь</td>
+    <td style="border:none!important;padding:0;white-space:nowrap">{{ сор.главный_секретарь or '' }}</td>
   </tr>
 </table>
 

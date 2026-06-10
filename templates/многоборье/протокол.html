@@ -94,15 +94,15 @@
   Спортивная дисциплина Многоборье – {{ класс }}{% if сор.код_многоборье %}, код ВРВС {{ сор.код_многоборье }}{% endif %}
 </div>
 
-<table style="width:100%;border-collapse:collapse;border:none;font-size:10pt;font-weight:bold;margin-bottom:8px">
+<table style="width:100%;border-collapse:collapse;border:none!important;font-size:10pt;font-weight:bold;margin-bottom:8px">
   <tr>
     <td style="width:140px;white-space:nowrap;text-align:center;border:none!important;border-bottom:0.75pt solid #000!important;padding:2px 4px;vertical-align:bottom">{{ сор.даты_проведения or '&nbsp;' }}</td>
-    <td style="width:100%;border:none;padding:0"></td>
+    <td style="width:100%;border:none!important;padding:0"></td>
     <td style="white-space:nowrap;text-align:center;border:none!important;border-bottom:0.75pt solid #000!important;padding:2px 4px;vertical-align:bottom">{{ сор.место_проведения or '&nbsp;' }}</td>
   </tr>
   <tr>
     <td style="width:140px;text-align:center;border:none!important;padding:0 4px;font-size:8pt;font-weight:bold;vertical-align:top">Дата проведения</td>
-    <td style="width:100%;border:none;padding:0"></td>
+    <td style="width:100%;border:none!important;padding:0"></td>
     <td style="white-space:nowrap;text-align:center;border:none!important;padding:0 4px;font-size:8pt;font-weight:bold;vertical-align:top">Место проведения</td>
   </tr>
 </table>
