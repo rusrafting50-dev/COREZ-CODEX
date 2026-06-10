@@ -2137,8 +2137,8 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
 
     TW = round(((210 if портрет else 297) - 15 - 10) * 1440 / 25.4)
 
-    # Data table 6 columns: №5%, Команда30%, Номер8%, Время старта20%, Время финиша20%, Штраф17%
-    _PCTS = [5, 30, 8, 20, 20, 17]
+    # Data table 5 columns: №5%, Команда35%, Номер8%, Время старта20%, Штраф17%
+    _PCTS = [5, 35, 8, 35, 17]
     GRID  = [round(TW * p / 100) for p in _PCTS]
     GRID[-1] += TW - sum(GRID)
     NC = len(GRID)
@@ -2371,9 +2371,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
         _fill(cs[1], 'Команда',      align=C, pt=8, bold=True)
         _fill(cs[2], 'Номер',        align=C, pt=8, bold=True)
         _fill(cs[3], 'Время старта', align=C, pt=8, bold=True)
-        p4 = cs[4].paragraphs[0]; p4.clear(); _sp(p4); p4.alignment = C; _valign(cs[4])
-        _run(p4, 'Время\nфиниша', pt=8, bold=True)
-        _fill(cs[5], 'Штраф', align=C, pt=8, bold=True)
+        _fill(cs[4], 'Штраф',        align=C, pt=8, bold=True)
 
         for метка, команды in секции:
             # Section header
@@ -2399,7 +2397,6 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
                 _fill(cs[2], str(к.нагрудный_номер or ''),     align=C)
                 _fill(cs[3], время,                             align=C)
                 _fill(cs[4], '')
-                _fill(cs[5], '')
 
             # Две пустые строки в конце секции (только если есть данные)
             if команды:
