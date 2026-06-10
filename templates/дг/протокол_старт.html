@@ -41,6 +41,8 @@
   <div class="d-flex gap-2">
     <a href="{{ url_for('дг.протокол_старта_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол старта</a>
+    <a href="{{ url_for('дг.протокол_секции_печать', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протокол секции</a>
     <a href="{{ url_for('дг.протокол_финиша_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
