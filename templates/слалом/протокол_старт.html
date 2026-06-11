@@ -50,7 +50,7 @@
     <a href="{{ url_for('слалом.протокол_финиша_печать', sor_id=сор.id) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протокол финиша</a>
     <button id="btn-orient" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
-    <a id="btn-word" href="{{ url_for('слалом.протокол_старт_word', sor_id=сор.id) }}?портрет=0" class="btn btn-success btn-sm">Word</a>
+    <a id="btn-word" href="{{ url_for('слалом.протокол_старт_word', sor_id=сор.id) }}?портрет=1" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -195,9 +195,7 @@
 {% elif к1 == 'R6-м' %}{% set _сп1 = муж_р6 %}{% set _мт1 = 'Слалом – R6, Мужчины' %}
 {% elif к1 == 'R6-ж' %}{% set _сп1 = жен_р6 %}{% set _мт1 = 'Слалом – R6, Женщины' %}
 {% else %}{% set _сп1 = [] %}{% set _мт1 = '' %}{% endif %}
-{% set _ключ0 = _мб0 | map(attribute='заг') | join(',') %}
-{% set _ключ1 = _мб1 | map(attribute='заг') | join(',') %}
-{% if _ключ0 == _ключ1 and _сп0 and _сп1 %}
+{% if (_мб0 | length) == (_мб1 | length) and _сп0 and _сп1 %}
 <table>{{ thead(_мб0) }}<tbody>{{ секция(_сп0, _мт0, _мб0) }}{{ секция(_сп1, _мт1, _мб0) }}</tbody></table>
 {% else %}
 {% if _сп0 %}<table>{{ thead(_мб0) }}<tbody>{{ секция(_сп0, _мт0, _мб0) }}</tbody></table>{% endif %}
