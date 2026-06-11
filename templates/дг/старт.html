@@ -31,14 +31,6 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Стартовый протокол</h5></div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% for cat, msg in messages %}
-<div class="alert alert-{{ cat }} alert-dismissible py-2">{{ msg }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endwith %}
-
 {% if not муж and not жен %}
 <div class="alert alert-warning">Нет команд для формирования стартового протокола.</div>
 {% else %}
