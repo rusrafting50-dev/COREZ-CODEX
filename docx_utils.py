@@ -2479,7 +2479,7 @@ def create_финиша_спринт_docx(сор, группы, filename, пор
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
 
 
-def create_старт_слалом_docx(сор, секции, filename, портрет=True):
+def create_старт_слалом_docx(сор, секции, filename, портрет=True, вывод='Попарно'):
     """Стартовый протокол Слалом — по форме Протокол_сл_старт.docx.
 
     секции: list of (метка, команды, мб_колонки).
@@ -2787,15 +2787,9 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         tblPr.addnext(grid)
         return t, W_L, W_R
 
-    # ── Построить одну секцию ─────────────────────────────────────────────────
+    # ── Вспомогательные построители ──────────────────────────────────────────
 
-    def _build_section(метка, команды, мб_колонки):
-        кол1_заг  = мб_колонки[0]['заг']        if len(мб_колонки) > 0 else ''
-        кол2_заг  = мб_колонки[1]['заг']        if len(мб_колонки) > 1 else ''
-        кол1_поле = мб_колонки[0].get('поле')   if len(мб_колонки) > 0 else None
-        кол2_поле = мб_колонки[1].get('поле')   if len(мб_колонки) > 1 else None
-
-        # ── Таблица 1: дата / место ──────────────────────────────────────────
+    def _add_dv_tbl():
         dv = _make_dv_tbl()
         r = dv.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
@@ -2805,7 +2799,6 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _fill(cs[0], сор.даты_проведения  or '', align=C, pt=10, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], сор.место_проведения or '', align=C, pt=10, bold=True)
-
         r = dv.add_row(); _row_h(r, 0.5)
         cs = list(r.cells)
         _no_border(cs[0]); _no_border(cs[1]); _no_border(cs[2])
@@ -2814,15 +2807,13 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _fill(cs[0], 'Дата проведения',  align=C, pt=8, bold=True)
         _fill(cs[1], '')
         _fill(cs[2], 'Место проведения', align=C, pt=8, bold=True)
-
         _tiny_para()
 
-        # ── Таблица 2: шапка + данные ────────────────────────────────────────
+    def _make_data_tbl_with_header(мб_колонки):
+        кол1_заг = мб_колонки[0]['заг'] if len(мб_колонки) > 0 else ''
+        кол2_заг = мб_колонки[1]['заг'] if len(мб_колонки) > 1 else ''
         tbl = _make_tbl()
-
-        # Шапка строка 1
-        r = tbl.add_row()
-        _tbl_header_row(r)
+        r = tbl.add_row(); _tbl_header_row(r)
         cs = list(r.cells)
         cs[5].merge(cs[7]); _cw(cs[5], W_МБ)
         for i, w in enumerate(GRID):
@@ -2841,54 +2832,44 @@ def create_старт_слалом_docx(сор, секции, filename, порт
         _fill(cs[5], 'Очки Многоборье',                    align=C, pt=8, bold=True)
         _fill(cs[8], 'Время\nстарта\nпопытка 1',           align=C, pt=8, bold=True)
         _fill(cs[9], 'Время\nстарта\nпопытка 2',           align=C, pt=8, bold=True)
-
-        # Шапка строка 2 — вертикальный текст МБ
-        r = tbl.add_row(); _row_h_min(r, 1690 * 2.54 / 1440)
-        _tbl_header_row(r)
+        r = tbl.add_row(); _row_h_min(r, 1690 * 2.54 / 1440); _tbl_header_row(r)
         cs = list(r.cells)
-        for i, w in enumerate(GRID):
-            _cw(cs[i], w)
+        for i, w in enumerate(GRID): _cw(cs[i], w)
         for cell in [cs[0], cs[1], cs[2], cs[3], cs[4], cs[8], cs[9]]:
             _borders(cell); _vmerge_cont(cell)
         for col_i, заг in ((5, кол1_заг), (6, кол2_заг), (7, 'Сумма')):
-            _borders(cs[col_i])
-            _fill(cs[col_i], заг, pt=7, bold=True)
-            _vert_cell(cs[col_i])
+            _borders(cs[col_i]); _fill(cs[col_i], заг, pt=7, bold=True); _vert_cell(cs[col_i])
+        return tbl
 
-        # Строка-заголовок секции
+    def _add_section_rows(tbl, метка, команды, мб_колонки):
+        кол1_поле = мб_колонки[0].get('поле') if len(мб_колонки) > 0 else None
+        кол2_поле = мб_колонки[1].get('поле') if len(мб_колонки) > 1 else None
         r = tbl.add_row(); _row_h(r, 0.6)
         cs = list(r.cells)
         cs[0].merge(cs[NC - 1]); _cw(cs[0], TW)
-        _borders(cs[0])
-        _fill(cs[0], метка, align=C, pt=9, bold=True)
-
-        # Строки данных
+        _borders(cs[0]); _fill(cs[0], метка, align=C, pt=9, bold=True)
         for пп, к in enumerate(команды, 1):
-            r = tbl.add_row()
-            cs = list(r.cells)
-            for i, w in enumerate(GRID):
-                _cw(cs[i], w)
-            for cell in cs:
-                _borders(cell)
+            r = tbl.add_row(); cs = list(r.cells)
+            for i, w in enumerate(GRID): _cw(cs[i], w)
+            for cell in cs: _borders(cell)
             спортсмены = sorted(к.спортсмены, key=lambda с: (с.номер_в_экипаже or 0))
             фио = ', '.join(с.фамилия_имя_отчество for с in спортсмены if с.фамилия_имя_отчество)
             s1 = _score(к, кол1_поле) if кол1_поле else ''
             s2 = _score(к, кол2_поле) if кол2_поле else ''
             sm = _sum_scores(к, мб_колонки)
-            _fill(cs[0], str(пп),                                       align=C, pt=8)
-            _fill(cs[1], к.название or '—',                                      pt=8)
-            _fill(cs[2], str(к.нагрудный_номер or ''),                  align=C, pt=8)
-            _fill(cs[3], фио,                                                     pt=8)
-            _fill(cs[4], к.субъект.название if к.субъект else '—',               pt=8)
-            _fill(cs[5], s1,                                             align=C, pt=8)
-            _fill(cs[6], s2,                                             align=C, pt=8)
-            _fill(cs[7], sm,                                             align=C, pt=8)
-            _fill(cs[8], _time(к, 1),                                    align=C, pt=8)
-            _fill(cs[9], _time(к, 2),                                    align=C, pt=8)
+            _fill(cs[0], str(пп),                                      align=C, pt=8)
+            _fill(cs[1], к.название or '—',                                     pt=8)
+            _fill(cs[2], str(к.нагрудный_номер or ''),                 align=C, pt=8)
+            _fill(cs[3], фио,                                                    pt=8)
+            _fill(cs[4], к.субъект.название if к.субъект else '—',              pt=8)
+            _fill(cs[5], s1,                                            align=C, pt=8)
+            _fill(cs[6], s2,                                            align=C, pt=8)
+            _fill(cs[7], sm,                                            align=C, pt=8)
+            _fill(cs[8], _time(к, 1),                                   align=C, pt=8)
+            _fill(cs[9], _time(к, 2),                                   align=C, pt=8)
 
+    def _add_sig_tbl():
         _tiny_para()
-
-        # ── Таблица 3: подписи (1:2) ─────────────────────────────────────────
         sig, W_L, W_R = _make_sig_tbl()
         for pos, fio in (('Главный судья',     сор.главный_судья     or ''),
                          ('Главный секретарь', сор.главный_секретарь or '')):
@@ -2898,6 +2879,12 @@ def create_старт_слалом_docx(сор, секции, filename, порт
             _no_border(cs[0]); _no_border(cs[1])
             _fill(cs[0], pos, pt=10)
             _fill(cs[1], fio, pt=10)
+
+    def _build_section(метка, команды, мб_колонки):
+        _add_dv_tbl()
+        tbl = _make_data_tbl_with_header(мб_колонки)
+        _add_section_rows(tbl, метка, команды, мб_колонки)
+        _add_sig_tbl()
 
     # ── Document ──────────────────────────────────────────────────────────────
 
@@ -2922,15 +2909,39 @@ def create_старт_слалом_docx(сор, секции, filename, порт
     for child in list(body):
         if child.tag == qn('w:p'): body.remove(child)
 
-    first = True
-    for метка, команды, мб_колонки in секции:
-        if not команды:
-            continue
-        if not first:
-            _page_br(doc)
-        first = False
-        _add_header_paras()
-        _build_section(метка, команды, мб_колонки)
+    акт = [(м, к, мб) for м, к, мб in секции if к]
+
+    if вывод == 'Попарно':
+        пары = [(акт[i], акт[i + 1] if i + 1 < len(акт) else None)
+                for i in range(0, len(акт), 2)]
+        first = True
+        for с0, с1 in пары:
+            if not first:
+                _page_br(doc)
+            first = False
+            _add_header_paras()
+            if с1 and len(с0[2]) == len(с1[2]):
+                _add_dv_tbl()
+                tbl = _make_data_tbl_with_header(с0[2])
+                _add_section_rows(tbl, с0[0], с0[1], с0[2])
+                _add_section_rows(tbl, с1[0], с1[1], с1[2])
+                _add_sig_tbl()
+            else:
+                _build_section(*с0)
+                if с1:
+                    _tiny_para()
+                    _add_dv_tbl()
+                    tbl = _make_data_tbl_with_header(с1[2])
+                    _add_section_rows(tbl, с1[0], с1[1], с1[2])
+                    _add_sig_tbl()
+    else:
+        first = True
+        for метка, команды, мб_колонки in акт:
+            if not first:
+                _page_br(doc)
+            first = False
+            _add_header_paras()
+            _build_section(метка, команды, мб_колонки)
 
     buf = BytesIO()
     _apply_no_break(doc)
