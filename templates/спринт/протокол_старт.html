@@ -224,7 +224,7 @@ function toggleOrient() {
   s.textContent = '@media print { @page { margin:12mm 5mm; size:' + sz + '; } }';
   old.parentNode.replaceChild(s, old);
   document.getElementById('btn-orient').textContent = _landscape ? 'Портрет' : 'Альбом';
-  document.getElementById('btn-word').href = _wordBase + (_landscape ? '' : '?портрет=1');
+  document.getElementById('btn-word').href = _wordBase + (_landscape ? '?портрет=0' : '?портрет=1');
 }
 
 </script>
