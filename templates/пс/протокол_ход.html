@@ -16,8 +16,15 @@
 </style>
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
   <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 flex-wrap">
+    {% set типы = [('старт','🖨 Протокол старт'),('буй-1','🖨 Протокол буй №1'),('буй-2','🖨 Протокол буй №2'),('буй-3','🖨 Протокол буй №3'),('буй-4','🖨 Протокол буй №4'),('финиш','🖨 Протокол финиш')] %}
+    {% for т, метка in типы %}
+      {% if т != тип %}
+    <a href="{{ url_for('пс.протокол_ход', sor_id=сор.id, тип=т) }}" class="btn btn-outline-secondary btn-sm">{{ метка }}</a>
+      {% endif %}
+    {% endfor %}
     <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
+    <a id="btn-word" href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id, тип=тип) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
@@ -36,6 +43,8 @@
     _landscape = !_landscape;
     _applyOrient();
     document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
+    var base = '{{ url_for("пс.протокол_ход_word", sor_id=сор.id, тип=тип) }}';
+    document.getElementById('btn-word').href = base + (_landscape ? '' : '&portrait=1');
   }
 
   _applyOrient();
