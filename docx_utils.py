@@ -3973,7 +3973,7 @@ def create_ход_пс_docx(сор, секции, filename, portrait=False, су
         _fill(cs[I_ЗН], 'Заезд\n№',                     align=C, pt=PT, bold=True)
         _fill(cs[I_ПО], 'Место\nспринт,\nпозиция\nв заезде', align=C, pt=PT, bold=True)
         cs[I_К1].merge(cs[I_К2]); _cw(cs[I_К1], W_КОМ)
-        _fill(cs[I_К],  'Команда',                        align=C, pt=PT, bold=True)
+        _fill(cs[I_К1], 'Команда',                        align=C, pt=PT, bold=True)
         _fill(cs[I_НО], 'Номер',                          align=C, pt=PT, bold=True)
         _fill(cs[I_ВС], 'Время\nстарта',                align=C, pt=PT, bold=True)
         _fill(cs[I_ВФ], 'Время\nфиниша',                align=C, pt=PT, bold=True)
