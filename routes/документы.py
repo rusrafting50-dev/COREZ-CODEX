@@ -123,7 +123,7 @@ def жеребьёвка_параметры(sor_id):
     сор.старший_судья_старта = request.form.get('старший_судья_старта', '').strip() or None
     сор.старший_судья_финиша = request.form.get('старший_судья_финиша', '').strip() or None
     db.session.commit()
-    flash('Параметры жеребьёвки сохранены.', 'success')
+    flash('Изменения параметров соревнований сохранены.', 'success')
     return redirect(url_for('документы.жеребьёвка', sor_id=sor_id))
 
 
