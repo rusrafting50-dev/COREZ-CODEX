@@ -8,12 +8,12 @@
   .table-bordered > :not(caption) > * > * { border: 0.375pt solid #000 !important; }
   @media print {
     .no-print { display: none !important; }
-    @page { margin: 10mm 8mm; }
     table { page-break-inside: auto; }
     tr { page-break-inside: avoid; }
       tr.section-row, tr:has(td[colspan]), tr:has(th[colspan]) { break-after: avoid; page-break-after: avoid; }
   }
 </style>
+<style id="orient-style">@media print { @page { margin: 10mm 8mm; size: A4 landscape; } }</style>
 <div class="no-print d-flex justify-content-between align-items-center mb-3">
   <a href="{{ url_for('пс.протокол_сетка', sor_id=сор.id) }}" class="btn btn-outline-secondary btn-sm">← Стартовый протокол</a>
   <div class="d-flex gap-2 flex-wrap">
@@ -23,31 +23,26 @@
     <a href="{{ url_for('пс.протокол_ход', sor_id=сор.id, тип=т) }}" class="btn btn-outline-secondary btn-sm">{{ метка }}</a>
       {% endif %}
     {% endfor %}
-    <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Альбом</button>
+    <button id="orient-btn" onclick="toggleOrient()" class="btn btn-outline-secondary btn-sm">Портрет</button>
     <a id="btn-word" href="{{ url_for('пс.протокол_ход_word', sor_id=сор.id, тип=тип) }}" class="btn btn-success btn-sm">Word</a>
     <button onclick="window.print()" class="btn btn-primary btn-sm">Печать</button>
   </div>
 </div>
 <script>
-  var _landscape = false;
-  var _printStyle = null;
-
-  function _applyOrient() {
-    if (_printStyle) _printStyle.remove();
-    _printStyle = document.createElement('style');
-    _printStyle.textContent = '@media print { @page { size: A4 ' + (_landscape ? 'landscape' : 'portrait') + '; } }';
-    document.head.appendChild(_printStyle);
-  }
+  var _landscape = true;
+  var _wordBase = '{{ url_for("пс.протокол_ход_word", sor_id=сор.id, тип=тип) }}';
 
   function toggleOrient() {
     _landscape = !_landscape;
-    _applyOrient();
+    var sz = _landscape ? 'A4 landscape' : 'A4 portrait';
+    var old = document.getElementById('orient-style');
+    var s = document.createElement('style');
+    s.id = 'orient-style';
+    s.textContent = '@media print { @page { margin: 10mm 8mm; size: ' + sz + '; } }';
+    old.parentNode.replaceChild(s, old);
     document.getElementById('orient-btn').textContent = _landscape ? 'Портрет' : 'Альбом';
-    var base = '{{ url_for("пс.протокол_ход_word", sor_id=сор.id, тип=тип) }}';
-    document.getElementById('btn-word').href = base + (_landscape ? '' : '&portrait=1');
+    document.getElementById('btn-word').href = _wordBase + (_landscape ? '' : '&portrait=1');
   }
-
-  _applyOrient();
 </script>
 
 {% if not секции %}
