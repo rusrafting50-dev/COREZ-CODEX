@@ -50,7 +50,7 @@
      class="btn btn-outline-secondary btn-sm">← Результаты</a>
   <div class="d-flex gap-2">
     {% if портрет %}
-    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1) }}"
+    <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, портрет=0) }}"
        class="btn btn-outline-secondary btn-sm">Альбом</a>
     {% else %}
     <a href="{{ url_for('зачет.протокол', sor_id=сор.id, итоговый=1, портрет=1) }}"
