@@ -9592,46 +9592,6 @@ def create_регламент_docx(сор, программа, filename):
         if стр11.strip():
             _indent(стр11.strip())
 
-    # ── Блок подписей ────────────────────────────────────────────────────────
-    from datetime import date as _date
-    _месяцы = {1:'января',2:'февраля',3:'марта',4:'апреля',5:'мая',6:'июня',
-               7:'июля',8:'августа',9:'сентября',10:'октября',11:'ноября',12:'декабря'}
-    W_POS   = round(TW * 0.47)
-    W_BLANK = round(TW * 0.15)
-    W_FIO   = TW - W_POS - W_BLANK
-
-    _para(before_pt=12)
-    sig = _make_tbl(3, TW)
-    _set_grid(sig, [W_POS, W_BLANK, W_FIO])
-
-    for должность, фио_raw in (
-        ('Главный судья соревнований',     сор.главный_судья     or ''),
-        ('Главный секретарь соревнований', сор.главный_секретарь or ''),
-    ):
-        # Строка 1: должность | пустая черта | И.О. Фамилия на черте
-        r1 = sig.add_row(); _row_h_min(r1, 0.8)
-        cs = list(r1.cells)
-        _cw(cs[0], W_POS); _cw(cs[1], W_BLANK); _cw(cs[2], W_FIO)
-        _no_border(cs[0]); _bottom_border(cs[1]); _bottom_border(cs[2])
-        _valign(cs[0], 'bottom'); _valign(cs[1], 'bottom'); _valign(cs[2], 'bottom')
-        _fill(cs[0], должность, align=L, pt=PT)
-        _fill(cs[1], '',              align=C, pt=PT)
-        _fill(cs[2], _ифио(фио_raw),  align=C, pt=PT)
-
-        # Строка 2: пусто | (подпись) | (расшифровка подписи)
-        r2 = sig.add_row(); _row_h_min(r2, 0.55)
-        cs2 = list(r2.cells)
-        _cw(cs2[0], W_POS); _cw(cs2[1], W_BLANK); _cw(cs2[2], W_FIO)
-        _no_border(cs2[0]); _no_border(cs2[1]); _no_border(cs2[2])
-        _fill(cs2[0], '',                      align=L, pt=8)
-        _fill(cs2[1], '(подпись)',              align=C, pt=8)
-        _fill(cs2[2], '(расшифровка подписи)',  align=C, pt=8)
-
-    # Дата
-    _сегодня = _date.today()
-    _para(f'{_сегодня.day} {_месяцы[_сегодня.month]} {_сегодня.year} года',
-          align=L, pt=PT, before_pt=10)
-
     buf = BytesIO()
     doc.save(buf); buf.seek(0)
     return send_file(buf, mimetype=DOCX_MIME, as_attachment=True, download_name=filename)
