@@ -43,6 +43,7 @@
 
 {% macro таблица(рез, без, разряды, заг, цвет) %}
 {% set все = рез + без %}
+{% set _норм = (все | length) >= 6 %}
 <h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not все %}
 <div class="text-muted small mb-3">Нет данных.</div>
@@ -89,7 +90,7 @@
         {% if в_рез %}{{ р.место or ns.ранг }}{% else %}–{% endif %}
       </td>
       <td class="text-center small">{{ р.очки | int if р.очки else '–' }}</td>
-      <td class="text-center small">{{ разряды.get(р.команда_id) or '–' }}</td>
+      <td class="text-center small">{{ разряды.get(р.команда_id) or '–' if _норм else '–' }}</td>
     </tr>
     {% endfor %}
     </tbody>
