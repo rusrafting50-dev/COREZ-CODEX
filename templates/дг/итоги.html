@@ -69,8 +69,20 @@
     {% set в_рез = loop.index0 < (рез | length) %}
     {% if в_рез %}{% set ns.ранг = ns.ранг + 1 %}{% endif %}
     {% set к = р.команда %}
-    {% set место_цвет = 'table-warning' if р.место == 1 else ('table-secondary' if р.место == 2 else ('table-danger' if р.место == 3 else '')) %}
-    <tr class="{{ место_цвет }}">
+    {% if р.статус == 'ДК' %}
+      {% set строка_цвет = 'table-danger' %}
+    {% elif р.статус in ('НСТ', 'ПМ') %}
+      {% set строка_цвет = 'table-secondary' %}
+    {% elif р.место == 1 %}
+      {% set строка_цвет = 'table-warning' %}
+    {% elif р.место == 2 %}
+      {% set строка_цвет = 'table-light' %}
+    {% elif р.место == 3 %}
+      {% set строка_цвет = 'table-info' %}
+    {% else %}
+      {% set строка_цвет = '' %}
+    {% endif %}
+    <tr class="{{ строка_цвет }}">
       <td>{{ к.название or '–' }}</td>
       <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
       <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '–' }}</td>
