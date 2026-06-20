@@ -606,9 +606,10 @@
       </div>
 
       {# Судьи #}
+      <div class="mb-2"><span class="fw-semibold">Судейская коллегия</span></div>
       <div class="row g-3 mb-3">
         <div class="col-md-6">
-          <label class="form-label fw-semibold mb-1">Старший судья старта</label>
+          <label class="form-label mb-1">Старший судья старта</label>
           <select name="старший_судья_старта_пс" class="form-select form-select-sm">
             <option value="">— не указан —</option>
             {% for с in судьи_старта | default([]) %}
@@ -620,7 +621,7 @@
           </select>
         </div>
         <div class="col-md-6">
-          <label class="form-label fw-semibold mb-1">Старший судья финиша</label>
+          <label class="form-label mb-1">Старший судья финиша</label>
           <select name="старший_судья_финиша_пс" class="form-select form-select-sm">
             <option value="">— не указан —</option>
             {% for с in судьи_финиша | default([]) %}
@@ -637,7 +638,7 @@
       <div class="row g-3 mb-3">
         {% for n in range(1, 5) %}
         <div class="col-md-6">
-          <label class="form-label fw-semibold mb-1">Старший судья на буе № {{ n }}</label>
+          <label class="form-label mb-1">Старший судья на буе № {{ n }}</label>
           <select name="судья_буя_{{ n }}_пс" class="form-select form-select-sm">
             <option value="">— не указан —</option>
             {% for с in судьи_буёв | default([]) %}
