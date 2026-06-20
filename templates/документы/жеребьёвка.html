@@ -146,9 +146,10 @@
           <option value="Раздельно" {% if сор.вывод_старт_протокола == 'Раздельно' %}selected{% endif %}>Раздельно</option>
         </select>
       </div>
+      <div class="mb-2"><span class="fw-semibold">Судейская коллегия</span></div>
       <div class="row g-2 mb-3">
         <div class="col-auto d-flex align-items-center gap-2">
-          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья старта</label>
+          <label class="form-label mb-0 text-nowrap">Старший судья старта</label>
           <select name="старший_судья_старта" class="form-select form-select-sm" style="min-width:220px">
             <option value="">— не выбран —</option>
             {% for с in судьи_старта %}
@@ -160,7 +161,7 @@
           </select>
         </div>
         <div class="col-auto d-flex align-items-center gap-2">
-          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья финиша</label>
+          <label class="form-label mb-0 text-nowrap">Старший судья финиша</label>
           <select name="старший_судья_финиша" class="form-select form-select-sm" style="min-width:220px">
             <option value="">— не выбран —</option>
             {% for с in судьи_финиша %}
