@@ -137,9 +137,10 @@
           <option value="Раздельно" {% if сор.вывод_старт_дг == 'Раздельно' %}selected{% endif %}>Раздельно</option>
         </select>
       </div>
+      <div class="fw-semibold mb-2 mt-1">Судейская коллегия</div>
       <div class="row g-2 mb-3">
         <div class="col-auto d-flex align-items-center gap-2">
-          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья старта</label>
+          <label class="form-label mb-0 text-nowrap">Старший судья старта</label>
           <select name="старший_судья_старта" class="form-select form-select-sm" style="min-width:220px">
             <option value="">— не выбран —</option>
             {% for с in судьи_старта %}
@@ -151,7 +152,7 @@
           </select>
         </div>
         <div class="col-auto d-flex align-items-center gap-2">
-          <label class="form-label mb-0 fw-semibold text-nowrap">Старший судья финиша</label>
+          <label class="form-label mb-0 text-nowrap">Старший судья финиша</label>
           <select name="старший_судья_финиша" class="form-select form-select-sm" style="min-width:220px">
             <option value="">— не выбран —</option>
             {% for с in судьи_финиша %}
@@ -177,14 +178,12 @@
       <div id="секции_дг_блок">
         {% for n in range(1, 6) %}
         {% set судья_знач = _судьи_секций[n-1] if (n-1) < _судьи_секций|length else '' %}
-        <div class="row g-2 mb-2 секция-строка-дг" id="секция_дг_строка_{{ n }}"
-             style="display:{% if сор.количество_секций_дг_ход and n <= сор.количество_секций_дг_ход %}flex{% else %}none{% endif %}">
-          <div class="col-auto d-flex align-items-center">
-            <span class="fw-semibold small">Секция № {{ n }}</span>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label small mb-0">Судья-контролёр на дистанции</label>
-            <select name="судья_секции_дг_{{ n }}" class="form-select form-select-sm">
+        <div class="mb-2 секция-строка-дг" id="секция_дг_строка_{{ n }}"
+             style="display:{% if сор.количество_секций_дг_ход and n <= сор.количество_секций_дг_ход %}block{% else %}none{% endif %}">
+          <div class="small mb-1">Секция № {{ n }}</div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label small mb-0 text-nowrap">Судья-контролёр на дистанции</label>
+            <select name="судья_секции_дг_{{ n }}" class="form-select form-select-sm" style="max-width:300px">
               <option value="">— не указан —</option>
               {% for с in судьи_контролёры | default([]) %}
               <option value="{{ с.фамилия_имя_отчество }}"
