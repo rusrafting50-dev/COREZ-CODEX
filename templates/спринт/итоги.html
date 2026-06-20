@@ -90,7 +90,8 @@
         {% if в_рез %}{{ р.место or ns.ранг }}{% else %}–{% endif %}
       </td>
       <td class="text-center small">{{ р.очки | int if р.очки else '–' }}</td>
-      <td class="text-center small">{{ разряды.get(р.команда_id) or '–' if _норм else '–' }}</td>
+      {% set _разряд = (разряды.get(р.команда_id) or '') if _норм else '' %}
+      <td class="text-center small">{{ _разряд | replace('—', '–') | replace('-', '–') or '–' }}</td>
     </tr>
     {% endfor %}
     </tbody>
