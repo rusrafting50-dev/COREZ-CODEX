@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}ДГ: Результаты – {{ сор.название | truncate(40) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
+    </li>
+    <li class="breadcrumb-item active">ДГ – Результаты</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+{% set муж_р4_рез = муж_рез | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
+{% set жен_р4_рез = жен_рез | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
+{% set муж_р6_рез = муж_рез | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
+{% set жен_р6_рез = жен_рез | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
+{% set муж_р4_без = муж_без | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
+{% set жен_р4_без = жен_без | selectattr('команда.класс_судна', 'equalto', 'R4') | list %}
+{% set муж_р6_без = муж_без | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
+{% set жен_р6_без = жен_без | selectattr('команда.класс_судна', 'equalto', 'R6') | list %}
+{% set есть_р6 = (муж_р6_рез | length + жен_р6_рез | length + муж_р6_без | length + жен_р6_без | length) > 0 %}
+
+<div class="text-center mb-3">
+  <div class="fw-bold" style="font-size:1.1rem">{{ сор.название }}</div>
+</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</h5>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('дг.старт', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}"
+       class="btn btn-outline-primary btn-sm">← Результаты заездов</a>
+    <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
+    <a href="{{ url_for('награждение.диплом_дг', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
+  </div>
+</div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
+
+{% macro таблица(рез, без, разряды, заг, цвет) %}
+{% set все = рез + без %}
+{% set _норм = (все | length) >= 6 %}
+<h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
+{% if not все %}
+<div class="text-muted small mb-3">Нет данных.</div>
+{% else %}
+<div class="table-responsive mb-2">
+  <table class="table table-sm table-hover align-middle" style="font-size:.87rem">
+    <thead class="table-light">
+      <tr>
+        <th>Команда</th>
+        <th style="width:90px" class="text-center">Номер экипажа</th>
+        <th style="min-width:110px">Субъект</th>
+        <th style="width:75px" class="text-center font-monospace">Время</th>
+        <th style="width:65px" class="text-center">Штраф</th>
+        <th style="width:85px" class="text-center font-monospace fw-bold">Результат</th>
+        <th style="width:50px" class="text-center">Место</th>
+        <th style="width:75px" class="text-center">Очки<br>Многоборье</th>
+        <th style="width:110px" class="text-center">Выполнение разряда</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% set ns = namespace(ранг=0) %}
+    {% for р in все %}
+    {% set в_рез = loop.index0 < (рез | length) %}
+    {% if в_рез %}{% set ns.ранг = ns.ранг + 1 %}{% endif %}
+    {% set к = р.команда %}
+    {% set место_цвет = 'table-warning' if р.место == 1 else ('table-secondary' if р.место == 2 else ('table-danger' if р.место == 3 else '')) %}
+    <tr class="{{ место_цвет }}">
+      <td>{{ к.название or '–' }}</td>
+      <td class="text-center fw-semibold">{{ к.нагрудный_номер }}</td>
+      <td class="small text-muted">{{ к.субъект.название | truncate(22) if к.субъект else '–' }}</td>
+      <td class="text-center font-monospace small">{{ format_dur(р.время_прохождения) if р.время_прохождения else '–' }}</td>
+      <td class="text-center small {{ 'text-danger' if р.штрафное_время else '' }}">
+        {{ '+' ~ (р.штрафное_время | int) ~ 'с' if р.штрафное_время else '–' }}
+      </td>
+      <td class="text-center fw-bold font-monospace">
+        {% if р.статус == 'ДК' %}ДК
+        {% elif р.статус == 'НФН' %}Не фин.
+        {% elif р.статус == 'НСТ' %}Не старт.
+        {% elif р.статус == 'ПМ' %}<span class="text-muted">Посл. м.</span>
+        {% else %}{{ format_dur(р.результат) if р.результат else '–' }}{% endif %}
+      </td>
+      <td class="text-center fw-bold fs-6">
+        {% if в_рез %}{{ р.место or ns.ранг }}{% else %}–{% endif %}
+      </td>
+      <td class="text-center small">{{ р.очки | int if р.очки else '–' }}</td>
+      {% set _разряд = (разряды.get(р.команда_id) or '') if _норм else '' %}
+      <td class="text-center small">{{ _разряд | replace('—', '–') | replace('-', '–') or '–' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ таблица(муж_р4_рез, муж_р4_без, муж_разр, 'Длинная гонка – R4, мужчины', 'primary') }}
+{{ таблица(жен_р4_рез, жен_р4_без, жен_разр, 'Длинная гонка – R4, женщины', 'danger') }}
+{% if есть_р6 %}
+{{ таблица(муж_р6_рез, муж_р6_без, муж_разр, 'Длинная гонка – R6, мужчины', 'primary') }}
+{{ таблица(жен_р6_рез, жен_р6_без, жен_разр, 'Длинная гонка – R6, женщины', 'danger') }}
+{% endif %}
+
+<div class="d-flex justify-content-end mt-3">
+  <form method="post"
+        action="{{ url_for('соревнование.переключить_готовность', id=сор.id, section='наград-дг') }}">
+    <button type="submit"
+            class="btn shadow-sm {{ 'btn-success' if готов_наград else 'btn-outline-secondary' }}"
+            style="min-width:120px;font-size:.95rem">
+      {{ '✓ Готово' if готов_наград else 'В работе' }}
+    </button>
+  </form>
+</div>
+{% endblock %}

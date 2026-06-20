@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}ДГ: Результаты — {{ сор.название | truncate(40) }}{% endblock %}
+{% block title %}ДГ: Результаты заездов — {{ сор.название | truncate(40) }}{% endblock %}
 
 {% block breadcrumb %}
   <ol class="breadcrumb mb-0">
@@ -7,7 +7,7 @@
     <li class="breadcrumb-item">
       <a href="{{ url_for('соревнование.карточка', id=сор.id) }}">{{ сор.название }}</a>
     </li>
-    <li class="breadcrumb-item active">ДГ — Результаты</li>
+    <li class="breadcrumb-item active">ДГ — Результаты заездов</li>
   </ol>
 {% endblock %}
 
@@ -29,14 +29,15 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Группа спортивных дисциплин ДЛИННАЯ ГОНКА</h5>
   <div class="d-flex gap-2 flex-wrap">
-    <a href="{{ url_for('дг.старт', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('дг.старт', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">← Стартовый протокол</a>
+    <a href="{{ url_for('дг.итоги', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты →</a>
     <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
     <a href="{{ url_for('награждение.диплом_дг', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
   </div>
 </div>
-<div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
+<div class="text-center mb-3"><h5 class="mb-0">Результаты заездов</h5></div>
 
 {% macro таблица_результатов(рез, без, разряды, пол_заг) %}
 {% set _норм = ((рез | length) + (без | length)) >= 6 %}
