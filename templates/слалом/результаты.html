@@ -59,11 +59,14 @@
       </tr>
     </thead>
     <tbody>
+    {% set ns = namespace(ранг=0) %}
     {% for р in рез %}
     {% set к = р.команда %}
     {% set р1 = попытки.get(к.id, {}).get(1) %}
     {% set р2 = попытки.get(к.id, {}).get(2) %}
-    <tr>
+    {% set ns.ранг = ns.ранг + 1 %}
+    {% set место_цвет = 'table-warning' if ns.ранг == 1 else ('table-secondary' if ns.ранг == 2 else ('table-danger' if ns.ранг == 3 else '')) %}
+    <tr class="{{ место_цвет }}">
       <td>{{ к.название or '—' }}</td>
       <td class="text-center">{{ к.нагрудный_номер }}</td>
       <td>{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
