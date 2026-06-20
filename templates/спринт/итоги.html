@@ -32,7 +32,7 @@
     <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}"
        class="btn btn-outline-primary btn-sm">← Жеребьёвка и стартовый протокол</a>
     <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}"
-       class="btn btn-outline-info btn-sm">← Результаты заездов</a>
+       class="btn btn-outline-primary btn-sm">← Результаты заездов</a>
     <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}"
        class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
     <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс='R4', пол='м', место=1) }}"
