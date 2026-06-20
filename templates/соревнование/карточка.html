@@ -137,7 +137,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Дистанция</a>
           <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
-          <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
+          <a href="{{ url_for('спринт.результаты', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты заездов</a>
+          <a href="{{ url_for('спринт.итоги', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
@@ -197,7 +198,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='дг') }}" class="btn btn-outline-warning btn-sm">Дистанция</a>
           <a href="{{ url_for('дг.старт', sor_id=сор.id) }}" class="btn btn-warning btn-sm text-dark">Стартовый протокол</a>
-          <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Результаты</a>
+          <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Результаты заездов</a>
+          <a href="{{ url_for('дг.итоги', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Результаты</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_дг', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
@@ -223,7 +225,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Дистанция</a>
           <a href="{{ url_for('документы.жеребьёвка', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Жеребьёвка и стартовый протокол</a>
-          <a href="{{ url_for('спринт.результаты', sor_id=сор.id, класс=cls) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
+          <a href="{{ url_for('спринт.результаты', sor_id=сор.id, класс=cls) }}" class="btn btn-outline-primary btn-sm">Результаты заездов</a>
+          <a href="{{ url_for('спринт.итоги', sor_id=сор.id) }}" class="btn btn-outline-primary btn-sm">Результаты</a>
           <a href="{{ url_for('спринт.протокол_результаты', sor_id=сор.id, класс='R4', итоговый=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
@@ -295,7 +298,8 @@
         <div class="d-flex flex-wrap gap-1">
           <a href="{{ url_for('дистанция.страница', sor_id=сор.id, тип='дг') }}" class="btn btn-outline-warning btn-sm">Дистанция</a>
           <a href="{{ url_for('дг.старт', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-warning btn-sm text-dark">Стартовый протокол</a>
-          <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-warning btn-sm">Результаты</a>
+          <a href="{{ url_for('дг.результаты', sor_id=сор.id) }}?класс={{ cls }}" class="btn btn-outline-warning btn-sm">Результаты заездов</a>
+          <a href="{{ url_for('дг.итоги', sor_id=сор.id) }}" class="btn btn-outline-warning btn-sm">Результаты</a>
           <a href="{{ url_for('дг.протокол_результаты', sor_id=сор.id, итоговый=1) }}&класс={{ cls }}" class="btn btn-outline-secondary btn-sm">🖨 Протоколы</a>
           <a href="{{ url_for('награждение.диплом_дг', sor_id=сор.id, класс='R4', пол='м', место=1) }}" class="btn btn-outline-secondary btn-sm">🖨 Дипломы</a>
         </div>
