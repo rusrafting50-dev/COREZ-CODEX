@@ -1,7 +1,10 @@
 # app.py — главный Flask-сервер системы учёта соревнований по рафтингу
 import os
+from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
 from models import db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы, заполнить_коэффициенты_субъектов
+
+load_dotenv()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 

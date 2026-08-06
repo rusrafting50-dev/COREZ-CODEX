@@ -6,6 +6,7 @@ from models import (db, Соревнование, Спортсмен, Коман
                     РезультатСпринт, РезультатПараллельногоСпринта,
                     РезультатСлалома, РезультатДлиннойГонки,
                     РезультатМногоборья, ЗачётСубъектов, НаграждениеПараметры, СУБЪЕКТЫ_РФ)
+from sync_rafting_cfo import отправить_на_сайт as _отправить_на_сайт
 
 bp_соревнование = Blueprint('соревнование', __name__)
 
@@ -374,6 +375,14 @@ def удалить(id):
     db.session.commit()
     flash('Соревнование удалено.', 'warning')
     return redirect(url_for('main.index'))
+
+
+@bp_соревнование.route('/<int:id>/отправить-на-сайт', methods=['POST'])
+def отправить_на_сайт(id):
+    сор = Соревнование.query.get_or_404(id)
+    успех, сообщение = _отправить_на_сайт(сор)
+    flash(сообщение, 'success' if успех else 'danger')
+    return redirect(request.referrer or url_for('main.index'))
 
 
 def _возраст_из_формы(form):
