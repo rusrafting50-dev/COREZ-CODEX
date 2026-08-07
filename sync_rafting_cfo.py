@@ -9,6 +9,7 @@
 # дата_начала (структурированная) и даты_проведения (свободный текст вида
 # "16 — 22 сентября 2025 года"). Дату окончания пытаемся вытащить из этого
 # текста; не получилось — считаем соревнование однодневным.
+import base64
 import os
 import re
 from datetime import date as _date
@@ -17,6 +18,8 @@ import requests
 
 RAFTING_CFO_URL = os.environ.get('RAFTING_CFO_URL', 'http://127.0.0.1:5003').rstrip('/')
 RAFTING_CFO_API_KEY = os.environ.get('RAFTING_CFO_API_KEY', '')
+
+ЛОГОТИП_ПАПКА = os.path.join(os.path.dirname(__file__), 'static', 'uploads', 'логотипы')
 
 RU_MONTHS = {
     'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6,
@@ -63,9 +66,23 @@ def _определить_статус(начало, окончание):
     return 'идёт'
 
 
+def _логотип_base64(имя_файла):
+    """Читает файл логотипа с диска и кодирует в base64 — по API логотип
+    передаётся только так (это JSON-запрос, не форма с файлом)."""
+    if not имя_файла:
+        return None, None
+    путь = os.path.join(ЛОГОТИП_ПАПКА, имя_файла)
+    if not os.path.isfile(путь):
+        return None, None
+    with open(путь, 'rb') as f:
+        данные = base64.b64encode(f.read()).decode('ascii')
+    return имя_файла, данные
+
+
 def собрать_данные(сор):
     """Строит словарь одного элемента для POST /api/sync/competitions."""
     окончание = _распознать_дату_окончания(сор.даты_проведения, сор.дата_начала.year)
+    logo_filename, logo_base64 = _логотип_base64(сор.логотип)
     return {
         'source_id': сор.id,
         'name': сор.название,
@@ -78,6 +95,9 @@ def собрать_данные(сор):
         'age_group': сор.возрастная_группа,
         'boat_class': сор.класс_судна,
         'head_judge': сор.главный_судья,
+        'registration_number': сор.номер_екп,
+        'logo_filename': logo_filename,
+        'logo_base64': logo_base64,
     }
 
 
