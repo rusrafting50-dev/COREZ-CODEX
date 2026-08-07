@@ -30,23 +30,23 @@
       </div>
 
       <div class="card-body pb-0">
-        {# Статус с заливкой — не выводить, если он уже повторяется в наименовании #}
-        {% set _статус_текст = ((с.статус or '') ~ ' ' ~ (с.уровень or '')).strip() %}
-        {% if с.код_соревнований and _статус_текст and _статус_текст.upper() not in с.название.upper() %}
-        <div class="mb-2">
-          <span class="badge {{ цвет.get(с.код_соревнований, 'bg-secondary') }}">
-            {{ с.статус }} {{ с.уровень }}
-          </span>
-        </div>
-        {% endif %}
-
-        <div class="d-flex gap-2 align-items-start mb-2">
+        <div class="d-flex gap-2 mb-2">
           {% if с.логотип %}
           <img src="{{ url_for('static', filename='uploads/логотипы/' ~ с.логотип) }}"
                alt="Логотип" class="rounded flex-shrink-0"
-               style="width:56px;height:56px;object-fit:contain;">
+               style="width:56px;object-fit:contain;">
           {% endif %}
           <div class="flex-grow-1">
+            {# Статус с заливкой — не выводить, если он уже повторяется в наименовании #}
+            {% set _статус_текст = ((с.статус or '') ~ ' ' ~ (с.уровень or '')).strip() %}
+            {% if с.код_соревнований and _статус_текст and _статус_текст.upper() not in с.название.upper() %}
+            <div class="mb-2">
+              <span class="badge {{ цвет.get(с.код_соревнований, 'bg-secondary') }}">
+                {{ с.статус }} {{ с.уровень }}
+              </span>
+            </div>
+            {% endif %}
+
             {# Возрастные группы + классы: для каждой группы — классы справа #}
             {% if с.возрастная_группа %}
               {% for гр in с.возрастная_группа.split(' / ') %}
