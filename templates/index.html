@@ -29,14 +29,15 @@
         <div class="fw-bold" style="line-height:1.3">{{ с.название }}</div>
       </div>
 
-      <div class="card-body pb-0">
-        <div class="d-flex gap-2 mb-2">
+      <div class="card-body p-0">
+        <div class="position-relative">
           {% if с.логотип %}
+          {# Высота логотипа всегда равна расстоянию между верхней (под названием) и нижней (над датами) чертой #}
           <img src="{{ url_for('static', filename='uploads/логотипы/' ~ с.логотип) }}"
-               alt="Логотип" class="rounded flex-shrink-0"
-               style="width:100px;object-fit:contain;">
+               alt="Логотип" class="rounded"
+               style="position:absolute;top:0;left:0;height:100%;width:100px;object-fit:contain;">
           {% endif %}
-          <div class="flex-grow-1">
+          <div class="p-3" style="{{ 'padding-left:108px;' if с.логотип else '' }}">
             {# Статус с заливкой — не выводить, если он уже повторяется в наименовании #}
             {% set _статус_текст = ((с.статус or '') ~ ' ' ~ (с.уровень or '')).strip() %}
             {% if с.код_соревнований and _статус_текст and _статус_текст.upper() not in с.название.upper() %}
@@ -86,8 +87,8 @@
         </div>
 
         {% if с.даты_проведения or с.место_проведения %}
-        <hr class="my-2">
-        <div class="d-flex flex-column gap-1 small text-center">
+        <hr class="mt-0 mb-2">
+        <div class="d-flex flex-column gap-1 small text-center px-3">
           {% if с.даты_проведения %}
           <div><span class="text-muted">📅</span> {{ с.даты_проведения }}</div>
           {% endif %}
