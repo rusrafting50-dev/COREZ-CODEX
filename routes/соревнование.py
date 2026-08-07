@@ -1,7 +1,9 @@
 # routes/соревнование.py — CRUD соревнований
 import json
+import os
 from datetime import date as _date
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from werkzeug.utils import secure_filename
 from models import (db, Соревнование, Спортсмен, Команда,
                     РезультатСпринт, РезультатПараллельногоСпринта,
                     РезультатСлалома, РезультатДлиннойГонки,
@@ -126,6 +128,26 @@ def _применить_основные_поля(сор, form):
         сор.дата_начала = None
 
 
+ЛОГОТИП_ПАПКА = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads', 'логотипы')
+ЛОГОТИП_РАСШИРЕНИЯ = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'}
+
+
+def _сохранить_логотип(сор, files):
+    """Сохранить загруженный логотип соревнования, если файл передан."""
+    файл = files.get('логотип')
+    if not файл or not файл.filename:
+        return
+    расш = файл.filename.rsplit('.', 1)[-1].lower() if '.' in файл.filename else ''
+    if расш not in ЛОГОТИП_РАСШИРЕНИЯ:
+        flash('Логотип не сохранён: неподдерживаемый формат файла.', 'warning')
+        return
+    папка = os.path.abspath(ЛОГОТИП_ПАПКА)
+    os.makedirs(папка, exist_ok=True)
+    имя_файла = secure_filename(f'logo_{сор.id}.{расш}')
+    файл.save(os.path.join(папка, имя_файла))
+    сор.логотип = имя_файла
+
+
 def _применить_регламент_поля(сор, form):
     """Сохранить поля организаторы.html: проводящая орг, взнос, логистика, программа."""
     def s(key):
@@ -226,6 +248,7 @@ def новое():
         _применить_основные_поля(сор, request.form)
         db.session.add(сор)
         db.session.flush()
+        _сохранить_логотип(сор, request.files)
         _применить_параметры_дипломов(сор.id, request.form)
         db.session.commit()
         flash('Соревнование создано.', 'success')
@@ -292,6 +315,7 @@ def редактировать(id):
         сор.код_субъекта_рф           = _int_or_none(request.form.get('код_субъекта_рф'))
         _применить_статус(сор, request.form.get('код_соревнований', '').strip())
         _применить_основные_поля(сор, request.form)
+        _сохранить_логотип(сор, request.files)
         _применить_параметры_дипломов(сор.id, request.form)
         db.session.commit()
         flash('Данные сохранены.', 'success')

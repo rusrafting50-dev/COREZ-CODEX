@@ -40,40 +40,50 @@
         </div>
         {% endif %}
 
-        {# Возрастные группы + классы: для каждой группы — классы справа #}
-        <div class="mb-2">
-          {% if с.возрастная_группа %}
-            {% for гр in с.возрастная_группа.split(' / ') %}
-            {% if гр.strip() %}
-            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-              <span class="text-muted small">{{ гр.strip() }}</span>
-              {% if с.класс_судна and 'R4' in с.класс_судна %}
-              <span class="badge bg-info text-dark">R4</span>
-              {% endif %}
-              {% if с.класс_судна and 'R6' in с.класс_судна %}
-              <span class="badge bg-info text-dark">R6</span>
-              {% endif %}
-            </div>
-            {% endif %}
-            {% endfor %}
-          {% else %}
-            <div class="d-flex gap-2">
-              {% if с.класс_судна and 'R4' in с.класс_судна %}
-              <span class="badge bg-info text-dark">R4</span>
-              {% endif %}
-              {% if с.класс_судна and 'R6' in с.класс_судна %}
-              <span class="badge bg-info text-dark">R6</span>
-              {% endif %}
-            </div>
+        <div class="d-flex gap-2 align-items-start mb-2">
+          {% if с.логотип %}
+          <img src="{{ url_for('static', filename='uploads/логотипы/' ~ с.логотип) }}"
+               alt="Логотип" class="rounded flex-shrink-0"
+               style="width:56px;height:56px;object-fit:contain;">
           {% endif %}
+          <div class="flex-grow-1">
+            {# Возрастные группы + классы: для каждой группы — классы справа #}
+            {% if с.возрастная_группа %}
+              {% for гр in с.возрастная_группа.split(' / ') %}
+              {% if гр.strip() %}
+              <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                <span class="text-muted small">{{ гр.strip() }}</span>
+                {% if с.класс_судна and 'R4' in с.класс_судна %}
+                <span class="badge bg-info text-dark">R4</span>
+                {% endif %}
+                {% if с.класс_судна and 'R6' in с.класс_судна %}
+                <span class="badge bg-info text-dark">R6</span>
+                {% endif %}
+              </div>
+              {% endif %}
+              {% endfor %}
+            {% else %}
+              <div class="d-flex gap-2 mb-1">
+                {% if с.класс_судна and 'R4' in с.класс_судна %}
+                <span class="badge bg-info text-dark">R4</span>
+                {% endif %}
+                {% if с.класс_судна and 'R6' in с.класс_судна %}
+                <span class="badge bg-info text-dark">R6</span>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            {% if с.номер_екп %}
+            <div class="small text-muted mb-1">№ ЕКП: {{ с.номер_екп }}</div>
+            {% endif %}
+
+            {% if с.главный_судья %}
+            <div class="small text-muted">Главный судья: {{ с.главный_судья | truncate(50) }}</div>
+            {% endif %}
+          </div>
         </div>
 
-        {% if с.номер_екп %}
-        <div class="text-center small text-muted mb-2">№ ЕКП: {{ с.номер_екп }}</div>
-        {% endif %}
-
-        {% set _есть_подвал = с.даты_проведения or с.место_проведения or с.главный_судья %}
-        {% if _есть_подвал %}
+        {% if с.даты_проведения or с.место_проведения %}
         <hr class="my-2">
         <ul class="list-unstyled small mb-0 text-center">
           {% if с.даты_проведения %}
@@ -84,12 +94,6 @@
           {% if с.место_проведения %}
           <li class="mb-1">
             <span class="text-muted">📍</span> {{ с.место_проведения }}
-          </li>
-          {% endif %}
-          {% if с.главный_судья %}
-          <li class="mb-1">
-            <span class="text-muted">⚖️</span>
-            Главный судья: {{ с.главный_судья | truncate(50) }}
           </li>
           {% endif %}
         </ul>

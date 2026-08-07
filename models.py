@@ -90,6 +90,7 @@ class Соревнование(db.Model):
     место_проведения            = db.Column(db.String(300), nullable=True)
     код_субъекта_рф             = db.Column(db.Integer,     nullable=True)
     номер_екп                   = db.Column(db.String(100), nullable=True)
+    логотип                     = db.Column(db.String(255), nullable=True)   # имя файла в static/uploads/логотипы
 
     # Спортивные характеристики
     класс_судна                 = db.Column(db.String(5),  nullable=False, default='R4')  # R4 / R6
@@ -1348,6 +1349,10 @@ def применить_миграции():
                 with db.engine.connect() as conn:
                     conn.execute(text(f'ALTER TABLE соревнования ADD COLUMN {col} VARCHAR(200)'))
                     conn.commit()
+        if 'логотип' not in cols_сор_fin:
+            with db.engine.connect() as conn:
+                conn.execute(text('ALTER TABLE соревнования ADD COLUMN логотип VARCHAR(255)'))
+                conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения

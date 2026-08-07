@@ -28,7 +28,7 @@
   {% endfor %}
 </datalist>
 
-<form method="post" id="formSor">
+<form method="post" id="formSor" enctype="multipart/form-data">
 
   {# ── Наименование ── #}
   <div class="card mb-3">
@@ -36,9 +36,23 @@
       Наименование соревнований
     </div>
     <div class="card-body">
-      <input type="text" name="название" id="fieldНазвание" class="form-control" required
-             placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
-             value="{{ сор.название if сор else '' }}">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <input type="text" name="название" id="fieldНазвание" class="form-control" required
+                 placeholder="ЧЕМПИОНАТ РОССИИ ПО РАФТИНГУ"
+                 value="{{ сор.название if сор else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Логотип соревнований</label>
+          <div class="d-flex align-items-center gap-2">
+            {% if сор and сор.логотип %}
+            <img src="{{ url_for('static', filename='uploads/логотипы/' ~ сор.логотип) }}"
+                 alt="Логотип" class="rounded border" style="width:48px;height:48px;object-fit:contain;">
+            {% endif %}
+            <input type="file" name="логотип" accept="image/*" class="form-control form-control-sm">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
