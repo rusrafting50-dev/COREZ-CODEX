@@ -35,7 +35,8 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Результаты</h5></div>
 
-{% macro таблица(итог, заг, цвет) %}
+{% macro таблица(итог, разряды, заг, цвет) %}
+{% set _норм = (итог | length) >= 6 %}
 <h6 class="fw-semibold mt-4 mb-1 text-{{ цвет }}">{{ заг }}</h6>
 {% if not итог %}
 <div class="text-muted small mb-3">Нет данных. Завершите все стадии и рассчитайте результаты.</div>
@@ -53,6 +54,7 @@
         <th style="width:85px" class="text-center font-monospace fw-bold">Результат</th>
         <th style="width:50px" class="text-center">Место</th>
         <th style="width:75px" class="text-center">Очки Многоборье</th>
+        <th style="width:110px" class="text-center">Выполненный норматив</th>
       </tr>
     </thead>
     <tbody>
@@ -79,6 +81,7 @@
       </td>
       <td class="text-center fw-bold fs-6">{{ з.итоговое_место or '—' }}</td>
       <td class="text-center small">{{ з.очки | int if з.очки else '—' }}</td>
+      <td class="text-center small">{{ разряды.get(к.id, '—') if _норм else '—' }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -87,11 +90,11 @@
 {% endif %}
 {% endmacro %}
 
-{{ таблица(муж_р4_итог, 'Параллельный спринт — R4, мужчины', 'primary') }}
-{{ таблица(жен_р4_итог, 'Параллельный спринт — R4, женщины', 'danger') }}
+{{ таблица(муж_р4_итог, муж_р4_разр, 'Параллельный спринт — R4, мужчины', 'primary') }}
+{{ таблица(жен_р4_итог, жен_р4_разр, 'Параллельный спринт — R4, женщины', 'danger') }}
 {% if есть_р6 %}
-{{ таблица(муж_р6_итог, 'Параллельный спринт — R6, мужчины', 'primary') }}
-{{ таблица(жен_р6_итог, 'Параллельный спринт — R6, женщины', 'danger') }}
+{{ таблица(муж_р6_итог, муж_р6_разр, 'Параллельный спринт — R6, мужчины', 'primary') }}
+{{ таблица(жен_р6_итог, жен_р6_разр, 'Параллельный спринт — R6, женщины', 'danger') }}
 {% endif %}
 
 {% if not муж_итог and not жен_итог %}{% endif %}
