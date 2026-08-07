@@ -68,7 +68,8 @@
       </td>
       <td class="text-center font-monospace small">{{ format_dur(з.время) }}</td>
       <td class="text-center small {{ 'text-danger' if з.штрафное_время else '' }}">
-        {{ '+' ~ (з.штрафное_время | int) ~ 'с' if з.штрафное_время else '—' }}
+        {% set _шт = з.штрафное_время | int %}
+        {{ '%02d:%02d' | format(_шт // 60, _шт % 60) if з.штрафное_время else '—' }}
       </td>
       <td class="text-center fw-bold font-monospace">
         {% if з.статус == 'ДК' %}ДК
