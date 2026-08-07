@@ -63,33 +63,35 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-3">
-          <label class="form-label fw-semibold">Классы судов <span class="text-danger">*</span></label>
-          <div class="d-flex gap-3 mt-1">
-            {% set выбр = сор.класс_судна if сор else 'R4' %}
-            {% for cls in ['R4', 'R6'] %}
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="класс_судна"
-                     id="cls{{ cls }}" value="{{ cls }}"
-                     {{ 'checked' if cls in выбр }}>
-              <label class="form-check-label fw-semibold" for="cls{{ cls }}">{{ cls }}</label>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Возрастная группа</label>
-          {% set _оп = ['Мужчины, женщины', 'юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 20 лет)', 'юноши, девушки (до 16 лет)'] %}
+        <div class="col-md-7">
+          <label class="form-label fw-semibold">
+            Возрастная группа и классы судов <span class="text-danger">*</span>
+          </label>
+          {% set _оп = ['Мужчины', 'Женщины', 'Юниоры (до 26 лет)', 'Юниорки (до 26 лет)',
+                        'Юниоры (до 24 лет)', 'Юниорки (до 24 лет)', 'Юниоры (до 20 лет)', 'Юниорки (до 20 лет)',
+                        'Юноши (до 16 лет)', 'Девушки (до 16 лет)'] %}
           {% set _список = (сор.возрастная_группа.split(' / ') if сор and сор.возрастная_группа else ['']) %}
+          {% set _классы_выбр = сор.класс_судна if сор else 'R4' %}
           <div id="возрастГруппыКонт">
             {% for гр_знач in _список %}
-            <div class="d-flex gap-2 mb-1 возраст-строка">
-              <select name="возрастная_группа[]" class="form-select form-select-sm flex-grow-1">
+            {% set _idx = loop.index %}
+            <div class="d-flex gap-2 mb-1 align-items-center возраст-строка">
+              <select name="возрастная_группа[]" class="form-select form-select-sm" style="flex:2 1 auto">
                 <option value="">— не указана —</option>
                 {% for гр in _оп %}
                 <option value="{{ гр }}" {{ 'selected' if гр_знач.strip() == гр }}>{{ гр }}</option>
                 {% endfor %}
               </select>
+              <div class="d-flex gap-2 flex-shrink-0">
+                {% for cls in ['R4', 'R6'] %}
+                <div class="form-check form-check-inline mb-0">
+                  <input class="form-check-input" type="checkbox" name="класс_судна"
+                         id="cls{{ cls }}_{{ _idx }}" value="{{ cls }}"
+                         {{ 'checked' if cls in _классы_выбр }}>
+                  <label class="form-check-label small fw-semibold" for="cls{{ cls }}_{{ _idx }}">{{ cls }}</label>
+                </div>
+                {% endfor %}
+              </div>
               {% if loop.index > 1 %}
               <button type="button" class="btn btn-outline-danger btn-sm px-2 btn-del-возраст">×</button>
               {% endif %}
@@ -222,17 +224,25 @@ document.getElementById('fieldНазвание').addEventListener('input', funct
 
 const ВОЗРАСТ_ОПЦИИ = [
   ['', '— не указана —'],
-  ['Мужчины, женщины', 'Мужчины, женщины'],
-  ['юниоры, юниорки (до 26 лет)', 'юниоры, юниорки (до 26 лет)'],
-  ['юниоры, юниорки (до 24 лет)', 'юниоры, юниорки (до 24 лет)'],
-  ['юниоры, юниорки (до 20 лет)', 'юниоры, юниорки (до 20 лет)'],
-  ['юноши, девушки (до 16 лет)', 'юноши, девушки (до 16 лет)'],
+  ['Мужчины', 'Мужчины'],
+  ['Женщины', 'Женщины'],
+  ['Юниоры (до 26 лет)', 'Юниоры (до 26 лет)'],
+  ['Юниорки (до 26 лет)', 'Юниорки (до 26 лет)'],
+  ['Юниоры (до 24 лет)', 'Юниоры (до 24 лет)'],
+  ['Юниорки (до 24 лет)', 'Юниорки (до 24 лет)'],
+  ['Юниоры (до 20 лет)', 'Юниоры (до 20 лет)'],
+  ['Юниорки (до 20 лет)', 'Юниорки (до 20 лет)'],
+  ['Юноши (до 16 лет)', 'Юноши (до 16 лет)'],
+  ['Девушки (до 16 лет)', 'Девушки (до 16 лет)'],
 ];
+
+let возрастСчётчик = document.querySelectorAll('.возраст-строка').length;
 
 function buildSelectВозраст() {
   const sel = document.createElement('select');
   sel.name = 'возрастная_группа[]';
-  sel.className = 'form-select form-select-sm flex-grow-1';
+  sel.className = 'form-select form-select-sm';
+  sel.style.flex = '2 1 auto';
   ВОЗРАСТ_ОПЦИИ.forEach(function(pair) {
     const opt = document.createElement('option');
     opt.value = pair[0];
@@ -242,6 +252,30 @@ function buildSelectВозраст() {
   return sel;
 }
 
+function buildКлассыВозраст(idx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'd-flex gap-2 flex-shrink-0';
+  ['R4', 'R6'].forEach(function(cls) {
+    const div = document.createElement('div');
+    div.className = 'form-check form-check-inline mb-0';
+    const inp = document.createElement('input');
+    inp.className = 'form-check-input';
+    inp.type = 'checkbox';
+    inp.name = 'класс_судна';
+    inp.id = 'cls' + cls + '_' + idx;
+    inp.value = cls;
+    if (cls === 'R4') inp.checked = true;
+    const lbl = document.createElement('label');
+    lbl.className = 'form-check-label small fw-semibold';
+    lbl.setAttribute('for', inp.id);
+    lbl.textContent = cls;
+    div.appendChild(inp);
+    div.appendChild(lbl);
+    wrap.appendChild(div);
+  });
+  return wrap;
+}
+
 function обновитьБтнВозраст() {
   const кол = document.querySelectorAll('.возраст-строка').length;
   document.getElementById('btnДобавитьВозраст').disabled = (кол >= 3);
@@ -249,9 +283,11 @@ function обновитьБтнВозраст() {
 
 document.getElementById('btnДобавитьВозраст').addEventListener('click', function() {
   if (document.querySelectorAll('.возраст-строка').length >= 3) return;
+  возрастСчётчик++;
   const div = document.createElement('div');
-  div.className = 'd-flex gap-2 mb-1 возраст-строка';
+  div.className = 'd-flex gap-2 mb-1 align-items-center возраст-строка';
   div.appendChild(buildSelectВозраст());
+  div.appendChild(buildКлассыВозраст(возрастСчётчик));
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn btn-outline-danger btn-sm px-2 btn-del-возраст';

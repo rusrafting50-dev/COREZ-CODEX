@@ -25,13 +25,14 @@
       } %}
     <div class="card h-100 border-0 shadow-sm">
       {# Наименование без заливки #}
-      <div class="card-header bg-white border-bottom py-2">
+      <div class="card-header bg-white border-bottom py-2 text-center">
         <div class="fw-bold" style="line-height:1.3">{{ с.название }}</div>
       </div>
 
       <div class="card-body pb-2">
-        {# Статус с заливкой #}
-        {% if с.код_соревнований %}
+        {# Статус с заливкой — не выводить, если он уже повторяется в наименовании #}
+        {% set _статус_текст = ((с.статус or '') ~ ' ' ~ (с.уровень or '')).strip() %}
+        {% if с.код_соревнований and _статус_текст and _статус_текст.upper() not in с.название.upper() %}
         <div class="mb-2">
           <span class="badge {{ цвет.get(с.код_соревнований, 'bg-secondary') }}">
             {{ с.статус }} {{ с.уровень }}
