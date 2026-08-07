@@ -68,7 +68,10 @@
           {% endif %}
         </div>
 
-        <ul class="list-unstyled small mb-0">
+        {% set _есть_подвал = с.даты_проведения or с.место_проведения or с.главный_судья %}
+        {% if _есть_подвал %}
+        <hr class="my-2">
+        <ul class="list-unstyled small mb-0 text-center">
           {% if с.даты_проведения %}
           <li class="mb-1">
             <span class="text-muted">📅</span> {{ с.даты_проведения }}
@@ -82,10 +85,11 @@
           {% if с.главный_судья %}
           <li class="mb-1">
             <span class="text-muted">⚖️</span>
-            Гл. судья: {{ с.главный_судья | truncate(50) }}
+            Главный судья: {{ с.главный_судья | truncate(50) }}
           </li>
           {% endif %}
         </ul>
+        {% endif %}
       </div>
 
       {# Кнопки #}
