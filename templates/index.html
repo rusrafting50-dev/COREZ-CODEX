@@ -29,7 +29,7 @@
         <div class="fw-bold" style="line-height:1.3">{{ с.название }}</div>
       </div>
 
-      <div class="card-body pb-2">
+      <div class="card-body pb-0">
         {# Статус с заливкой — не выводить, если он уже повторяется в наименовании #}
         {% set _статус_текст = ((с.статус or '') ~ ' ' ~ (с.уровень or '')).strip() %}
         {% if с.код_соревнований and _статус_текст and _статус_текст.upper() not in с.название.upper() %}
@@ -78,25 +78,23 @@
             {% endif %}
 
             {% if с.главный_судья %}
-            <div class="small text-muted">Главный судья: {{ с.главный_судья | truncate(50) }}</div>
+            <div class="small text-muted">
+              <span class="text-muted">⚖️</span> Главный судья: {{ с.главный_судья | truncate(50) }}
+            </div>
             {% endif %}
           </div>
         </div>
 
         {% if с.даты_проведения or с.место_проведения %}
         <hr class="my-2">
-        <ul class="list-unstyled small mb-0 text-center">
+        <div class="d-flex flex-column gap-1 small text-center">
           {% if с.даты_проведения %}
-          <li class="mb-1">
-            <span class="text-muted">📅</span> {{ с.даты_проведения }}
-          </li>
+          <div><span class="text-muted">📅</span> {{ с.даты_проведения }}</div>
           {% endif %}
           {% if с.место_проведения %}
-          <li class="mb-1">
-            <span class="text-muted">📍</span> {{ с.место_проведения }}
-          </li>
+          <div><span class="text-muted">📍</span> {{ с.место_проведения }}</div>
           {% endif %}
-        </ul>
+        </div>
         {% endif %}
       </div>
 
