@@ -200,6 +200,12 @@
                  placeholder="+7 (999) 000-00-00"
                  value="{{ сор.главный_судья_телефон if сор else '' }}">
         </div>
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Главный секретарь соревнований</label>
+          <input type="text" name="главный_секретарь" class="form-control"
+                 placeholder="Петрова Мария Ивановна, ССВК, Ленинградская область"
+                 value="{{ сор.главный_секретарь if сор else '' }}">
+        </div>
       </div>
     </div>
   </div>
