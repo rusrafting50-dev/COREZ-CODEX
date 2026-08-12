@@ -14,6 +14,29 @@
     @media print {
       .no-print { display: none !important; }
       .page-break { page-break-after: always; }
+      body { zoom: 0.97; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      table {
+        border-collapse: collapse !important;
+        border: 0.75pt solid #000 !important;
+        table-layout: fixed !important;
+        width: 100% !important;
+      }
+      td, th {
+        border-top: 0.75pt solid #000 !important;
+        border-right: 0.75pt solid #000 !important;
+        border-bottom: 0.75pt solid #000 !important;
+        border-left: 0.75pt solid #000 !important;
+        background-clip: padding-box !important;
+        word-wrap: break-word;
+        overflow: hidden;
+        font-family: "Times New Roman", serif !important;
+      }
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
     }
     .акт-страница {
       width: 100%;

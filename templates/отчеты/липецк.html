@@ -8,7 +8,7 @@
     h1 { font-size: 13pt; font-weight: bold; text-align: center; text-transform: uppercase; margin: 0 0 2px; }
     p  { margin: 3px 0; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 6px; font-size: 10pt; }
-    table td, table th { border: 1px solid #333; padding: 3px 5px; }
+    table td, table th { border: 0.5pt solid #333; padding: 3px 5px; }
     table th { font-weight: bold; text-align: center; background: #f0f0f0; }
     .center { text-align: center; }
     .bold { font-weight: bold; }
@@ -16,9 +16,31 @@
     .sig-col { width: 45%; }
     .section { margin-top: 10px; }
     @media print {
-      body { margin: 15mm 12mm; }
+      body { margin: 15mm 12mm; zoom: 0.97; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       @page { size: A4 portrait; }
       .no-print { display: none !important; }
+      table {
+        border-collapse: collapse !important;
+        border: 0.75pt solid #000 !important;
+        table-layout: fixed !important;
+        width: 100% !important;
+      }
+      td, th {
+        border-top: 0.75pt solid #000 !important;
+        border-right: 0.75pt solid #000 !important;
+        border-bottom: 0.75pt solid #000 !important;
+        border-left: 0.75pt solid #000 !important;
+        background-clip: padding-box !important;
+        word-wrap: break-word;
+        overflow: hidden;
+        font-family: "Times New Roman", serif !important;
+      }
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
     }
   </style>
 </head>

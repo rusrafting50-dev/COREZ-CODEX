@@ -52,6 +52,27 @@
   }
   .дг-рез-таблица th, .дг-рез-таблица td { padding:2px 3px; vertical-align:middle }
   .дг-рез-таблица thead th { background-color: #f0f0f0; }
+  @media print {
+    table {
+      border-collapse: collapse !important;
+      border: 0.75pt solid #000 !important;
+      table-layout: fixed !important;
+      width: 100% !important;
+    }
+    td, th {
+      border-top: 0.75pt solid #000 !important;
+      border-right: 0.75pt solid #000 !important;
+      border-bottom: 0.75pt solid #000 !important;
+      border-left: 0.75pt solid #000 !important;
+      background-clip: padding-box !important;
+      word-wrap: break-word;
+      overflow: hidden;
+      font-family: "Times New Roman", serif !important;
+    }
+    tr { break-inside: avoid; page-break-inside: avoid; }
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+  }
 </style>
 <div class="table-responsive mb-2">
   <table class="table table-sm table-hover align-middle дг-рез-таблица">
