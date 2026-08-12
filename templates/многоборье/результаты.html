@@ -66,7 +66,7 @@
       <td class="text-center small">{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
       <td class="text-center small">{{ р.очки_дг | int if р.очки_дг else '—' }}</td>
       <td class="text-center fw-bold text-primary">{{ р.сумма_очков | int }}</td>
-      <td class="text-center fw-bold fs-6">{{ р.место }}</td>
+      <td class="text-center fw-bold fs-6">{{ р.место if р.место else '—' }}</td>
       <td class="text-center small">{{ разряды.get(к.id, '—') if _норм else '—' }}</td>
     </tr>
     {% endfor %}
