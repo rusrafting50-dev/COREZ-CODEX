@@ -33,6 +33,11 @@
     {% if сор.даты_проведения %}{{ сор.даты_проведения }}{% endif %}
     {% if сор.место_проведения %}&nbsp;—&nbsp;{{ сор.место_проведения }}{% endif %}
   </div>
+  <div class="mt-2 no-print">
+    <form action="{{ url_for('соревнование.отправить_на_сайт', id=сор.id) }}" method="post" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-outline-primary">Отправить на сайт</button>
+    </form>
+  </div>
 </div>
 
 {# ── Макро: индикатор готовности ── #}

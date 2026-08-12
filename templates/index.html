@@ -109,9 +109,6 @@
               onsubmit="return confirm('Удалить соревнование и все связанные данные?')">
           <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
         </form>
-        <form action="{{ url_for('соревнование.отправить_на_сайт', id=с.id) }}" method="post" class="w-100">
-          <button type="submit" class="btn btn-sm btn-outline-primary w-100">Отправить на сайт</button>
-        </form>
       </div>
     </div>
   </div>
@@ -173,9 +170,6 @@
                   class="d-inline"
                   onsubmit="return confirm('Удалить соревнование и все связанные данные?')">
               <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-1">Удалить</button>
-            </form>
-            <form action="{{ url_for('соревнование.отправить_на_сайт', id=с.id) }}" method="post" class="d-inline">
-              <button type="submit" class="btn btn-outline-primary btn-sm py-0 px-1">На сайт</button>
             </form>
           </td>
         </tr>
