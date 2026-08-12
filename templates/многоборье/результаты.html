@@ -60,7 +60,7 @@
       <td class="text-center">{{ loop.index }}</td>
       <td>{{ к.название or '—' }}</td>
       <td class="text-center">{{ к.нагрудный_номер }}</td>
-      <td class="small text-muted">{{ к.субъект.название | truncate(20) if к.субъект else '—' }}</td>
+      <td class="small text-muted">{{ к.субъект.название if к.субъект else '—' }}</td>
       <td class="text-center small">{{ р.очки_спринт | int if р.очки_спринт else '—' }}</td>
       <td class="text-center small">{{ р.очки_пс | int if р.очки_пс else '—' }}</td>
       <td class="text-center small">{{ р.очки_слалом | int if р.очки_слалом else '—' }}</td>
