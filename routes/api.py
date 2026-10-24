@@ -1,4 +1,4 @@
-# routes/api.py — приём заявок команд от сайта RAFTING_CFO
+# routes/api.py — приём заявок команд от сайта RAFTING_CFO, судей от SPORTS_REFEREE
 #
 # Первый инбаунд-маршрут в COREZ: раньше проект был только источником
 # данных наружу (sync_rafting_cfo.py и подобные). Сайт RAFTING_CFO
@@ -11,13 +11,22 @@
 # Аутентификация — заголовок X-API-Key, сверяется с API_KEY в .env (тот
 # же приём, что использует сам RAFTING_CFO для приёма синхронизации от
 # COREZ/REGTEAM_RAFTING/SPORTS_REFEREE — см. его routes/api.py).
+#
+# Судьи (/competitions — список и /competitions/<id>/judges) — тем же
+# ключом принимаем из SPORTS_REFEREE: там своя база судей с историей
+# категорий, но нет понятия «соревнование» — пользователь выбирает
+# соревнование COREZ из списка (GET /competitions) и отправляет судью
+# в его судейскую коллегию кнопкой на карточке судьи. Судья в Судья —
+# запись ПЕР СОРЕВНОВАНИЕ (одного человека может потребоваться добавить
+# в несколько коллегий по отдельности), сопоставление при повторной
+# отправке — по (соревнование_id, номер_в_базе=id судьи в SPORTS_REFEREE).
 import os
 from datetime import datetime
 from functools import wraps
 
 from flask import Blueprint, jsonify, request
 
-from models import db, Соревнование, ПредварительнаяЗаявка, СпортсменЗаявки
+from models import db, Соревнование, ПредварительнаяЗаявка, СпортсменЗаявки, Судья
 
 bp_api = Blueprint('api', __name__)
 
@@ -119,3 +128,76 @@ def обновить_заявку(sor_id, application_id):
     db.session.commit()
 
     return jsonify({'application_id': заявка.id})
+
+
+# ── Судьи (приём из SPORTS_REFEREE) ───────────────────────────────────────────
+
+@bp_api.route('/competitions', methods=['GET'])
+@_требуется_ключ
+def список_соревнований():
+    """Список соревнований — чтобы SPORTS_REFEREE мог показать выбор
+    «в какую судейскую коллегию отправить» на карточке судьи."""
+    соревнования = Соревнование.query.order_by(Соревнование.создано.desc()).all()
+    return jsonify({'items': [
+        {
+            'id': сор.id,
+            'название': сор.название,
+            'даты_проведения': сор.даты_проведения,
+            'дата_начала': сор.дата_начала.isoformat() if сор.дата_начала else None,
+            'место_проведения': сор.место_проведения,
+            'субъект_рф_название': сор.субъект_рф_название,
+        }
+        for сор in соревнования
+    ]})
+
+
+def _дата_судьи(значение):
+    if not значение:
+        return None
+    try:
+        return datetime.strptime(значение, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+def _заполнить_судью(судья, данные):
+    судья.фамилия_имя_отчество = _строка(данные, 'фамилия_имя_отчество') or судья.фамилия_имя_отчество
+    судья.квалификация = _строка(данные, 'квалификация')
+    судья.субъект_рф = _строка(данные, 'субъект_рф')
+    судья.пол = _строка(данные, 'пол')
+    судья.дата_рождения = _дата_судьи(данные.get('дата_рождения'))
+    судья.действующая_категория = данные.get('действующая_категория')
+    if 'должность' in данные:
+        судья.должность = _строка(данные, 'должность')
+
+
+@bp_api.route('/competitions/<int:sor_id>/judges', methods=['POST'])
+@_требуется_ключ
+def добавить_судей(sor_id):
+    """Добавляет/обновляет судей в судейской коллегии соревнования.
+    {"items": [{"source_id": <Judge.id в SPORTS_REFEREE>, "фамилия_имя_отчество": …, …}]}
+    Сопоставление при повторной отправке — по (соревнование_id, номер_в_базе)."""
+    сор = Соревнование.query.get(sor_id)
+    if not сор:
+        return jsonify({'error': 'competition not found'}), 404
+
+    данные = request.get_json(silent=True) or {}
+    items = данные.get('items')
+    if not isinstance(items, list) or not items:
+        return jsonify({'error': 'нужен непустой список items'}), 400
+
+    результат = []
+    for item in items:
+        source_id = item.get('source_id')
+        if not source_id or not _строка(item, 'фамилия_имя_отчество'):
+            continue
+        судья = Судья.query.filter_by(соревнование_id=sor_id, номер_в_базе=source_id).first()
+        if судья is None:
+            судья = Судья(соревнование_id=sor_id, номер_в_базе=source_id)
+            db.session.add(судья)
+        _заполнить_судью(судья, item)
+        db.session.flush()
+        результат.append({'source_id': source_id, 'id': судья.id})
+
+    db.session.commit()
+    return jsonify({'status': 'ok', 'items': результат})
