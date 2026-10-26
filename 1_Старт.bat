@@ -2,8 +2,8 @@
 chcp 65001 >nul
 cd /d "D:\Projects Claude Code\COREZ"
 
-echo [1/4] Останавливаем старый Flask...
-taskkill /f /im python.exe 1>nul 2>nul
+echo [1/4] Останавливаем старый Flask (порт 5000)...
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr :5000 ^| findstr LISTENING') do taskkill /f /pid %%p 1>nul 2>nul
 timeout /t 2 /nobreak >nul
 
 echo [2/4] Получаем обновления...
