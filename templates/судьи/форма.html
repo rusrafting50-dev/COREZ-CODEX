@@ -253,7 +253,7 @@ function загрузитьПодсказки(q) {
       поискИтоги.innerHTML = данные.map(с => `
         <div class="px-3 py-2 border-bottom" style="cursor:pointer"
              onmousedown="выбратьСудью(${JSON.stringify(с).replace(/"/g,'&quot;')})">
-          <div class="fw-semibold">${с.фио}</div>
+          <div class="fw-semibold">${с.фио} ${с.источник === 'SPORTS_REFEREE' ? '<span class="badge bg-info text-dark">БД судей</span>' : ''}</div>
           <div class="text-muted small">
             ${с.квалификация ? '<span class="badge bg-secondary me-1">' + с.квалификация + '</span>' : ''}
             ${с.субъект_рф || ''}
