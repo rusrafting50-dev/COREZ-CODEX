@@ -317,7 +317,7 @@ function загрузитьСпортсменов(q) {
       поискСпортИтоги.innerHTML = данные.map(с => `
         <div class="px-3 py-2 border-bottom" style="cursor:pointer"
              onmousedown="выбратьСпортсмена(${JSON.stringify(с).replace(/"/g,'&quot;')})">
-          <div class="fw-semibold">${с.фио}</div>
+          <div class="fw-semibold">${с.фио} ${с.источник === 'REGTEAM_RAFTING' ? '<span class="badge bg-info text-dark">Сборная</span>' : ''}</div>
           <div class="text-muted small">
             ${с.разряд ? '<span class="badge bg-secondary me-1">' + с.разряд + '</span>' : ''}
             ${с.дата_рождения ? с.дата_рождения : ''}
