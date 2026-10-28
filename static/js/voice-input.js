@@ -78,10 +78,31 @@
       rec.start();
     }
 
+    function включить() {
+      активен = true;
+      toggle.classList.add('on');
+    }
+
     toggle.addEventListener('click', function () {
-      активен = !активен;
-      toggle.classList.toggle('on', активен);
-      if (!активен) остановить();
+      if (активен) {
+        активен = false;
+        toggle.classList.remove('on');
+        остановить();
+        return;
+      }
+      // Разрешение на микрофон запрашиваем по прямому клику — иначе браузер
+      // может молча отклонить запрос, сделанный позже по наведению курсора.
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          включить();
+        }).catch(function (err) {
+          console.warn('Голосовой ввод: доступ к микрофону не получен —', err);
+          alert('Не удалось получить доступ к микрофону.\nПроверьте значок разрешений рядом с адресом сайта в браузере и дайте доступ к микрофону для этой страницы.');
+        });
+      } else {
+        включить();
+      }
     });
 
     inputs.forEach(function (inp) {
