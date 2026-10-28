@@ -51,3 +51,24 @@ thead th {
 .status-dk   { color: #dc3545; font-weight: bold; }
 .status-dns  { color: #6c757d; }
 .status-dnf  { color: #fd7e14; }
+
+/* Голосовой ввод (voice-input.js) */
+.voice-input-wrap { position: relative; display: inline-block; width: 100%; }
+.voice-input-wrap input { padding-right: 20px !important; }
+.voice-input-btn {
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: .75rem;
+  line-height: 1;
+  padding: 1px 2px;
+  opacity: .5;
+}
+.voice-input-btn:hover { opacity: 1; }
+.voice-input-btn.listening { opacity: 1; animation: voice-input-pulse 1s infinite; }
+@keyframes voice-input-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@media print { .voice-input-btn { display: none !important; } }

@@ -312,4 +312,10 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
   });
 });
 </script>
+<script src="{{ url_for('static', filename='js/voice-input.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  включитьГолосовойВвод('.время-ввод');
+});
+</script>
 {% endblock %}
