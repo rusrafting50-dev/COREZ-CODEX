@@ -53,22 +53,34 @@ thead th {
 .status-dnf  { color: #fd7e14; }
 
 /* Голосовой ввод (voice-input.js) */
-.voice-input-wrap { position: relative; display: inline-block; width: 100%; }
-.voice-input-wrap input { padding-right: 20px !important; }
-.voice-input-btn {
-  position: absolute;
-  right: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
+.voice-input-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1050;
+  border: 1px solid #adb5bd;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: .85rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
   cursor: pointer;
-  font-size: .75rem;
-  line-height: 1;
-  padding: 1px 2px;
-  opacity: .5;
+  opacity: .85;
 }
-.voice-input-btn:hover { opacity: 1; }
-.voice-input-btn.listening { opacity: 1; animation: voice-input-pulse 1s infinite; }
-@keyframes voice-input-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-@media print { .voice-input-btn { display: none !important; } }
+.voice-input-toggle:hover { opacity: 1; }
+.voice-input-toggle.on {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
+  opacity: 1;
+  animation: voice-input-pulse 1.4s infinite;
+}
+.voice-input-active {
+  outline: 2px solid #dc3545 !important;
+  outline-offset: -1px;
+}
+@keyframes voice-input-pulse {
+  0%, 100% { box-shadow: 0 2px 6px rgba(220,53,69,.5); }
+  50%      { box-shadow: 0 2px 14px rgba(220,53,69,.9); }
+}
+@media print { .voice-input-toggle { display: none !important; } }
