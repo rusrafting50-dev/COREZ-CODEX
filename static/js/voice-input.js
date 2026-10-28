@@ -64,7 +64,8 @@
         inp.value = text;
         inp.dispatchEvent(new Event('input', { bubbles: true }));
       };
-      rec.onerror = function () {
+      rec.onerror = function (ev) {
+        console.warn('Голосовой ввод: ошибка распознавания —', ev.error);
         остановить();
       };
       rec.onend = function () {
@@ -87,9 +88,6 @@
       inp.addEventListener('mouseenter', function () {
         if (!активен || текущееПоле === inp) return;
         начатьДляПоля(inp);
-      });
-      inp.addEventListener('mouseleave', function () {
-        if (текущееПоле === inp) остановить();
       });
     });
   };
