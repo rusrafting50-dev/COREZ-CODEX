@@ -260,10 +260,4 @@ function пересчитатьСтроку(row) {
     if (cellРез) cellРез.textContent = result !== null ? formatDur(result) : '—';
 }
 </script>
-<script src="{{ url_for('static', filename='js/voice-input.js') }}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  включитьГолосовойВвод('input[name^="вс_"], input[name^="вф_"]');
-});
-</script>
 {% endblock %}
