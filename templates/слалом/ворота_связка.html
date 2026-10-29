@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Ворота — связка {{ связка.номер }} (попытка {{ попытка }}) — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item active">Ворота — связка {{ связка.номер }}</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .св-ворота-кн { min-width: 56px; min-height: 46px; font-size: 1.05rem; font-weight: 600; }
+  .св-команда-row { cursor: pointer; user-select: none; }
+  .св-команда-row.active { border-color: #0d6efd !important; background: #eef5ff; }
+  .св-бейдж-сумма { font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">
+    Слалом — связка ворот №{{ связка.номер }}:
+    {% if связка.ворота %}ворота {{ связка.ворота | join(', ') }}{% else %}ворота не выбраны{% endif %}
+    {% if связка.судья %} · судья: {{ связка.судья }}{% endif %}
+  </div>
+</div>
+
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+  {% for n in (1, 2) %}
+  <a href="{{ url_for('слалом.ворота_связка', sor_id=сор.id, attempt=n, group=связка.номер) }}"
+     class="btn btn-sm {{ 'btn-primary' if n == попытка else 'btn-outline-primary' }}">Попытка {{ n }}</a>
+  {% endfor %}
+  {% if связки | length > 1 %}
+  <select class="form-select form-select-sm w-auto ms-auto" onchange="if(this.value) location = this.value">
+    {% for с in связки %}
+    <option value="{{ url_for('слалом.ворота_связка', sor_id=сор.id, attempt=попытка, group=с.номер) }}"
+            {{ 'selected' if с.номер == связка.номер }}>Связка {{ с.номер }}</option>
+    {% endfor %}
+  </select>
+  {% endif %}
+</div>
+
+{% if not связка.ворота %}
+<div class="alert alert-warning">
+  Для этой связки не выбраны ворота. Настройте их на странице стартового протокола,
+  в разделе «Параметры спортивных соревнований».
+</div>
+{% else %}
+
+<div class="text-muted small mb-2">Выберите команду по номеру, затем нажмите штраф на нужных воротах.</div>
+
+<div id="список-команд">
+  {% for к in команды %}
+  {% set шт = штрафы.get(к.id, {}) %}
+  {% set сумма = сумма_по_команде.get(к.id, 0) %}
+  <div class="card mb-2 св-команда-row" data-команда-id="{{ к.id }}">
+    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center"
+         onclick="выбратьКоманду({{ к.id }})">
+      <div>
+        <span class="fw-bold fs-5">№{{ к.нагрудный_номер }}</span>
+        <span class="text-muted small ms-2">{{ к.название or '' }}</span>
+      </div>
+      <div class="св-бейдж-сумма {{ 'text-danger fw-semibold' if сумма else 'text-muted' }}">
+        {{ ('+' ~ сумма ~ 'с') if сумма else '—' }}
+      </div>
+    </div>
+    <div class="card-footer bg-white py-2 px-3 d-none панель-ворот">
+      {% for в in связка.ворота %}
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="fw-semibold">Ворота {{ в }}</span>
+        <div class="btn-group" role="group">
+          {% for знач, лейбл, цвет in [(0, '0', 'outline-success'), (5, '5', 'outline-warning'), (50, '50', 'outline-danger')] %}
+          <button type="button"
+                  class="btn btn-{{ цвет }} св-ворота-кн {{ 'active' if шт.get(в, 0) == знач else '' }}"
+                  onclick="поставитьШтраф(this, {{ к.id }}, {{ в }}, {{ знач }})">{{ лейбл }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+let текущаяКоманда = null;
+
+function выбратьКоманду(id) {
+  if (текущаяКоманда === id) return;
+  document.querySelectorAll('.св-команда-row').forEach(function (el) {
+    el.classList.remove('active');
+    el.querySelector('.панель-ворот').classList.add('d-none');
+  });
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + id + '"]');
+  if (!row) return;
+  row.classList.add('active');
+  row.querySelector('.панель-ворот').classList.remove('d-none');
+  текущаяКоманда = id;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function поставитьШтраф(btn, командаId, ворота, штраф) {
+  btn.closest('.btn-group').querySelectorAll('.св-ворота-кн').forEach(function (b) {
+    b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  fetch("{{ url_for('слалом.ворота_связка_штраф', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      команда_id: командаId,
+      попытка: {{ попытка }},
+      ворота: ворота,
+      штраф: штраф
+    })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      btn.classList.remove('active');
+    } else {
+      обновитьСумму(командаId);
+    }
+  }).catch(function () {
+    alert('Нет соединения с сервером — штраф не сохранён. Проверьте Wi-Fi.');
+    btn.classList.remove('active');
+  });
+}
+
+function обновитьСумму(командаId) {
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + командаId + '"]');
+  if (!row) return;
+  let сумма = 0;
+  row.querySelectorAll('.панель-ворот .btn-group').forEach(function (grp) {
+    const активная = grp.querySelector('.св-ворота-кн.active');
+    if (активная) сумма += parseInt(активная.textContent, 10) || 0;
+  });
+  const бейдж = row.querySelector('.св-бейдж-сумма');
+  if (сумма) {
+    бейдж.textContent = '+' + сумма + 'с';
+    бейдж.classList.add('text-danger', 'fw-semibold');
+    бейдж.classList.remove('text-muted');
+  } else {
+    бейдж.textContent = '—';
+    бейдж.classList.remove('text-danger', 'fw-semibold');
+    бейдж.classList.add('text-muted');
+  }
+}
+</script>
+
+{% endif %}
+{% endblock %}
