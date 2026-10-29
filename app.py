@@ -1,7 +1,8 @@
 # app.py — главный Flask-сервер системы учёта соревнований по рафтингу
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, session, request
 from models import (db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы,
                     заполнить_коэффициенты_субъектов, получить_настройки)
 
@@ -22,6 +23,7 @@ def create_app() -> Flask:
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-prod')
     app.config['JSON_AS_ASCII'] = False   # корректная отдача кириллицы в JSON
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)   # режим киоска на телефоне судьи
 
     # ------------------------------------------------------------------
     # База данных
@@ -84,6 +86,36 @@ def create_app() -> Flask:
     @app.context_processor
     def _inject_офлайн_режим():
         return dict(офлайн_режим=получить_настройки().офлайн_режим)
+
+    # ------------------------------------------------------------------
+    # Режим киоска: телефон судьи, закреплённый за связкой ворот слалома,
+    # не может открыть ничего, кроме своей страницы ввода штрафов.
+    # ------------------------------------------------------------------
+    _КИОСК_РАЗРЕШЁННЫЕ_ЭНДПОИНТЫ = {
+        'static',
+        'слалом.ворота_связка',
+        'слалом.ворота_связка_штраф',
+        'слалом.ворота_связка_выйти',
+    }
+
+    @app.before_request
+    def _ограничить_киоск():
+        замок = session.get('киоск_связка')
+        if not замок:
+            return None
+        if request.endpoint not in _КИОСК_РАЗРЕШЁННЫЕ_ЭНДПОИНТЫ:
+            return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                     attempt=1, group=замок['group']))
+        if request.endpoint == 'слалом.ворота_связка':
+            if (request.view_args.get('sor_id') != замок['sor_id'] or
+                    request.view_args.get('group') != замок['group']):
+                return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                         attempt=1, group=замок['group']))
+        elif request.endpoint == 'слалом.ворота_связка_штраф':
+            if request.view_args.get('sor_id') != замок['sor_id']:
+                return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                         attempt=1, group=замок['group']))
+        return None
 
     # ------------------------------------------------------------------
     # Заголовки безопасности

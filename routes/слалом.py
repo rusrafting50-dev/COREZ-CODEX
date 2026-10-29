@@ -1,7 +1,7 @@
 # routes/слалом.py — дистанция СЛАЛОМ: две попытки, штрафы на воротах
 import json
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from models import (db, Соревнование, Команда, РезультатСлалома, ШтрафВорот,
                     РезультатПараллельногоСпринта, РезультатМногоборья,
                     ТаблицаОчков, ТаблицаРазрядов, ПараметрыДистанции, Судья,
@@ -458,11 +458,30 @@ def ворота_связка(sor_id, attempt, group):
         к.id: sum(штрафы.get(к.id, {}).get(в, 0) for в in связка['ворота'])
         for к in команды
     }
+    замок = session.get('киоск_связка')
+    закреплено = bool(замок and замок.get('sor_id') == sor_id and замок.get('group') == номер_связки)
 
     return render_template('слалом/ворота_связка.html',
                            сор=сор, попытка=попытка, связка=связка, связки=связки,
                            команды=команды, штрафы=штрафы, сумма_по_команде=сумма_по_команде,
+                           закреплено=закреплено,
                            format_time=format_time)
+
+
+@bp_слалом.route('/<int:sor_id>/ворота-связка/<int:group>/закрепить', methods=['POST'])
+def ворота_связка_закрепить(sor_id, group):
+    """Включить режим киоска: это устройство сможет открывать только страницу
+    ввода штрафов данной связки, пока не нажмут «Снять ограничение»."""
+    session.permanent = True
+    session['киоск_связка'] = {'sor_id': sor_id, 'group': group}
+    return redirect(url_for('слалом.ворота_связка', sor_id=sor_id, attempt=1, group=group))
+
+
+@bp_слалом.route('/<int:sor_id>/ворота-связка/выйти', methods=['POST'])
+def ворота_связка_выйти(sor_id):
+    """Снять ограничение киоска — вернуть полный доступ на этом устройстве."""
+    session.pop('киоск_связка', None)
+    return redirect(url_for('main.index'))
 
 
 @bp_слалом.route('/<int:sor_id>/ворота-связка/штраф', methods=['POST'])
