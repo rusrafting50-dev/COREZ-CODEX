@@ -61,6 +61,7 @@
 
       rec.onresult = function (ev) {
         var text = ev.results[0][0].transcript || '';
+        console.log('Голосовой ввод: распознано —', JSON.stringify(text));
         inp.value = text;
         inp.dispatchEvent(new Event('input', { bubbles: true }));
       };
@@ -68,14 +69,29 @@
         console.warn('Голосовой ввод: ошибка распознавания —', ev.error);
         остановить();
       };
+      rec.onnomatch = function () {
+        console.warn('Голосовой ввод: речь услышана, но распознать не удалось (onnomatch)');
+      };
+      rec.onaudiostart = function () {
+        console.log('Голосовой ввод: микрофон захвачен, слушаю…');
+      };
+      rec.onspeechstart = function () {
+        console.log('Голосовой ввод: речь обнаружена…');
+      };
       rec.onend = function () {
+        console.log('Голосовой ввод: распознавание завершено (onend)');
         if (текущееПоле === inp) {
           inp.classList.remove('voice-input-active');
           текущееПоле = null;
         }
         rec = null;
       };
-      rec.start();
+      try {
+        rec.start();
+      } catch (err) {
+        console.warn('Голосовой ввод: start() выбросил исключение —', err);
+        остановить();
+      }
     }
 
     function включить() {
