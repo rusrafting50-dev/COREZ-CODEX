@@ -1,7 +1,7 @@
 # routes/спортсмены.py — CRUD спортсменов
 from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Спортсмен, Команда, Субъект, Соревнование
+from models import db, Спортсмен, Команда, Субъект, Соревнование, получить_настройки
 import sync_regteam_rafting
 
 bp_спортсмены = Blueprint('спортсмены', __name__)
@@ -44,8 +44,11 @@ def поиск():
     # Подмешиваем живой поиск по базе REGTEAM_RAFTING — она хранит полный
     # список спортсменов сборной (а не только когда-либо участвовавших в
     # соревнованиях COREZ). При совпадении номер_в_базе предпочитаем
-    # запись REGTEAM_RAFTING как более актуальную.
-    удалённые = [dict(с, источник='REGTEAM_RAFTING') for с in sync_regteam_rafting.найти_спортсменов(q)]
+    # запись REGTEAM_RAFTING как более актуальную. В офлайн-режиме внешние
+    # запросы не выполняются вовсе, чтобы не ждать впустую таймаут.
+    удалённые = []
+    if not получить_настройки().офлайн_режим:
+        удалённые = [dict(с, источник='REGTEAM_RAFTING') for с in sync_regteam_rafting.найти_спортсменов(q)]
     удалённые_номера = {с['номер_в_базе'] for с in удалённые if с.get('номер_в_базе')}
     местные = [с for с in местные if not (с['номер_в_базе'] and с['номер_в_базе'] in удалённые_номера)]
 

@@ -1,7 +1,7 @@
 # routes/судьи.py — CRUD судей + печатные документы
 from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Судья, Соревнование, СУБЪЕКТЫ_РФ
+from models import db, Судья, Соревнование, СУБЪЕКТЫ_РФ, получить_настройки
 import sync_sports_referee
 
 bp_судьи = Blueprint('судьи', __name__)
@@ -126,7 +126,10 @@ def поиск():
     # список судей (а не только когда-либо добавленных в коллегии COREZ).
     # При совпадении номер_в_базе предпочитаем запись SPORTS_REFEREE как
     # более актуальную (local могла устареть с прошлого соревнования).
-    удалённые = [dict(с, источник='SPORTS_REFEREE') for с in sync_sports_referee.найти_судей(q)]
+    # В офлайн-режиме внешние запросы не выполняются вовсе.
+    удалённые = []
+    if not получить_настройки().офлайн_режим:
+        удалённые = [dict(с, источник='SPORTS_REFEREE') for с in sync_sports_referee.найти_судей(q)]
     местные_номера = {с['номер_в_базе'] for с in удалённые if с.get('номер_в_базе')}
     местные = [с for с in местные if not (с['номер_в_базе'] and с['номер_в_базе'] in местные_номера)]
 

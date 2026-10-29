@@ -2,7 +2,8 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
-from models import db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы, заполнить_коэффициенты_субъектов
+from models import (db, заполнить_таблицу_очков, применить_миграции, заполнить_штрафы,
+                    заполнить_коэффициенты_субъектов, получить_настройки)
 
 load_dotenv()
 
@@ -78,17 +79,24 @@ def create_app() -> Flask:
     app.register_blueprint(bp_api,          url_prefix='/api')
 
     # ------------------------------------------------------------------
+    # Офлайн/онлайн режим — доступен во всех шаблонах как `офлайн_режим`
+    # ------------------------------------------------------------------
+    @app.context_processor
+    def _inject_офлайн_режим():
+        return dict(офлайн_режим=получить_настройки().офлайн_режим)
+
+    # ------------------------------------------------------------------
     # Заголовки безопасности
     # ------------------------------------------------------------------
     @app.after_request
     def add_csp_header(response):
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data:; "
-            "font-src 'self' data: cdn.jsdelivr.net; "
-            "connect-src 'self' https://cdn.jsdelivr.net;"
+            "font-src 'self' data:; "
+            "connect-src 'self';"
         )
         # Запрет кэширования скачиваемых файлов (Word/DOCX/PDF)
         if 'attachment' in response.headers.get('Content-Disposition', ''):
