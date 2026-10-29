@@ -122,6 +122,37 @@
     </button>
   </form>
 </div>
+
+{# ── Список участников с возможностью исключить из старта ── #}
+{% macro список_участников(список, заг, цвет) %}
+{% if список %}
+<div class="mb-3 no-print">
+  <h6 class="fw-semibold text-{{ цвет }} mb-1">{{ заг }}</h6>
+  <div class="d-flex flex-wrap gap-2">
+    {% for к in список %}
+    <span class="badge bg-light text-dark border d-inline-flex align-items-center"
+          style="font-size:.75rem; padding:4px 4px 4px 8px">
+      №{{ к.нагрудный_номер }} {{ к.название or ('Команда ' ~ к.нагрудный_номер) }}
+      <form method="post" action="{{ url_for('пс.исключить', sor_id=сор.id, team_id=к.id) }}"
+            class="d-inline ms-1"
+            onsubmit="return confirm('Исключить команду №{{ к.нагрудный_номер }} из старта параллельного спринта?\nСетка будет пересчитана для оставшихся команд.')">
+        <button type="submit" class="btn btn-sm btn-link text-danger p-0" style="line-height:1"
+                title="Исключить из старта ПС">✕</button>
+      </form>
+    </span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{{ список_участников(муж_список_r4, 'Участники — R4, мужчины', 'primary') }}
+{{ список_участников(жен_список_r4, 'Участники — R4, женщины', 'danger') }}
+{% if has_r6 %}
+{{ список_участников(муж_список_r6, 'Участники — R6, мужчины', 'primary') }}
+{{ список_участников(жен_список_r6, 'Участники — R6, женщины', 'danger') }}
+{% endif %}
+
 {% endif %}
 
 {# ─────────────────────────────────────────────────────────────────────────────
