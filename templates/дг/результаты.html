@@ -221,7 +221,7 @@ if (btnСохр) {
 
 document.querySelectorAll('[name^="вс_"], [name^="вф_"]').forEach(inp => {
     inp.addEventListener('input', function () {
-        const raw = this.value.replace(/\D/g, '').slice(0, 8);
+        const raw = this.value.replace(/ноль/gi, '0').replace(/\D/g, '').slice(0, 8);
         let out = '';
         for (let i = 0; i < raw.length; i++) {
             if (i === 2 || i === 4) out += ':';
