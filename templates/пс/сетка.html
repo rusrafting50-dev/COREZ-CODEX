@@ -611,27 +611,35 @@
       <div class="row g-3 mb-3">
         <div class="col-md-6">
           <label class="form-label mb-1">Старший судья старта</label>
-          <select name="старший_судья_старта_пс" class="form-select form-select-sm">
-            <option value="">— не указан —</option>
-            {% for с in судьи_старта | default([]) %}
-            <option value="{{ с.фамилия_имя_отчество }}"
-              {% if сор.старший_судья_старта_пс == с.фамилия_имя_отчество %}selected{% endif %}>
-              {{ с.фамилия_имя_отчество }}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="d-flex align-items-center gap-2 flex-nowrap">
+            <select name="старший_судья_старта_пс" class="form-select form-select-sm">
+              <option value="">— не указан —</option>
+              {% for с in судьи_старта | default([]) %}
+              <option value="{{ с.фамилия_имя_отчество }}"
+                {% if сор.старший_судья_старта_пс == с.фамилия_имя_отчество %}selected{% endif %}>
+                {{ с.фамилия_имя_отчество }}
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('пс.старт_время', sor_id=сор.id) }}"
+               target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
+          </div>
         </div>
         <div class="col-md-6">
           <label class="form-label mb-1">Старший судья финиша</label>
-          <select name="старший_судья_финиша_пс" class="form-select form-select-sm">
-            <option value="">— не указан —</option>
-            {% for с in судьи_финиша | default([]) %}
-            <option value="{{ с.фамилия_имя_отчество }}"
-              {% if сор.старший_судья_финиша_пс == с.фамилия_имя_отчество %}selected{% endif %}>
-              {{ с.фамилия_имя_отчество }}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="d-flex align-items-center gap-2 flex-nowrap">
+            <select name="старший_судья_финиша_пс" class="form-select form-select-sm">
+              <option value="">— не указан —</option>
+              {% for с in судьи_финиша | default([]) %}
+              <option value="{{ с.фамилия_имя_отчество }}"
+                {% if сор.старший_судья_финиша_пс == с.фамилия_имя_отчество %}selected{% endif %}>
+                {{ с.фамилия_имя_отчество }}
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('пс.финиш_время', sor_id=сор.id) }}"
+               target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
+          </div>
         </div>
       </div>
 

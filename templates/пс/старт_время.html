@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}ПС: старт — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    {% if not закреплено %}
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">Параллельный спринт — старт</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .пс-заезд-карта.готово { background: #e5f4e4; }
+  .пс-кн-старт { min-height: 50px; font-size: 1.1rem; font-weight: 700; }
+  .пс-время-знач { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+  .пс-дорожка { border-top: 1px solid #e5e5e5; padding-top: .4rem; margin-top: .4rem; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">Параллельный спринт — старт (общий на весь заезд)</div>
+</div>
+
+{% if закреплено %}
+<div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span>🔒 Телефон закреплён только за этой страницей</span>
+  <form method="post" action="{{ url_for('пс.старт_время_выйти', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-success">Снять ограничение</button>
+  </form>
+</div>
+{% else %}
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span class="small text-muted">Чтобы судья не мог зайти на другие страницы с этого телефона —</span>
+  <form method="post" action="{{ url_for('пс.старт_время_закрепить', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">🔒 Закрепить телефон за стартом</button>
+  </form>
+</div>
+{% endif %}
+
+{% if not группы %}
+<div class="alert alert-warning">Заездов пока нет — сформируйте сетку на странице стартового протокола.</div>
+{% else %}
+<div class="text-muted small mb-2">Нажмите «Старт!» в момент старта заезда — время ставится сразу обеим дорожкам.</div>
+
+<div id="список-заездов">
+  {% for г in группы %}
+  {% set время = г.записи[0].время_старта if г.записи else none %}
+  {% set ids = г.записи | map(attribute='id') | list %}
+  <div class="card mb-2 пс-заезд-карта {{ 'готово' if время is not none }}" data-ids="{{ ids | join(',') }}">
+    <div class="card-body py-2 px-3">
+      <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+        <div class="small text-muted">
+          {{ 'Мужчины' if г.пол == 'м' else 'Женщины' }} {{ г.класс }} —
+          {{ НАЗВАНИЯ.get(г.стадия, г.стадия) }} — заезд {{ г.номер }}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="пс-время-знач {{ 'text-success fw-semibold' if время is not none else 'text-muted' }}">
+            {{ format_time(время) if время is not none else '—' }}
+          </span>
+          <button type="button" class="btn btn-success btn-sm пс-кн-старт"
+                  onclick="зафиксировать('{{ ids | join(',') }}', this)">🏁 Старт!</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm кн-исправить {{ 'd-none' if время is none }}"
+                  onclick="переключитьРучнойВвод('{{ ids | join(',') }}')">✎</button>
+        </div>
+      </div>
+      <div class="d-none ручной-ввод-блок" data-ids="{{ ids | join(',') }}">
+        <div class="d-flex gap-2 align-items-center mb-2">
+          <input type="text" class="form-control form-control-sm font-monospace время-ввод"
+                 placeholder="00:00:00.00" autocomplete="off" style="max-width:160px">
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="сохранитьРучной('{{ ids | join(',') }}', this)">Сохранить</button>
+        </div>
+      </div>
+      {% for з in г.записи %}
+      {% set к = з.команда %}
+      <div class="пс-дорожка d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <div>
+          <span class="fw-bold">№{{ к.нагрудный_номер }}</span>
+          <span class="text-muted small ms-1">{{ к.название or '' }}</span>
+          <span class="text-muted small ms-1">({{ з.дорожка }})</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-warning штраф-счётчик"
+                  data-запись="{{ з.id }}" data-тип="с10" onclick="штрафТап(this)">
+            +10с: <span class="знач">{{ з.штраф_с10 or 0 }}</span>
+          </button>
+          <button type="button" class="btn btn-sm {{ 'btn-dark' if з.статус == 'ДК' else 'btn-outline-dark' }} дк-кн"
+                  data-запись="{{ з.id }}" onclick="дкТап(this)">ДК</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function применитьФормат(inp) {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/ноль/gi, '0').replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+}
+document.querySelectorAll('.время-ввод').forEach(применитьФормат);
+
+function переключитьРучнойВвод(ids) {
+  const блок = document.querySelector('.ручной-ввод-блок[data-ids="' + ids + '"]');
+  if (блок) блок.classList.toggle('d-none');
+}
+
+function отправить(ids, время, btn) {
+  const исходныйТекст = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  fetch("{{ url_for('пс.старт_время_зафиксировать', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids: ids.split(','), время: время || '' })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+      return;
+    }
+    const карта = document.querySelector('.пс-заезд-карта[data-ids="' + ids + '"]');
+    if (карта) {
+      карта.classList.add('готово');
+      const знач = карта.querySelector('.пс-время-знач');
+      знач.textContent = data.время;
+      знач.classList.add('text-success', 'fw-semibold');
+      знач.classList.remove('text-muted');
+      карта.querySelector('.ручной-ввод-блок').classList.add('d-none');
+      const кнИсправить = карта.querySelector('.кн-исправить');
+      if (кнИсправить) кнИсправить.classList.remove('d-none');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  }).catch(function () {
+    alert('Нет соединения с сервером — время не сохранено. Проверьте Wi-Fi.');
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  });
+}
+
+function зафиксировать(ids, btn) {
+  отправить(ids, null, btn);
+}
+
+function сохранитьРучной(ids, btn) {
+  const блок = document.querySelector('.ручной-ввод-блок[data-ids="' + ids + '"]');
+  const inp = блок.querySelector('.время-ввод');
+  if (!inp.value) return;
+  отправить(ids, inp.value, btn);
+}
+
+function штрафЗапрос(данные) {
+  return fetch("{{ url_for('пс.штраф', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(данные)
+  }).then(function (r) { return r.json(); });
+}
+
+function штрафТап(btn) {
+  const span = btn.querySelector('.знач');
+  let n = (parseInt(span.textContent, 10) || 0) + 1;
+  if (n > 9) n = 0;
+  const прежнее = span.textContent;
+  span.textContent = n;
+  штрафЗапрос({ запись_id: btn.dataset.запись, тип: btn.dataset.тип, знач: n })
+    .then(function (data) {
+      if (!data.ok) { alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера')); span.textContent = прежнее; }
+    })
+    .catch(function () { alert('Нет соединения с сервером.'); span.textContent = прежнее; });
+}
+
+function дкТап(btn) {
+  const вкл = !btn.classList.contains('btn-dark');
+  btn.classList.toggle('btn-dark', вкл);
+  btn.classList.toggle('btn-outline-dark', !вкл);
+  штрафЗапрос({ запись_id: btn.dataset.запись, тип: 'дк', знач: вкл })
+    .then(function (data) {
+      if (!data.ok) {
+        alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+        btn.classList.toggle('btn-dark', !вкл);
+        btn.classList.toggle('btn-outline-dark', вкл);
+      }
+    })
+    .catch(function () {
+      alert('Нет соединения с сервером.');
+      btn.classList.toggle('btn-dark', !вкл);
+      btn.classList.toggle('btn-outline-dark', вкл);
+    });
+}
+</script>
+{% endblock %}
