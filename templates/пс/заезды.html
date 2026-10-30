@@ -29,6 +29,40 @@
 </div>
 <div class="text-center mb-3"><h5 class="mb-0">Результаты заездов</h5></div>
 
+<style>
+  .пс-рез-таблица { font-size:.77rem }
+  .пс-рез-таблица input.form-control, .пс-рез-таблица select.form-select {
+    font-size:.75rem; padding:1px 3px; height:auto; line-height:1.3
+  }
+  .пс-рез-таблица th, .пс-рез-таблица td { padding:2px 3px; vertical-align:middle }
+  .пс-рез-таблица thead th { background-color: #f0f0f0; }
+  .пс-рез-таблица tr.ps-gold   td { background-color: #ffe08a !important; }
+  .пс-рез-таблица tr.ps-silver td { background-color: #e2e2e2 !important; }
+  .пс-рез-таблица tr.ps-bronze td { background-color: #e8c9a0 !important; }
+  .пс-рез-таблица tr.ps-yellow td { background-color: #fff6c9 !important; }
+  @media print {
+    table {
+      border-collapse: collapse !important;
+      border: 0.75pt solid #000 !important;
+      table-layout: fixed !important;
+      width: 100% !important;
+    }
+    td, th {
+      border-top: 0.75pt solid #000 !important;
+      border-right: 0.75pt solid #000 !important;
+      border-bottom: 0.75pt solid #000 !important;
+      border-left: 0.75pt solid #000 !important;
+      background-clip: padding-box !important;
+      word-wrap: break-word;
+      overflow: hidden;
+      font-family: "Times New Roman", serif !important;
+    }
+    tr { break-inside: avoid; page-break-inside: avoid; }
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+  }
+</style>
+
 {% set все_пусто = not муж_р4_стадии and not жен_р4_стадии and not муж_р6_стадии and not жен_р6_стадии %}
 {% if все_пусто %}
 <div class="alert alert-warning">
@@ -60,7 +94,7 @@
     {% endif %}
   </div>
   <div class="table-responsive">
-    <table class="table table-sm table-hover align-middle mb-0" style="font-size:.87rem">
+    <table class="table table-sm table-hover align-middle mb-0 пс-рез-таблица">
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
@@ -71,7 +105,7 @@
           <th style="width:52px" class="text-center" title="+10 секунд">+10с</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
-          <th style="width:90px" class="text-center">Стадия, место</th>
+          <th style="width:90px" class="text-center">Место, стадия</th>
           <th style="width:120px">Статус</th>
         </tr>
       </thead>
@@ -80,7 +114,19 @@
       {% if номер > 0 %}
       {% if номер > ns.заезд_н %}{% set ns.заезд_н = номер %}{% endif %}
       {% for з in пара %}
-      {% set цвет_стр = 'table-success' if з.победитель is true else ('table-danger' if з.статус in ('ДК','НФН','НСТ') else ('table-warning' if з.победитель is false else '')) %}
+      {% if з.статус in ('ДК', 'НФН', 'НСТ') %}
+        {% set цвет_стр = 'table-danger' %}
+      {% elif стадия == 'Финал_А' and з.победитель is true %}
+        {% set цвет_стр = 'ps-gold' %}
+      {% elif стадия == 'Финал_А' and з.победитель is false %}
+        {% set цвет_стр = 'ps-silver' %}
+      {% elif стадия == 'Финал_Б' and з.победитель is true %}
+        {% set цвет_стр = 'ps-bronze' %}
+      {% elif з.победитель is true %}
+        {% set цвет_стр = 'ps-yellow' %}
+      {% else %}
+        {% set цвет_стр = '' %}
+      {% endif %}
       <tr class="{{ цвет_стр }}">
         {% if loop.first %}
         <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
@@ -150,7 +196,7 @@
     <span class="badge bg-secondary">Ожидается</span>
   </div>
   <div class="table-responsive">
-    <table class="table table-sm align-middle mb-0 text-muted" style="font-size:.87rem">
+    <table class="table table-sm align-middle mb-0 text-muted пс-рез-таблица">
       <thead class="table-light">
         <tr>
           <th style="width:55px" class="text-center">Заезд</th>
