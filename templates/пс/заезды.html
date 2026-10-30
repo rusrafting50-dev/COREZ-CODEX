@@ -106,10 +106,10 @@
           <th rowspan="2" style="width:58px" class="text-center align-middle">Время</th>
           <th rowspan="2" style="width:50px" class="text-center align-middle">Штраф</th>
           <th rowspan="2" style="width:65px" class="text-center align-middle font-monospace">Результат</th>
-          <th rowspan="2" style="width:85px" class="text-center align-middle">Место,<br>стадия</th>
-          <th rowspan="2" style="width:34px" class="text-center align-middle">Очки</th>
-          <th rowspan="2" style="width:40px" class="text-center align-middle">Разряд</th>
-          <th rowspan="2" style="width:110px" class="align-middle">Статус</th>
+          <th rowspan="2" style="width:68px" class="text-center align-middle">Место,<br>стадия</th>
+          <th rowspan="2" style="width:28px" class="text-center align-middle">Очки</th>
+          <th rowspan="2" style="width:34px" class="text-center align-middle">Разряд</th>
+          <th rowspan="2" style="width:88px" class="align-middle">Статус</th>
         </tr>
         <tr>
           <th style="width:100px">Время</th>
@@ -142,7 +142,7 @@
       {% endif %}
       <tr class="{{ цвет_стр }}">
         {% if loop.first %}
-        <td class="text-center fw-bold" rowspan="{{ пара | length }}">{{ номер }}</td>
+        <td class="text-center fw-bold" rowspan="{{ пара | length }}" style="background-color:#fff !important">{{ номер }}</td>
         {% endif %}
         <td>{{ з.команда.название or '—' }}</td>
         <td class="text-center fw-semibold">{{ з.команда.нагрудный_номер }}</td>
