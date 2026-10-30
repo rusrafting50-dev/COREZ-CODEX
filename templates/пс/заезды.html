@@ -102,6 +102,7 @@
           <th rowspan="2" style="width:80px" class="text-center align-middle">Номер<br>экипажа</th>
           <th rowspan="2" style="min-width:80px" class="align-middle">Территория</th>
           <th colspan="4" class="text-center">Старт</th>
+          <th rowspan="2" style="width:36px" class="text-center align-middle">Буи<br>+50с</th>
           <th colspan="3" class="text-center">Финиш</th>
           <th rowspan="2" style="width:58px" class="text-center align-middle">Время</th>
           <th rowspan="2" style="width:50px" class="text-center align-middle">Штраф</th>
@@ -168,6 +169,12 @@
         <td class="text-center">
           <input type="checkbox" name="дк_{{ з.id }}" value="1"
                  class="form-check-input дк-чек" {{ 'checked' if дк }}>
+        </td>
+        <td class="text-center">
+          <input type="number" name="буй_{{ з.id }}"
+                 class="form-control form-control-sm text-center"
+                 value="{{ з.штраф_буй or 0 }}"
+                 min="0" max="9" {% if дк %}disabled{% endif %}>
         </td>
         <td>
           <input type="text" name="вф_{{ з.id }}"
@@ -242,7 +249,7 @@
           <th>Команда</th>
           <th style="width:90px" class="text-center">Номер экипажа</th>
           <th style="min-width:90px">Территория</th>
-          <th colspan="14" class="text-center text-muted small">—</th>
+          <th colspan="15" class="text-center text-muted small">—</th>
         </tr>
       </thead>
       <tbody>
@@ -262,7 +269,7 @@
         <td colspan="2"><em class="text-muted">{{ м0 or 'Ожидается' }}</em></td>
         <td></td>
         {% endif %}
-        <td colspan="14"></td>
+        <td colspan="15"></td>
       </tr>
       <tr>
         {% if к1 %}
@@ -273,7 +280,7 @@
         <td colspan="2"><em class="text-muted">{{ м1 or 'Ожидается' }}</em></td>
         <td></td>
         {% endif %}
-        <td colspan="14"></td>
+        <td colspan="15"></td>
       </tr>
       {% endfor %}
       </tbody>
@@ -316,7 +323,7 @@ document.querySelectorAll('.время-ввод').forEach(inp => {
 document.querySelectorAll('.дк-чек, .дк-фин-чек').forEach(cb => {
   cb.addEventListener('change', function () {
     const row = this.closest('tr');
-    row.querySelectorAll('[name^="вс_"], [name^="вф_"], [name^="с10_"], [name^="ст50_"], [name^="ш50_"]').forEach(el => {
+    row.querySelectorAll('[name^="вс_"], [name^="вф_"], [name^="с10_"], [name^="ст50_"], [name^="буй_"], [name^="ш50_"]').forEach(el => {
       el.disabled = this.checked;
     });
     row.classList.toggle('table-danger', this.checked);
