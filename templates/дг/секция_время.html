@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}ДГ: секция №{{ n }} — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    {% if not закреплено %}
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">Длинная гонка — секция №{{ n }}</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .св-команда-row.готово { background: #fff3cd; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">Длинная гонка — секция №{{ n }}, штраф +50с за нарушение</div>
+</div>
+
+{% if закреплено %}
+<div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span>🔒 Телефон закреплён только за этой страницей</span>
+  <form method="post" action="{{ url_for('дг.секция_время_выйти', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-success">Снять ограничение</button>
+  </form>
+</div>
+{% else %}
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span class="small text-muted">Чтобы судья не мог зайти на другие страницы с этого телефона —</span>
+  <form method="post" action="{{ url_for('дг.секция_время_закрепить', sor_id=сор.id, n=n) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">🔒 Закрепить телефон за секцией №{{ n }}</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="text-muted small mb-2">Нажимайте на команду при каждом нарушении на секции — счётчик увеличивается на 1 (+50с).</div>
+
+<div id="список-команд">
+  {% for к in команды %}
+  {% set знач = штраф_по_команде.get(к.id, 0) %}
+  <div class="card mb-2 св-команда-row {{ 'готово' if знач }}" data-команда-id="{{ к.id }}">
+    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+      <div>
+        <span class="fw-bold fs-5">№{{ к.нагрудный_номер }}</span>
+        <span class="text-muted small ms-2">{{ к.название or '' }}</span>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-danger штраф-счётчик"
+              data-команда="{{ к.id }}" onclick="штрафТап(this)">
+        +50с: <span class="знач">{{ знач }}</span>
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function штрафТап(btn) {
+  const span = btn.querySelector('.знач');
+  let n = (parseInt(span.textContent, 10) || 0) + 1;
+  if (n > 9) n = 0;
+  const прежнее = span.textContent;
+  span.textContent = n;
+  fetch("{{ url_for('дг.секция_время_зафиксировать', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ команда_id: btn.dataset.команда, n: {{ n }}, знач: n })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      span.textContent = прежнее;
+      return;
+    }
+    const row = btn.closest('.св-команда-row');
+    if (row) row.classList.toggle('готово', n > 0);
+  }).catch(function () {
+    alert('Нет соединения с сервером.');
+    span.textContent = прежнее;
+  });
+}
+</script>
+{% endblock %}

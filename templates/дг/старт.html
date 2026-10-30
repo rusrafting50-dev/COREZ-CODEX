@@ -197,6 +197,8 @@
               </option>
               {% endfor %}
             </select>
+            <a href="{{ url_for('дг.секция_время', sor_id=сор.id, n=n) }}"
+               target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
           </div>
         </div>
         {% endfor %}
