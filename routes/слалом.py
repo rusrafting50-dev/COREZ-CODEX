@@ -1,6 +1,6 @@
 # routes/слалом.py — дистанция СЛАЛОМ: две попытки, штрафы на воротах
 import json
-from datetime import date
+from datetime import date, datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from models import (db, Соревнование, Команда, РезультатСлалома, ШтрафВорот,
                     РезультатПараллельногоСпринта, РезультатМногоборья,
@@ -518,6 +518,129 @@ def ворота_связка_штраф(sor_id):
     _пересчитать_попытку(рез, sor_id)
     db.session.commit()
     return jsonify(ok=True)
+
+
+def _сейчас_секунды_дня():
+    """Текущее время на сервере как секунды с полуночи (для формата ЧЧ:ММ:СС.сс)."""
+    now = datetime.now()
+    return now.hour * 3600 + now.minute * 60 + now.second + now.microsecond / 1_000_000
+
+
+def _время_по_команде(команды, попытка, поле):
+    """{команда_id: время (сек) | None} для указанного поля ('время_старта'/'время_финиша')."""
+    result = {}
+    for к in команды:
+        р = next((р for р in к.результат_слалом if р.номер_попытки == попытка), None)
+        result[к.id] = getattr(р, поле) if р else None
+    return result
+
+
+def _время_зафиксировать(sor_id, поле):
+    """AJAX: записать время старта/финиша одним нажатием, либо вручную введённое
+    значение — поле = 'время_старта' | 'время_финиша'."""
+    данные = request.get_json(silent=True) or request.form
+    try:
+        команда_id = int(данные.get('команда_id'))
+        попытка    = int(данные.get('попытка'))
+    except (TypeError, ValueError):
+        return jsonify(ok=False, ошибка='Некорректные данные'), 400
+    if попытка not in (1, 2):
+        return jsonify(ok=False, ошибка='Некорректные данные'), 400
+
+    к = Команда.query.filter_by(id=команда_id, соревнование_id=sor_id).first()
+    if not к:
+        return jsonify(ok=False, ошибка='Команда не найдена'), 404
+
+    ручное = (данные.get('время') or '').strip()
+    if ручное:
+        значение = parse_time(ручное)
+        if значение is None:
+            return jsonify(ok=False, ошибка='Некорректный формат времени'), 400
+    else:
+        значение = _сейчас_секунды_дня()
+
+    рез = _get_or_create(к, sor_id, попытка)
+    setattr(рез, поле, значение)
+    _пересчитать_попытку(рез, sor_id)
+    db.session.commit()
+    return jsonify(ok=True, время=format_time(значение))
+
+
+@bp_слалом.route('/<int:sor_id>/старт-время/<int:attempt>')
+def старт_время(sor_id, attempt):
+    """Мобильная страница для стартового судьи: одним нажатием фиксирует время
+    старта команды. Пишет в ту же таблицу РезультатСлалома, что и десктопная
+    страница «Результаты попыток» (Финиш) — та подхватит изменения сама."""
+    попытка = attempt
+    if попытка not in (1, 2):
+        return redirect(url_for('слалом.старт_время', sor_id=sor_id, attempt=1))
+    сор = Соревнование.query.get_or_404(sor_id)
+    команды = _порядок_старта_общий(sor_id, попытка)
+    время_по_команде = _время_по_команде(команды, попытка, 'время_старта')
+    замок = session.get('киоск_старт')
+    закреплено = bool(замок and замок.get('sor_id') == sor_id)
+    return render_template('слалом/старт_время.html',
+                           сор=сор, попытка=попытка, команды=команды,
+                           время_по_команде=время_по_команде,
+                           закреплено=закреплено, format_time=format_time)
+
+
+@bp_слалом.route('/<int:sor_id>/старт-время/закрепить', methods=['POST'])
+def старт_время_закрепить(sor_id):
+    """Включить режим киоска для стартового судьи."""
+    session.permanent = True
+    session['киоск_старт'] = {'sor_id': sor_id}
+    return redirect(url_for('слалом.старт_время', sor_id=sor_id, attempt=1))
+
+
+@bp_слалом.route('/<int:sor_id>/старт-время/выйти', methods=['POST'])
+def старт_время_выйти(sor_id):
+    """Снять ограничение киоска для стартового судьи."""
+    session.pop('киоск_старт', None)
+    return redirect(url_for('main.index'))
+
+
+@bp_слалом.route('/<int:sor_id>/старт-время/зафиксировать', methods=['POST'])
+def старт_время_зафиксировать(sor_id):
+    return _время_зафиксировать(sor_id, 'время_старта')
+
+
+@bp_слалом.route('/<int:sor_id>/финиш-время/<int:attempt>')
+def финиш_время(sor_id, attempt):
+    """Мобильная страница для судьи на финише: одним нажатием фиксирует время
+    финиша команды."""
+    попытка = attempt
+    if попытка not in (1, 2):
+        return redirect(url_for('слалом.финиш_время', sor_id=sor_id, attempt=1))
+    сор = Соревнование.query.get_or_404(sor_id)
+    команды = _порядок_старта_общий(sor_id, попытка)
+    время_по_команде = _время_по_команде(команды, попытка, 'время_финиша')
+    замок = session.get('киоск_финиш')
+    закреплено = bool(замок and замок.get('sor_id') == sor_id)
+    return render_template('слалом/финиш_время.html',
+                           сор=сор, попытка=попытка, команды=команды,
+                           время_по_команде=время_по_команде,
+                           закреплено=закреплено, format_time=format_time)
+
+
+@bp_слалом.route('/<int:sor_id>/финиш-время/закрепить', methods=['POST'])
+def финиш_время_закрепить(sor_id):
+    """Включить режим киоска для судьи на финише."""
+    session.permanent = True
+    session['киоск_финиш'] = {'sor_id': sor_id}
+    return redirect(url_for('слалом.финиш_время', sor_id=sor_id, attempt=1))
+
+
+@bp_слалом.route('/<int:sor_id>/финиш-время/выйти', methods=['POST'])
+def финиш_время_выйти(sor_id):
+    """Снять ограничение киоска для судьи на финише."""
+    session.pop('киоск_финиш', None)
+    return redirect(url_for('main.index'))
+
+
+@bp_слалом.route('/<int:sor_id>/финиш-время/зафиксировать', methods=['POST'])
+def финиш_время_зафиксировать(sor_id):
+    return _время_зафиксировать(sor_id, 'время_финиша')
 
 
 @bp_слалом.route('/<int:sor_id>/финиш', methods=['GET', 'POST'])

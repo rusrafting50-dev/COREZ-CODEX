@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Финиш — попытка {{ попытка }} — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    {% if not закреплено %}
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">Слалом — финиш</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .св-команда-row { cursor: default; }
+  .св-команда-row.готово { background: #e5f4e4; }
+  .св-кн-финиш { min-height: 54px; font-size: 1.15rem; font-weight: 700; }
+  .св-время-знач { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">Слалом — финиш, попытка {{ попытка }}</div>
+</div>
+
+{% if закреплено %}
+<div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span>🔒 Телефон закреплён только за этой страницей</span>
+  <form method="post" action="{{ url_for('слалом.финиш_время_выйти', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-success">Снять ограничение</button>
+  </form>
+</div>
+{% else %}
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span class="small text-muted">Чтобы судья не мог зайти на другие страницы с этого телефона —</span>
+  <form method="post" action="{{ url_for('слалом.финиш_время_закрепить', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">🔒 Закрепить телефон за финишем</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+  {% for n in (1, 2) %}
+  <a href="{{ url_for('слалом.финиш_время', sor_id=сор.id, attempt=n) }}"
+     class="btn btn-sm {{ 'btn-primary' if n == попытка else 'btn-outline-primary' }}">Попытка {{ n }}</a>
+  {% endfor %}
+</div>
+
+<div class="text-muted small mb-2">Нажмите «Финиш!» в момент пересечения командой финишной линии.</div>
+
+<div id="список-команд">
+  {% for к in команды %}
+  {% set время = время_по_команде.get(к.id) %}
+  <div class="card mb-2 св-команда-row {{ 'готово' if время is not none }}" data-команда-id="{{ к.id }}">
+    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+      <div>
+        <span class="fw-bold fs-5">№{{ к.нагрудный_номер }}</span>
+        <span class="text-muted small ms-2">{{ к.название or '' }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="св-время-знач {{ 'text-success fw-semibold' if время is not none else 'text-muted' }}">
+          {{ format_time(время) if время is not none else '—' }}
+        </span>
+        <button type="button" class="btn btn-danger btn-sm св-кн-финиш"
+                onclick="зафиксировать({{ к.id }}, this)">🏁 Финиш!</button>
+        {% if время is not none %}
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="переключитьРучнойВвод({{ к.id }})">✎</button>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer bg-white py-2 px-3 d-none ручной-ввод-блок">
+      <div class="d-flex gap-2 align-items-center">
+        <input type="text" class="form-control form-control-sm font-monospace время-ввод"
+               placeholder="00:00:00.00" autocomplete="off" style="max-width:160px">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="сохранитьРучной({{ к.id }}, this)">Сохранить</button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function применитьФормат(inp) {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/ноль/gi, '0').replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+}
+document.querySelectorAll('.время-ввод').forEach(применитьФормат);
+
+function переключитьРучнойВвод(id) {
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + id + '"]');
+  if (!row) return;
+  row.querySelector('.ручной-ввод-блок').classList.toggle('d-none');
+}
+
+function отправить(командаId, время, btn) {
+  const исходныйТекст = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  fetch("{{ url_for('слалом.финиш_время_зафиксировать', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ команда_id: командаId, попытка: {{ попытка }}, время: время || '' })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+      return;
+    }
+    const row = document.querySelector('.св-команда-row[data-команда-id="' + командаId + '"]');
+    if (row) {
+      row.classList.add('готово');
+      const знач = row.querySelector('.св-время-знач');
+      знач.textContent = data.время;
+      знач.classList.add('text-success', 'fw-semibold');
+      знач.classList.remove('text-muted');
+      row.querySelector('.ручной-ввод-блок').classList.add('d-none');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  }).catch(function () {
+    alert('Нет соединения с сервером — время не сохранено. Проверьте Wi-Fi.');
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  });
+}
+
+function зафиксировать(командаId, btn) {
+  отправить(командаId, null, btn);
+}
+
+function сохранитьРучной(командаId, btn) {
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + командаId + '"]');
+  const inp = row.querySelector('.ручной-ввод-блок .время-ввод');
+  if (!inp.value) return;
+  отправить(командаId, inp.value, btn);
+}
+</script>
+{% endblock %}

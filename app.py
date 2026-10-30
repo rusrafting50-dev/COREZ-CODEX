@@ -97,24 +97,45 @@ def create_app() -> Flask:
         'слалом.ворота_связка_штраф',
         'слалом.ворота_связка_выйти',
     }
+    _КИОСК_СТАРТ_ЭНДПОИНТЫ = {
+        'static', 'слалом.старт_время',
+        'слалом.старт_время_зафиксировать', 'слалом.старт_время_выйти',
+    }
+    _КИОСК_ФИНИШ_ЭНДПОИНТЫ = {
+        'static', 'слалом.финиш_время',
+        'слалом.финиш_время_зафиксировать', 'слалом.финиш_время_выйти',
+    }
 
     @app.before_request
     def _ограничить_киоск():
         замок = session.get('киоск_связка')
-        if not замок:
+        if замок:
+            if request.endpoint not in _КИОСК_РАЗРЕШЁННЫЕ_ЭНДПОИНТЫ:
+                return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                         attempt=1, group=замок['group']))
+            if request.endpoint == 'слалом.ворота_связка':
+                if (request.view_args.get('sor_id') != замок['sor_id'] or
+                        request.view_args.get('group') != замок['group']):
+                    return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                             attempt=1, group=замок['group']))
+            elif request.endpoint == 'слалом.ворота_связка_штраф':
+                if request.view_args.get('sor_id') != замок['sor_id']:
+                    return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
+                                             attempt=1, group=замок['group']))
             return None
-        if request.endpoint not in _КИОСК_РАЗРЕШЁННЫЕ_ЭНДПОИНТЫ:
-            return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
-                                     attempt=1, group=замок['group']))
-        if request.endpoint == 'слалом.ворота_связка':
-            if (request.view_args.get('sor_id') != замок['sor_id'] or
-                    request.view_args.get('group') != замок['group']):
-                return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
-                                         attempt=1, group=замок['group']))
-        elif request.endpoint == 'слалом.ворота_связка_штраф':
-            if request.view_args.get('sor_id') != замок['sor_id']:
-                return redirect(url_for('слалом.ворота_связка', sor_id=замок['sor_id'],
-                                         attempt=1, group=замок['group']))
+
+        замок_старт = session.get('киоск_старт')
+        if замок_старт:
+            if request.endpoint not in _КИОСК_СТАРТ_ЭНДПОИНТЫ:
+                return redirect(url_for('слалом.старт_время', sor_id=замок_старт['sor_id'], attempt=1))
+            return None
+
+        замок_финиш = session.get('киоск_финиш')
+        if замок_финиш:
+            if request.endpoint not in _КИОСК_ФИНИШ_ЭНДПОИНТЫ:
+                return redirect(url_for('слалом.финиш_время', sor_id=замок_финиш['sor_id'], attempt=1))
+            return None
+
         return None
 
     # ------------------------------------------------------------------
