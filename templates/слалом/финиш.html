@@ -119,25 +119,25 @@
       <td class="text-center">1</td>
       {# Старт: Время, +10с, +50с, ДК #}
       <td class="p-0">
-        <input type="text" name="вс_{{ к.id }}_1"
+        <input type="text" name="вс_{{ к.id }}_1" id="вс_{{ к.id }}_1"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р1.время_старта) if р1 and р1.время_старта else '' }}"
                placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="с10_{{ к.id }}_1"
+        <input type="number" name="с10_{{ к.id }}_1" id="с10_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_с10 or 0 if р1 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="ст50_{{ к.id }}_1"
+        <input type="number" name="ст50_{{ к.id }}_1" id="ст50_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_старт or 0 if р1 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
-        <input type="checkbox" name="дк_ст_{{ к.id }}_1" value="1"
+        <input type="checkbox" name="дк_ст_{{ к.id }}_1" id="дк_ст_{{ к.id }}_1" value="1"
                class="form-check-input дк-ст-чек"
                {{ 'checked' if ст1 == 'ДК' }}>
       </td>
@@ -158,19 +158,19 @@
       {% endfor %}
       {# Финиш: Время, +50с, ДК #}
       <td class="p-0">
-        <input type="text" name="вф1_{{ к.id }}"
+        <input type="text" name="вф1_{{ к.id }}" id="вф1_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р1.время_финиша) if р1 and р1.время_финиша else '' }}"
                placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="ф50_{{ к.id }}_1"
+        <input type="number" name="ф50_{{ к.id }}_1" id="ф50_{{ к.id }}_1"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р1.кол_штраф_финиш or 0 if р1 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
-        <input type="checkbox" name="дк_фин_{{ к.id }}_1" value="1"
+        <input type="checkbox" name="дк_фин_{{ к.id }}_1" id="дк_фин_{{ к.id }}_1" value="1"
                class="form-check-input дк-фин-чек"
                {{ 'checked' if ст1 == 'ДК' }}>
       </td>
@@ -184,7 +184,7 @@
       <td class="text-center" rowspan="2" id="место_{{ к.id }}">{{ место_val }}</td>
       {# Статус 1 #}
       <td class="p-1">
-        <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
+        <select name="ст1_{{ к.id }}" id="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст1 == код }}>{{ метка }}</option>
           {% endfor %}
@@ -196,25 +196,25 @@
       <td class="text-center">2</td>
       {# Старт: Время, +10с, +50с, ДК #}
       <td class="p-0">
-        <input type="text" name="вс_{{ к.id }}_2"
+        <input type="text" name="вс_{{ к.id }}_2" id="вс_{{ к.id }}_2"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р2.время_старта) if р2 and р2.время_старта else '' }}"
                placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="с10_{{ к.id }}_2"
+        <input type="number" name="с10_{{ к.id }}_2" id="с10_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_с10 or 0 if р2 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="ст50_{{ к.id }}_2"
+        <input type="number" name="ст50_{{ к.id }}_2" id="ст50_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_старт or 0 if р2 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
-        <input type="checkbox" name="дк_ст_{{ к.id }}_2" value="1"
+        <input type="checkbox" name="дк_ст_{{ к.id }}_2" id="дк_ст_{{ к.id }}_2" value="1"
                class="form-check-input дк-ст-чек"
                {{ 'checked' if ст2 == 'ДК' }}>
       </td>
@@ -235,19 +235,19 @@
       {% endfor %}
       {# Финиш: Время, +50с, ДК #}
       <td class="p-0">
-        <input type="text" name="вф2_{{ к.id }}"
+        <input type="text" name="вф2_{{ к.id }}" id="вф2_{{ к.id }}"
                class="form-control form-control-sm font-monospace время-ввод"
                value="{{ format_time(р2.время_финиша) if р2 and р2.время_финиша else '' }}"
                placeholder="00:00:00.00" autocomplete="off" style="font-size:.68rem;width:100%;min-width:0;padding:1px 2px">
       </td>
       <td class="text-center p-1">
-        <input type="number" name="ф50_{{ к.id }}_2"
+        <input type="number" name="ф50_{{ к.id }}_2" id="ф50_{{ к.id }}_2"
                class="form-control form-control-sm text-center штраф-ввод"
                value="{{ р2.кол_штраф_финиш or 0 if р2 else 0 }}" min="0" max="9"
                style="font-size:.68rem;width:100%;min-width:0;padding:1px">
       </td>
       <td class="text-center">
-        <input type="checkbox" name="дк_фин_{{ к.id }}_2" value="1"
+        <input type="checkbox" name="дк_фин_{{ к.id }}_2" id="дк_фин_{{ к.id }}_2" value="1"
                class="form-check-input дк-фин-чек"
                {{ 'checked' if ст2 == 'ДК' }}>
       </td>
@@ -257,7 +257,7 @@
       <td class="text-center font-monospace" id="результат_{{ к.id }}_2">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
       {# Статус 2 #}
       <td class="p-1">
-        <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
+        <select name="ст2_{{ к.id }}" id="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
           {% for код, метка in СТАТУСЫ %}
           <option value="{{ код }}" {{ 'selected' if ст2 == код }}>{{ метка }}</option>
           {% endfor %}
@@ -343,6 +343,24 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
           if (времяпр && времяпр.textContent !== инфо.время) времяпр.textContent = инфо.время;
           const результат = document.getElementById('результат_' + teamId + '_' + n);
           if (результат && результат.textContent !== инфо.результат) результат.textContent = инфо.результат;
+
+          const всInp = document.getElementById('вс_' + teamId + '_' + n);
+          if (всInp && всInp !== document.activeElement && всInp.value !== инфо.время_старта) всInp.value = инфо.время_старта;
+          const вфInp = document.getElementById('вф' + n + '_' + teamId);
+          if (вфInp && вфInp !== document.activeElement && вфInp.value !== инфо.время_финиша) вфInp.value = инфо.время_финиша;
+          const с10Inp = document.getElementById('с10_' + teamId + '_' + n);
+          if (с10Inp && с10Inp !== document.activeElement && с10Inp.value !== String(инфо.с10)) с10Inp.value = инфо.с10;
+          const ст50Inp = document.getElementById('ст50_' + teamId + '_' + n);
+          if (ст50Inp && ст50Inp !== document.activeElement && ст50Inp.value !== String(инфо.ст50)) ст50Inp.value = инфо.ст50;
+          const ф50Inp = document.getElementById('ф50_' + teamId + '_' + n);
+          if (ф50Inp && ф50Inp !== document.activeElement && ф50Inp.value !== String(инфо.ф50)) ф50Inp.value = инфо.ф50;
+          const дкВкл = инфо.статус === 'ДК';
+          const дкСт = document.getElementById('дк_ст_' + teamId + '_' + n);
+          if (дкСт && дкСт !== document.activeElement) дкСт.checked = дкВкл;
+          const дкФин = document.getElementById('дк_фин_' + teamId + '_' + n);
+          if (дкФин && дкФин !== document.activeElement) дкФин.checked = дкВкл;
+          const стSel = document.getElementById('ст' + n + '_' + teamId);
+          if (стSel && стSel !== document.activeElement && стSel.value !== инфо.статус) стSel.value = инфо.статус;
         }
         const лучший = document.getElementById('лучший_' + teamId);
         if (лучший && лучший.textContent !== поп.лучший) лучший.textContent = поп.лучший;

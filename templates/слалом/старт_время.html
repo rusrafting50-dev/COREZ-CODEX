@@ -75,6 +75,20 @@
         <button type="button" class="btn btn-sm btn-outline-success" onclick="сохранитьРучной({{ к.id }}, this)">Сохранить</button>
       </div>
     </div>
+    {% set шт = штраф_по_команде.get(к.id, {}) %}
+    <div class="card-footer bg-white py-2 px-3 d-flex gap-2 flex-wrap align-items-center">
+      <span class="text-muted small me-1">Штраф:</span>
+      <button type="button" class="btn btn-sm btn-outline-warning штраф-счётчик"
+              data-команда="{{ к.id }}" data-тип="с10" onclick="штрафТап(this)">
+        +10с: <span class="знач">{{ шт.get('с10', 0) }}</span>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger штраф-счётчик"
+              data-команда="{{ к.id }}" data-тип="ст50" onclick="штрафТап(this)">
+        +50с: <span class="знач">{{ шт.get('ст50', 0) }}</span>
+      </button>
+      <button type="button" class="btn btn-sm {{ 'btn-dark' if шт.get('дк') else 'btn-outline-dark' }} дк-кн"
+              data-команда="{{ к.id }}" onclick="дкТап(this)">ДК</button>
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -138,6 +152,46 @@ function сохранитьРучной(командаId, btn) {
   const inp = row.querySelector('.ручной-ввод-блок .время-ввод');
   if (!inp.value) return;
   отправить(командаId, inp.value, btn);
+}
+
+function попыткаШтрафЗапрос(данные) {
+  return fetch("{{ url_for('слалом.попытка_штраф', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(Object.assign({ попытка: {{ попытка }} }, данные))
+  }).then(function (r) { return r.json(); });
+}
+
+function штрафТап(btn) {
+  const span = btn.querySelector('.знач');
+  let n = (parseInt(span.textContent, 10) || 0) + 1;
+  if (n > 9) n = 0;
+  const прежнее = span.textContent;
+  span.textContent = n;
+  попыткаШтрафЗапрос({ команда_id: btn.dataset.команда, тип: btn.dataset.тип, знач: n })
+    .then(function (data) {
+      if (!data.ok) { alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера')); span.textContent = прежнее; }
+    })
+    .catch(function () { alert('Нет соединения с сервером.'); span.textContent = прежнее; });
+}
+
+function дкТап(btn) {
+  const вкл = !btn.classList.contains('btn-dark');
+  btn.classList.toggle('btn-dark', вкл);
+  btn.classList.toggle('btn-outline-dark', !вкл);
+  попыткаШтрафЗапрос({ команда_id: btn.dataset.команда, тип: 'дк', знач: вкл })
+    .then(function (data) {
+      if (!data.ok) {
+        alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+        btn.classList.toggle('btn-dark', !вкл);
+        btn.classList.toggle('btn-outline-dark', вкл);
+      }
+    })
+    .catch(function () {
+      alert('Нет соединения с сервером.');
+      btn.classList.toggle('btn-dark', !вкл);
+      btn.classList.toggle('btn-outline-dark', вкл);
+    });
 }
 </script>
 {% endblock %}
