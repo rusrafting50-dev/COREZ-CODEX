@@ -85,6 +85,10 @@
                   data-запись="{{ з.id }}" data-тип="с10" onclick="штрафТап(this)">
             +10с: <span class="знач">{{ з.штраф_с10 or 0 }}</span>
           </button>
+          <button type="button" class="btn btn-sm btn-outline-danger штраф-счётчик"
+                  data-запись="{{ з.id }}" data-тип="с50" onclick="штрафТап(this)">
+            +50с: <span class="знач">{{ з.штраф_с50 or 0 }}</span>
+          </button>
           <button type="button" class="btn btn-sm {{ 'btn-dark' if з.статус == 'ДК' else 'btn-outline-dark' }} дк-кн"
                   data-запись="{{ з.id }}" onclick="дкТап(this)">ДК</button>
         </div>

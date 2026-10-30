@@ -68,6 +68,7 @@
           <th style="width:90px" class="text-center">Номер экипажа</th>
           <th style="min-width:90px">Территория</th>
           <th style="width:90px">Время</th>
+          <th style="width:52px" class="text-center" title="+10 секунд">+10с</th>
           <th style="width:52px" class="text-center" title="+50 секунд буй">+50с</th>
           <th style="width:85px" class="text-center font-monospace">Результат</th>
           <th style="width:90px" class="text-center">Стадия, место</th>
@@ -94,9 +95,15 @@
                  placeholder="0:00.00" autocomplete="off">
         </td>
         <td class="text-center">
+          <input type="number" name="с10_{{ з.id }}"
+                 class="form-control form-control-sm text-center"
+                 value="{{ з.штраф_с10 or 0 }}"
+                 min="0" max="9">
+        </td>
+        <td class="text-center">
           <input type="number" name="ш50_{{ з.id }}"
                  class="form-control form-control-sm text-center"
-                 value="{{ (з.штрафное_время | int // 50) if з.штрафное_время else 0 }}"
+                 value="{{ з.штраф_с50 or 0 }}"
                  min="0" max="9">
         </td>
         <td class="text-center fw-bold font-monospace">
@@ -150,7 +157,7 @@
           <th>Команда</th>
           <th style="width:90px" class="text-center">Номер экипажа</th>
           <th style="min-width:90px">Территория</th>
-          <th colspan="5" class="text-center text-muted small">—</th>
+          <th colspan="6" class="text-center text-muted small">—</th>
         </tr>
       </thead>
       <tbody>
@@ -170,7 +177,7 @@
         <td colspan="2"><em class="text-muted">{{ м0 or 'Ожидается' }}</em></td>
         <td></td>
         {% endif %}
-        <td colspan="5"></td>
+        <td colspan="6"></td>
       </tr>
       <tr>
         {% if к1 %}
@@ -181,7 +188,7 @@
         <td colspan="2"><em class="text-muted">{{ м1 or 'Ожидается' }}</em></td>
         <td></td>
         {% endif %}
-        <td colspan="5"></td>
+        <td colspan="6"></td>
       </tr>
       {% endfor %}
       </tbody>
