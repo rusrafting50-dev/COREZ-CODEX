@@ -314,13 +314,40 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
   });
 });
 
-// Автообновление штрафов на воротах — чтобы данные, введённые судьёй на
-// телефоне (связка ворот), появлялись здесь без F5.
+// Автообновление — время, штрафы и статус ДК, введённые/исправленные судьями
+// на мобильных страницах (связка ворот, старт, финиш), появляются здесь без
+// F5. Поле, которое сейчас редактируют на этой же странице (но ещё не
+// сохранили кнопкой «Сохранить»), автообновление не трогает — иначе правка
+// потерялась бы раньше, чем её успели сохранить.
 (function () {
   const url = "{{ url_for('слалом.финиш_обновления', sor_id=сор.id) }}";
+
   function применитьЦвет(select, знач) {
     select.style.backgroundColor = знач == 5 ? '#fff3cd' : (знач == 50 ? '#f8d7da' : 'transparent');
   }
+
+  // "Безопасно" значит: с момента последней синхронизации пользователь не
+  // менял это поле вручную (текущее значение совпадает с тем, что мы сами
+  // туда поставили в прошлый раз) — иначе это его неотправленная правка.
+  function безопасноЗнач(el, новое, доп) {
+    if (!el) return;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || el.value === посл);
+    if (можно && el.value !== String(новое)) {
+      el.value = новое;
+      if (доп) доп(новое);
+    }
+    el.dataset.посл = String(новое);
+  }
+
+  function безопасноЧек(el, новое) {
+    if (!el) return;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || String(el.checked) === посл);
+    if (можно) el.checked = новое;
+    el.dataset.посл = String(новое);
+  }
+
   function обновить() {
     fetch(url).then(r => r.json()).then(data => {
       for (const teamId in data) {
@@ -330,12 +357,7 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
           if (!инфо) continue;
           for (const в in инфо.ворота) {
             const select = document.getElementById('г_' + teamId + '_' + в + '_' + n);
-            if (!select || select === document.activeElement) continue;
-            const знач = String(инфо.ворота[в]);
-            if (select.value !== знач) {
-              select.value = знач;
-              применитьЦвет(select, знач);
-            }
+            безопасноЗнач(select, инфо.ворота[в], (знач) => применитьЦвет(select, знач));
           }
           const штрафвр = document.getElementById('штрафвр_' + teamId + '_' + n);
           if (штрафвр && штрафвр.textContent !== инфо.штраф) штрафвр.textContent = инфо.штраф;
@@ -344,23 +366,15 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
           const результат = document.getElementById('результат_' + teamId + '_' + n);
           if (результат && результат.textContent !== инфо.результат) результат.textContent = инфо.результат;
 
-          const всInp = document.getElementById('вс_' + teamId + '_' + n);
-          if (всInp && всInp !== document.activeElement && всInp.value !== инфо.время_старта) всInp.value = инфо.время_старта;
-          const вфInp = document.getElementById('вф' + n + '_' + teamId);
-          if (вфInp && вфInp !== document.activeElement && вфInp.value !== инфо.время_финиша) вфInp.value = инфо.время_финиша;
-          const с10Inp = document.getElementById('с10_' + teamId + '_' + n);
-          if (с10Inp && с10Inp !== document.activeElement && с10Inp.value !== String(инфо.с10)) с10Inp.value = инфо.с10;
-          const ст50Inp = document.getElementById('ст50_' + teamId + '_' + n);
-          if (ст50Inp && ст50Inp !== document.activeElement && ст50Inp.value !== String(инфо.ст50)) ст50Inp.value = инфо.ст50;
-          const ф50Inp = document.getElementById('ф50_' + teamId + '_' + n);
-          if (ф50Inp && ф50Inp !== document.activeElement && ф50Inp.value !== String(инфо.ф50)) ф50Inp.value = инфо.ф50;
+          безопасноЗнач(document.getElementById('вс_' + teamId + '_' + n), инфо.время_старта);
+          безопасноЗнач(document.getElementById('вф' + n + '_' + teamId), инфо.время_финиша);
+          безопасноЗнач(document.getElementById('с10_' + teamId + '_' + n), инфо.с10);
+          безопасноЗнач(document.getElementById('ст50_' + teamId + '_' + n), инфо.ст50);
+          безопасноЗнач(document.getElementById('ф50_' + teamId + '_' + n), инфо.ф50);
           const дкВкл = инфо.статус === 'ДК';
-          const дкСт = document.getElementById('дк_ст_' + teamId + '_' + n);
-          if (дкСт && дкСт !== document.activeElement) дкСт.checked = дкВкл;
-          const дкФин = document.getElementById('дк_фин_' + teamId + '_' + n);
-          if (дкФин && дкФин !== document.activeElement) дкФин.checked = дкВкл;
-          const стSel = document.getElementById('ст' + n + '_' + teamId);
-          if (стSel && стSel !== document.activeElement && стSel.value !== инфо.статус) стSel.value = инфо.статус;
+          безопасноЧек(document.getElementById('дк_ст_' + teamId + '_' + n), дкВкл);
+          безопасноЧек(document.getElementById('дк_фин_' + teamId + '_' + n), дкВкл);
+          безопасноЗнач(document.getElementById('ст' + n + '_' + teamId), инфо.статус);
         }
         const лучший = document.getElementById('лучший_' + teamId);
         if (лучший && лучший.textContent !== поп.лучший) лучший.textContent = поп.лучший;

@@ -57,9 +57,8 @@
         </span>
         <button type="button" class="btn btn-danger btn-sm св-кн-финиш"
                 onclick="зафиксировать({{ к.id }}, this)">🏁 Финиш!</button>
-        {% if время is not none %}
-        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="переключитьРучнойВвод({{ к.id }})">✎</button>
-        {% endif %}
+        <button type="button" class="btn btn-outline-secondary btn-sm кн-исправить {{ 'd-none' if время is none }}"
+                onclick="переключитьРучнойВвод({{ к.id }})">✎</button>
       </div>
     </div>
     <div class="card-footer bg-white py-2 px-3 d-none ручной-ввод-блок">
@@ -182,5 +181,58 @@ function дкТап(btn) {
       btn.classList.toggle('btn-outline-dark', вкл);
     });
 }
+
+// Автообновление — время и штрафы, исправленные на десктопной странице
+// «Результаты заездов», появляются здесь сами, без перезагрузки.
+(function () {
+  const url = "{{ url_for('спринт.результаты_обновления', sor_id=сор.id) }}";
+  function обновить() {
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      document.querySelectorAll('.св-команда-row').forEach(function (row) {
+        const teamId = row.dataset.командаId;
+        const инфо = data[teamId];
+        if (!инфо) return;
+
+        const ручнойОткрыт = !row.querySelector('.ручной-ввод-блок').classList.contains('d-none');
+        if (!ручнойОткрыт) {
+          const времяСпан = row.querySelector('.св-время-знач');
+          const новоеВремя = инфо.время_финиша || '';
+          if (времяСпан && времяСпан.textContent !== (новоеВремя || '—')) {
+            if (новоеВремя) {
+              времяСпан.textContent = новоеВремя;
+              времяСпан.classList.add('text-success', 'fw-semibold');
+              времяСпан.classList.remove('text-muted');
+              row.classList.add('готово');
+              const кнИсправить = row.querySelector('.кн-исправить');
+              if (кнИсправить) кнИсправить.classList.remove('d-none');
+            } else {
+              времяСпан.textContent = '—';
+              времяСпан.classList.remove('text-success', 'fw-semibold');
+              времяСпан.classList.add('text-muted');
+              row.classList.remove('готово');
+            }
+          }
+        }
+
+        row.querySelectorAll('.штраф-счётчик').forEach(function (btn) {
+          if (btn === document.activeElement) return;
+          const тип = btn.dataset.тип;
+          const знач = инфо[тип];
+          if (знач === undefined) return;
+          const span = btn.querySelector('.знач');
+          if (span && span.textContent !== String(знач)) span.textContent = знач;
+        });
+
+        const дкBtn = row.querySelector('.дк-кн');
+        if (дкBtn) {
+          const вкл = инфо.статус === 'ДК';
+          дкBtn.classList.toggle('btn-dark', вкл);
+          дкBtn.classList.toggle('btn-outline-dark', !вкл);
+        }
+      });
+    }).catch(function () {});
+  }
+  setInterval(обновить, 4000);
+})();
 </script>
 {% endblock %}

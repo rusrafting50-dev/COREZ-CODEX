@@ -260,27 +260,45 @@ function пересчитатьСтроку(row) {
     if (cellРез) cellРез.textContent = result !== null ? formatDur(result) : '—';
 }
 
-// ── Автообновление — время/штрафы, введённые с мобильных страниц старта/финиша ──
+// ── Автообновление — время/штрафы, введённые/исправленные с мобильных ──────
+// страниц старта/финиша появляются здесь сами. Поле, которое сейчас
+// редактируют на этой же странице (но ещё не сохранили кнопкой
+// «Сохранить»), автообновление не трогает.
 (function () {
   const url = "{{ url_for('спринт.результаты_обновления', sor_id=сор.id) }}";
+
+  function безопасноЗнач(el, новое) {
+    if (!el) return true;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || el.value === посл);
+    if (можно && el.value !== String(новое)) el.value = новое;
+    el.dataset.посл = String(новое);
+    return можно;
+  }
+
+  function безопасноЧек(el, новое) {
+    if (!el) return true;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || String(el.checked) === посл);
+    if (можно) el.checked = новое;
+    el.dataset.посл = String(новое);
+    return можно;
+  }
+
   function обновить() {
     fetch(url).then(function (r) { return r.json(); }).then(function (data) {
       for (const teamId in data) {
         const инфо = data[teamId];
-        const вс = document.getElementById('вс_' + teamId);
-        if (вс && вс !== document.activeElement && вс.value !== инфо.время_старта) вс.value = инфо.время_старта;
-        const вф = document.getElementById('вф_' + teamId);
-        if (вф && вф !== document.activeElement && вф.value !== инфо.время_финиша) вф.value = инфо.время_финиша;
-        const с10 = document.getElementById('с10_' + teamId);
-        if (с10 && с10 !== document.activeElement && с10.value !== String(инфо.с10)) с10.value = инфо.с10;
-        const с50 = document.getElementById('с50_' + teamId);
-        if (с50 && с50 !== document.activeElement && с50.value !== String(инфо.с50)) с50.value = инфо.с50;
-        const ф50 = document.getElementById('ф50_' + teamId);
-        if (ф50 && ф50 !== document.activeElement && ф50.value !== String(инфо.ф50)) ф50.value = инфо.ф50;
+        let редактируется = false;
+        if (!безопасноЗнач(document.getElementById('вс_' + teamId), инфо.время_старта)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('вф_' + teamId), инфо.время_финиша)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('с10_' + teamId), инфо.с10)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('с50_' + teamId), инфо.с50)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('ф50_' + teamId), инфо.ф50)) редактируется = true;
+
         const дкВкл = инфо.статус === 'ДК';
         const дк = document.getElementById('дк_' + teamId);
-        if (дк && дк !== document.activeElement && дк.checked !== дкВкл) {
-          дк.checked = дкВкл;
+        if (безопасноЧек(дк, дкВкл) && дк) {
           const row = дк.closest('tr');
           if (row) {
             row.querySelectorAll('.штраф-ввод, [id^="вс_"]').forEach(function (el) {
@@ -289,15 +307,17 @@ function пересчитатьСтроку(row) {
             row.classList.toggle('table-danger', дкВкл);
           }
         }
-        const ст = document.getElementById('ст_' + teamId);
-        if (ст && ст !== document.activeElement && ст.value !== инфо.статус) ст.value = инфо.статус;
-        const время = document.getElementById('время_' + teamId);
-        if (время && время.textContent !== инфо.время) время.textContent = инфо.время;
-        const штраф = document.getElementById('штраф_' + teamId);
-        if (штраф && штраф.textContent !== инфо.штраф) штраф.textContent = инфо.штраф;
-        const результат = document.getElementById('результат_' + teamId);
-        if (результат && результат.textContent !== инфо.результат && !результат.querySelector('span')) {
-          результат.textContent = инфо.результат;
+        безопасноЗнач(document.getElementById('ст_' + teamId), инфо.статус);
+
+        if (!редактируется) {
+          const время = document.getElementById('время_' + teamId);
+          if (время && время.textContent !== инфо.время) время.textContent = инфо.время;
+          const штраф = document.getElementById('штраф_' + teamId);
+          if (штраф && штраф.textContent !== инфо.штраф) штраф.textContent = инфо.штраф;
+          const результат = document.getElementById('результат_' + teamId);
+          if (результат && результат.textContent !== инфо.результат && !результат.querySelector('span')) {
+            результат.textContent = инфо.результат;
+          }
         }
       }
     }).catch(function () {});

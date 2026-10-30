@@ -86,9 +86,9 @@
       {% for в in связка.ворота %}
       <div class="d-flex align-items-center justify-content-between mb-2">
         <span class="fw-semibold">Ворота {{ в }}</span>
-        <div class="btn-group" role="group">
+        <div class="btn-group" role="group" data-ворота-групп="{{ в }}">
           {% for знач, лейбл, цвет in [(0, '0', 'outline-success'), (5, '5', 'outline-warning'), (50, '50', 'outline-danger')] %}
-          <button type="button"
+          <button type="button" data-знач="{{ знач }}"
                   class="btn btn-{{ цвет }} св-ворота-кн {{ 'active' if шт.get(в, 0) == знач else '' }}"
                   onclick="поставитьШтраф(this, {{ к.id }}, {{ в }}, {{ знач }})">{{ лейбл }}</button>
           {% endfor %}
@@ -152,6 +152,10 @@ function обновитьСумму(командаId) {
     const активная = grp.querySelector('.св-ворота-кн.active');
     if (активная) сумма += parseInt(активная.textContent, 10) || 0;
   });
+  задатьБейдж(row, сумма);
+}
+
+function задатьБейдж(row, сумма) {
   const бейдж = row.querySelector('.св-бейдж-сумма');
   if (сумма) {
     бейдж.textContent = '+' + сумма + 'с';
@@ -163,6 +167,33 @@ function обновитьСумму(командаId) {
     бейдж.classList.add('text-muted');
   }
 }
+
+// Автообновление — штрафы, изменённые на десктопной странице «Результаты
+// попыток», появляются здесь сами, без перезагрузки.
+(function () {
+  const url = "{{ url_for('слалом.финиш_обновления', sor_id=сор.id) }}";
+  function обновить() {
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      document.querySelectorAll('.св-команда-row').forEach(function (row) {
+        const teamId = row.dataset.командаId;
+        const запись = data[teamId];
+        const инфо = запись && запись['{{ попытка }}'];
+        if (!инфо) return;
+        let сумма = 0;
+        row.querySelectorAll('.панель-ворот .btn-group').forEach(function (grp) {
+          const в = grp.dataset.воротаГрупп;
+          const знач = (инфо.ворота && инфо.ворота[в] !== undefined) ? parseInt(инфо.ворота[в], 10) : 0;
+          сумма += знач;
+          grp.querySelectorAll('.св-ворота-кн').forEach(function (b) {
+            b.classList.toggle('active', parseInt(b.dataset.знач, 10) === знач);
+          });
+        });
+        задатьБейдж(row, сумма);
+      });
+    }).catch(function () {});
+  }
+  setInterval(обновить, 4000);
+})();
 </script>
 
 {% endif %}
