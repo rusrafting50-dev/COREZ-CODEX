@@ -139,10 +139,10 @@
         </select>
       </div>
       <div class="fw-semibold mb-2 mt-1">Судейская коллегия</div>
-      <div class="row g-2 mb-3">
-        <div class="col-auto d-flex align-items-center gap-2">
+      <div class="d-flex flex-column gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2 flex-nowrap">
           <label class="form-label mb-0 text-nowrap">Старший судья старта</label>
-          <select name="старший_судья_старта" class="form-select form-select-sm" style="min-width:220px">
+          <select name="старший_судья_старта" class="form-select form-select-sm" style="min-width:220px;width:auto">
             <option value="">— не выбран —</option>
             {% for с in судьи_старта %}
             <option value="{{ с.фамилия_имя_отчество }}"
@@ -151,10 +151,12 @@
             </option>
             {% endfor %}
           </select>
+          <a href="{{ url_for('дг.старт_время', sor_id=сор.id) }}"
+             target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
         </div>
-        <div class="col-auto d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-nowrap">
           <label class="form-label mb-0 text-nowrap">Старший судья финиша</label>
-          <select name="старший_судья_финиша" class="form-select form-select-sm" style="min-width:220px">
+          <select name="старший_судья_финиша" class="form-select form-select-sm" style="min-width:220px;width:auto">
             <option value="">— не выбран —</option>
             {% for с in судьи_финиша %}
             <option value="{{ с.фамилия_имя_отчество }}"
@@ -163,6 +165,8 @@
             </option>
             {% endfor %}
           </select>
+          <a href="{{ url_for('дг.финиш_время', sor_id=сор.id) }}"
+             target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
         </div>
       </div>
       {# Секции #}

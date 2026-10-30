@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}ДГ: финиш — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    {% if not закреплено %}
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">Длинная гонка — финиш</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .св-команда-row { cursor: default; }
+  .св-команда-row.готово { background: #e5f4e4; }
+  .св-кн-финиш { min-height: 54px; font-size: 1.15rem; font-weight: 700; }
+  .св-время-знач { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">Длинная гонка — финиш</div>
+</div>
+
+{% if закреплено %}
+<div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span>🔒 Телефон закреплён только за этой страницей</span>
+  <form method="post" action="{{ url_for('дг.финиш_время_выйти', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-success">Снять ограничение</button>
+  </form>
+</div>
+{% else %}
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span class="small text-muted">Чтобы судья не мог зайти на другие страницы с этого телефона —</span>
+  <form method="post" action="{{ url_for('дг.финиш_время_закрепить', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">🔒 Закрепить телефон за финишем</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="text-muted small mb-2">Нажмите «Финиш!» в момент пересечения командой финишной линии.</div>
+
+<div id="список-команд">
+  {% for к in команды %}
+  {% set время = время_по_команде.get(к.id) %}
+  {% set шт = штраф_по_команде.get(к.id, {}) %}
+  <div class="card mb-2 св-команда-row {{ 'готово' if время is not none }}" data-команда-id="{{ к.id }}">
+    <div class="card-body py-2 px-3 d-flex justify-content-between align-items-center gap-2">
+      <div>
+        <span class="fw-bold fs-5">№{{ к.нагрудный_номер }}</span>
+        <span class="text-muted small ms-2">{{ к.название or '' }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="св-время-знач {{ 'text-success fw-semibold' if время is not none else 'text-muted' }}">
+          {{ format_time(время) if время is not none else '—' }}
+        </span>
+        <button type="button" class="btn btn-danger btn-sm св-кн-финиш"
+                onclick="зафиксировать({{ к.id }}, this)">🏁 Финиш!</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm кн-исправить {{ 'd-none' if время is none }}"
+                onclick="переключитьРучнойВвод({{ к.id }})">✎</button>
+      </div>
+    </div>
+    <div class="card-footer bg-white py-2 px-3 d-none ручной-ввод-блок">
+      <div class="d-flex gap-2 align-items-center">
+        <input type="text" class="form-control form-control-sm font-monospace время-ввод"
+               placeholder="00:00:00.00" autocomplete="off" style="max-width:160px">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="сохранитьРучной({{ к.id }}, this)">Сохранить</button>
+      </div>
+    </div>
+    <div class="card-footer bg-white py-2 px-3 d-flex gap-2 flex-wrap align-items-center">
+      <span class="text-muted small me-1">Штраф:</span>
+      <button type="button" class="btn btn-sm btn-outline-danger штраф-счётчик"
+              data-команда="{{ к.id }}" data-тип="кф" onclick="штрафТап(this)">
+        +50с: <span class="знач">{{ шт.get('кф', 0) }}</span>
+      </button>
+      <button type="button" class="btn btn-sm {{ 'btn-dark' if шт.get('дк') else 'btn-outline-dark' }} дк-кн"
+              data-команда="{{ к.id }}" onclick="дкТап(this)">ДК</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function применитьФормат(inp) {
+  inp.addEventListener('input', function () {
+    const raw = this.value.replace(/ноль/gi, '0').replace(/\D/g, '').slice(0, 8);
+    let out = '';
+    for (let i = 0; i < raw.length; i++) {
+      if (i === 2 || i === 4) out += ':';
+      else if (i === 6) out += '.';
+      out += raw[i];
+    }
+    this.value = out;
+  });
+}
+document.querySelectorAll('.время-ввод').forEach(применитьФормат);
+
+function переключитьРучнойВвод(id) {
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + id + '"]');
+  if (!row) return;
+  row.querySelector('.ручной-ввод-блок').classList.toggle('d-none');
+}
+
+function отправить(командаId, время, btn) {
+  const исходныйТекст = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  fetch("{{ url_for('дг.финиш_время_зафиксировать', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ команда_id: командаId, время: время || '' })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+      return;
+    }
+    const row = document.querySelector('.св-команда-row[data-команда-id="' + командаId + '"]');
+    if (row) {
+      row.classList.add('готово');
+      const знач = row.querySelector('.св-время-знач');
+      знач.textContent = data.время;
+      знач.classList.add('text-success', 'fw-semibold');
+      знач.classList.remove('text-muted');
+      row.querySelector('.ручной-ввод-блок').classList.add('d-none');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  }).catch(function () {
+    alert('Нет соединения с сервером — время не сохранено. Проверьте Wi-Fi.');
+    if (btn) { btn.disabled = false; btn.textContent = исходныйТекст; }
+  });
+}
+
+function зафиксировать(командаId, btn) {
+  отправить(командаId, null, btn);
+}
+
+function сохранитьРучной(командаId, btn) {
+  const row = document.querySelector('.св-команда-row[data-команда-id="' + командаId + '"]');
+  const inp = row.querySelector('.ручной-ввод-блок .время-ввод');
+  if (!inp.value) return;
+  отправить(командаId, inp.value, btn);
+}
+
+function штрафЗапрос(данные) {
+  return fetch("{{ url_for('дг.штраф', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(данные)
+  }).then(function (r) { return r.json(); });
+}
+
+function штрафТап(btn) {
+  const span = btn.querySelector('.знач');
+  let n = (parseInt(span.textContent, 10) || 0) + 1;
+  if (n > 9) n = 0;
+  const прежнее = span.textContent;
+  span.textContent = n;
+  штрафЗапрос({ команда_id: btn.dataset.команда, тип: btn.dataset.тип, знач: n })
+    .then(function (data) {
+      if (!data.ok) { alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера')); span.textContent = прежнее; }
+    })
+    .catch(function () { alert('Нет соединения с сервером.'); span.textContent = прежнее; });
+}
+
+function дкТап(btn) {
+  const вкл = !btn.classList.contains('btn-dark');
+  btn.classList.toggle('btn-dark', вкл);
+  btn.classList.toggle('btn-outline-dark', !вкл);
+  штрафЗапрос({ команда_id: btn.dataset.команда, тип: 'дк', знач: вкл })
+    .then(function (data) {
+      if (!data.ok) {
+        alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+        btn.classList.toggle('btn-dark', !вкл);
+        btn.classList.toggle('btn-outline-dark', вкл);
+      }
+    })
+    .catch(function () {
+      alert('Нет соединения с сервером.');
+      btn.classList.toggle('btn-dark', !вкл);
+      btn.classList.toggle('btn-outline-dark', вкл);
+    });
+}
+
+// Автообновление — время и штрафы, исправленные на десктопной странице
+// «Результаты заездов», появляются здесь сами, без перезагрузки.
+(function () {
+  const url = "{{ url_for('дг.результаты_обновления', sor_id=сор.id) }}";
+  function обновить() {
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      document.querySelectorAll('.св-команда-row').forEach(function (row) {
+        const teamId = row.dataset.командаId;
+        const инфо = data[teamId];
+        if (!инфо) return;
+
+        const ручнойОткрыт = !row.querySelector('.ручной-ввод-блок').classList.contains('d-none');
+        if (!ручнойОткрыт) {
+          const времяСпан = row.querySelector('.св-время-знач');
+          const новоеВремя = инфо.время_финиша || '';
+          if (времяСпан && времяСпан.textContent !== (новоеВремя || '—')) {
+            if (новоеВремя) {
+              времяСпан.textContent = новоеВремя;
+              времяСпан.classList.add('text-success', 'fw-semibold');
+              времяСпан.classList.remove('text-muted');
+              row.classList.add('готово');
+              const кнИсправить = row.querySelector('.кн-исправить');
+              if (кнИсправить) кнИсправить.classList.remove('d-none');
+            } else {
+              времяСпан.textContent = '—';
+              времяСпан.classList.remove('text-success', 'fw-semibold');
+              времяСпан.classList.add('text-muted');
+              row.classList.remove('готово');
+            }
+          }
+        }
+
+        row.querySelectorAll('.штраф-счётчик').forEach(function (btn) {
+          if (btn === document.activeElement) return;
+          const тип = btn.dataset.тип;
+          const знач = инфо[тип];
+          if (знач === undefined) return;
+          const span = btn.querySelector('.знач');
+          if (span && span.textContent !== String(знач)) span.textContent = знач;
+        });
+
+        const дкBtn = row.querySelector('.дк-кн');
+        if (дкBtn) {
+          const вкл = инфо.статус === 'ДК';
+          дкBtn.classList.toggle('btn-dark', вкл);
+          дкBtn.classList.toggle('btn-outline-dark', !вкл);
+        }
+      });
+    }).catch(function () {});
+  }
+  setInterval(обновить, 4000);
+})();
+</script>
+{% endblock %}

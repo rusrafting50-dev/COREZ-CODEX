@@ -114,44 +114,44 @@
         <td class="text-center">{{ к.нагрудный_номер }}</td>
         <td>{{ к.субъект.название | truncate(16) if к.субъект else '—' }}</td>
         <td>
-          <input type="text" name="вс_{{ р.команда_id }}"
+          <input type="text" name="вс_{{ р.команда_id }}" id="вс_{{ р.команда_id }}"
                  class="form-control form-control-sm font-monospace"
                  value="{{ format_time(р.время_старта) }}"
                  placeholder="00:00:00.00" autocomplete="off"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="number" name="с10_{{ р.команда_id }}"
+          <input type="number" name="с10_{{ р.команда_id }}" id="с10_{{ р.команда_id }}"
                  class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.кол_штраф_с10 or 0 }}" min="0" max="9"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="number" name="кс_{{ р.команда_id }}"
+          <input type="number" name="кс_{{ р.команда_id }}" id="кс_{{ р.команда_id }}"
                  class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.кол_штраф_старт or 0 }}" min="0" max="9"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="checkbox" name="дк_{{ р.команда_id }}" value="1"
+          <input type="checkbox" name="дк_{{ р.команда_id }}" id="дк_{{ р.команда_id }}" value="1"
                  class="form-check-input дк-чек"
                  {% if дк %}checked{% endif %}>
         </td>
         <td>
-          <input type="text" name="вф_{{ р.команда_id }}"
+          <input type="text" name="вф_{{ р.команда_id }}" id="вф_{{ р.команда_id }}"
                  class="form-control form-control-sm font-monospace"
                  value="{{ format_time(р.время_финиша) }}"
                  placeholder="00:00:00.00" autocomplete="off"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="number" name="кф_{{ р.команда_id }}"
+          <input type="number" name="кф_{{ р.команда_id }}" id="кф_{{ р.команда_id }}"
                  class="form-control form-control-sm text-center font-monospace штраф-ввод"
                  value="{{ р.кол_штраф_финиш or 0 }}" min="0" max="9"
                  {% if дк %}disabled{% endif %}>
         </td>
         <td class="text-center">
-          <input type="checkbox" name="дк_фин_{{ р.команда_id }}" value="1"
+          <input type="checkbox" name="дк_фин_{{ р.команда_id }}" id="дк_фин_{{ р.команда_id }}" value="1"
                  class="form-check-input дк-фин-чек"
                  {% if дк %}checked{% endif %}>
         </td>
@@ -160,11 +160,11 @@
                  class="form-control form-control-sm text-center font-monospace штраф-ввод секц-ввод"
                  value="{{ секц_кол }}" min="0" max="99">
         </td>
-        <td class="text-center font-monospace cell-время">{{ format_dur(р.время_прохождения) if р.время_прохождения else '—' }}</td>
-        <td class="text-center font-monospace cell-штраф {{ 'text-danger' if р.штрафное_время else '' }}">
+        <td class="text-center font-monospace cell-время" id="время_{{ р.команда_id }}">{{ format_dur(р.время_прохождения) if р.время_прохождения else '—' }}</td>
+        <td class="text-center font-monospace cell-штраф {{ 'text-danger' if р.штрафное_время else '' }}" id="штраф_{{ р.команда_id }}">
           {{ format_dur(р.штрафное_время) if р.штрафное_время else '0:00.00' }}
         </td>
-        <td class="text-center font-monospace cell-результат">
+        <td class="text-center font-monospace cell-результат" id="результат_{{ р.команда_id }}">
           {% if р.статус == 'ПМ' %}<span class="text-muted">ПМ</span>
           {% else %}{{ format_dur(р.результат) if р.результат else '—' }}{% endif %}
         </td>
@@ -174,7 +174,7 @@
         <td class="text-center">{{ р.очки | int if р.очки else '—' }}</td>
         <td class="text-center">{{ разряды.get(р.команда_id, '—') if _норм else '—' }}</td>
         <td>
-          <select name="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace" style="appearance:none;-webkit-appearance:none;background-image:none;width:60%;padding-right:.4rem">
+          <select name="ст_{{ р.команда_id }}" id="ст_{{ р.команда_id }}" class="form-select form-select-sm font-monospace" style="appearance:none;-webkit-appearance:none;background-image:none;width:60%;padding-right:.4rem">
             {% for код, метка in СТАТУСЫ %}
             <option value="{{ код }}" {{ 'selected' if р.статус == код }}>{{ метка }}</option>
             {% endfor %}
@@ -324,5 +324,71 @@ function пересчитатьСтроку(row) {
     }
     if (cellРез) cellРез.textContent = result !== null ? formatDur(result) : '—';
 }
+
+// ── Автообновление — время/штрафы, введённые/исправленные с мобильных ──────
+// страниц старта/финиша появляются здесь сами. Поле, которое сейчас
+// редактируют на этой же странице (но ещё не сохранили кнопкой
+// «Сохранить»), автообновление не трогает.
+(function () {
+  const url = "{{ url_for('дг.результаты_обновления', sor_id=сор.id) }}";
+
+  function безопасноЗнач(el, новое) {
+    if (!el) return true;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || el.value === посл);
+    if (можно && el.value !== String(новое)) el.value = новое;
+    el.dataset.посл = String(новое);
+    return можно;
+  }
+
+  function безопасноЧек(el, новое) {
+    if (!el) return true;
+    const посл = el.dataset.посл;
+    const можно = el !== document.activeElement && (посл === undefined || String(el.checked) === посл);
+    if (можно) el.checked = новое;
+    el.dataset.посл = String(новое);
+    return можно;
+  }
+
+  function обновить() {
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      for (const teamId in data) {
+        const инфо = data[teamId];
+        let редактируется = false;
+        if (!безопасноЗнач(document.getElementById('вс_' + teamId), инфо.время_старта)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('вф_' + teamId), инфо.время_финиша)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('с10_' + teamId), инфо.с10)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('кс_' + teamId), инфо.кс)) редактируется = true;
+        if (!безопасноЗнач(document.getElementById('кф_' + teamId), инфо.кф)) редактируется = true;
+
+        const дкВкл = инфо.статус === 'ДК';
+        const дк = document.getElementById('дк_' + teamId);
+        if (безопасноЧек(дк, дкВкл) && дк) {
+          const row = дк.closest('tr');
+          if (row) {
+            row.querySelectorAll('[name^="вс_"], [name^="вф_"], .штраф-ввод').forEach(function (el) {
+              if (el.closest('tr') === row) el.disabled = дкВкл;
+            });
+            row.classList.toggle('table-danger', дкВкл);
+          }
+        }
+        безопасноЧек(document.getElementById('дк_фин_' + teamId), дкВкл);
+        безопасноЗнач(document.getElementById('ст_' + teamId), инфо.статус);
+
+        if (!редактируется) {
+          const время = document.getElementById('время_' + teamId);
+          if (время && время.textContent !== инфо.время) время.textContent = инфо.время;
+          const штраф = document.getElementById('штраф_' + teamId);
+          if (штраф && штраф.textContent !== инфо.штраф) штраф.textContent = инфо.штраф;
+          const результат = document.getElementById('результат_' + teamId);
+          if (результат && результат.textContent !== инфо.результат && !результат.querySelector('span')) {
+            результат.textContent = инфо.результат;
+          }
+        }
+      }
+    }).catch(function () {});
+  }
+  setInterval(обновить, 4000);
+})();
 </script>
 {% endblock %}
