@@ -643,8 +643,9 @@ class РезультатПараллельногоСпринта(db.Model):
     время_старта    = db.Column(db.Float, nullable=True)
     время_финиша    = db.Column(db.Float, nullable=True)
     время           = db.Column(db.Float, nullable=True)   # время_финиша − время_старта (или введено напрямую)
-    штраф_с10       = db.Column(db.Integer, nullable=False, default=0)   # +10 сек
-    штраф_с50       = db.Column(db.Integer, nullable=False, default=0)   # +50 сек
+    штраф_с10       = db.Column(db.Integer, nullable=False, default=0)   # +10 сек на старте
+    штраф_ст50      = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на старте
+    штраф_с50       = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на финише
     штрафное_время  = db.Column(db.Float, nullable=False, default=0)
     результат       = db.Column(db.Float, nullable=True)   # время + штраф
     победитель      = db.Column(db.Boolean, nullable=True)  # выиграл заезд
@@ -1239,6 +1240,12 @@ def применить_миграции():
                 with db.engine.connect() as conn:
                     conn.execute(db.text(
                         "ALTER TABLE результаты_пс ADD COLUMN штраф_с50 INTEGER DEFAULT 0"
+                    ))
+                    conn.commit()
+            if 'штраф_ст50' not in cols_пс:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text(
+                        "ALTER TABLE результаты_пс ADD COLUMN штраф_ст50 INTEGER DEFAULT 0"
                     ))
                     conn.commit()
         if 'последовательность_пс' not in cols_сор:
