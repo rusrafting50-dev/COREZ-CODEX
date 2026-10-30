@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}ПС: буй №{{ n }} — {{ сор.название | truncate(30) }}{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    {% if not закреплено %}
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active">Параллельный спринт — буй №{{ n }}</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<style>
+  .пс-команда-row.готово-да { background: #e5f4e4; }
+  .пс-команда-row.готово-нет { background: #fbe7e7; }
+  .пс-кн-буй { min-width: 46%; min-height: 48px; font-size: 1rem; font-weight: 700; }
+</style>
+
+<div class="mb-2">
+  <div class="fw-bold" style="font-size:1.05rem">{{ сор.название }}</div>
+  <div class="text-muted small">Параллельный спринт — буй №{{ n }}</div>
+</div>
+
+{% if закреплено %}
+<div class="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span>🔒 Телефон закреплён только за этой страницей</span>
+  <form method="post" action="{{ url_for('пс.буй_время_выйти', sor_id=сор.id) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-success">Снять ограничение</button>
+  </form>
+</div>
+{% else %}
+<div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
+  <span class="small text-muted">Чтобы судья не мог зайти на другие страницы с этого телефона —</span>
+  <form method="post" action="{{ url_for('пс.буй_время_закрепить', sor_id=сор.id, n=n) }}" class="m-0">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">🔒 Закрепить телефон за буем №{{ n }}</button>
+  </form>
+</div>
+{% endif %}
+
+{% if not группы %}
+<div class="alert alert-warning">Заездов пока нет — сформируйте сетку на странице стартового протокола.</div>
+{% else %}
+<div class="text-muted small mb-2">Отметьте для каждой команды, прошла ли она буй №{{ n }} правильно.</div>
+
+<div id="список-заездов">
+  {% for г in группы %}
+  <div class="small text-muted mt-2 mb-1">
+    {{ 'Мужчины' if г.пол == 'м' else 'Женщины' }} {{ г.класс }} —
+    {{ НАЗВАНИЯ.get(г.стадия, г.стадия) }} — заезд {{ г.номер }}
+  </div>
+  {% for з in г.записи %}
+  {% set к = з.команда %}
+  {% set значение = з['буй' ~ n] %}
+  <div class="card mb-2 пс-команда-row {{ 'готово-да' if значение is true else ('готово-нет' if значение is false) }}" data-запись-id="{{ з.id }}">
+    <div class="card-body py-2 px-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <span class="fw-bold fs-5">№{{ к.нагрудный_номер }}</span>
+          <span class="text-muted small ms-2">{{ к.название or '' }}</span>
+          <span class="text-muted small ms-1">({{ з.дорожка }})</span>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm пс-кн-буй {{ 'btn-success' if значение is true else 'btn-outline-success' }}"
+                onclick="отметить({{ з.id }}, true, this)">✅ Пройден</button>
+        <button type="button" class="btn btn-sm пс-кн-буй {{ 'btn-danger' if значение is false else 'btn-outline-danger' }}"
+                onclick="отметить({{ з.id }}, false, this)">❌ Не пройден</button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function отметить(записьId, пройден, btn) {
+  const карточка = btn.closest('.пс-команда-row');
+  const кнопки = карточка.querySelectorAll('.пс-кн-буй');
+  кнопки.forEach(function (b) { b.disabled = true; });
+  fetch("{{ url_for('пс.буй_время_зафиксировать', sor_id=сор.id) }}", {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ запись_id: записьId, n: {{ n }}, пройден: пройден })
+  }).then(function (r) { return r.json(); }).then(function (data) {
+    кнопки.forEach(function (b) { b.disabled = false; });
+    if (!data.ok) {
+      alert('Не удалось сохранить: ' + (data.ошибка || 'ошибка сервера'));
+      return;
+    }
+    кнопки.forEach(function (b) {
+      b.classList.remove('btn-success', 'btn-outline-success', 'btn-danger', 'btn-outline-danger');
+    });
+    кнопки[0].classList.add(пройден ? 'btn-success' : 'btn-outline-success');
+    кнопки[1].classList.add(пройден ? 'btn-outline-danger' : 'btn-danger');
+    карточка.classList.remove('готово-да', 'готово-нет');
+    карточка.classList.add(пройден ? 'готово-да' : 'готово-нет');
+  }).catch(function () {
+    кнопки.forEach(function (b) { b.disabled = false; });
+    alert('Нет соединения с сервером — отметка не сохранена. Проверьте Wi-Fi.');
+  });
+}
+</script>
+{% endblock %}

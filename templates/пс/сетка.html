@@ -648,15 +648,19 @@
         {% for n in range(1, 5) %}
         <div class="col-md-6">
           <label class="form-label mb-1">Старший судья на буе № {{ n }}</label>
-          <select name="судья_буя_{{ n }}_пс" class="form-select form-select-sm">
-            <option value="">— не указан —</option>
-            {% for с in судьи_буёв | default([]) %}
-            <option value="{{ с.фамилия_имя_отчество }}"
-              {% if (сор | attr('судья_буя_' ~ n ~ '_пс')) == с.фамилия_имя_отчество %}selected{% endif %}>
-              {{ с.фамилия_имя_отчество }}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="d-flex align-items-center gap-2 flex-nowrap">
+            <select name="судья_буя_{{ n }}_пс" class="form-select form-select-sm">
+              <option value="">— не указан —</option>
+              {% for с in судьи_буёв | default([]) %}
+              <option value="{{ с.фамилия_имя_отчество }}"
+                {% if (сор | attr('судья_буя_' ~ n ~ '_пс')) == с.фамилия_имя_отчество %}selected{% endif %}>
+                {{ с.фамилия_имя_отчество }}
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('пс.буй_время', sor_id=сор.id, n=n) }}"
+               target="_blank" class="btn btn-sm btn-outline-secondary text-nowrap">📱 Ввод на телефоне</a>
+          </div>
         </div>
         {% endfor %}
       </div>

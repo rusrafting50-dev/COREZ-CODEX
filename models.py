@@ -645,7 +645,12 @@ class РезультатПараллельногоСпринта(db.Model):
     время           = db.Column(db.Float, nullable=True)   # время_финиша − время_старта (или введено напрямую)
     штраф_с10       = db.Column(db.Integer, nullable=False, default=0)   # +10 сек на старте
     штраф_ст50      = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на старте
-    штраф_буй       = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на буях
+    # Прохождение буёв (ставят судьи на буях с телефона): True/False/None (ещё не отмечено)
+    буй1            = db.Column(db.Boolean, nullable=True)
+    буй2            = db.Column(db.Boolean, nullable=True)
+    буй3            = db.Column(db.Boolean, nullable=True)
+    буй4            = db.Column(db.Boolean, nullable=True)
+    штраф_буй       = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на буях (0/1/2 — считается по буям)
     штраф_с50       = db.Column(db.Integer, nullable=False, default=0)   # +50 сек на финише
     штрафное_время  = db.Column(db.Float, nullable=False, default=0)
     результат       = db.Column(db.Float, nullable=True)   # время + штраф
@@ -1255,6 +1260,13 @@ def применить_миграции():
                         "ALTER TABLE результаты_пс ADD COLUMN штраф_буй INTEGER DEFAULT 0"
                     ))
                     conn.commit()
+            for _буй_col in ('буй1', 'буй2', 'буй3', 'буй4'):
+                if _буй_col not in cols_пс:
+                    with db.engine.connect() as conn:
+                        conn.execute(db.text(
+                            f"ALTER TABLE результаты_пс ADD COLUMN {_буй_col} BOOLEAN"
+                        ))
+                        conn.commit()
         if 'последовательность_пс' not in cols_сор:
             with db.engine.connect() as conn:
                 conn.execute(text(

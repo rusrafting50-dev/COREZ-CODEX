@@ -137,6 +137,10 @@ def create_app() -> Flask:
         'пс.финиш_время_зафиксировать', 'пс.финиш_время_выйти',
         'пс.штраф',
     }
+    _КИОСК_ПС_БУЙ_ЭНДПОИНТЫ = {
+        'static', 'пс.буй_время',
+        'пс.буй_время_зафиксировать', 'пс.буй_время_выйти',
+    }
 
     @app.before_request
     def _ограничить_киоск():
@@ -202,6 +206,16 @@ def create_app() -> Flask:
         if замок_пс_финиш:
             if request.endpoint not in _КИОСК_ПС_ФИНИШ_ЭНДПОИНТЫ:
                 return redirect(url_for('пс.финиш_время', sor_id=замок_пс_финиш['sor_id']))
+            return None
+
+        замок_пс_буй = session.get('киоск_пс_буй')
+        if замок_пс_буй:
+            if request.endpoint not in _КИОСК_ПС_БУЙ_ЭНДПОИНТЫ:
+                return redirect(url_for('пс.буй_время', sor_id=замок_пс_буй['sor_id'], n=замок_пс_буй['n']))
+            if request.endpoint == 'пс.буй_время':
+                if (request.view_args.get('sor_id') != замок_пс_буй['sor_id'] or
+                        request.view_args.get('n') != замок_пс_буй['n']):
+                    return redirect(url_for('пс.буй_время', sor_id=замок_пс_буй['sor_id'], n=замок_пс_буй['n']))
             return None
 
         return None
