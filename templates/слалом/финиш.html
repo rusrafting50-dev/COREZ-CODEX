@@ -145,8 +145,9 @@
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр1.get(в, 0) %}
       <td class="p-0">
-        <select name="г_{{ к.id }}_{{ в }}_1"
-                class="form-select form-select-sm border-0 text-center px-0"
+        <select name="г_{{ к.id }}_{{ в }}_1" id="г_{{ к.id }}_{{ в }}_1"
+                class="form-select form-select-sm border-0 text-center px-0 ворота-штраф"
+                data-команда="{{ к.id }}" data-ворота="{{ в }}" data-попытка="1"
                 style="font-size:.65rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
@@ -174,13 +175,13 @@
                {{ 'checked' if ст1 == 'ДК' }}>
       </td>
       {# Результат попытки 1 #}
-      <td class="text-center">{{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}</td>
-      <td class="text-center font-monospace">{{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}</td>
-      <td class="text-center font-monospace">{{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}</td>
+      <td class="text-center" id="штрафвр_{{ к.id }}_1">{{ format_dur(р1.штрафное_время) if р1 and р1.штрафное_время else '—' }}</td>
+      <td class="text-center font-monospace" id="времяпр_{{ к.id }}_1">{{ format_dur(р1.время_прохождения) if р1 and р1.время_прохождения else '—' }}</td>
+      <td class="text-center font-monospace" id="результат_{{ к.id }}_1">{{ format_dur(р1.результат_попытки) if р1 and р1.результат_попытки else '—' }}</td>
       {# Результат лучшей попытки (rowspan=2) #}
-      <td class="text-center font-monospace" rowspan="2">{{ format_dur(лучш) if лучш else '—' }}</td>
+      <td class="text-center font-monospace" rowspan="2" id="лучший_{{ к.id }}">{{ format_dur(лучш) if лучш else '—' }}</td>
       {# Место (rowspan=2) #}
-      <td class="text-center" rowspan="2">{{ место_val }}</td>
+      <td class="text-center" rowspan="2" id="место_{{ к.id }}">{{ место_val }}</td>
       {# Статус 1 #}
       <td class="p-1">
         <select name="ст1_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
@@ -221,8 +222,9 @@
       {% for в in range(1, кол_ворот + 1) %}
       {% set текущий = к_штр2.get(в, 0) %}
       <td class="p-0">
-        <select name="г_{{ к.id }}_{{ в }}_2"
-                class="form-select form-select-sm border-0 text-center px-0"
+        <select name="г_{{ к.id }}_{{ в }}_2" id="г_{{ к.id }}_{{ в }}_2"
+                class="form-select form-select-sm border-0 text-center px-0 ворота-штраф"
+                data-команда="{{ к.id }}" data-ворота="{{ в }}" data-попытка="2"
                 style="font-size:.65rem;width:100%;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:none;background-color:{{ '#fff3cd' if текущий == 5 else ('#f8d7da' if текущий == 50 else 'transparent') }}"
                 onchange="this.style.backgroundColor=this.value=='5'?'#fff3cd':(this.value=='50'?'#f8d7da':'transparent')">
           <option value="0" {{ 'selected' if текущий == 0 }}>0</option>
@@ -250,9 +252,9 @@
                {{ 'checked' if ст2 == 'ДК' }}>
       </td>
       {# Результат попытки 2 #}
-      <td class="text-center">{{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}</td>
-      <td class="text-center font-monospace">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
-      <td class="text-center font-monospace">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
+      <td class="text-center" id="штрафвр_{{ к.id }}_2">{{ format_dur(р2.штрафное_время) if р2 and р2.штрафное_время else '—' }}</td>
+      <td class="text-center font-monospace" id="времяпр_{{ к.id }}_2">{{ format_dur(р2.время_прохождения) if р2 and р2.время_прохождения else '—' }}</td>
+      <td class="text-center font-monospace" id="результат_{{ к.id }}_2">{{ format_dur(р2.результат_попытки) if р2 and р2.результат_попытки else '—' }}</td>
       {# Статус 2 #}
       <td class="p-1">
         <select name="ст2_{{ к.id }}" class="form-select form-select-sm" style="font-size:.76rem;appearance:none;-webkit-appearance:none;background-image:none;padding-right:.4rem;width:100%">
@@ -311,5 +313,45 @@ document.querySelectorAll('.дк-ст-чек, .дк-фин-чек').forEach(cb =
     }
   });
 });
+
+// Автообновление штрафов на воротах — чтобы данные, введённые судьёй на
+// телефоне (связка ворот), появлялись здесь без F5.
+(function () {
+  const url = "{{ url_for('слалом.финиш_обновления', sor_id=сор.id) }}";
+  function применитьЦвет(select, знач) {
+    select.style.backgroundColor = знач == 5 ? '#fff3cd' : (знач == 50 ? '#f8d7da' : 'transparent');
+  }
+  function обновить() {
+    fetch(url).then(r => r.json()).then(data => {
+      for (const teamId in data) {
+        const поп = data[teamId];
+        for (const n of [1, 2]) {
+          const инфо = поп[n];
+          if (!инфо) continue;
+          for (const в in инфо.ворота) {
+            const select = document.getElementById('г_' + teamId + '_' + в + '_' + n);
+            if (!select || select === document.activeElement) continue;
+            const знач = String(инфо.ворота[в]);
+            if (select.value !== знач) {
+              select.value = знач;
+              применитьЦвет(select, знач);
+            }
+          }
+          const штрафвр = document.getElementById('штрафвр_' + teamId + '_' + n);
+          if (штрафвр && штрафвр.textContent !== инфо.штраф) штрафвр.textContent = инфо.штраф;
+          const времяпр = document.getElementById('времяпр_' + teamId + '_' + n);
+          if (времяпр && времяпр.textContent !== инфо.время) времяпр.textContent = инфо.время;
+          const результат = document.getElementById('результат_' + teamId + '_' + n);
+          if (результат && результат.textContent !== инфо.результат) результат.textContent = инфо.результат;
+        }
+        const лучший = document.getElementById('лучший_' + teamId);
+        if (лучший && лучший.textContent !== поп.лучший) лучший.textContent = поп.лучший;
+        const место = document.getElementById('место_' + teamId);
+        if (место && место.textContent !== String(поп.место)) место.textContent = поп.место;
+      }
+    }).catch(() => {});
+  }
+  setInterval(обновить, 4000);
+})();
 </script>
 {% endblock %}
