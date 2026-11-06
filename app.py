@@ -59,6 +59,7 @@ def create_app() -> Flask:
     from routes.дистанция       import bp_дистанция
     from routes.награждение     import bp_награждение
     from routes.api             import bp_api
+    from routes.настройки       import bp_настройки
 
     app.register_blueprint(bp_main)
     app.register_blueprint(bp_соревнование, url_prefix='/соревнование')
@@ -79,6 +80,21 @@ def create_app() -> Flask:
     app.register_blueprint(bp_дистанция,    url_prefix='/дистанция')
     app.register_blueprint(bp_награждение,  url_prefix='/награждение')
     app.register_blueprint(bp_api,          url_prefix='/api')
+    app.register_blueprint(bp_настройки,    url_prefix='/настройки')
+
+    # ------------------------------------------------------------------
+    # Общие данные для шапки (Календарь/ЦФО/МО) — доступны во всех шаблонах
+    # ------------------------------------------------------------------
+    @app.context_processor
+    def _данные_шапки():
+        from datetime import date
+        from models import СубъектЦФО, МуниципальноеОбразование
+        return {
+            'НАВ_ГОД': date.today().year,
+            'НАВ_СУБЪЕКТЫ_ЦФО': СубъектЦФО.query.order_by(СубъектЦФО.порядок, СубъектЦФО.название).all(),
+            'НАВ_МО': МуниципальноеОбразование.query.order_by(
+                МуниципальноеОбразование.порядок, МуниципальноеОбразование.название).all(),
+        }
 
     # ------------------------------------------------------------------
     # Офлайн/онлайн режим — доступен во всех шаблонах как `офлайн_режим`

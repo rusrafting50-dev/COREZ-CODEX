@@ -32,7 +32,62 @@
         {% if self.breadcrumb() | trim %}
           {% block breadcrumb %}{% endblock %}
         {% else %}
-          <a class="nav-link py-0" href="{{ url_for('main.index') }}">Главная</a>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+
+            <div class="btn-group btn-group-sm">
+              <a href="{{ url_for('main.index', год=НАВ_ГОД) }}" class="btn btn-outline-light">
+                Календарь {{ НАВ_ГОД }}
+              </a>
+              <button type="button" class="btn btn-outline-light dropdown-toggle dropdown-toggle-split"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Переключить меню календаря</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('main.index', год=НАВ_ГОД + 1) }}">
+                  Календарь {{ НАВ_ГОД + 1 }}</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('main.index', год=НАВ_ГОД - 1) }}">
+                  Календарь {{ НАВ_ГОД - 1 }}</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('main.архив') }}">Архив</a></li>
+              </ul>
+            </div>
+
+            <div class="btn-group btn-group-sm">
+              <a href="{{ url_for('main.index') }}" class="btn btn-outline-light">Соревнования ЦФО</a>
+              <button type="button" class="btn btn-outline-light dropdown-toggle dropdown-toggle-split"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Переключить меню субъектов</span>
+              </button>
+              <ul class="dropdown-menu">
+                {% for с in НАВ_СУБЪЕКТЫ_ЦФО %}
+                <li><a class="dropdown-item" href="{{ url_for('main.index', субъект=с.название) }}">
+                  {{ с.название }}</a></li>
+                {% else %}
+                <li><span class="dropdown-item-text text-muted small">Список пуст — добавьте в Настройках</span></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <div class="btn-group btn-group-sm">
+              <a href="{{ url_for('main.index') }}" class="btn btn-outline-light">Муниципальное образование</a>
+              <button type="button" class="btn btn-outline-light dropdown-toggle dropdown-toggle-split"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Переключить меню муниципальных образований</span>
+              </button>
+              <ul class="dropdown-menu">
+                {% for м in НАВ_МО %}
+                <li><a class="dropdown-item" href="{{ url_for('main.index', мо=м.название) }}">
+                  {{ м.название }}</a></li>
+                {% else %}
+                <li><span class="dropdown-item-text text-muted small">Список пуст — добавьте в Настройках</span></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <a href="{{ url_for('настройки.страница') }}" class="btn btn-outline-light btn-sm">⚙ Настройки</a>
+            <a href="{{ url_for('настройки.импорт') }}" class="btn btn-outline-light btn-sm">📥 Импорт из Excel</a>
+
+          </div>
         {% endif %}
       </div>
       <form method="post" action="{{ url_for('main.переключить_офлайн') }}" class="no-print">

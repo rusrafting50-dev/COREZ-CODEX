@@ -113,6 +113,8 @@ class Соревнование(db.Model):
     код_субъекта_рф             = db.Column(db.Integer,     nullable=True)
     номер_екп                   = db.Column(db.String(100), nullable=True)
     логотип                     = db.Column(db.String(255), nullable=True)   # имя файла в static/uploads/логотипы
+    муниципальное_образование   = db.Column(db.String(200), nullable=True)   # для фильтра на главной
+    кол_участников               = db.Column(db.Integer,     nullable=True)   # план из Календарного плана (импорт)
 
     # Спортивные характеристики
     класс_судна                 = db.Column(db.String(5),  nullable=False, default='R4')  # R4 / R6
@@ -968,6 +970,24 @@ class СпортсменЗаявки(db.Model):
     возрастная_группа = db.Column(db.String(50), nullable=True)
 
 
+class СубъектЦФО(db.Model):
+    """Справочник субъектов для фильтра «Соревнования ЦФО» на главной (настраивается в Настройках)."""
+    __tablename__ = 'субъекты_цфо'
+
+    id       = db.Column(db.Integer, primary_key=True)
+    название = db.Column(db.String(200), nullable=False, unique=True)
+    порядок  = db.Column(db.Integer, nullable=True)
+
+
+class МуниципальноеОбразование(db.Model):
+    """Справочник муниципальных образований для фильтра на главной (настраивается в Настройках)."""
+    __tablename__ = 'муниципальные_образования'
+
+    id       = db.Column(db.Integer, primary_key=True)
+    название = db.Column(db.String(200), nullable=False, unique=True)
+    порядок  = db.Column(db.Integer, nullable=True)
+
+
 def применить_миграции():
     """Добавить недостающие колонки в существующую БД (идемпотентно)."""
     from sqlalchemy import inspect, text
@@ -1424,6 +1444,14 @@ def применить_миграции():
         if 'логотип' not in cols_сор_fin:
             with db.engine.connect() as conn:
                 conn.execute(text('ALTER TABLE соревнования ADD COLUMN логотип VARCHAR(255)'))
+                conn.commit()
+        if 'муниципальное_образование' not in cols_сор_fin:
+            with db.engine.connect() as conn:
+                conn.execute(text('ALTER TABLE соревнования ADD COLUMN муниципальное_образование VARCHAR(200)'))
+                conn.commit()
+        if 'кол_участников' not in cols_сор_fin:
+            with db.engine.connect() as conn:
+                conn.execute(text('ALTER TABLE соревнования ADD COLUMN кол_участников INTEGER'))
                 conn.commit()
 
 

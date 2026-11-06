@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Импорт из Excel — СЧИТАЛКА{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('настройки.страница') }}">Настройки</a></li>
+    <li class="breadcrumb-item active">Импорт из Excel</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center mb-3">
+  <h4 class="mb-0">Импорт соревнований из Excel</h4>
+</div>
+
+<div class="card mb-3" style="max-width:640px">
+  <div class="card-header fw-semibold py-2 bg-secondary text-white">Файл Календарного плана</div>
+  <div class="card-body">
+    <p class="small text-muted">
+      Загрузите файл в формате «Календарного плана физкультурных и спортивных
+      мероприятий» (лист <strong>КП</strong>: № п/п, Наименование мероприятия,
+      Вид спорта, Начало/Окончание мероприятия, Место проведения,
+      Количество участников и т.д.). Будут импортированы только строки
+      с видом спорта <strong>«Рафтинг»</strong> — для каждой создаётся
+      черновик соревнования (название, даты, место, количество участников).
+      Остальные поля (статус, классы судов, возрастные группы и др.)
+      нужно будет заполнить вручную на странице редактирования.
+    </p>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="файл" accept=".xlsx,.xlsm" class="form-control mb-3" required>
+      <button type="submit" class="btn btn-primary">Импортировать</button>
+      <a href="{{ url_for('настройки.страница') }}" class="btn btn-outline-secondary">Отмена</a>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

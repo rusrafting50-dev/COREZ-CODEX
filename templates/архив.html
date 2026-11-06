@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Архив — СЧИТАЛКА{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item active">Архив</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center mb-3">
+  <h4 class="mb-0">Архив — соревнования по годам</h4>
+</div>
+
+{% if годы %}
+<div class="list-group" style="max-width:360px">
+  {% for год in годы %}
+  <a href="{{ url_for('main.index', год=год) }}"
+     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+    {{ год }} год
+    <span class="text-muted">→</span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-muted">В архиве пока нет соревнований — показаны только текущий, следующий и предыдущий годы на главной.</div>
+{% endif %}
+
+{% endblock %}

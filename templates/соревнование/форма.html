@@ -177,6 +177,19 @@
                  placeholder="Ленинградская область"
                  value="{{ сор.субъект_рф_название if сор else '' }}">
         </div>
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">Муниципальное образование</label>
+          <input type="text" name="муниципальное_образование" list="datalistМО"
+                 class="form-control"
+                 placeholder="Пушкинский г. о."
+                 value="{{ сор.муниципальное_образование if сор else '' }}">
+          <datalist id="datalistМО">
+            {% for м in мо_список %}
+            <option value="{{ м.название }}">
+            {% endfor %}
+          </datalist>
+          <div class="form-text">Используется для фильтра на главной странице (список настраивается в Настройках)</div>
+        </div>
       </div>
     </div>
   </div>
