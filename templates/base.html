@@ -60,7 +60,7 @@
               </button>
               <ul class="dropdown-menu">
                 {% for с in НАВ_СУБЪЕКТЫ_ЦФО %}
-                <li><a class="dropdown-item" href="{{ url_for('main.index', субъект=с.название) }}">
+                <li><a class="dropdown-item" href="{{ url_for('main.index', год=request.args.get('год'), субъект=с.название) }}">
                   {{ с.название }}</a></li>
                 {% else %}
                 <li><span class="dropdown-item-text text-muted small">Список пуст — добавьте в Настройках</span></li>
@@ -76,7 +76,7 @@
               </button>
               <ul class="dropdown-menu">
                 {% for м in НАВ_МО %}
-                <li><a class="dropdown-item" href="{{ url_for('main.index', мо=м.название) }}">
+                <li><a class="dropdown-item" href="{{ url_for('main.index', год=request.args.get('год'), мо=м.название) }}">
                   {{ м.название }}</a></li>
                 {% else %}
                 <li><span class="dropdown-item-text text-muted small">Список пуст — добавьте в Настройках</span></li>

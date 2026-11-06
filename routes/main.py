@@ -10,7 +10,8 @@ bp_main = Blueprint('main', __name__)
 def index():
     все = Соревнование.query.all()
 
-    год     = request.args.get('год', type=int)
+    # Главная — календарь одного года: по умолчанию текущий
+    год     = request.args.get('год', type=int) or _date.today().year
     субъект = (request.args.get('субъект') or '').strip()
     мо      = (request.args.get('мо') or '').strip()
 
