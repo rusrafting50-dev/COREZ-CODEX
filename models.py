@@ -15,6 +15,8 @@ class Настройки(db.Model):
 
     id            = db.Column(db.Integer, primary_key=True)
     офлайн_режим  = db.Column(db.Boolean, nullable=False, default=False)
+    вид_спорта      = db.Column(db.String(200), nullable=True)   # «Наименование вида спорта» (Настройки)
+    код_вида_спорта = db.Column(db.String(50),  nullable=True)   # «Номер-код вида спорта» (Настройки)
 
 
 def получить_настройки():
@@ -977,15 +979,25 @@ class СубъектЦФО(db.Model):
     id       = db.Column(db.Integer, primary_key=True)
     название = db.Column(db.String(200), nullable=False, unique=True)
     порядок  = db.Column(db.Integer, nullable=True)
+    # Реквизиты организации, осуществляющей учёт судейской деятельности
+    организация_название = db.Column(db.String(500), nullable=True)
+    организация_адрес    = db.Column(db.String(500), nullable=True)
+    организация_контакты = db.Column(db.String(500), nullable=True)
+
+    # Муниципальные образования (местные отделения) этого субъекта
+    мо = db.relationship('МуниципальноеОбразование', backref='субъект',
+                         cascade='all, delete-orphan',
+                         order_by='(МуниципальноеОбразование.порядок, МуниципальноеОбразование.название)')
 
 
 class МуниципальноеОбразование(db.Model):
     """Справочник муниципальных образований для фильтра на главной (настраивается в Настройках)."""
     __tablename__ = 'муниципальные_образования'
 
-    id       = db.Column(db.Integer, primary_key=True)
-    название = db.Column(db.String(200), nullable=False, unique=True)
-    порядок  = db.Column(db.Integer, nullable=True)
+    id         = db.Column(db.Integer, primary_key=True)
+    название   = db.Column(db.String(200), nullable=False, unique=True)
+    порядок    = db.Column(db.Integer, nullable=True)
+    субъект_id = db.Column(db.Integer, db.ForeignKey('субъекты_цфо.id'), nullable=True)
 
 
 def применить_миграции():
@@ -1453,6 +1465,22 @@ def применить_миграции():
             with db.engine.connect() as conn:
                 conn.execute(text('ALTER TABLE соревнования ADD COLUMN кол_участников INTEGER'))
                 conn.commit()
+
+    # Настройки: вид спорта и его код; субъекты ЦФО: реквизиты организации;
+    # муниципальные образования: привязка к субъекту ЦФО
+    for таблица, колонки in (
+        ('настройки', (('вид_спорта', 'VARCHAR(200)'), ('код_вида_спорта', 'VARCHAR(50)'))),
+        ('субъекты_цфо', (('организация_название', 'VARCHAR(500)'),
+                          ('организация_адрес', 'VARCHAR(500)'),
+                          ('организация_контакты', 'VARCHAR(500)'))),
+        ('муниципальные_образования', (('субъект_id', 'INTEGER REFERENCES субъекты_цфо(id)'),)),
+    ):
+        имеющиеся = {c['name'] for c in inspect(db.engine).get_columns(таблица)}
+        for кол, тип in колонки:
+            if кол not in имеющиеся:
+                with db.engine.connect() as conn:
+                    conn.execute(text(f'ALTER TABLE {таблица} ADD COLUMN {кол} {тип}'))
+                    conn.commit()
 
 
 # Справочник: субъекты РФ для автодополнения
