@@ -71,6 +71,9 @@
       <td class="text-end text-nowrap">
         <a href="{{ url_for('заявка.печать', sor_id=сор.id, z_id=з.id) }}"
            class="btn btn-outline-secondary btn-sm">🖨 Печать</a>
+        <form action="{{ url_for('заявка.в_регтим', sor_id=сор.id, z_id=з.id) }}" method="post" class="d-inline">
+          <button class="btn btn-outline-info btn-sm" title="Отправить участников в REGTEAM_RAFTING">↗ REGTEAM</button>
+        </form>
         <a href="{{ url_for('заявка.редактировать', sor_id=сор.id, z_id=з.id) }}"
            class="btn btn-outline-primary btn-sm">Изменить</a>
         <form action="{{ url_for('заявка.удалить', sor_id=сор.id, z_id=з.id) }}" method="post"

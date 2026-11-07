@@ -105,6 +105,16 @@ def word(sor_id, z_id):
     )
 
 
+@bp_заявка.route('/<int:sor_id>/<int:z_id>/в-регтим', methods=['POST'])
+def в_регтим(sor_id, z_id):
+    from sync_regteam_rafting import отправить_заявку
+    сор = Соревнование.query.get_or_404(sor_id)
+    з   = ПредварительнаяЗаявка.query.get_or_404(z_id)
+    успех, сообщение = отправить_заявку(сор, з)
+    flash(сообщение, 'success' if успех else 'danger')
+    return redirect(url_for('заявка.список', sor_id=sor_id))
+
+
 def _сохранить_спортсменов(з, form):
     фио_list  = form.getlist('фио[]')
     полы      = form.getlist('пол[]')

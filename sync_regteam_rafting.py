@@ -54,3 +54,60 @@ def найти_спортсменов(q):
         return []
 
     return данные if isinstance(данные, list) else []
+
+
+def отправить_заявку(сор, з):
+    """Отправляет спортсменов из предварительной заявки в REGTEAM_RAFTING
+    (POST /api/competition/import). Возвращает (успех: bool, сообщение: str)."""
+    ключ = _ключ()
+    if not ключ:
+        return False, 'REGTEAM_RAFTING_API_KEY не настроен — отправка невозможна.'
+
+    спортсмены = []
+    for сп in з.спортсмены:
+        if not (сп.фамилия or сп.имя):
+            continue
+        спортсмены.append({
+            'last_name':   сп.фамилия  or '',
+            'first_name':  сп.имя      or '',
+            'middle_name': сп.отчество or '',
+            'birth_date':  сп.дата_рождения.isoformat() if сп.дата_рождения else '',
+            'gender':      сп.пол          or '',
+            'rank':        сп.квалификация or '',
+        })
+
+    if not спортсмены:
+        return False, 'В заявке нет спортсменов для отправки.'
+
+    payload = {
+        'competition_name': сор.название or '',
+        'competition_date': '',
+        'athletes': спортсмены,
+    }
+
+    try:
+        ответ = requests.post(
+            f'{_адрес()}/api/competition/import',
+            json=payload,
+            headers={'X-API-Key': ключ},
+            timeout=10,
+        )
+    except requests.RequestException as e:
+        return False, f'Ошибка соединения с REGTEAM_RAFTING: {e}'
+
+    if ответ.status_code != 200:
+        return False, f'REGTEAM_RAFTING вернул HTTP {ответ.status_code}.'
+
+    try:
+        р = ответ.json()
+    except ValueError:
+        return False, 'Неожиданный ответ от REGTEAM_RAFTING.'
+
+    совпало   = р.get('matched', 0)
+    не_найдено = р.get('unmatched', 0)
+    добавлено  = р.get('participations_created', 0)
+    return True, (
+        f'REGTEAM_RAFTING: совпало {совпало} чел., '
+        f'не найдено в базе {не_найдено} чел., '
+        f'записей участия создано {добавлено}.'
+    )
