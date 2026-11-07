@@ -74,6 +74,7 @@ def отправить_заявку(сор, з):
             'birth_date':  сп.дата_рождения.isoformat() if сп.дата_рождения else '',
             'gender':      сп.пол          or '',
             'rank':        сп.квалификация or '',
+            'subject':     з.субъект_рф    or '',
         })
 
     if not спортсмены:
@@ -104,10 +105,10 @@ def отправить_заявку(сор, з):
         return False, 'Неожиданный ответ от REGTEAM_RAFTING.'
 
     совпало   = р.get('matched', 0)
-    не_найдено = р.get('unmatched', 0)
-    добавлено  = р.get('participations_created', 0)
+    создано   = р.get('created', 0)
+    добавлено = р.get('participations_created', 0)
     return True, (
         f'REGTEAM_RAFTING: совпало {совпало} чел., '
-        f'не найдено в базе {не_найдено} чел., '
+        f'добавлено новых {создано} чел., '
         f'записей участия создано {добавлено}.'
     )
