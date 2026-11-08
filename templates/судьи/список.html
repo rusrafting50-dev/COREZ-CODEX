@@ -29,7 +29,7 @@
     <form method="post"
           action="{{ url_for('судьи.в_sports_referee', sor_id=сор.id) }}"
           onsubmit="return confirm('Отправить {{ судьи|length }} судей в SPORTS_REFEREE?')">
-      <button type="submit" class="btn btn-outline-info btn-sm">→ SPORTS_REFEREE</button>
+      <button type="submit" class="btn btn-outline-info btn-sm">→ SPORTS_REFEREE_RAFTING</button>
     </form>
     <a href="{{ url_for('судьи.добавить', sor_id=сор.id) }}"
        class="btn btn-primary btn-sm">+ Добавить судью</a>
