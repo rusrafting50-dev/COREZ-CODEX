@@ -294,6 +294,16 @@ def минспорта_word(sor_id):
     return create_минспорта_docx(сор, судьи, f'Список судей — {сор.название[:40]}.docx')
 
 
+@bp_судьи.route('/<int:sor_id>/в-sports-referee', methods=['POST'])
+def в_sports_referee(sor_id):
+    """Отправка судей коллегии в SPORTS_REFEREE_RAFTING."""
+    сор   = Соревнование.query.get_or_404(sor_id)
+    судьи = Судья.query.filter_by(соревнование_id=sor_id).all()
+    успех, сообщение = sync_sports_referee.отправить_судей(сор, судьи)
+    flash(сообщение, 'success' if успех else 'danger')
+    return redirect(url_for('судьи.список', sor_id=sor_id))
+
+
 @bp_судьи.route('/<int:sor_id>/справка-word')
 def справка_word(sor_id):
     """Справка о составе — выгрузка Word."""
