@@ -18,7 +18,7 @@ import requests
 
 
 def _адрес():
-    return os.environ.get('SPORTS_REFEREE_URL', 'http://127.0.0.1:5002').rstrip('/')
+    return os.environ.get('SPORTS_REFEREE_URL', 'http://127.0.0.1:5005').rstrip('/')
 
 
 def _ключ():
