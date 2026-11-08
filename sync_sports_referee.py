@@ -18,11 +18,13 @@ import requests
 
 
 def _адрес():
-    return os.environ.get('SPORTS_REFEREE_URL', 'http://127.0.0.1:5005').rstrip('/')
+    return os.environ.get('SPORTS_REFEREE_RAFTING_URL',
+                          os.environ.get('SPORTS_REFEREE_URL', 'http://127.0.0.1:5005')).rstrip('/')
 
 
 def _ключ():
-    return os.environ.get('SPORTS_REFEREE_API_KEY', '')
+    return os.environ.get('SPORTS_REFEREE_RAFTING_API_KEY',
+                          os.environ.get('SPORTS_REFEREE_API_KEY', ''))
 
 
 def найти_судей(q):
