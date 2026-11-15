@@ -1,7 +1,7 @@
 # routes/судьи.py — CRUD судей + печатные документы
 from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from models import db, Судья, Соревнование, СУБЪЕКТЫ_РФ, получить_настройки
+from models import db, Судья, Соревнование, СУБЪЕКТЫ_РФ, ОЦЕНКИ_СУДЕЙСТВА, получить_настройки
 import sync_sports_referee
 
 bp_судьи = Blueprint('судьи', __name__)
@@ -149,7 +149,8 @@ def список(sor_id):
     сегодня = date.today()
     return render_template('судьи/список.html',
                            сор=сор, судьи=судьи, стат=стат,
-                           квал_цвет=КВАЛ_ЦВЕТ, сегодня=сегодня)
+                           квал_цвет=КВАЛ_ЦВЕТ, сегодня=сегодня,
+                           оценки=ОЦЕНКИ_СУДЕЙСТВА)
 
 
 # ── Добавление ────────────────────────────────────────────────────────────────
@@ -220,6 +221,18 @@ def удалить(sor_id, id):
     db.session.commit()
     flash('Судья удалён.', 'warning')
     return redirect(url_for('судьи.список', sor_id=sor_id))
+
+
+@bp_судьи.route('/<int:sor_id>/<int:id>/оценка', methods=['POST'])
+def оценка(sor_id, id):
+    """Смена оценки судейства из выпадающего списка в таблице коллегии."""
+    судья = Судья.query.get_or_404(id)
+    значение = request.form.get('оценка', '').strip()
+    if судья.соревнование_id != sor_id or значение not in ОЦЕНКИ_СУДЕЙСТВА:
+        return jsonify({'ok': False}), 400
+    судья.оценка = значение
+    db.session.commit()
+    return jsonify({'ok': True, 'оценка': судья.оценка})
 
 
 # ── Печатные документы ────────────────────────────────────────────────────────

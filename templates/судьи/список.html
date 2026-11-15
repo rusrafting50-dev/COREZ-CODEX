@@ -48,6 +48,7 @@
         <th>Должность в судейской коллегии</th>
         <th style="min-width:120px">Квалификация спортивного судьи</th>
         <th>Субъект Российской Федерации</th>
+        <th style="width:190px">Оценка</th>
         <th class="no-print" style="width:175px"></th>
       </tr>
     </thead>
@@ -60,6 +61,15 @@
         <td class="small">{{ с.должность or '—' }}</td>
         <td class="text-center small">{{ с.квалификация or '—' }}</td>
         <td class="text-center small">{{ с.субъект_рф or '—' }}</td>
+        <td>
+          <select class="form-select form-select-sm оценка-судьи"
+                  data-url="{{ url_for('судьи.оценка', sor_id=сор.id, id=с.id) }}"
+                  data-prev="{{ с.оценка or 'Отлично' }}">
+            {% for о in оценки %}
+            <option value="{{ о }}" {% if (с.оценка or 'Отлично') == о %}selected{% endif %}>{{ о }}</option>
+            {% endfor %}
+          </select>
+        </td>
         <td class="no-print">
           <div class="d-flex gap-1">
             <a href="{{ url_for('судьи.редактировать', sor_id=сор.id, id=с.id) }}"
@@ -76,7 +86,7 @@
     </tbody>
     <tfoot class="table-light">
       <tr>
-        <td colspan="5" class="text-muted small ps-2">
+        <td colspan="6" class="text-muted small ps-2">
           Итого: {{ стат.всего }} судей
           {% for квал in ['ССВК', 'СС1К', 'СС2К', 'СС3К', 'ЮС'] %}
           {% if стат.по_квал[квал] %}
@@ -96,6 +106,19 @@
     </tfoot>
   </table>
 </div>
+
+<script>
+// Оценка сохраняется сразу при выборе в списке
+document.querySelectorAll('.оценка-судьи').forEach(function (sel) {
+  sel.addEventListener('change', function () {
+    var body = new FormData();
+    body.append('оценка', sel.value);
+    fetch(sel.dataset.url, {method: 'POST', body: body})
+      .then(function (r) { if (!r.ok) throw new Error(r.status); sel.dataset.prev = sel.value; })
+      .catch(function () { sel.value = sel.dataset.prev; alert('Не удалось сохранить оценку'); });
+  });
+});
+</script>
 
 {% else %}
 <div class="text-center py-5">
