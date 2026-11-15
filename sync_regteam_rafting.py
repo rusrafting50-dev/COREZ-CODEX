@@ -84,9 +84,12 @@ def отправить_заявку(сор, з):
     if not спортсмены:
         return False, 'В заявке нет спортсменов для отправки.'
 
+    from результаты_спортсменов import сроки_и_место
     payload = {
         'competition_name': сор.название or '',
         'competition_date': '',
+        'competition_id': сор.id,
+        'competition_period_place': сроки_и_место(сор),
         'athletes': спортсмены,
     }
 
@@ -121,4 +124,53 @@ def отправить_заявку(сор, з):
         сообщение += f' ⚠ {конфликты} чел. числятся в сборной другого региона — проверьте страницу «Из COREZ».'
     if пропущено_имена:
         сообщение += f' Пропущено (нет фамилии и имени): {len(пропущено_имена)} — {", ".join(пропущено_имена[:5])}.'
+    return True, сообщение
+
+
+def отправить_результаты(сор):
+    """Лучшие результаты спортсменов соревнования (место, выполненный разряд)
+    — в «Данные об участии в соревнованиях» их карточек в REGTEAM_RAFTING
+    (POST /api/competition/results). Возвращает (успех: bool, сообщение: str)."""
+    from результаты_спортсменов import лучшие_результаты, сроки_и_место
+
+    ключ = _ключ()
+    if not ключ:
+        return False, 'REGTEAM_RAFTING_API_KEY не настроен — отправка невозможна.'
+
+    спортсмены = []
+    for р in лучшие_результаты(сор):
+        части = р['фио'].split()
+        спортсмены.append({
+            'last_name':   части[0] if части else '',
+            'first_name':  части[1] if len(части) > 1 else '',
+            'middle_name': ' '.join(части[2:]),
+            'birth_date':  р['дата_рождения'].isoformat() if р['дата_рождения'] else '',
+            'result':      р['результат'],
+        })
+    if not спортсмены:
+        return False, 'Нет результатов для отправки: в итоговых протоколах нет мест.'
+
+    payload = {
+        'competition_id': сор.id,
+        'competition_name': сор.название or '',
+        'competition_period_place': сроки_и_место(сор),
+        'athletes': спортсмены,
+    }
+    try:
+        ответ = requests.post(f'{_адрес()}/api/competition/results', json=payload,
+                              headers={'X-API-Key': ключ}, timeout=15)
+    except requests.RequestException as e:
+        return False, f'Ошибка соединения с REGTEAM_RAFTING: {e}'
+    if ответ.status_code != 200:
+        return False, f'REGTEAM_RAFTING вернул HTTP {ответ.status_code}.'
+    try:
+        р = ответ.json()
+    except ValueError:
+        return False, 'Неожиданный ответ от REGTEAM_RAFTING.'
+
+    нет = р.get('not_found') or []
+    сообщение = (f'REGTEAM_RAFTING: результаты переданы в карточки — обновлено записей {р.get("updated", 0)}, '
+                 f'добавлено {р.get("created", 0)}.')
+    if нет:
+        сообщение += f' Нет в базе REGTEAM_RAFTING ({len(нет)}): {", ".join(нет[:10])}{"…" if len(нет) > 10 else ""}.'
     return True, сообщение

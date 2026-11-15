@@ -293,6 +293,16 @@ def страница(sor_id):
     return render_template('отчеты/страница.html', сор=сор)
 
 
+@bp_отчеты.route('/<int:sor_id>/результаты-в-карточки', methods=['POST'])
+def результаты_в_карточки(sor_id):
+    """Лучшие результаты спортсменов — в карточки спортсменов REGTEAM_RAFTING."""
+    from sync_regteam_rafting import отправить_результаты
+    сор = Соревнование.query.get_or_404(sor_id)
+    успех, сообщение = отправить_результаты(сор)
+    flash(сообщение, 'success' if успех else 'danger')
+    return redirect(url_for('отчеты.страница', sor_id=sor_id))
+
+
 @bp_отчеты.route('/<int:sor_id>/отчет-фрр')
 def отчет_фрр(sor_id):
     сор = Соревнование.query.get_or_404(sor_id)

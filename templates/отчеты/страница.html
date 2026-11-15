@@ -19,8 +19,14 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Отчёты о соревнованиях</h5>
-  <a href="{{ url_for('отчеты.отчет_фрр', sor_id=сор.id) }}"
-     class="btn btn-outline-secondary btn-sm">🖨 Отчёты о соревнованиях</a>
+  <div class="d-flex gap-2">
+    <form method="post" action="{{ url_for('отчеты.результаты_в_карточки', sor_id=сор.id) }}" class="m-0"
+          onsubmit="return confirm('Передать лучшие результаты спортсменов (место, выполнение разряда) в их карточки в REGTEAM_RAFTING?');">
+      <button type="submit" class="btn btn-outline-info btn-sm">→ Результаты в карточки спортсменов</button>
+    </form>
+    <a href="{{ url_for('отчеты.отчет_фрр', sor_id=сор.id) }}"
+       class="btn btn-outline-secondary btn-sm">🖨 Отчёты о соревнованиях</a>
+  </div>
 </div>
 
 <form method="post">
