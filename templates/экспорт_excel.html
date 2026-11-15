@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Экспорт в Excel — СЧИТАЛКА{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+    <li class="breadcrumb-item active">Экспорт в Excel</li>
+  </ol>
+{% endblock %}
+
+{% block content %}
+<h4 class="mb-3">Экспорт соревнований в Excel</h4>
+<p class="small text-muted mb-3">
+  Файл по форме «Предложения по включению спортивных мероприятий в Календарный план…»
+  (лист <strong>КП</strong>) — тот же формат читает «Импорт из Excel».
+</p>
+
+<form method="get" class="card mb-3">
+  <div class="card-body row g-3 align-items-end">
+    <div class="col-auto">
+      <label class="form-label mb-0">Календарный год</label>
+      <select name="год" class="form-select" onchange="this.form.submit()">
+        {% for г in годы %}<option value="{{ г }}" {% if г == год %}selected{% endif %}>{{ г }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0">Субъект РФ</label>
+      <select name="субъект" class="form-select" onchange="this.form.submit()">
+        {% for с in субъекты %}<option value="{{ с }}" {% if с == субъект %}selected{% endif %}>{{ с }}</option>{% endfor %}
+        <option value="{{ всероссийские }}" {% if субъект == всероссийские %}selected{% endif %}>{{ всероссийские }}</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" name="муниципальные" value="1" id="муниципальные"
+               {% if с_муниципальными %}checked{% endif %} {% if субъект == всероссийские %}disabled{% endif %}
+               onchange="this.form.submit()">
+        <label class="form-check-label" for="муниципальные">Включать муниципальные соревнования</label>
+      </div>
+    </div>
+    <div class="col-auto ms-auto">
+      <button type="submit" name="скачать" value="1" class="btn btn-success" {% if not соревнования %}disabled{% endif %}>
+        📥 Скачать Excel
+      </button>
+    </div>
+  </div>
+</form>
+
+{% if соревнования %}
+<div class="table-responsive">
+  <table class="table table-sm table-bordered align-middle">
+    <thead class="table-light text-center">
+      <tr>
+        <th style="width:40px">№</th>
+        <th>Наименование мероприятия</th>
+        <th style="width:110px">Начало</th>
+        <th style="width:110px">Окончание</th>
+        <th>Место проведения</th>
+        <th style="width:110px">Кол-во участников</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for с in соревнования %}
+      {% set д = даты(с) %}
+      <tr>
+        <td class="text-center">{{ loop.index }}</td>
+        <td>{{ с.название }}{% if муниципальное(с) %} <span class="badge bg-secondary">муниципальное</span>{% endif %}</td>
+        <td class="text-center">{{ д[0].strftime('%d.%m.%Y') if д[0] }}</td>
+        <td class="text-center">{{ д[1].strftime('%d.%m.%Y') if д[1] }}</td>
+        <td class="small">{{ с.место_проведения or '' }}</td>
+        <td class="text-center">{{ с.кол_участников or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-muted small">Всего: {{ соревнования|length }}</p>
+{% else %}
+<p class="text-muted">Нет соревнований для выбранных условий. Субъект берётся из поля
+  «Субъект РФ» в карточке соревнования, год — из даты начала.</p>
+{% endif %}
+{% endblock %}
