@@ -11,14 +11,9 @@
     </div>
     {% endif %}
   </div>
-  <div class="d-flex gap-2 no-print">
-    <a href="{{ url_for('main.экспорт_excel', год=фильтр_год) }}" class="btn btn-outline-success">
-      📤 Экспорт в Excel
-    </a>
-    <a href="{{ url_for('соревнование.новое') }}" class="btn btn-primary">
-      + Новое соревнование
-    </a>
-  </div>
+  <a href="{{ url_for('соревнование.новое') }}" class="btn btn-primary no-print">
+    + Новое соревнование
+  </a>
 </div>
 
 {% if соревнования %}

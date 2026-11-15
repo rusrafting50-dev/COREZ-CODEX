@@ -87,6 +87,7 @@
 
             <a href="{{ url_for('настройки.страница') }}" class="btn btn-outline-light btn-sm">⚙ Настройки</a>
             <a href="{{ url_for('настройки.импорт') }}" class="btn btn-outline-light btn-sm">📥 Импорт из Excel</a>
+            <a href="{{ url_for('main.экспорт_excel', год=request.args.get('год')) }}" class="btn btn-outline-light btn-sm">📤 Экспорт в Excel</a>
 
           </div>
         {% endif %}
