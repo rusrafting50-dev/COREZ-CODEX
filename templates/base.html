@@ -91,11 +91,18 @@
                 <li><a class="dropdown-item {{ 'active' if not ВЫБР_МО }}" href="{{ url_for('main.index', год=ВЫБР_ГОД, субъект=ВЫБР_СУБЪЕКТ or None) }}">
                   Все муниципальные образования</a></li>
                 <li><hr class="dropdown-divider"></li>
-                {% for м in НАВ_МО %}
-                <li><a class="dropdown-item {{ 'active' if м.название == ВЫБР_МО }}" href="{{ url_for('main.index', год=ВЫБР_ГОД, субъект=ВЫБР_СУБЪЕКТ or None, мо=м.название) }}">
+                {# Выбран субъект — только его муниципальные образования (привязка в Настройках) #}
+                {% set _субъект = НАВ_СУБЪЕКТЫ_ЦФО|selectattr('название', 'equalto', ВЫБР_СУБЪЕКТ)|first if ВЫБР_СУБЪЕКТ else none %}
+                {% set МО_СПИСОК = (НАВ_МО|selectattr('субъект_id', 'equalto', _субъект.id)|list) if _субъект else ([] if ВЫБР_СУБЪЕКТ else НАВ_МО) %}
+                {% for м in МО_СПИСОК %}
+                {# без выбранного субъекта ссылка выбирает и субъект этого образования #}
+                {% set _субъект_мо = ВЫБР_СУБЪЕКТ or ((НАВ_СУБЪЕКТЫ_ЦФО|selectattr('id', 'equalto', м.субъект_id)|map(attribute='название')|first) if м.субъект_id else none) %}
+                <li><a class="dropdown-item {{ 'active' if м.название == ВЫБР_МО }}" href="{{ url_for('main.index', год=ВЫБР_ГОД, субъект=_субъект_мо or None, мо=м.название) }}">
                   {{ м.название }}</a></li>
                 {% else %}
-                <li><span class="dropdown-item-text text-muted small">Список пуст — добавьте в Настройках</span></li>
+                <li><span class="dropdown-item-text text-muted small">
+                  {% if ВЫБР_СУБЪЕКТ %}У субъекта «{{ ВЫБР_СУБЪЕКТ }}» нет муниципальных образований — добавьте в Настройках{% else %}Список пуст — добавьте в Настройках{% endif %}
+                </span></li>
                 {% endfor %}
               </ul>
             </div>
